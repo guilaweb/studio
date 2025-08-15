@@ -11,13 +11,9 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { APIProvider } from "@vis.gl/react-google-maps";
-import { useToast } from "@/hooks/use-toast";
 import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
 import { Logo } from "@/components/icons";
 import AppHeader from "@/components/app-header";
-import MapComponent from "@/components/map-component";
-import LayerControls from "@/components/layer-controls";
-import IncidentReport from "@/components/incident-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -26,186 +22,16 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { LogOut, User, LayoutDashboard, Megaphone, Plus } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
-import { useSearchParams } from "next/navigation";
 import MapSearchBox from "@/components/map-search-box";
+import IncidentReport from "@/components/incident-report";
+import { useToast } from "@/hooks/use-toast";
+import { Suspense } from "react";
+import MainPageHandler from "@/components/main-page-handler";
 
 
 export default function Home() {
-  const [activeLayers, setActiveLayers] = React.useState({
-    atm: true,
-    construction: true,
-    incident: true,
-    sanitation: true,
-  });
-  const [selectedPoi, setSelectedPoi] = React.useState<PointOfInterest | null>(null);
-  const [searchedPlace, setSearchedPlace] = React.useState<google.maps.places.PlaceResult | null>(null);
-  const [userPosition, setUserPosition] = React.useState<google.maps.LatLngLiteral | null>(null);
-  const [mapCenter, setMapCenter] = React.useState<google.maps.LatLngLiteral>({
-    lat: -8.8368,
-    lng: 13.2343,
-  });
-  const [zoom, setZoom] = React.useState(13);
-  const { allData, addPoint, updatePointStatus, addUpdateToPoint } = usePoints();
-  const searchParams = useSearchParams();
-
-  const [isIncidentSheetOpen, setIsIncidentSheetOpen] = React.useState(false);
-
-
-  const { toast } = useToast();
   const { user, loading, logout } = useAuth();
-
-  React.useEffect(() => {
-    const poiId = searchParams.get('poi');
-    if (poiId) {
-      const poi = allData.find(p => p.id === poiId);
-      if (poi) {
-        setSelectedPoi(poi);
-        setMapCenter(poi.position);
-        setZoom(16);
-      }
-    }
-  }, [searchParams, allData]);
-
-  const handlePlaceSelect = (place: google.maps.places.PlaceResult | null) => {
-    if (place?.geometry?.location) {
-      setSearchedPlace(place);
-      const newCenter = place.geometry.location.toJSON();
-      setMapCenter(newCenter);
-      setZoom(16);
-      setSelectedPoi(null);
-    }
-  };
-
-
-  const handleLocateUser = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const pos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setUserPosition(pos);
-          setMapCenter(pos);
-          setZoom(15);
-          toast({
-            title: "Localização encontrada",
-            description: "O mapa foi centralizado na sua localização atual.",
-          });
-        },
-        () => {
-          toast({
-            variant: "destructive",
-            title: "Erro de localização",
-            description: "Não foi possível aceder à sua localização. Verifique as permissões do seu navegador.",
-          });
-        }
-      );
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Erro de localização",
-        description: "A geolocalização não é suportada por este navegador.",
-      });
-    }
-  };
-
-  const handleAddNewIncident = (
-    newIncident: Omit<PointOfInterest, 'id' | 'authorId'>, 
-    type: PointOfInterest['type'] = 'incident'
-  ) => {
-    if (!user) {
-        toast({
-            variant: "destructive",
-            title: "Ação necessária",
-            description: "Por favor, faça login para reportar uma incidência.",
-        });
-        return;
-    }
-
-    const incidentToAdd: PointOfInterest = {
-      ...newIncident,
-      id: `${type}-${Date.now()}`,
-      type: type,
-      authorId: user.uid,
-      lastReported: new Date().toISOString(),
-    };
-    
-    addPoint(incidentToAdd);
-
-    toast({
-      title: "Incidência reportada!",
-      description: "Obrigado pela sua contribuição para uma cidade melhor.",
-    });
-
-    setIsIncidentSheetOpen(false);
-  };
-
-  const handleStartReporting = () => {
-    if (!user) {
-        toast({
-            variant: "destructive",
-            title: "Ação necessária",
-            description: "Por favor, faça login para reportar uma incidência.",
-        });
-        return;
-    }
-    setIsIncidentSheetOpen(true);
-  };
-
-  const handleMarkerClick = (poiId: string) => {
-    const poi = allData.find(p => p.id === poiId) || null;
-    setSelectedPoi(poi);
-    setSearchedPlace(null);
-  };
-
-  const handleDetailsClose = () => {
-    setSelectedPoi(null);
-  };
-
-  const handlePoiStatusChange = (poiId: string, status: PointOfInterest['status']) => {
-    updatePointStatus(poiId, status);
-    setSelectedPoi(prevPoi => prevPoi ? { ...prevPoi, status, lastReported: new Date().toISOString() } : null);
-    toast({
-        title: "Estado atualizado!",
-        description: "Obrigado pela sua contribuição.",
-    })
-  };
-
-  const handleAddUpdate = (poiId: string, updateText: string, photoDataUri?: string) => {
-    if (!user) {
-        toast({
-            variant: "destructive",
-            title: "Ação necessária",
-            description: "Por favor, faça login para adicionar uma atualização.",
-        });
-        return;
-    }
-
-    const newUpdate: Omit<PointOfInterestUpdate, 'id'> = {
-        text: updateText,
-        authorId: user.uid,
-        timestamp: new Date().toISOString(),
-        photoDataUri: photoDataUri,
-    };
-    
-    addUpdateToPoint(poiId, newUpdate);
-    setSelectedPoi(prevPoi => {
-      if (!prevPoi) return null;
-      const updatedUpdates = [
-          {...newUpdate, id: `temp-${Date.now()}`}, 
-          ...(prevPoi.updates || [])
-      ];
-      return { ...prevPoi, updates: updatedUpdates };
-    });
-
-    toast({
-        title: "Atualização adicionada!",
-        description: "A sua fiscalização foi registada. Obrigado!",
-    });
-  }
-
-
+  
   const UserMenu = () => {
     if (loading) {
       return null;
@@ -262,93 +88,9 @@ export default function Home() {
 
   return (
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-      <SidebarProvider>
-        <div className="flex h-screen w-full">
-          <Sidebar collapsible="icon" className="border-r">
-            <SidebarHeader className="h-16 items-center">
-              <Link href="/" className="group/logo flex items-center gap-2" aria-label="Cidadão Online">
-                <Logo className="size-8 shrink-0 text-primary group-data-[collapsible=icon]:size-6" />
-                <div className="text-lg font-semibold group-data-[collapsible=icon]:hidden">
-                  Cidadão Online
-                </div>
-              </Link>
-            </SidebarHeader>
-            <SidebarContent>
-              <LayerControls activeLayers={activeLayers} onLayerChange={setActiveLayers} />
-            </SidebarContent>
-            <SidebarFooter className="space-y-2">
-              {user && (
-                <Button onClick={handleStartReporting} className="hidden md:flex">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Reportar Incidente
-                </Button>
-              )}
-               <Button variant="outline" asChild className="w-full">
-                  <Link href="/dashboard">
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    Painel Municipal
-                  </Link>
-              </Button>
-              {user && (
-                <Button variant="outline" asChild className="w-full">
-                    <Link href="/comunicacoes">
-                        <Megaphone className="mr-2 h-4 w-4" />
-                        Comunicações
-                    </Link>
-                </Button>
-              )}
-            </SidebarFooter>
-          </Sidebar>
-
-          <SidebarInset className="flex flex-col">
-            <AppHeader 
-              onLocateClick={handleLocateUser}
-              searchBox={<MapSearchBox onPlaceSelect={handlePlaceSelect} />}
-            >
-              <UserMenu />
-            </AppHeader>
-            <div className="flex-1 overflow-hidden relative">
-               <MapComponent
-                activeLayers={activeLayers}
-                data={allData}
-                userPosition={userPosition}
-                searchedPlace={searchedPlace?.geometry?.location?.toJSON()}
-                center={mapCenter}
-                zoom={zoom}
-                onCenterChanged={setMapCenter}
-                onZoomChanged={setZoom}
-                onMarkerClick={handleMarkerClick}
-              />
-              {user && (
-                <Button
-                    onClick={handleStartReporting}
-                    className="md:hidden absolute bottom-6 left-6 z-10 h-14 w-14 rounded-full bg-red-600 text-white shadow-lg hover:bg-red-700"
-                    aria-label="Reportar Incidente"
-                >
-                    <Plus className="h-7 w-7" />
-                </Button>
-              )}
-            </div>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
-      <PointOfInterestDetails
-        poi={selectedPoi}
-        open={!!selectedPoi}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            handleDetailsClose();
-          }
-        }}
-        onPoiStatusChange={handlePoiStatusChange}
-        onAddUpdate={handleAddUpdate}
-      />
-      <IncidentReport 
-        open={isIncidentSheetOpen}
-        onOpenChange={setIsIncidentSheetOpen}
-        onIncidentSubmit={handleAddNewIncident}
-        initialCenter={mapCenter}
-      />
+        <Suspense fallback={<div>A carregar...</div>}>
+            <MainPageHandler userMenu={<UserMenu />} />
+        </Suspense>
     </APIProvider>
   );
 }
