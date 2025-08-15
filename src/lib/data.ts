@@ -32,6 +32,8 @@ export const PointOfInterestSchema = z.object({
   priority: PointOfInterestPriorityEnum.optional(),
   lastReported: z.string().optional(),
   incidentDate: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
   authorId: z.string().optional(),
   updates: z.array(PointOfInterestUpdateSchema).optional(),
 });

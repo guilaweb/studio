@@ -265,7 +265,7 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
                                 <div key={update.id} className="p-3 rounded-lg bg-muted/50 text-sm">
                                    {isOriginalReport ? (
                                         <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                                           Incidente reportado por {update.authorDisplayName || 'um cidadão'}
+                                           Reportado por {update.authorDisplayName || 'um cidadão'}
                                         </p>
                                    ) : (
                                         <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
@@ -339,7 +339,13 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
           </div>
         </SheetHeader>
         <div className="space-y-4">
-            {incidentDate && (
+            {poi.type === 'construction' && poi.startDate && poi.endDate && (
+                 <div className="flex items-center text-sm text-muted-foreground">
+                   <Calendar className="mr-2 h-4 w-4" />
+                   <span>{format(new Date(poi.startDate), "dd/MM/yy", { locale: pt })} - {format(new Date(poi.endDate), "dd/MM/yy", { locale: pt })}</span>
+                </div>
+            )}
+            {poi.type !== 'construction' && incidentDate && (
                 <div className="flex items-center text-sm text-muted-foreground">
                    <Calendar className="mr-2 h-4 w-4" />
                    <span>Ocorrido em: {format(new Date(incidentDate), "PPP", { locale: pt })}</span>
