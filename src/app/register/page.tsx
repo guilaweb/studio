@@ -5,12 +5,12 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, getAdditionalUserInfo } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection, getDocs, runTransaction } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,15 +48,22 @@ export default function RegisterPage() {
         displayName: values.displayName,
       });
 
-      // Create user profile in Firestore
-      const userDocRef = doc(db, "users", user.uid);
-      await setDoc(userDocRef, {
-        uid: user.uid,
-        displayName: values.displayName,
-        email: user.email,
-        role: "Cidadao", // Default role
-        createdAt: new Date().toISOString(),
+      // Create user profile in Firestore, making the first user an admin
+      await runTransaction(db, async (transaction) => {
+        const usersCollectionRef = collection(db, "users");
+        const usersSnapshot = await getDocs(usersCollectionRef);
+        const isFirstUser = usersSnapshot.empty;
+        
+        const userDocRef = doc(db, "users", user.uid);
+        transaction.set(userDocRef, {
+            uid: user.uid,
+            displayName: values.displayName,
+            email: user.email,
+            role: isFirstUser ? "Administrador" : "Cidadao",
+            createdAt: new Date().toISOString(),
+        });
       });
+
 
       toast({
         title: "Conta criada com sucesso!",
@@ -77,17 +84,26 @@ export default function RegisterPage() {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      const additionalInfo = getAdditionalUserInfo(result);
 
-      // Create user profile in Firestore for Google sign-in as well
-       const userDocRef = doc(db, "users", user.uid);
-       await setDoc(userDocRef, {
-        uid: user.uid,
-        displayName: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        role: "Cidadao",
-        createdAt: new Date().toISOString(),
-       }, { merge: true }); // Use merge to not overwrite if doc already exists
+      if (additionalInfo?.isNewUser) {
+        await runTransaction(db, async (transaction) => {
+            const usersCollectionRef = collection(db, "users");
+            const usersSnapshot = await getDocs(usersCollectionRef);
+            // We check against 1 because this new user is not yet in our collection
+            const isFirstUser = usersSnapshot.size === 0;
+
+            const userDocRef = doc(db, "users", user.uid);
+            transaction.set(userDocRef, {
+                uid: user.uid,
+                displayName: user.displayName,
+                email: user.email,
+                photoURL: user.photoURL,
+                role: isFirstUser ? "Administrador" : "Cidadao",
+                createdAt: new Date().toISOString(),
+            });
+        });
+      }
       
       toast({
         title: "Login com Google bem-sucedido!",
