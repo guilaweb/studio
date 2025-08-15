@@ -8,7 +8,64 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Award } from "lucide-react";
+import { ArrowLeft, Award, Shield, Star } from "lucide-react";
+
+type Medal = {
+    name: string;
+    description: string;
+    Icon: React.ElementType;
+    colorClasses: {
+      bg: string;
+      border: string;
+      icon: string;
+      title: string;
+      text: string;
+    };
+    requiredContributions: number;
+};
+
+const medals: Medal[] = [
+    {
+        name: "Fiscal Iniciante",
+        description: "Concedida pela sua primeira contribuição. Bem-vindo!",
+        Icon: Award,
+        colorClasses: {
+            bg: 'bg-yellow-50 dark:bg-yellow-900/20',
+            border: 'border-yellow-200 dark:border-yellow-800',
+            icon: 'text-yellow-500',
+            title: 'text-yellow-800 dark:text-yellow-300',
+            text: 'text-yellow-700 dark:text-yellow-400',
+        },
+        requiredContributions: 1,
+    },
+    {
+        name: "Fiscal Atento",
+        description: "Dez contribuições! Os seus olhos estão a fazer a diferença na cidade.",
+        Icon: Star,
+        colorClasses: {
+            bg: 'bg-blue-50 dark:bg-blue-900/20',
+            border: 'border-blue-200 dark:border-blue-800',
+            icon: 'text-blue-500',
+            title: 'text-blue-800 dark:text-blue-300',
+            text: 'text-blue-700 dark:text-blue-400',
+        },
+        requiredContributions: 10,
+    },
+    {
+        name: "Guardião da Cidade",
+        description: "Vinte e cinco contribuições! Você é um pilar da comunidade.",
+        Icon: Shield,
+        colorClasses: {
+            bg: 'bg-green-50 dark:bg-green-900/20',
+            border: 'border-green-200 dark:border-green-800',
+            icon: 'text-green-500',
+            title: 'text-green-800 dark:text-green-300',
+            text: 'text-green-700 dark:text-green-400',
+        },
+        requiredContributions: 25,
+    },
+];
+
 
 function PerfilPage() {
     const { user } = useAuth();
@@ -20,6 +77,11 @@ function PerfilPage() {
     }, [allData, user]);
 
     const userPoints = userContributions.length * 10; // Simple point system: 10 points per contribution
+
+    const earnedMedals = React.useMemo(() => {
+        return medals.filter(medal => userContributions.length >= medal.requiredContributions);
+    }, [userContributions.length]);
+
 
     if (!user) {
         return null; // The withAuth HOC handles redirection
@@ -79,15 +141,19 @@ function PerfilPage() {
                                     <p className="text-sm text-muted-foreground">Pontos</p>
                                 </div>
                            </div>
-                           <div className="space-y-2">
+                           <div className="space-y-4">
                                 <h4 className="font-semibold">As minhas medalhas</h4>
-                                {userContributions.length > 0 ? (
-                                    <div className="flex items-center gap-4 p-4 rounded-lg bg-yellow-50 border border-yellow-200">
-                                        <Award className="h-8 w-8 text-yellow-500"/>
-                                        <div>
-                                            <h5 className="font-semibold text-yellow-800">Fiscal Iniciante</h5>
-                                            <p className="text-sm text-yellow-700">Parabéns pela sua primeira contribuição! Continue assim.</p>
-                                        </div>
+                                {earnedMedals.length > 0 ? (
+                                    <div className="grid gap-4">
+                                        {earnedMedals.map((medal) => (
+                                            <div key={medal.name} className={`flex items-center gap-4 p-4 rounded-lg border ${medal.colorClasses.bg} ${medal.colorClasses.border}`}>
+                                                <medal.Icon className={`h-8 w-8 ${medal.colorClasses.icon}`}/>
+                                                <div>
+                                                    <h5 className={`font-semibold ${medal.colorClasses.title}`}>{medal.name}</h5>
+                                                    <p className={`text-sm ${medal.colorClasses.text}`}>{medal.description}</p>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-4 text-muted-foreground p-4 rounded-lg border border-dashed">
