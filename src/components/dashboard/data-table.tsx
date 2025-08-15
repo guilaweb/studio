@@ -31,12 +31,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { PointOfInterest } from "@/lib/data"
-import { ChevronDown, X, Calendar as CalendarIcon } from "lucide-react"
+import { ChevronDown, X, Calendar as CalendarIcon, Download } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
+import { CSVLink } from "react-csv";
 
 
 interface DataTableProps<TData, TValue> {
@@ -103,6 +104,33 @@ export function DataTable<TData extends PointOfInterest, TValue>({
 
   const isFiltered = table.getState().columnFilters.length > 0;
 
+  const csvData = React.useMemo(() => {
+    const headers = [
+        { label: "ID", key: "id" },
+        { label: "Título", key: "title" },
+        { label: "Tipo", key: "type" },
+        { label: "Descrição", key: "description" },
+        { label: "Estado", key: "status" },
+        { label: "Último Reporte", key: "lastReported" },
+        { label: "Latitude", key: "position.lat" },
+        { label: "Longitude", key: "position.lng" },
+        { label: "ID do Autor", key: "authorId" },
+    ];
+    
+    const data = table.getFilteredRowModel().rows.map(row => {
+        const poi = row.original as PointOfInterest;
+        return {
+            ...poi,
+            type: typeLabelMap[poi.type],
+            status: poi.status ? statusLabelMap[poi.status] : "N/A",
+            lastReported: poi.lastReported ? new Date(poi.lastReported).toLocaleString('pt-PT') : "N/A"
+        }
+    });
+
+    return { headers, data };
+
+  }, [table.getFilteredRowModel().rows]);
+
   return (
     <div>
         <div className="flex items-center justify-between py-4 gap-2 flex-wrap">
@@ -128,10 +156,12 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                                 <DropdownMenuCheckboxItem
                                     key={key}
                                     className="capitalize"
-                                    checked={table.getColumn("type")?.getFilterValue() === key}
-                                    onCheckedChange={(value) =>
-                                        table.getColumn("type")?.setFilterValue(value ? key : undefined)
-                                    }
+                                    checked={(table.getColumn("type")?.getFilterValue() as string[] || []).includes(key)}
+                                    onCheckedChange={(value) => {
+                                        const currentFilter = table.getColumn("type")?.getFilterValue() as string[] || [];
+                                        const newFilter = value ? [...currentFilter, key] : currentFilter.filter(k => k !== key);
+                                        table.getColumn("type")?.setFilterValue(newFilter.length ? newFilter : undefined)
+                                    }}
                                 >
                                     {label}
                                 </DropdownMenuCheckboxItem>
@@ -152,10 +182,12 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                                 <DropdownMenuCheckboxItem
                                     key={key}
                                     className="capitalize"
-                                    checked={table.getColumn("status")?.getFilterValue() === key}
-                                    onCheckedChange={(value) =>
-                                        table.getColumn("status")?.setFilterValue(value ? key : undefined)
-                                    }
+                                    checked={(table.getColumn("status")?.getFilterValue() as string[] || []).includes(key)}
+                                    onCheckedChange={(value) => {
+                                         const currentFilter = table.getColumn("status")?.getFilterValue() as string[] || [];
+                                        const newFilter = value ? [...currentFilter, key] : currentFilter.filter(k => k !== key);
+                                        table.getColumn("status")?.setFilterValue(newFilter.length ? newFilter : undefined)
+                                    }}
                                 >
                                     {label}
                                 </DropdownMenuCheckboxItem>
@@ -212,6 +244,18 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                         <X className="ml-2 h-4 w-4" />
                     </Button>
                  )}
+                <Button variant="outline" className="h-9" asChild>
+                    <CSVLink 
+                        data={csvData.data}
+                        headers={csvData.headers.map(h => ({label: h.label, key: h.key.replace('.', '_')}))}
+                        filename={"reportes.csv"}
+                        className="flex items-center"
+                        target="_blank"
+                    >
+                        <Download className="mr-2 h-4 w-4" />
+                        Exportar CSV
+                    </CSVLink>
+                </Button>
             </div>
         </div>
         <div className="rounded-md border">
@@ -279,5 +323,3 @@ export function DataTable<TData extends PointOfInterest, TValue>({
     </div>
   )
 }
-
-    
