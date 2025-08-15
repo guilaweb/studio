@@ -85,48 +85,6 @@ const ATMStatus = ({poi, onPoiStatusChange}: {poi: PointOfInterest, onPoiStatusC
 
 const SanitationTicket = ({poi, onPoiStatusChange, onAddUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], onAddUpdate: PointOfInterestDetailsProps['onAddUpdate']}) => {
     const { user } = useAuth();
-    const [resolutionComment, setResolutionComment] = React.useState("");
-    const [proofPhoto, setProofPhoto] = React.useState<File | null>(null);
-    const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
-    const { toast } = useToast();
-
-    if (poi.type !== 'sanitation') return null;
-
-    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setProofPhoto(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPhotoPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleResolutionSubmit = () => {
-        if (!user) return;
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const photoDataUri = reader.result as string;
-            const updateText = `Ocorrência marcada como resolvida. ${resolutionComment}`;
-            onAddUpdate(poi.id, updateText, photoDataUri);
-            onPoiStatusChange(poi.id, 'collected');
-            setResolutionComment("");
-            setProofPhoto(null);
-            setPhotoPreview(null);
-            toast({ title: "Ocorrência Resolvida!", description: "A prova de execução foi anexada." });
-        };
-
-        if (proofPhoto) {
-            reader.readAsDataURL(proofPhoto);
-        } else {
-             const updateText = `Ocorrência marcada como resolvida. ${resolutionComment}`;
-             onAddUpdate(poi.id, updateText);
-             onPoiStatusChange(poi.id, 'collected');
-             toast({ title: "Ocorrência Resolvida!" });
-        }
-    };
     
     const getStatusBadge = () => {
         if (poi.status === 'full') return <Badge className="bg-orange-500 hover:bg-orange-600">Cheio</Badge>
@@ -157,42 +115,52 @@ const SanitationTicket = ({poi, onPoiStatusChange, onAddUpdate}: {poi: PointOfIn
                 </div>
              </div>
              
-            { (poi.status === 'in_progress' || poi.status === 'full' || poi.status === 'damaged') && (
-                <div className="p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-4">Fechar Ocorrência</h3>
-                    <div className="space-y-4">
-                         <Textarea 
-                            placeholder="Adicionar um comentário de resolução... (opcional)"
-                            value={resolutionComment}
-                            onChange={(e) => setResolutionComment(e.target.value)}
-                        />
-                        <div>
-                            <Label htmlFor="proof-photo">Anexar Prova de Execução (Opcional)</Label>
-                            <Input id="proof-photo" type="file" accept="image/*" onChange={handlePhotoChange} />
-                        </div>
-                        {photoPreview && <Image src={photoPreview} alt="Pré-visualização da prova" width={100} height={100} className="rounded-md object-cover" />}
-                        <Button onClick={handleResolutionSubmit}>
-                            <CheckCircle className="mr-2"/> Marcar como Recolhido
-                        </Button>
-                    </div>
-                </div>
-             )}
-             <ConstructionTimeline poi={poi} onAddUpdate={onAddUpdate} />
+             <Timeline poi={poi} onAddUpdate={onAddUpdate} showAiButton={false}/>
         </div>
     )
 }
 
-const ConstructionTimeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointOfInterestDetailsProps['onAddUpdate']}) => {
+const Timeline = ({poi, onAddUpdate, showAiButton}: {poi: PointOfInterest, onAddUpdate: PointOfInterestDetailsProps['onAddUpdate'], showAiButton: boolean}) => {
     const [updateText, setUpdateText] = React.useState("");
+    const [updatePhoto, setUpdatePhoto] = React.useState<File | null>(null);
+    const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
     const [isGenerating, setIsGenerating] = React.useState(false);
     const { toast } = useToast();
     const { user } = useAuth();
     
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setUpdatePhoto(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPhotoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const clearForm = () => {
+        setUpdateText("");
+        setUpdatePhoto(null);
+        setPhotoPreview(null);
+    }
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (updateText.trim()) {
+        if (!updateText.trim()) return;
+
+        if (updatePhoto) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const photoDataUri = reader.result as string;
+                onAddUpdate(poi.id, updateText, photoDataUri);
+                clearForm();
+            };
+            reader.readAsDataURL(updatePhoto);
+        } else {
             onAddUpdate(poi.id, updateText);
-            setUpdateText("");
+            clearForm();
         }
     }
 
@@ -233,18 +201,27 @@ const ConstructionTimeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUp
                 <h3 className="font-semibold mb-4">Linha do Tempo e Respostas</h3>
                 
                  { user && (
-                    <form onSubmit={handleSubmit} className="mb-6 space-y-2">
+                    <form onSubmit={handleSubmit} className="mb-6 space-y-4">
                         <Textarea 
                             placeholder="Viu algum progresso ou problema? Descreva o que viu... (Ex: A obra está parada, a calçada foi concluída, etc.)"
                             value={updateText}
                             onChange={(e) => setUpdateText(e.target.value)}
                         />
+                         <div>
+                            <Label htmlFor="update-photo" className="text-sm font-medium text-muted-foreground flex items-center gap-2 cursor-pointer">
+                                <Camera className="h-4 w-4" />
+                                Anexar Fotografia (Opcional)
+                            </Label>
+                            <Input id="update-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-1 h-auto p-1"/>
+                        </div>
+                        {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={100} height={100} className="rounded-md object-cover" />}
+
                         <div className="flex flex-wrap gap-2">
                             <Button type="submit" size="sm" disabled={!updateText.trim()}>
                                 <MessageSquarePlus className="mr-2 h-4 w-4" />
-                                {poi.type === 'construction' ? 'Adicionar Fiscalização' : 'Adicionar Atualização'}
+                                Adicionar Atualização
                             </Button>
-                             {poi.type === 'construction' && (
+                             {showAiButton && (
                                 <Button type="button" size="sm" variant="outline" onClick={handleGenerateResponse} disabled={isGenerating}>
                                     <Wand2 className="mr-2 h-4 w-4" />
                                     {isGenerating ? "A gerar..." : "Gerar Resposta com IA"}
@@ -286,10 +263,6 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
 
   const config = layerConfig[poi.type];
 
-  const handleAddUpdateWithPhoto = (poiId: string, updateText: string, photoDataUri?: string) => {
-    onAddUpdate(poiId, updateText, photoDataUri);
-  };
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
@@ -313,10 +286,12 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             </div>
             {poi.type === 'incident' && <IncidentTags description={poi.description} />}
             {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} />}
-            {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} onAddUpdate={handleAddUpdateWithPhoto}/>}
-            {poi.type === 'construction' && <ConstructionTimeline poi={poi} onAddUpdate={onAddUpdate} />}
+            {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} onAddUpdate={onAddUpdate}/>}
+            {poi.type === 'construction' && <Timeline poi={poi} onAddUpdate={onAddUpdate} showAiButton={true} />}
         </div>
       </SheetContent>
     </Sheet>
   );
 }
+
+    
