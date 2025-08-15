@@ -12,7 +12,7 @@ import {
 import { APIProvider } from "@vis.gl/react-google-maps";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
-import { atms, constructionSites, incidents, sanitationPoints, PointOfInterest, Layer, ActiveLayers } from "@/lib/data";
+import { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Logo } from "@/components/icons";
 import AppHeader from "@/components/app-header";
 import MapComponent from "@/components/map-component";
@@ -25,6 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LogOut, User } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
+import { usePoints } from "@/hooks/use-points";
 
 
 export default function Home() {
@@ -41,12 +42,7 @@ export default function Home() {
     lng: 13.2343,
   });
   const [zoom, setZoom] = React.useState(13);
-  const [allData, setAllData] = React.useState<PointOfInterest[]>([]);
-
-  React.useEffect(() => {
-    // Combine all data sources into one array
-    setAllData([...atms, ...constructionSites, ...incidents, ...sanitationPoints]);
-  }, []);
+  const { allData, addPoint, updatePointStatus } = usePoints();
 
 
   const { toast } = useToast();
@@ -85,14 +81,24 @@ export default function Home() {
     }
   };
 
-  const handleAddNewIncident = (newIncident: Omit<PointOfInterest, 'id' >, type: PointOfInterest['type'] = 'incident') => {
+  const handleAddNewIncident = (newIncident: Omit<PointOfInterest, 'id' | 'type' | 'authorId'>, type: PointOfInterest['type'] = 'incident') => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para reportar uma incidência.",
+        });
+        return;
+    }
+
     const incidentToAdd: PointOfInterest = {
       ...newIncident,
       id: `${type}-${Date.now()}`,
       type: type,
+      authorId: user.uid,
     };
     
-    setAllData(prevData => [...prevData, incidentToAdd]);
+    addPoint(incidentToAdd);
 
     toast({
       title: "Incidência reportada!",
@@ -109,13 +115,7 @@ export default function Home() {
   };
 
   const handlePoiStatusChange = (poiId: string, status: PointOfInterest['status']) => {
-    setAllData(currentData =>
-      currentData.map(poi =>
-        poi.id === poiId
-          ? { ...poi, status, lastReported: new Date().toISOString() }
-          : poi
-      )
-    );
+    updatePointStatus(poiId, status);
     setSelectedPoi(prevPoi => prevPoi ? { ...prevPoi, status, lastReported: new Date().toISOString() } : null);
     toast({
         title: "Estado atualizado!",

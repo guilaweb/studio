@@ -2,14 +2,23 @@
 
 import * as React from "react";
 import { withAuth, useAuth } from "@/hooks/use-auth";
+import { usePoints } from "@/hooks/use-points";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Award, Star } from "lucide-react";
 
 function PerfilPage() {
     const { user } = useAuth();
+    const { allData } = usePoints();
+
+    const userContributions = React.useMemo(() => {
+        if (!user) return [];
+        return allData.filter(point => point.authorId === user.uid);
+    }, [allData, user]);
+
+    const userPoints = userContributions.length * 10; // Simple point system: 10 points per contribution
 
     if (!user) {
         return null;
@@ -25,7 +34,7 @@ function PerfilPage() {
                             <span className="sr-only">Voltar ao Mapa</span>
                         </Link>
                     </Button>
-                    <h1 className="text-xl font-bold md:text-2xl">Meu Perfil</h1>
+                    <h1 className="text-xl font-bold md:text-2xl">Meu Perfil de Fiscal Cidadão</h1>
                 </header>
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
                     <Card>
@@ -53,11 +62,27 @@ function PerfilPage() {
                         <CardHeader>
                             <CardTitle>As Minhas Estatísticas</CardTitle>
                             <CardDescription>
-                                A sua contribuição para uma cidade melhor. Em breve!
+                                A sua contribuição para uma cidade melhor. Cada ação conta!
                             </CardDescription>
                         </CardHeader>
-                        <CardContent>
-                           <p className="text-sm text-muted-foreground">Aqui irão aparecer os seus pontos, medalhas e o seu progresso na plataforma. Fique atento!</p>
+                        <CardContent className="space-y-4">
+                           <div className="flex items-center justify-around rounded-lg bg-muted p-4 text-center">
+                                <div>
+                                    <p className="text-2xl font-bold">{userContributions.length}</p>
+                                    <p className="text-sm text-muted-foreground">Contribuições</p>
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-bold">{userPoints}</p>
+                                    <p className="text-sm text-muted-foreground">Pontos</p>
+                                </div>
+                           </div>
+                           <div className="space-y-2">
+                                <h4 className="font-semibold">As minhas medalhas</h4>
+                                <div className="flex items-center gap-4 text-muted-foreground">
+                                    <Award className="h-8 w-8"/>
+                                    <p className="text-sm">Em breve poderá ganhar medalhas e subir de nível. Continue a contribuir!</p>
+                                </div>
+                           </div>
                         </CardContent>
                     </Card>
                 </main>

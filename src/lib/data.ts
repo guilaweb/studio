@@ -6,6 +6,7 @@ export type PointOfInterest = {
   description: string;
   status?: 'available' | 'unavailable' | 'unknown' | 'full' | 'damaged' | 'collected'; // For ATMs and Sanitation
   lastReported?: string; // For ATMs and Sanitation
+  authorId?: string; // ID of the user who reported it
 };
 
 export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation';
@@ -24,7 +25,7 @@ export const atms: PointOfInterest[] = [
     title: 'ATM Largo do Kinaxixi',
     description: 'Caixa Eletrônico 24h no centro do largo.',
     status: 'available',
-    lastReported: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
+    lastReported: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
   },
   {
     id: 'atm-2',
@@ -33,7 +34,7 @@ export const atms: PointOfInterest[] = [
     title: 'ATM Baía de Luanda',
     description: 'Localizado dentro do shopping.',
     status: 'unavailable',
-    lastReported: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
+    lastReported: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 'atm-3',
@@ -42,7 +43,7 @@ export const atms: PointOfInterest[] = [
     title: 'ATM Av. Comandante Valódia',
     description: 'Próximo ao Hospital Josina Machel.',
     status: 'unknown',
-    lastReported: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    lastReported: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
@@ -77,6 +78,7 @@ export const incidents: PointOfInterest[] = [
     position: { lat: -8.816, lng: 13.232 },
     title: 'Semáforo avariado',
     description: 'Cruzamento da Av. de Portugal com a Rua Rainha Ginga. Cuidado redobrado ao atravessar. #falta-de-sinalização',
+    authorId: 'system'
   },
   {
     id: 'incident-2',
@@ -84,6 +86,7 @@ export const incidents: PointOfInterest[] = [
     position: { lat: -8.825, lng: 13.245 },
     title: 'Acidente na Av. Ho Chi Minh',
     description: 'Colisão entre dois carros, faixa da direita bloqueada. Trânsito lento no local. #acidente',
+    authorId: 'system'
   },
 ];
 
@@ -95,7 +98,7 @@ export const sanitationPoints: PointOfInterest[] = [
       title: 'Contentor Rua da Missão',
       description: 'Contentor de lixo de grande capacidade.',
       status: 'collected',
-      lastReported: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+      lastReported: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     },
     {
       id: 'sanitation-2',

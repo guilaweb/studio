@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/hooks/use-auth';
+import { PointsProvider } from '@/hooks/use-points';
 
 export const metadata: Metadata = {
   title: 'Cidadão Online',
@@ -22,8 +23,10 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AuthProvider>
+          <PointsProvider>
             {children}
             <Toaster />
+          </PointsProvider>
         </AuthProvider>
       </body>
     </html>

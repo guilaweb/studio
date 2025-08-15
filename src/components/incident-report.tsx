@@ -38,7 +38,7 @@ const formSchema = z.object({
 });
 
 type IncidentReportProps = {
-  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'type'>, type?: PointOfInterest['type']) => void;
+  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'type' | 'authorId'>, type?: PointOfInterest['type']) => void;
 };
 
 export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps) {
@@ -126,7 +126,7 @@ export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps
               )}
             />
             <DialogFooter>
-              <Button type="submit">Reportar Anonimamente</Button>
+              <Button type="submit">Submeter Reporte</Button>
             </DialogFooter>
           </form>
         </Form>
