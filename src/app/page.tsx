@@ -153,7 +153,7 @@ export default function Home() {
     })
   };
 
-  const handleAddUpdate = (poiId: string, updateText: string) => {
+  const handleAddUpdate = (poiId: string, updateText: string, photoDataUri?: string) => {
     if (!user) {
         toast({
             variant: "destructive",
@@ -167,6 +167,7 @@ export default function Home() {
         text: updateText,
         authorId: user.uid,
         timestamp: new Date().toISOString(),
+        photoDataUri: photoDataUri,
     };
     
     addUpdateToPoint(poiId, newUpdate);

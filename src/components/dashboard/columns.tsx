@@ -37,6 +37,7 @@ const statusLabelMap: { [key in NonNullable<PointOfInterest['status']>]: string 
     collected: "Recolhido",
     full: "Cheio",
     damaged: "Danificado",
+    in_progress: "Em Resolução",
 };
 
 
