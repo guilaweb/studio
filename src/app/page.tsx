@@ -27,6 +27,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { LogOut, User, LayoutDashboard } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
+import { useSearchParams } from "next/navigation";
 
 
 export default function Home() {
@@ -44,10 +45,24 @@ export default function Home() {
   });
   const [zoom, setZoom] = React.useState(13);
   const { allData, addPoint, updatePointStatus, addUpdateToPoint } = usePoints();
+  const searchParams = useSearchParams();
 
 
   const { toast } = useToast();
   const { user, loading, logout } = useAuth();
+
+  React.useEffect(() => {
+    const poiId = searchParams.get('poi');
+    if (poiId) {
+      const poi = allData.find(p => p.id === poiId);
+      if (poi) {
+        setSelectedPoi(poi);
+        setMapCenter(poi.position);
+        setZoom(16);
+      }
+    }
+  }, [searchParams, allData]);
+
 
   const handleLocateUser = () => {
     if (navigator.geolocation) {

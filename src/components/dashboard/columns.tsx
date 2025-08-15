@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import Link from "next/link"
 
 const typeVariantMap: { [key in PointOfInterest['type']]: "default" | "secondary" | "destructive" | "outline" } = {
     atm: "default",
@@ -53,8 +54,9 @@ export const columns: ColumnDef<PointOfInterest>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const poi = row.original
+      const { onViewOnMap } = table.options.meta as any;
  
       return (
         <DropdownMenu>
@@ -70,7 +72,9 @@ export const columns: ColumnDef<PointOfInterest>[] = [
               Copiar ID do Reporte
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Ver detalhes no mapa</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onViewOnMap?.(poi.id)}>
+                Ver detalhes no mapa
+            </DropdownMenuItem>
             <DropdownMenuItem>Ver perfil do autor</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

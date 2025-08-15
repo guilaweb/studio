@@ -17,6 +17,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { DataTable } from "@/components/dashboard/data-table";
 import { columns } from "@/components/dashboard/columns";
+import { useRouter } from "next/navigation";
 
 const chartConfig = {
   reports: {
@@ -42,6 +43,7 @@ const chartConfig = {
 
 export default function DashboardPage() {
   const { allData } = usePoints();
+  const router = useRouter();
 
   const chartData = React.useMemo(() => {
     const counts = allData.reduce((acc, point) => {
@@ -55,6 +57,10 @@ export default function DashboardPage() {
       fill: `var(--color-${name})`,
     }));
   }, [allData]);
+
+  const handleViewOnMap = (poiId: string) => {
+    router.push(`/?poi=${poiId}`);
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -112,7 +118,7 @@ export default function DashboardPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <DataTable columns={columns} data={allData} />
+                <DataTable columns={columns} data={allData} onViewOnMap={handleViewOnMap} />
             </CardContent>
         </Card>
       </main>
