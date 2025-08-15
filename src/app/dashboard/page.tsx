@@ -15,6 +15,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { DataTable } from "@/components/dashboard/data-table";
+import { columns } from "@/components/dashboard/columns";
 
 const chartConfig = {
   reports: {
@@ -67,7 +69,7 @@ export default function DashboardPage() {
                 Painel Municipal
             </h1>
         </header>
-      <main className="flex-1 p-4 sm:px-6 sm:py-6">
+      <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-6">
         <Card>
           <CardHeader>
             <CardTitle>Visão Geral dos Reportes</CardTitle>
@@ -101,6 +103,17 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle>Todos os Reportes</CardTitle>
+                <CardDescription>
+                    Veja, filtre e gira todos os pontos de interesse reportados pelos cidadãos.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <DataTable columns={columns} data={allData} />
+            </CardContent>
         </Card>
       </main>
     </div>
