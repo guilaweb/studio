@@ -10,14 +10,16 @@ import {
   ChartConfig,
 } from "@/components/ui/chart";
 import { usePoints } from "@/hooks/use-points";
-import { Layer } from "@/lib/data";
+import { Layer, PointOfInterest } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Activity, Clock, CheckCircle } from "lucide-react";
 import { DataTable } from "@/components/dashboard/data-table";
 import { columns } from "@/components/dashboard/columns";
 import { useRouter } from "next/navigation";
+import { formatDistanceToNow } from "date-fns";
+import { pt } from 'date-fns/locale';
 
 const chartConfig = {
   reports: {
@@ -41,9 +43,72 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const getMockKPIs = (data: PointOfInterest[]) => {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const newReports = data.filter(p => {
+        const reportDate = p.updates?.[p.updates.length-1]?.timestamp || p.lastReported;
+        return reportDate && new Date(reportDate) > twentyFourHoursAgo;
+    });
+
+    const resolvedSanitation = data.filter(p => p.type === 'sanitation' && p.status === 'collected');
+    const totalSanitation = data.filter(p => p.type === 'sanitation');
+    const resolutionRate = totalSanitation.length > 0 ? (resolvedSanitation.length / totalSanitation.length) * 100 : 0;
+    
+    // Mock TMR
+    const avgResolutionTime = "1d 4h"; 
+
+    const activeReports = data.filter(p => p.status !== 'collected').length;
+
+    return {
+        newReportsCount: newReports.length,
+        avgResolutionTime,
+        resolutionRate: resolutionRate.toFixed(0),
+        activeReports,
+    }
+
+}
+
+const RecentActivityFeed = ({ data }: { data: PointOfInterest[] }) => {
+    const recentPoints = data
+        .sort((a, b) => {
+            const dateA = a.lastReported ? new Date(a.lastReported).getTime() : 0;
+            const dateB = b.lastReported ? new Date(b.lastReported).getTime() : 0;
+            return dateB - dateA;
+        })
+        .slice(0, 5);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Atividade Recente</CardTitle>
+                <CardDescription>Os últimos reportes e atualizações dos cidadãos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    {recentPoints.map(point => (
+                        <div key={point.id} className="flex items-center gap-4">
+                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                                <Activity className="h-4 w-4 text-muted-foreground" />
+                           </div>
+                           <div className="flex-1">
+                               <p className="text-sm font-medium leading-none">{point.title}</p>
+                               <p className="text-sm text-muted-foreground">{`Reportado ${point.lastReported ? formatDistanceToNow(new Date(point.lastReported), { addSuffix: true, locale: pt}) : 'recentemente'}`}</p>
+                           </div>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
 export default function DashboardPage() {
   const { allData } = usePoints();
   const router = useRouter();
+
+  const kpis = React.useMemo(() => getMockKPIs(allData), [allData]);
 
   const chartData = React.useMemo(() => {
     const counts = allData.reduce((acc, point) => {
@@ -75,53 +140,107 @@ export default function DashboardPage() {
                 Painel Municipal
             </h1>
         </header>
-      <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Visão Geral dos Reportes</CardTitle>
-            <CardDescription>
-              Número total de pontos de interesse registados por categoria.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} accessibilityLayer>
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="name"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                  />
-                   <YAxis 
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={10}
-                    allowDecimals={false}
-                   />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
-                  />
-                  <Bar dataKey="total" radius={8} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-        <Card>
-            <CardHeader>
-                <CardTitle>Todos os Reportes</CardTitle>
-                <CardDescription>
-                    Veja, filtre e gira todos os pontos de interesse reportados pelos cidadãos.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <DataTable columns={columns} data={allData} onViewOnMap={handleViewOnMap} />
-            </CardContent>
-        </Card>
+      <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-4 lg:grid-cols-4">
+        <div className="grid auto-rows-max items-start gap-4 md:col-span-4">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardDescription>Novos Reportes (24h)</CardDescription>
+                        <CardTitle className="text-4xl">{kpis.newReportsCount}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-xs text-muted-foreground">
+                            Atualizado em tempo real
+                        </div>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="pb-2">
+                        <CardDescription>Tempo Médio de Resolução</CardDescription>
+                        <CardTitle className="text-4xl">{kpis.avgResolutionTime}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-xs text-muted-foreground">
+                            Baseado em reportes de saneamento
+                        </div>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="pb-2">
+                        <CardDescription>Taxa de Resolução</CardDescription>
+                        <CardTitle className="text-4xl">{kpis.resolutionRate}%</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-xs text-muted-foreground">
+                            Baseado em reportes de saneamento
+                        </div>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="pb-2">
+                        <CardDescription>Total de Reportes Ativos</CardDescription>
+                        <CardTitle className="text-4xl">{kpis.activeReports}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-xs text-muted-foreground">
+                            Exclui itens já resolvidos
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <Card className="md:col-span-2 lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle>Visão Geral dos Reportes</CardTitle>
+                        <CardDescription>
+                        Número total de pontos de interesse registados por categoria.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={chartData} accessibilityLayer>
+                            <CartesianGrid vertical={false} />
+                            <XAxis
+                                dataKey="name"
+                                tickLine={false}
+                                tickMargin={10}
+                                axisLine={false}
+                            />
+                            <YAxis 
+                                tickLine={false}
+                                axisLine={false}
+                                tickMargin={10}
+                                allowDecimals={false}
+                            />
+                            <ChartTooltip
+                                cursor={false}
+                                content={<ChartTooltipContent hideLabel />}
+                            />
+                            <Bar dataKey="total" radius={8} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
+                <RecentActivityFeed data={allData} />
+            </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Todos os Reportes</CardTitle>
+                    <CardDescription>
+                        Veja, filtre e gira todos os pontos de interesse reportados pelos cidadãos.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <DataTable columns={columns} data={allData} onViewOnMap={handleViewOnMap} />
+                </CardContent>
+            </Card>
+        </div>
+
       </main>
     </div>
   );
 }
+
+    
