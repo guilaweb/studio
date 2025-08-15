@@ -9,40 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import { ArrowLeft, Award, Shield, Star, Trash2, Siren } from "lucide-react";
 import { PointOfInterest } from "@/lib/data";
-import { useAuth } from "@/hooks/use-auth";
-
-// This component can be expanded to fetch user data from a database
-// For now, we'll derive what we can from the points data.
-const getMockUserData = (userId: string, allData: PointOfInterest[]) => {
-    const userContributions = allData.filter(p => p.authorId === userId);
-    if (userContributions.length === 0) return null;
-
-    // In a real app, this data would come from a user profile service.
-    // We are mocking it for demonstration.
-    // We can try to get the real display name from one of the updates if available
-    const latestUpdateWithAuthorName = userContributions
-        .flatMap(p => p.updates || [])
-        .filter(u => u.authorId === userId && u.authorDisplayName)
-        .sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
-    
-    const displayName = latestUpdateWithAuthorName?.authorDisplayName || `Cidadão ${userId.substring(0, 5)}`;
-    
-    // In a real app, you would fetch the creation date from the user's profile.
-    // We mock it based on the first contribution.
-    const firstContribution = userContributions.sort((a,b) => new Date(a.lastReported || 0).getTime() - new Date(b.lastReported || 0).getTime())[0];
-
-
-    return {
-        uid: userId,
-        displayName: displayName,
-        photoURL: `https://i.pravatar.cc/150?u=${userId}`,
-        email: `cidadão_${userId.substring(0,5)}@email.com`,
-        metadata: {
-            creationTime: firstContribution.lastReported || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-        }
-    };
-}
-
+import { useUserProfile } from "@/services/user-service";
 
 type Medal = {
     name: string;
@@ -130,8 +97,7 @@ const medals: Medal[] = [
 function PublicProfilePage({ params }: { params: { userId: string } }) {
     const { allData } = usePoints();
     const { userId } = params;
-
-    const user = getMockUserData(userId, allData);
+    const { user, loading } = useUserProfile(userId);
 
     const userContributions = React.useMemo(() => {
         if (!user) return [];
@@ -143,6 +109,10 @@ function PublicProfilePage({ params }: { params: { userId: string } }) {
     const earnedMedals = React.useMemo(() => {
         return medals.filter(medal => medal.isAchieved(userContributions));
     }, [userContributions]);
+
+    if (loading) {
+        return <div>A carregar perfil...</div>;
+    }
 
 
     if (!user) {
@@ -157,9 +127,9 @@ function PublicProfilePage({ params }: { params: { userId: string } }) {
                     </CardHeader>
                     <CardContent>
                         <Button asChild>
-                            <Link href="/dashboard">
+                            <Link href="/admin/users">
                                 <ArrowLeft className="mr-2 h-4 w-4"/>
-                                Voltar ao Painel
+                                Voltar à Gestão de Utilizadores
                             </Link>
                         </Button>
                     </CardContent>
@@ -195,7 +165,7 @@ function PublicProfilePage({ params }: { params: { userId: string } }) {
                                 </Avatar>
                                 <div className="grid gap-1">
                                     <p className="text-lg font-semibold">{user.displayName}</p>
-                                    <p className="text-xs text-muted-foreground">Membro desde: {user.metadata.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString('pt-PT') : 'N/A'}</p>
+                                    <p className="text-xs text-muted-foreground">Membro desde: {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-PT') : 'N/A'}</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -248,5 +218,3 @@ function PublicProfilePage({ params }: { params: { userId: string } }) {
 }
 
 export default PublicProfilePage;
-
-    
