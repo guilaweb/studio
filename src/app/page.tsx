@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LogOut, User, LayoutDashboard, Search } from "lucide-react";
+import { LogOut, User, LayoutDashboard, Search, Megaphone } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -257,14 +257,22 @@ export default function Home() {
             <SidebarContent>
               <LayerControls activeLayers={activeLayers} onLayerChange={setActiveLayers} />
             </SidebarContent>
-            <SidebarFooter>
+            <SidebarFooter className="space-y-2">
               {user && <IncidentReport onIncidentSubmit={handleAddNewIncident} />}
-               <Button variant="outline" asChild className="mt-4">
-                  <Link href="/dashboard" className="w-full">
+               <Button variant="outline" asChild className="w-full">
+                  <Link href="/dashboard">
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     Painel Municipal
                   </Link>
               </Button>
+              {user && (
+                <Button variant="outline" asChild className="w-full">
+                    <Link href="/comunicacoes">
+                        <Megaphone className="mr-2 h-4 w-4" />
+                        Comunicações
+                    </Link>
+                </Button>
+              )}
             </SidebarFooter>
           </Sidebar>
 
