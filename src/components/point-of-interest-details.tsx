@@ -6,7 +6,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +33,7 @@ const layerConfig = {
     construction: { label: "Obras e Projetos", Icon: Construction, variant: "secondary" as const },
     incident: { label: "Incidente", Icon: Siren, variant: "destructive" as const},
     sanitation: { label: "Ponto de Saneamento", Icon: Trash, variant: "outline" as const},
+    water: { label: "Rede de Água", Icon: Droplet, variant: "default" as const },
 };
 
 const priorityConfig = {
@@ -306,7 +307,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
 
   const config = layerConfig[poi.type];
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
-  const showTimeline = poi.type === 'construction' || poi.type === 'incident' || poi.type === 'sanitation' || poi.type === 'atm';
+  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water'].includes(poi.type);
   const isOwner = poi.authorId === user?.uid;
   const canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm');
 

@@ -22,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -35,9 +35,10 @@ import PotholeReport from "./pothole-report";
 import PublicLightingReport from "./public-lighting-report";
 import ConstructionReport from "./construction-report";
 import AtmReport from "./atm-report";
+import WaterLeakReport from "./water-leak-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak';
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
 
@@ -47,6 +48,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     construction: true,
     incident: true,
     sanitation: true,
+    water: true,
   });
   const [selectedPoi, setSelectedPoi] = React.useState<PointOfInterest | null>(null);
   const [searchedPlace, setSearchedPlace] = React.useState<google.maps.places.PlaceResult | null>(null);
@@ -388,6 +390,48 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: `O seu reporte sobre "${incidentTitle}" foi registado. Obrigado!`,
     });
   }
+  
+  const handleAddNewWaterLeakReport = async (
+    data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate' | 'priority'> & { photoDataUri?: string }
+  ) => {
+     if (!user || !profile) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para reportar.",
+        });
+        return;
+    }
+    handleSheetOpenChange(false);
+    const timestamp = new Date().toISOString();
+
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `water-${Date.now()}`,
+      type: 'water',
+      title: 'Fuga de Água',
+      authorId: user.uid,
+      lastReported: timestamp,
+      status: 'unknown',
+      description: data.description,
+      position: data.position,
+      priority: data.priority,
+      incidentDate: data.incidentDate,
+      updates: [{
+          text: data.description,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+          photoDataUri: data.photoDataUri,
+      }]
+    };
+    
+    addPoint(pointToAdd);
+
+    toast({
+      title: "Reporte de Fuga de Água Recebido!",
+      description: "Obrigado pela sua contribuição para a gestão da nossa rede de águas.",
+    });
+  }
 
   const handleAddNewTrafficLightReport = (data: SpecializedIncidentData) => {
     handleAddNewSpecializedIncident("Semáforo com defeito", data);
@@ -521,7 +565,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     
     setPoiToEdit(poi);
     setSelectedPoi(null); // Close details sheet
-    setActiveSheet(poi.type as ActiveSheet);
+    
+    if(poi.type === 'incident') {
+        setActiveSheet('incident');
+    } else if (poi.type === 'atm') {
+        setActiveSheet('atm');
+    }
   }
 
   const handleMarkerClick = (poiId: string) => {
@@ -618,6 +667,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Siren className="mr-2 h-4 w-4" />
                             Reportar Incidente
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStartReporting('water_leak')}>
+                            <Droplet className="mr-2 h-4 w-4" />
+                            Reportar Fuga de Água
+                        </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => handleStartReporting('sanitation')}>
                             <Trash className="mr-2 h-4 w-4" />
                             Mapear Contentor
@@ -697,6 +750,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         <DropdownMenuItem onClick={() => handleStartReporting('incident')}>
                             <Siren className="mr-2 h-4 w-4" />
                             Reportar Incidente
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStartReporting('water_leak')}>
+                            <Droplet className="mr-2 h-4 w-4" />
+                            Reportar Fuga de Água
                         </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => handleStartReporting('sanitation')}>
                             <Trash className="mr-2 h-4 w-4" />
@@ -785,6 +842,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             onAtmEdit={handleEditAtmPoint}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
+        />
+        <WaterLeakReport
+            open={activeSheet === 'water_leak'}
+            onOpenChange={handleSheetOpenChange}
+            onWaterLeakSubmit={handleAddNewWaterLeakReport}
+            initialCenter={mapCenter}
         />
       </SidebarProvider>
   );

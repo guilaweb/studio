@@ -1,8 +1,9 @@
+
 "use client";
 
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Landmark, Construction, Siren, Trash } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Droplet } from "lucide-react";
 import type { ActiveLayers, Layer } from "@/lib/data";
 
 type LayerControlsProps = {
@@ -15,6 +16,7 @@ const layerConfig = [
   { id: "construction", label: "Obras e Projetos", Icon: Construction },
   { id: "incident", label: "Incidentes", Icon: Siren },
   { id: "sanitation", label: "Saneamento", Icon: Trash },
+  { id: "water", label: "Rede de Água", Icon: Droplet },
 ];
 
 export default function LayerControls({ activeLayers, onLayerChange }: LayerControlsProps) {

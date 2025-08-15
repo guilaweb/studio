@@ -4,7 +4,7 @@
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash, Search } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search, Droplet } from "lucide-react";
 import React from "react";
 import MapInfoWindow from "./map-infowindow";
 
@@ -53,6 +53,8 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
       return <Siren className={commonClasses} />;
     case "sanitation":
         return <Trash className={commonClasses} />;
+    case "water":
+        return <Droplet className={commonClasses} />;
     default:
       return null;
   }
@@ -72,7 +74,7 @@ const getPinStyle = (point: PointOfInterest) => {
     if (point.type === 'construction') {
         return { background: 'hsl(var(--secondary-foreground))', borderColor: 'hsl(var(--secondary-foreground))', glyphColor: 'hsl(var(--secondary))' };
     }
-    if (point.type === 'incident') {
+    if (point.type === 'incident' || point.type === 'water') {
         switch (point.priority) {
             case 'high':
                 return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
@@ -184,4 +186,3 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
     </div>
   );
 }
-

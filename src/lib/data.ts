@@ -15,7 +15,7 @@ export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
-const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation']);
+const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water']);
 export type PointOfInterestType = z.infer<typeof PointOfInterestTypeEnum>;
 
 const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
@@ -41,7 +41,7 @@ export const PointOfInterestSchema = z.object({
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 
 
-export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation';
+export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water';
 
 export type ActiveLayers = {
   [key in Layer]: boolean;
@@ -71,7 +71,8 @@ export const typeLabelMap: Record<PointOfInterestType, string> = {
     atm: "ATM",
     construction: "Obra",
     incident: "Incidente",
-    sanitation: "Saneamento"
+    sanitation: "Saneamento",
+    water: "Rede de Água",
 };
 
 export const statusLabelMap: Record<PointOfInterestStatus, string> = {
