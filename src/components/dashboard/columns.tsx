@@ -97,7 +97,7 @@ export const columns: ColumnDef<PointOfInterest>[] = [
       return (
         <TooltipProvider>
             <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                     <div className="flex items-center gap-2 justify-center">
                         <Icon className={`h-4 w-4 ${color}`} />
                         <span className="sr-only">{label}</span>
