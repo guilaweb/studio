@@ -22,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -31,6 +31,7 @@ import { detectDuplicate } from "@/ai/flows/detect-duplicate-flow";
 import { calculateIncidentPriority } from "@/services/incident-priority-service";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import TrafficLightReport from "./traffic-light-report";
+import PotholeReport from "./pothole-report";
 
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -55,6 +56,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   const [isIncidentSheetOpen, setIsIncidentSheetOpen] = React.useState(false);
   const [isSanitationSheetOpen, setIsSanitationSheetOpen] = React.useState(false);
   const [isTrafficLightSheetOpen, setIsTrafficLightSheetOpen] = React.useState(false);
+  const [isPotholeSheetOpen, setIsPotholeSheetOpen] = React.useState(false);
   const [incidentToEdit, setIncidentToEdit] = React.useState<PointOfInterest | null>(null);
 
 
@@ -254,7 +256,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
 
 
-    const incidentToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+    const incidentToAdd: Omit<PointOfInterest, 'updates' | 'status'> & { updates: Omit<PointOfInterestUpdate, 'id'>[], status?: PointOfInterest['status'] } = {
       ...incidentDetails,
       id: `incident-${Date.now()}`,
       type: 'incident',
@@ -287,7 +289,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     setIsSanitationSheetOpen(false);
     const timestamp = new Date().toISOString();
 
-    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+    const pointToAdd: Omit<PointOfInterest, 'updates' | 'status'> & { updates: Omit<PointOfInterestUpdate, 'id'>[], status?: PointOfInterest['status'] } = {
       id: `sanitation-${Date.now()}`,
       type: 'sanitation',
       title: 'Contentor de Lixo',
@@ -338,7 +340,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         console.error("Error calculating priority, defaulting to medium:", error);
     }
 
-    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+    const pointToAdd: Omit<PointOfInterest, 'updates' | 'status'> & { updates: Omit<PointOfInterestUpdate, 'id'>[], status?: PointOfInterest['status'] } = {
       id: `incident-${Date.now()}`,
       type: 'incident',
       title: incidentTitle,
@@ -360,6 +362,58 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
     toast({
       title: "Semáforo reportado!",
+      description: "A sua contribuição foi registada e será analisada. Obrigado!",
+    });
+  }
+
+  const handleAddNewPotholeReport = async (
+    newPointData: Pick<PointOfInterest, 'description' | 'position'>
+  ) => {
+    if (!user || !profile) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para reportar.",
+        });
+        return;
+    }
+    setIsPotholeSheetOpen(false);
+    const timestamp = new Date().toISOString();
+
+    const incidentTitle = "Buraco na via";
+    let priority: PointOfInterest['priority'] | undefined = 'medium'; // Default
+    try {
+        const result = await calculateIncidentPriority({
+            title: incidentTitle,
+            description: newPointData.description,
+        });
+        priority = result.priority;
+    } catch (error) {
+        console.error("Error calculating priority, defaulting to medium:", error);
+    }
+
+    const pointToAdd: Omit<PointOfInterest, 'updates' | 'status'> & { updates: Omit<PointOfInterestUpdate, 'id'>[], status?: PointOfInterest['status'] } = {
+      id: `incident-${Date.now()}`,
+      type: 'incident',
+      title: incidentTitle,
+      authorId: user.uid,
+      lastReported: timestamp,
+      incidentDate: timestamp,
+      description: newPointData.description,
+      position: newPointData.position,
+      priority: priority,
+      updates: [{
+          text: newPointData.description,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+      }]
+    };
+    
+    addPoint(pointToAdd);
+
+    toast({
+      title: "Buraco na via reportado!",
       description: "A sua contribuição foi registada e será analisada. Obrigado!",
     });
   }
@@ -409,6 +463,18 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         return;
     }
     setIsTrafficLightSheetOpen(true);
+  }
+  
+  const handleStartPotholeReport = () => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para reportar.",
+        });
+        return;
+    }
+    setIsPotholeSheetOpen(true);
   }
 
   const handleStartEditing = (poi: PointOfInterest) => {
@@ -527,6 +593,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <LightbulbOff className="mr-2 h-4 w-4" />
                             Reportar Semáforo
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleStartPotholeReport}>
+                            <CircleDashed className="mr-2 h-4 w-4" />
+                            Reportar Buraco na Via
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -591,6 +661,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <LightbulbOff className="mr-2 h-4 w-4" />
                             Reportar Semáforo
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleStartPotholeReport}>
+                            <CircleDashed className="mr-2 h-4 w-4" />
+                            Reportar Buraco na Via
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -627,6 +701,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             open={isTrafficLightSheetOpen}
             onOpenChange={setIsTrafficLightSheetOpen}
             onTrafficLightSubmit={handleAddNewTrafficLightReport}
+            initialCenter={mapCenter}
+        />
+        <PotholeReport
+            open={isPotholeSheetOpen}
+            onOpenChange={setIsPotholeSheetOpen}
+            onPotholeSubmit={handleAddNewPotholeReport}
             initialCenter={mapCenter}
         />
       </SidebarProvider>
