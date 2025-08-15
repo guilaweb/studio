@@ -14,12 +14,14 @@ import { Layer, PointOfInterest } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Activity, Clock, CheckCircle } from "lucide-react";
+import { ArrowLeft, Activity } from "lucide-react";
 import { DataTable } from "@/components/dashboard/data-table";
 import { columns } from "@/components/dashboard/columns";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from 'date-fns/locale';
+import { APIProvider } from "@vis.gl/react-google-maps";
+import DashboardMap from "@/components/dashboard/dashboard-map";
 
 const chartConfig = {
   reports: {
@@ -127,6 +129,8 @@ export default function DashboardPage() {
     router.push(`/?poi=${poiId}`);
   };
 
+  const heatmapData = React.useMemo(() => allData.map(p => p.position), [allData]);
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
@@ -140,8 +144,8 @@ export default function DashboardPage() {
                 Painel Municipal
             </h1>
         </header>
-      <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-4 lg:grid-cols-4">
-        <div className="grid auto-rows-max items-start gap-4 md:col-span-4">
+      <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-1 lg:grid-cols-3">
+        <div className="grid auto-rows-max items-start gap-4 lg:col-span-3">
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
                 <Card>
                     <CardHeader className="pb-2">
@@ -189,41 +193,57 @@ export default function DashboardPage() {
                 </Card>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Card className="md:col-span-2 lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle>Visão Geral dos Reportes</CardTitle>
+                <Card className="lg:col-span-2">
+                     <CardHeader>
+                        <CardTitle>Mapa Operacional (Pontos Quentes)</CardTitle>
                         <CardDescription>
-                        Número total de pontos de interesse registados por categoria.
+                            Visualização da densidade de reportes na cidade.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData} accessibilityLayer>
-                            <CartesianGrid vertical={false} />
-                            <XAxis
-                                dataKey="name"
-                                tickLine={false}
-                                tickMargin={10}
-                                axisLine={false}
-                            />
-                            <YAxis 
-                                tickLine={false}
-                                axisLine={false}
-                                tickMargin={10}
-                                allowDecimals={false}
-                            />
-                            <ChartTooltip
-                                cursor={false}
-                                content={<ChartTooltipContent hideLabel />}
-                            />
-                            <Bar dataKey="total" radius={8} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                        </ChartContainer>
+                    <CardContent className="h-[400px] p-0">
+                        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+                           <DashboardMap data={heatmapData} />
+                        </APIProvider>
                     </CardContent>
                 </Card>
-                <RecentActivityFeed data={allData} />
+
+                <div className="grid auto-rows-max items-start gap-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Visão Geral dos Reportes</CardTitle>
+                            <CardDescription>
+                            Número total por categoria.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-2">
+                            <ChartContainer config={chartConfig} className="h-[150px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData} accessibilityLayer layout="vertical">
+                                <CartesianGrid horizontal={false} />
+                                <YAxis
+                                    dataKey="name"
+                                    type="category"
+                                    tickLine={false}
+                                    tickMargin={10}
+                                    axisLine={false}
+                                    className="text-xs"
+                                />
+                                <XAxis 
+                                    type="number"
+                                    hide
+                                />
+                                <ChartTooltip
+                                    cursor={false}
+                                    content={<ChartTooltipContent hideLabel />}
+                                />
+                                <Bar dataKey="total" layout="vertical" radius={5} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                            </ChartContainer>
+                        </CardContent>
+                    </Card>
+                    <RecentActivityFeed data={allData} />
+                </div>
             </div>
              <Card>
                 <CardHeader>
@@ -242,5 +262,7 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
 
     
