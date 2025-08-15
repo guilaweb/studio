@@ -4,30 +4,11 @@
  * @fileOverview Flow to detect duplicate incidents.
  * 
  * - detectDuplicate - A function that checks if a new incident is a duplicate of an existing one.
- * - DetectDuplicateInput - The input type for the detectDuplicate function.
- * - DetectDuplicateOutput - The return type for the detectDuplicate function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-import { PointOfInterestSchema } from './generate-dashboard-summary-flow';
+import { DetectDuplicateInput, DetectDuplicateInputSchema, DetectDuplicateOutput, DetectDuplicateOutputSchema } from '@/lib/data';
 
-
-const DetectDuplicateInputSchema = z.object({
-  newIncident: z.object({
-    title: z.string(),
-    description: z.string(),
-    position: z.object({ lat: z.number(), lng: z.number() }),
-  }),
-  existingIncidents: z.array(PointOfInterestSchema),
-});
-export type DetectDuplicateInput = z.infer<typeof DetectDuplicateInputSchema>;
-
-const DetectDuplicateOutputSchema = z.object({
-    isDuplicate: z.boolean().describe('Whether the new incident is a duplicate of an existing one.'),
-    duplicateOfId: z.string().optional().describe('The ID of the existing incident it is a duplicate of, if any.'),
-});
-export type DetectDuplicateOutput = z.infer<typeof DetectDuplicateOutputSchema>;
 
 export async function detectDuplicate(input: DetectDuplicateInput): Promise<DetectDuplicateOutput> {
     if (input.existingIncidents.length === 0) {

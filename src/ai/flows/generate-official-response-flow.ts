@@ -4,24 +4,10 @@
  * @fileOverview Flow to generate an official response to a citizen's contribution.
  *
  * - generateOfficialResponse - A function that generates a professional and empathetic response.
- * - GenerateOfficialResponseInput - The input type for the generateOfficialResponse function.
- * - GenerateOfficialResponseOutput - The return type for the generateOfficialResponse function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-const GenerateOfficialResponseInputSchema = z.object({
-  citizenContribution: z.string().describe("The citizen's contribution text."),
-  projectName: z.string().describe("The name of the construction project."),
-});
-export type GenerateOfficialResponseInput = z.infer<typeof GenerateOfficialResponseInputSchema>;
-
-const GenerateOfficialResponseOutputSchema = z.object({
-  response: z.string().describe('The generated official response.'),
-});
-export type GenerateOfficialResponseOutput = z.infer<typeof GenerateOfficialResponseOutputSchema>;
-
+import { GenerateOfficialResponseInput, GenerateOfficialResponseInputSchema, GenerateOfficialResponseOutput, GenerateOfficialResponseOutputSchema } from '@/lib/data';
 
 export async function generateOfficialResponse(input: GenerateOfficialResponseInput): Promise<GenerateOfficialResponseOutput> {
     return generateOfficialResponseFlow(input);
