@@ -106,6 +106,9 @@ const SanitationTicket = ({poi, onPoiStatusChange, onAddUpdate}: {poi: PointOfIn
                     <Button variant="outline" className="bg-blue-100 border-blue-500 text-blue-700 hover:bg-blue-200" onClick={() => onPoiStatusChange(poi.id, 'in_progress')}>
                         <Truck className="mr-2"/> Em Resolução
                     </Button>
+                    <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => onPoiStatusChange(poi.id, 'collected')}>
+                        <CheckCircle className="mr-2"/> Recolhido
+                    </Button>
                     <Button variant="outline" className="bg-orange-100 border-orange-500 text-orange-700 hover:bg-orange-200" onClick={() => onPoiStatusChange(poi.id, 'full')}>
                         <ShieldAlert className="mr-2"/> CHEIO
                     </Button>
@@ -165,7 +168,7 @@ const Timeline = ({poi, onAddUpdate, showAiButton}: {poi: PointOfInterest, onAdd
     }
 
     const handleGenerateResponse = async () => {
-        const lastCitizenUpdate = poi.updates?.find(u => u.authorId !== 'municipality'); // Simple check for non-official updates
+        const lastCitizenUpdate = poi.updates?.find(u => u.authorId !== user?.uid);
         if (!lastCitizenUpdate) {
             toast({
                 variant: "destructive",
@@ -193,6 +196,10 @@ const Timeline = ({poi, onAddUpdate, showAiButton}: {poi: PointOfInterest, onAdd
             setIsGenerating(false);
         }
     }
+    
+    // Quick and dirty way to check if current user is an admin/manager. 
+    // In a real app this would be based on user roles.
+    const isManager = !!user;
 
     return (
         <div className="mt-4">
@@ -200,10 +207,10 @@ const Timeline = ({poi, onAddUpdate, showAiButton}: {poi: PointOfInterest, onAdd
             <div className="py-4">
                 <h3 className="font-semibold mb-4">Linha do Tempo e Respostas</h3>
                 
-                 { user && (
+                 { isManager && (
                     <form onSubmit={handleSubmit} className="mb-6 space-y-4">
                         <Textarea 
-                            placeholder="Viu algum progresso ou problema? Descreva o que viu... (Ex: A obra está parada, a calçada foi concluída, etc.)"
+                            placeholder={showAiButton ? "Escreva uma resposta oficial ou adicione uma atualização sobre o progresso..." : "Viu algum progresso ou problema? Descreva o que viu..."}
                             value={updateText}
                             onChange={(e) => setUpdateText(e.target.value)}
                         />
@@ -293,5 +300,3 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </Sheet>
   );
 }
-
-    
