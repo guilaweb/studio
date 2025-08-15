@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -11,7 +12,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
-import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
+import { PointOfInterest, PointOfInterestUpdate, UserProfile } from "@/lib/data";
 import { Logo } from "@/components/icons";
 import AppHeader from "@/components/app-header";
 import MapComponent from "@/components/map-component";
@@ -49,7 +50,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
 
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   React.useEffect(() => {
     const poiId = searchParams.get('poi');
@@ -202,6 +203,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
 
+  const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
+
   return (
       <SidebarProvider>
         <div className="flex h-screen w-full">
@@ -224,20 +227,22 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                     Reportar Incidente
                 </Button>
               )}
-               <Button variant="outline" asChild className="w-full">
-                  <Link href="/dashboard">
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    Painel Municipal
-                  </Link>
-              </Button>
-              {user && (
-                <Button variant="outline" asChild className="w-full">
-                    <Link href="/comunicacoes">
-                        <Megaphone className="mr-2 h-4 w-4" />
-                        Comunicações
-                    </Link>
-                </Button>
-              )}
+               {isManager && (
+                    <>
+                        <Button variant="outline" asChild className="w-full">
+                            <Link href="/dashboard">
+                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                Painel Municipal
+                            </Link>
+                        </Button>
+                        <Button variant="outline" asChild className="w-full">
+                            <Link href="/comunicacoes">
+                                <Megaphone className="mr-2 h-4 w-4" />
+                                Comunicações
+                            </Link>
+                        </Button>
+                    </>
+                )}
             </SidebarFooter>
           </Sidebar>
 

@@ -1,4 +1,5 @@
 
+
 export type PointOfInterestUpdate = {
   id: string;
   text: string;
@@ -23,4 +24,13 @@ export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation';
 
 export type ActiveLayers = {
   [key in Layer]: boolean;
+};
+
+export type UserProfile = {
+    uid: string;
+    displayName: string;
+    email: string;
+    photoURL?: string;
+    role: 'Cidadão' | 'Agente Municipal' | 'Administrador';
+    createdAt?: string;
 };

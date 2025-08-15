@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -5,10 +6,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { doc, setDoc } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,9 +41,23 @@ export default function RegisterPage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      await updateProfile(userCredential.user, {
+      const user = userCredential.user;
+      
+      // Update Firebase Auth profile
+      await updateProfile(user, {
         displayName: values.displayName,
       });
+
+      // Create user profile in Firestore
+      const userDocRef = doc(db, "users", user.uid);
+      await setDoc(userDocRef, {
+        uid: user.uid,
+        displayName: values.displayName,
+        email: user.email,
+        role: "Cidadão", // Default role
+        createdAt: new Date().toISOString(),
+      });
+
       toast({
         title: "Conta criada com sucesso!",
         description: "A sua conta foi criada e já pode fazer login.",
@@ -59,7 +75,20 @@ export default function RegisterPage() {
    const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Create user profile in Firestore for Google sign-in as well
+       const userDocRef = doc(db, "users", user.uid);
+       await setDoc(userDocRef, {
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        role: "Cidadão",
+        createdAt: new Date().toISOString(),
+       }, { merge: true }); // Use merge to not overwrite if doc already exists
+      
       toast({
         title: "Login com Google bem-sucedido!",
         description: "Bem-vindo.",

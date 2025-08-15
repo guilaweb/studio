@@ -205,6 +205,9 @@ function ComunicacoesPage() {
                                     gestureHandling={'greedy'}
                                     disableDefaultUI={true}
                                     styles={mapStyles}
+                                    onCameraChanged={function (ev: google.maps.MapCameraChangedEvent): void {
+                                        throw new Error("Function not implemented.");
+                                    } }
                                 >
                                      <DrawingManager onPolygonComplete={setDrawnPolygon} />
                                 </Map>
@@ -217,4 +220,4 @@ function ComunicacoesPage() {
     );
 }
 
-export default withAuth(ComunicacoesPage);
+export default withAuth(ComunicacoesPage, ['Agente Municipal', 'Administrador']);

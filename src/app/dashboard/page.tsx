@@ -24,6 +24,7 @@ import IntelligentAlerts from "@/components/dashboard/intelligent-alerts";
 import { getIncidentClusters } from "@/services/alert-service";
 import RecentActivityFeed from "@/components/dashboard/recent-activity-feed";
 import IntelligentSummary from "@/components/dashboard/intelligent-summary";
+import { withAuth } from "@/hooks/use-auth";
 
 
 const chartConfig = {
@@ -75,7 +76,7 @@ const getMockKPIs = (data: PointOfInterest[]) => {
 
 }
 
-export default function DashboardPage() {
+function DashboardPage() {
   const { allData } = usePoints();
   const router = useRouter();
 
@@ -235,3 +236,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+export default withAuth(DashboardPage, ['Agente Municipal', 'Administrador']);

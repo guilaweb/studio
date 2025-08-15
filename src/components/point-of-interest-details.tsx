@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React from "react";
@@ -55,7 +56,7 @@ const IncidentTags = ({ description }: { description: string }) => {
     )
 }
 
-const ATMStatus = ({poi, onPoiStatusChange}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange']}) => {
+const ATMStatus = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], canUpdate: boolean}) => {
     if (poi.type !== 'atm') return null;
 
     const getStatusBadge = () => {
@@ -71,19 +72,21 @@ const ATMStatus = ({poi, onPoiStatusChange}: {poi: PointOfInterest, onPoiStatusC
                 {getStatusBadge()}
                 {getLastReportedTime(poi.lastReported)}
             </div>
-            <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => onPoiStatusChange(poi.id, 'available')}>
-                    <ThumbsUp className="mr-2"/> TEM DINHEiro
-                </Button>
-                <Button variant="outline" className="bg-red-100 border-red-500 text-red-700 hover:bg-red-200" onClick={() => onPoiStatusChange(poi.id, 'unavailable')}>
-                    <ThumbsDown className="mr-2"/> NÃO TEM DINHEIRO
-                </Button>
-            </div>
+            {canUpdate && (
+                <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => onPoiStatusChange(poi.id, 'available')}>
+                        <ThumbsUp className="mr-2"/> TEM DINHEiro
+                    </Button>
+                    <Button variant="outline" className="bg-red-100 border-red-500 text-red-700 hover:bg-red-200" onClick={() => onPoiStatusChange(poi.id, 'unavailable')}>
+                        <ThumbsDown className="mr-2"/> NÃO TEM DINHEIRO
+                    </Button>
+                </div>
+            )}
         </div>
     )
 }
 
-const SanitationTicket = ({poi, onPoiStatusChange}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange']}) => {
+const SanitationTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], canUpdate: boolean}) => {
     
     const getStatusBadge = () => {
         if (poi.status === 'full') return <Badge className="bg-orange-500 hover:bg-orange-600">Cheio</Badge>
@@ -101,32 +104,34 @@ const SanitationTicket = ({poi, onPoiStatusChange}: {poi: PointOfInterest, onPoi
                     {getStatusBadge()}
                     {getLastReportedTime(poi.lastReported)}
                 </div>
-                 <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" className="bg-blue-100 border-blue-500 text-blue-700 hover:bg-blue-200" onClick={() => onPoiStatusChange(poi.id, 'in_progress')}>
-                        <Truck className="mr-2"/> Em Resolução
-                    </Button>
-                    <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => onPoiStatusChange(poi.id, 'collected')}>
-                        <CheckCircle className="mr-2"/> Recolhido
-                    </Button>
-                    <Button variant="outline" className="bg-orange-100 border-orange-500 text-orange-700 hover:bg-orange-200" onClick={() => onPoiStatusChange(poi.id, 'full')}>
-                        <ShieldAlert className="mr-2"/> CHEIO
-                    </Button>
-                    <Button variant="outline" className="bg-red-100 border-red-500 text-red-700 hover:bg-red-200" onClick={() => onPoiStatusChange(poi.id, 'damaged')}>
-                        <ShieldX className="mr-2"/> DANIFICADO
-                    </Button>
-                </div>
+                 {canUpdate && (
+                    <div className="grid grid-cols-2 gap-2">
+                        <Button variant="outline" className="bg-blue-100 border-blue-500 text-blue-700 hover:bg-blue-200" onClick={() => onPoiStatusChange(poi.id, 'in_progress')}>
+                            <Truck className="mr-2"/> Em Resolução
+                        </Button>
+                        <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => onPoiStatusChange(poi.id, 'collected')}>
+                            <CheckCircle className="mr-2"/> Recolhido
+                        </Button>
+                        <Button variant="outline" className="bg-orange-100 border-orange-500 text-orange-700 hover:bg-orange-200" onClick={() => onPoiStatusChange(poi.id, 'full')}>
+                            <ShieldAlert className="mr-2"/> CHEIO
+                        </Button>
+                        <Button variant="outline" className="bg-red-100 border-red-500 text-red-700 hover:bg-red-200" onClick={() => onPoiStatusChange(poi.id, 'damaged')}>
+                            <ShieldX className="mr-2"/> DANIFICADO
+                        </Button>
+                    </div>
+                 )}
              </div>
         </div>
     )
 }
 
-const Timeline = ({poi, onAddUpdate, showAiButton}: {poi: PointOfInterest, onAddUpdate: PointOfInterestDetailsProps['onAddUpdate'], showAiButton: boolean}) => {
+const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointOfInterestDetailsProps['onAddUpdate']}) => {
     const [updateText, setUpdateText] = React.useState("");
     const [updatePhoto, setUpdatePhoto] = React.useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
     const [isGenerating, setIsGenerating] = React.useState(false);
     const { toast } = useToast();
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
     
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -194,11 +199,11 @@ const Timeline = ({poi, onAddUpdate, showAiButton}: {poi: PointOfInterest, onAdd
         }
     }
     
-    // Quick and dirty way to check if current user is an admin/manager. 
-    // In a real app this would be based on user roles.
-    const isManager = !!user;
+    const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
+    const isOwner = poi.authorId === user?.uid;
 
-    const canGenerateAiResponse = showAiButton && poi.updates && poi.updates.length > 0 && poi.updates[0].authorId !== user?.uid;
+    const canAddUpdate = isManager || isOwner;
+    const canGenerateAiResponse = isManager && poi.type === 'construction' && poi.updates && poi.updates.length > 0 && poi.updates[0].authorId !== user?.uid;
 
     return (
         <div className="mt-4">
@@ -206,10 +211,10 @@ const Timeline = ({poi, onAddUpdate, showAiButton}: {poi: PointOfInterest, onAdd
             <div className="py-4">
                 <h3 className="font-semibold mb-4">Linha do Tempo e Fiscalização</h3>
                 
-                 { isManager && (
+                 { canAddUpdate && (
                     <form onSubmit={handleSubmit} className="mb-6 space-y-4">
                         <Textarea 
-                            placeholder={showAiButton ? "Escreva uma resposta oficial ou adicione uma atualização sobre o progresso..." : "Viu algum progresso ou problema? Descreva o que viu..."}
+                            placeholder={isManager ? "Escreva uma resposta oficial ou adicione uma atualização sobre o progresso..." : "Viu algum progresso ou problema? Descreva o que viu..."}
                             value={updateText}
                             onChange={(e) => setUpdateText(e.target.value)}
                         />
@@ -265,10 +270,14 @@ const Timeline = ({poi, onAddUpdate, showAiButton}: {poi: PointOfInterest, onAdd
 
 
 export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange, onAddUpdate }: PointOfInterestDetailsProps) {
+  const { profile } = useAuth();
+  
   if (!poi) return null;
 
   const config = layerConfig[poi.type];
   const showTimeline = poi.type === 'construction' || poi.type === 'incident' || poi.type === 'sanitation';
+
+  const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -293,15 +302,14 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             </div>
             {poi.type === 'incident' && <IncidentTags description={poi.description} />}
             
-            {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} />}
+            {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={isManager} />}
             
-            {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} />}
+            {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={isManager} />}
             
             {showTimeline && (
                 <Timeline 
                     poi={poi} 
-                    onAddUpdate={onAddUpdate} 
-                    showAiButton={poi.type === 'construction'} 
+                    onAddUpdate={onAddUpdate}
                 />
             )}
         </div>
