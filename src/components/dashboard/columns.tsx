@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import Link from "next/link"
 
 const typeVariantMap: { [key in PointOfInterest['type']]: "default" | "secondary" | "destructive" | "outline" } = {
     atm: "default",
@@ -86,7 +87,13 @@ export const columns: ColumnDef<PointOfInterest>[] = [
             <DropdownMenuItem onClick={() => onViewOnMap?.(poi.id)}>
                 Ver detalhes no mapa
             </DropdownMenuItem>
-            <DropdownMenuItem>Ver perfil do autor</DropdownMenuItem>
+             {poi.authorId && poi.authorId !== 'system' && (
+                <DropdownMenuItem asChild>
+                    <Link href={`/public-profile/${poi.authorId}`}>
+                        Ver perfil do autor
+                    </Link>
+                </DropdownMenuItem>
+             )}
           </DropdownMenuContent>
         </DropdownMenu>
       )
