@@ -1,3 +1,10 @@
+export type PointOfInterestUpdate = {
+  id: string;
+  text: string;
+  authorId: string;
+  timestamp: string;
+};
+
 export type PointOfInterest = {
   id: string;
   type: 'atm' | 'construction' | 'incident' | 'sanitation';
@@ -7,6 +14,7 @@ export type PointOfInterest = {
   status?: 'available' | 'unavailable' | 'unknown' | 'full' | 'damaged' | 'collected'; // For ATMs and Sanitation
   lastReported?: string; // For ATMs and Sanitation
   authorId?: string; // ID of the user who reported it
+  updates?: PointOfInterestUpdate[]; // For Construction timeline
 };
 
 export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation';
@@ -54,6 +62,10 @@ export const constructionSites: PointOfInterest[] = [
     position: { lat: -8.83, lng: 13.24 },
     title: 'Reabilitação da Avenida 4 de Fevereiro',
     description: 'Entidade: Administração Municipal de Luanda.\nEstado: Em curso.\nPrevisão de término: Final de 2024.\n\nObservações: Trânsito condicionado nos horários de pico.',
+    updates: [
+        { id: 'upd-1-1', text: 'As obras parecem estar paradas há uma semana. Ninguém a trabalhar no local.', authorId: 'user-2', timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()},
+        { id: 'upd-1-2', text: 'Hoje vi maquinaria pesada a chegar. Parece que vão recomeçar os trabalhos na zona sul da avenida.', authorId: 'user-1', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()},
+    ]
   },
   {
     id: 'construction-2',
@@ -61,6 +73,7 @@ export const constructionSites: PointOfInterest[] = [
     position: { lat: -8.851, lng: 13.269 },
     title: 'Construção do novo viaduto do Zango',
     description: 'Entidade: Governo Provincial de Luanda.\nEstado: Em curso.\n\nObservações: Espere ruído e poeira durante o dia. Desvios sinalizados na área.',
+    updates: []
   },
   {
     id: 'construction-3',
@@ -68,6 +81,7 @@ export const constructionSites: PointOfInterest[] = [
     position: { lat: -8.87, lng: 13.22 },
     title: 'Limpeza e Desassoreamento da Vala do Prenda',
     description: 'Entidade: Ministério das Obras Públicas.\nEstado: Planeada.\nInício previsto: Próximo trimestre.',
+    updates: []
   }
 ];
 

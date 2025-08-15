@@ -13,7 +13,7 @@ type MapComponentProps = {
   zoom: number;
   onCenterChanged: (center: google.maps.LatLngLiteral) => void;
   onZoomChanged: (zoom: number) => void;
-  onMarkerClick: (point: PointOfInterest) => void;
+  onMarkerClick: (pointId: string) => void;
 };
 
 const mapStyles: google.maps.MapTypeStyle[] = [
@@ -115,12 +115,12 @@ const MapEvents = ({ onCenterChanged, onZoomChanged }: { onCenterChanged: (cente
     return null;
   };
 
-const PointOfInterestMarker = ({ point, onClick }: { point: PointOfInterest; onClick: (point: PointOfInterest) => void }) => {
+const PointOfInterestMarker = ({ point, onClick }: { point: PointOfInterest; onClick: (pointId: string) => void }) => {
   const [markerRef, marker] = useAdvancedMarkerRef();
   const pinStyle = getPinStyle(point);
 
   return (
-    <AdvancedMarker ref={markerRef} position={point.position} title={point.title} onClick={() => onClick(point)}>
+    <AdvancedMarker ref={markerRef} position={point.position} title={point.title} onClick={() => onClick(point.id)}>
         <Pin 
             background={pinStyle.background} 
             borderColor={pinStyle.borderColor} 

@@ -12,7 +12,7 @@ import {
 import { APIProvider } from "@vis.gl/react-google-maps";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
-import { PointOfInterest, ActiveLayers } from "@/lib/data";
+import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
 import { Logo } from "@/components/icons";
 import AppHeader from "@/components/app-header";
 import MapComponent from "@/components/map-component";
@@ -29,7 +29,7 @@ import { usePoints } from "@/hooks/use-points";
 
 
 export default function Home() {
-  const [activeLayers, setActiveLayers] = React.useState<ActiveLayers>({
+  const [activeLayers, setActiveLayers] = React.useState({
     atm: true,
     construction: true,
     incident: true,
@@ -42,7 +42,7 @@ export default function Home() {
     lng: 13.2343,
   });
   const [zoom, setZoom] = React.useState(13);
-  const { allData, addPoint, updatePointStatus } = usePoints();
+  const { allData, addPoint, updatePointStatus, addUpdateToPoint } = usePoints();
 
 
   const { toast } = useToast();
@@ -106,7 +106,8 @@ export default function Home() {
     });
   };
 
-  const handleMarkerClick = (poi: PointOfInterest) => {
+  const handleMarkerClick = (poiId: string) => {
+    const poi = allData.find(p => p.id === poiId) || null;
     setSelectedPoi(poi);
   };
 
@@ -122,6 +123,39 @@ export default function Home() {
         description: "Obrigado pela sua contribuição.",
     })
   };
+
+  const handleAddUpdate = (poiId: string, updateText: string) => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para adicionar uma atualização.",
+        });
+        return;
+    }
+
+    const newUpdate: Omit<PointOfInterestUpdate, 'id'> = {
+        text: updateText,
+        authorId: user.uid,
+        timestamp: new Date().toISOString(),
+    };
+    
+    addUpdateToPoint(poiId, newUpdate);
+    setSelectedPoi(prevPoi => {
+      if (!prevPoi) return null;
+      const updatedUpdates = [
+          {...newUpdate, id: `temp-${Date.now()}`}, 
+          ...(prevPoi.updates || [])
+      ];
+      return { ...prevPoi, updates: updatedUpdates };
+    });
+
+    toast({
+        title: "Atualização adicionada!",
+        description: "A sua fiscalização foi registada. Obrigado!",
+    });
+  }
+
 
   const UserMenu = () => {
     if (loading) {
@@ -211,7 +245,7 @@ export default function Home() {
                 zoom={zoom}
                 onCenterChanged={setMapCenter}
                 onZoomChanged={setZoom}
-                onMarkerClick={handleMarkerClick}
+                onMarkerClick={(poiId) => handleMarkerClick(poiId)}
               />
             </div>
           </SidebarInset>
@@ -226,6 +260,7 @@ export default function Home() {
           }
         }}
         onPoiStatusChange={handlePoiStatusChange}
+        onAddUpdate={handleAddUpdate}
         />
       <Toaster />
     </APIProvider>

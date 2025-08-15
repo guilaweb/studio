@@ -1,10 +1,13 @@
 "use client";
 
+import React from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
@@ -13,6 +16,7 @@ type PointOfInterestDetailsProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onPoiStatusChange: (poiId: string, status: PointOfInterest['status']) => void;
+  onAddUpdate: (poiId: string, updateText: string) => void;
 };
 
 const layerConfig = {
@@ -88,7 +92,60 @@ const SanitationStatus = ({poi, onPoiStatusChange}: {poi: PointOfInterest, onPoi
     )
 }
 
-export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange }: PointOfInterestDetailsProps) {
+const ConstructionTimeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointOfInterestDetailsProps['onAddUpdate']}) => {
+    const [updateText, setUpdateText] = React.useState("");
+    
+    if (poi.type !== 'construction') return null;
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (updateText.trim()) {
+            onAddUpdate(poi.id, updateText);
+            setUpdateText("");
+        }
+    }
+
+    return (
+        <div className="mt-4">
+            <Separator />
+            <div className="py-4">
+                <h3 className="font-semibold mb-4">Linha do Tempo da Fiscalização Cidadã</h3>
+                
+                <form onSubmit={handleSubmit} className="mb-6 space-y-2">
+                    <Textarea 
+                        placeholder="Viu algum progresso ou problema? Descreva o que viu... (Ex: A obra está parada, a calçada foi concluída, etc.)"
+                        value={updateText}
+                        onChange={(e) => setUpdateText(e.target.value)}
+                    />
+                    <Button type="submit" size="sm" disabled={!updateText.trim()}>
+                        <MessageSquarePlus className="mr-2 h-4 w-4" />
+                        Adicionar Fiscalização
+                    </Button>
+                </form>
+
+                <div className="space-y-4">
+                    {poi.updates && poi.updates.length > 0 ? (
+                        poi.updates.map(update => (
+                            <div key={update.id} className="p-3 rounded-lg bg-muted/50 text-sm">
+                               <p className="whitespace-pre-wrap">{update.text}</p>
+                               <p className="text-xs text-muted-foreground mt-2">
+                                    Fiscalizado {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })} por um cidadão.
+                               </p>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                            Ainda não há fiscalizações para esta obra. Seja o primeiro a adicionar uma!
+                        </p>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+
+export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange, onAddUpdate }: PointOfInterestDetailsProps) {
   if (!poi) return null;
 
   const config = layerConfig[poi.type];
@@ -116,6 +173,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             </div>
             {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} />}
             {poi.type === 'sanitation' && <SanitationStatus poi={poi} onPoiStatusChange={onPoiStatusChange} />}
+            {poi.type === 'construction' && <ConstructionTimeline poi={poi} onAddUpdate={onAddUpdate} />}
         </div>
       </SheetContent>
     </Sheet>
