@@ -26,10 +26,7 @@ export default function MapSearchBox({ onPlaceSelect }: MapSearchBoxProps) {
       onPlaceSelect(place);
     });
 
-    // Cleanup listener on component unmount
     return () => {
-        // The `clearInstanceListeners` function is not directly available on the instance.
-        // We need to use the static method from the google.maps.event namespace.
         if (google && google.maps && google.maps.event) {
             google.maps.event.clearInstanceListeners(autocomplete);
         }

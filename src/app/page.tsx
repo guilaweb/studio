@@ -241,7 +241,7 @@ export default function Home() {
   }
 
   return (
-    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!} solutionChannel="GMP_visgl_rgm_v1">
+    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
       <SidebarProvider>
         <div className="flex h-screen w-full">
           <Sidebar collapsible="icon" className="border-r">
