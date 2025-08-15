@@ -304,7 +304,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   if (!poi) return null;
 
   const config = layerConfig[poi.type];
-  const priorityInfo = poi.priority ? priorityConfig[poi.y] : null;
+  const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
   const showTimeline = poi.type === 'construction' || poi.type === 'incident' || poi.type === 'sanitation';
   const isOwner = poi.authorId === user?.uid;
   const canEdit = isOwner;
@@ -370,5 +370,3 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </Sheet>
   );
 }
-
-    

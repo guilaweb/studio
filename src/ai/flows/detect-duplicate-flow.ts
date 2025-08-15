@@ -31,6 +31,7 @@ const prompt = ai.definePrompt({
         1.  **Location:** Are the coordinates very close (e.g., within a few hundred meters)?
         2.  **Semantics:** Do the titles and descriptions describe the same problem, even if they use different words? (e.g., "car crash" vs. "vehicle collision", "broken traffic light" vs. "signal not working").
         3.  **Time:** The existing incidents provided are recent.
+        4.  **Author:** Is the author of the new report the same as the author of a similar existing report? This can be a strong indicator.
 
         If you find a clear duplicate, set "isDuplicate" to true and provide the "id" of the *most likely* original incident in "duplicateOfId".
         
