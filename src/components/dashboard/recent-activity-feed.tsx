@@ -31,19 +31,25 @@ const RecentActivityFeed = ({ data }: { data: PointOfInterest[] }) => {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {recentPoints.map(point => (
-                        <div key={point.id} className="flex items-center gap-4">
-                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                                <Activity className="h-4 w-4 text-muted-foreground" />
-                           </div>
-                           <div className="flex-1">
-                               <p className="text-sm font-medium leading-none">{point.title}</p>
-                               <p className="text-sm text-muted-foreground">
-                                {isClient ? `Reportado ${point.lastReported ? formatDistanceToNow(new Date(point.lastReported), { addSuffix: true, locale: pt}) : 'recentemente'}` : 'A carregar...'}
-                               </p>
-                           </div>
-                        </div>
-                    ))}
+                    {recentPoints.length > 0 ? (
+                        recentPoints.map(point => (
+                            <div key={point.id} className="flex items-center gap-4">
+                               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                                    <Activity className="h-4 w-4 text-muted-foreground" />
+                               </div>
+                               <div className="flex-1">
+                                   <p className="text-sm font-medium leading-none">{point.title}</p>
+                                   <p className="text-sm text-muted-foreground">
+                                    {isClient ? `Reportado ${point.lastReported ? formatDistanceToNow(new Date(point.lastReported), { addSuffix: true, locale: pt}) : 'recentemente'}` : 'A carregar...'}
+                                   </p>
+                               </div>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                           Ainda não há atividade para mostrar.
+                        </p>
+                    )}
                 </div>
             </CardContent>
         </Card>
