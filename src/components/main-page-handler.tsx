@@ -224,11 +224,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         authorId: user.uid,
         authorDisplayName: profile.displayName,
         timestamp: timestamp,
+        photoDataUri: photoDataUri,
     };
-    
-    if (photoDataUri) {
-        initialUpdate.photoDataUri = photoDataUri;
-    }
 
     const incidentToAdd: PointOfInterest = {
       ...incidentDetails,
@@ -295,13 +292,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         authorId: user.uid,
         authorDisplayName: profile.displayName,
         timestamp: new Date().toISOString(),
+        photoDataUri: photoDataUri,
     };
     
-    if (photoDataUri) {
-        newUpdate.photoDataUri = photoDataUri;
-    }
-    
     addUpdateToPoint(poiId, newUpdate);
+    
+    // Optimistic update of the selected PoI
     setSelectedPoi(prevPoi => {
       if (!prevPoi) return null;
       const updatedUpdates = [
@@ -411,5 +407,3 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       </SidebarProvider>
   );
 }
-
-    

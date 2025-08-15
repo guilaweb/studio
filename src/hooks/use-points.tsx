@@ -24,6 +24,11 @@ const PointsContext = createContext<PointsContextType>({
 
 const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
     const data = doc.data();
+    // Sort updates newest first before returning
+    const sortedUpdates = (data.updates || []).sort((a: PointOfInterestUpdate, b: PointOfInterestUpdate) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
     return {
         id: doc.id,
         type: data.type,
@@ -33,7 +38,7 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         status: data.status,
         lastReported: data.lastReported,
         authorId: data.authorId,
-        updates: data.updates || [],
+        updates: sortedUpdates,
         priority: data.priority,
     };
 };
@@ -84,20 +89,18 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         
-        const newUpdate: Partial<PointOfInterestUpdate> = {
+        const newUpdate: PointOfInterestUpdate = {
             id: `upd-${pointId}-${Date.now()}`,
             text: update.text,
             authorId: update.authorId,
             authorDisplayName: update.authorDisplayName,
             timestamp: update.timestamp,
+            photoDataUri: update.photoDataUri,
         };
         
-        if (update.photoDataUri) {
-            newUpdate.photoDataUri = update.photoDataUri;
-        }
-
         await updateDoc(pointRef, {
-            updates: arrayUnion(newUpdate)
+            updates: arrayUnion(newUpdate),
+            lastReported: new Date().toISOString(), // Also update the main lastReported field
         });
 
     } catch (error) {
@@ -107,8 +110,8 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 
   // This is a client-side sort. For large datasets, consider sorting with Firestore queries.
   const sortedData = [...allData].sort((a, b) => {
-      const dateA = a.updates?.[a.updates.length-1]?.timestamp || a.lastReported || '1970-01-01';
-      const dateB = b.updates?.[b.updates.length-1]?.timestamp || b.lastReported || '1970-01-01';
+      const dateA = a.lastReported || a.updates?.[a.updates.length-1]?.timestamp || '1970-01-01';
+      const dateB = b.lastReported || b.updates?.[b.updates.length-1]?.timestamp || '1970-01-01';
       return new Date(dateB).getTime() - new Date(dateA).getTime();
   });
 
@@ -121,5 +124,3 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const usePoints = () => useContext(PointsContext);
-
-    

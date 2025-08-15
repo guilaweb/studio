@@ -226,11 +226,13 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
                             onChange={(e) => setUpdateText(e.target.value)}
                         />
                          <div>
-                            <Label htmlFor="update-photo" className="text-sm font-medium text-muted-foreground flex items-center gap-2 cursor-pointer">
-                                <Camera className="h-4 w-4" />
-                                Anexar Fotografia (Opcional)
+                            <Label htmlFor="update-photo" className="text-sm font-medium">
+                                <div className="flex items-center gap-2 cursor-pointer">
+                                    <Camera className="h-4 w-4" />
+                                    Anexar Fotografia (Opcional)
+                                </div>
                             </Label>
-                            <Input id="update-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-1 h-auto p-1"/>
+                            <Input id="update-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-2 h-auto p-1"/>
                         </div>
                         {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={100} height={100} className="rounded-md object-cover" />}
 
@@ -330,5 +332,3 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </Sheet>
   );
 }
-
-    

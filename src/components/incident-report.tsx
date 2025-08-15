@@ -45,7 +45,6 @@ const formSchema = z.object({
     lat: z.number(),
     lng: z.number(),
   }),
-  photoDataUri: z.string().optional(),
 });
 
 type IncidentReportProps = {
@@ -78,11 +77,13 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
     });
     setPhotoFile(null);
     setPhotoPreview(null);
-    setMapCenter(initialCenter);
   }
 
   useEffect(() => {
     if (open) {
+      setMapCenter(initialCenter);
+      form.setValue("position", initialCenter);
+    } else {
       clearForm();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -134,8 +135,8 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[40vh] bg-muted">
                 <Map
-                    defaultCenter={initialCenter}
-                    defaultZoom={15}
+                    center={mapCenter}
+                    zoom={15}
                     gestureHandling={'greedy'}
                     disableDefaultUI={true}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
@@ -152,7 +153,7 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Tipo de Reporte</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Selecione o tipo de reporte" />
@@ -191,19 +192,21 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
                 )}
                 />
                 <div>
-                    <Label htmlFor="incident-photo" className="text-sm font-medium text-muted-foreground flex items-center gap-2 cursor-pointer">
-                        <Camera className="h-4 w-4" />
-                        Fotografia (Opcional)
+                    <Label htmlFor="incident-photo" className="text-sm font-medium">
+                        <div className="flex items-center gap-2 cursor-pointer">
+                            <Camera className="h-4 w-4" />
+                            Fotografia (Opcional)
+                        </div>
                     </Label>
-                    <Input id="incident-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-1 h-auto p-1"/>
+                    <Input id="incident-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-2 h-auto p-1"/>
                 </div>
                 {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={100} height={100} className="rounded-md object-cover" />}
 
-                <SheetFooter className="pt-4">
-                    <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                    <Button type="submit">Submeter Reporte</Button>
-                </SheetFooter>
             </div>
+            <SheetFooter className="p-6 pt-4 border-t bg-background">
+                <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                <Button type="submit">Submeter Reporte</Button>
+            </SheetFooter>
           </form>
         </Form>
       </SheetContent>
