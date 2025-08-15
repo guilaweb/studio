@@ -29,56 +29,89 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { PointOfInterest } from "@/lib/data";
+import { Map, Pin as MapPinIcon } from "@vis.gl/react-google-maps";
+import { MapPin } from "lucide-react";
+
 
 const formSchema = z.object({
   title: z.string().min(1, "O tipo de incidente é obrigatório."),
-  description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres.")
+  description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres."),
+  position: z.object({
+    lat: z.number(),
+    lng: z.number(),
+  })
 });
 
 type IncidentReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'position'>, type?: PointOfInterest['type']) => void;
+  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId'>, type?: PointOfInterest['type']) => void;
+  initialCenter: google.maps.LatLngLiteral;
 };
 
-export default function IncidentReport({ open, onOpenChange, onIncidentSubmit }: IncidentReportProps) {
+export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, initialCenter }: IncidentReportProps) {
+  const [mapCenter, setMapCenter] = useState(initialCenter);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
+      position: initialCenter,
     },
   });
 
   useEffect(() => {
-    if (!open) {
-      form.reset();
+    if (open) {
+        form.reset({
+            title: "",
+            description: "",
+            position: initialCenter
+        });
+        setMapCenter(initialCenter);
     }
-  }, [open, form]);
+  }, [open, initialCenter, form]);
+  
+  useEffect(() => {
+    form.setValue("position", mapCenter);
+  }, [mapCenter, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const isSanitation = values.title === 'Contentor de lixo';
     const type = isSanitation ? 'sanitation' : 'incident';
     
+    // The position is already in the values object from the form state
     onIncidentSubmit(values, type);
-    form.reset();
-    onOpenChange(false);
   }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-[425px]">
+      <SheetContent className="sm:max-w-lg w-full">
         <SheetHeader>
           <SheetTitle>Reportar Incidência</SheetTitle>
           <SheetDescription>
-            Localização selecionada. Agora, por favor, forneça os detalhes do que presenciou.
+            Forneça os detalhes do que presenciou e ajuste o pino no mapa para a localização exata.
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-6 flex flex-col h-[calc(100%-80px)]">
+            <div className="h-[250px] relative rounded-lg overflow-hidden">
+                <Map
+                    defaultCenter={initialCenter}
+                    defaultZoom={15}
+                    gestureHandling={'greedy'}
+                    disableDefaultUI={true}
+                    onCenterChanged={(e) => setMapCenter(e.detail.center)}
+                >
+                </Map>
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full">
+                    <MapPinIcon>
+                      <MapPin className="text-primary h-10 w-10" />
+                    </MapPinIcon>
+                 </div>
+            </div>
             <FormField
               control={form.control}
               name="title"
@@ -123,8 +156,8 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit }:
                 </FormItem>
               )}
             />
-            <SheetFooter>
-                <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <SheetFooter className="mt-auto">
+                <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
                 <Button type="submit">Submeter Reporte</Button>
             </SheetFooter>
           </form>

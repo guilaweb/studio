@@ -11,7 +11,6 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { APIProvider } from "@vis.gl/react-google-maps";
-import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
 import { Logo } from "@/components/icons";
@@ -24,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LogOut, User, LayoutDashboard, Search, Megaphone, Plus, Hand } from "lucide-react";
+import { LogOut, User, LayoutDashboard, Megaphone, Plus } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -49,9 +48,7 @@ export default function Home() {
   const { allData, addPoint, updatePointStatus, addUpdateToPoint } = usePoints();
   const searchParams = useSearchParams();
 
-  // State for the new incident report flow
-  const [isReporting, setIsReporting] = React.useState(false);
-  const [newIncidentLocation, setNewIncidentLocation] = React.useState<google.maps.LatLngLiteral | null>(null);
+  const [isIncidentSheetOpen, setIsIncidentSheetOpen] = React.useState(false);
 
 
   const { toast } = useToast();
@@ -113,21 +110,15 @@ export default function Home() {
     }
   };
 
-  const handleAddNewIncident = (newIncident: Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'position'>, type: PointOfInterest['type'] = 'incident') => {
+  const handleAddNewIncident = (
+    newIncident: Omit<PointOfInterest, 'id' | 'authorId'>, 
+    type: PointOfInterest['type'] = 'incident'
+  ) => {
     if (!user) {
         toast({
             variant: "destructive",
             title: "Ação necessária",
             description: "Por favor, faça login para reportar uma incidência.",
-        });
-        return;
-    }
-    
-    if (!newIncidentLocation) {
-        toast({
-            variant: "destructive",
-            title: "Localização em falta",
-            description: "Ocorreu um erro ao obter a localização do novo reporte.",
         });
         return;
     }
@@ -137,7 +128,6 @@ export default function Home() {
       id: `${type}-${Date.now()}`,
       type: type,
       authorId: user.uid,
-      position: newIncidentLocation,
       lastReported: new Date().toISOString(),
     };
     
@@ -148,19 +138,7 @@ export default function Home() {
       description: "Obrigado pela sua contribuição para uma cidade melhor.",
     });
 
-    setNewIncidentLocation(null);
-    setIsReporting(false);
-  };
-
-  const handleMapClick = (e: google.maps.MapMouseEvent) => {
-    if (isReporting) {
-      if (e.latLng) {
-        setNewIncidentLocation(e.latLng.toJSON());
-      }
-    } else {
-      // Handle normal map click if needed, e.g., deselect POI
-      setSelectedPoi(null);
-    }
+    setIsIncidentSheetOpen(false);
   };
 
   const handleStartReporting = () => {
@@ -172,22 +150,10 @@ export default function Home() {
         });
         return;
     }
-    setIsReporting(true);
-    setSelectedPoi(null);
-    toast({
-      title: "Modo de Reporte Ativo",
-      description: "Clique no mapa para definir a localização do novo incidente.",
-    });
+    setIsIncidentSheetOpen(true);
   };
-
-  const handleCancelReporting = () => {
-    setIsReporting(false);
-    setNewIncidentLocation(null);
-  };
-
 
   const handleMarkerClick = (poiId: string) => {
-    if (isReporting) return; // Don't select POIs while in reporting mode
     const poi = allData.find(p => p.id === poiId) || null;
     setSelectedPoi(poi);
     setSearchedPlace(null);
@@ -312,17 +278,10 @@ export default function Home() {
             </SidebarContent>
             <SidebarFooter className="space-y-2">
               {user && (
-                isReporting ? (
-                    <Button onClick={handleCancelReporting} variant="destructive">
-                        <Hand className="mr-2 h-4 w-4" />
-                        Cancelar Reporte
-                    </Button>
-                ) : (
-                    <Button onClick={handleStartReporting}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Reportar Incidente
-                    </Button>
-                )
+                <Button onClick={handleStartReporting}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Reportar Incidente
+                </Button>
               )}
                <Button variant="outline" asChild className="w-full">
                   <Link href="/dashboard">
@@ -350,7 +309,6 @@ export default function Home() {
             </AppHeader>
             <div className="flex-1 overflow-hidden">
                <MapComponent
-                key={isReporting ? 'reporting' : 'browsing'}
                 activeLayers={activeLayers}
                 data={allData}
                 userPosition={userPosition}
@@ -360,8 +318,6 @@ export default function Home() {
                 onCenterChanged={setMapCenter}
                 onZoomChanged={setZoom}
                 onMarkerClick={handleMarkerClick}
-                isReporting={isReporting}
-                onMapClick={handleMapClick}
               />
             </div>
           </SidebarInset>
@@ -379,13 +335,11 @@ export default function Home() {
         onAddUpdate={handleAddUpdate}
       />
       <IncidentReport 
-        open={!!newIncidentLocation}
-        onOpenChange={(isOpen) => {
-            if (!isOpen) handleCancelReporting();
-        }}
+        open={isIncidentSheetOpen}
+        onOpenChange={setIsIncidentSheetOpen}
         onIncidentSubmit={handleAddNewIncident}
+        initialCenter={mapCenter}
       />
-      <Toaster />
     </APIProvider>
   );
 }
