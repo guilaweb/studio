@@ -73,7 +73,7 @@ const ATMStatus = ({poi, onPoiStatusChange}: {poi: PointOfInterest, onPoiStatusC
             </div>
             <div className="grid grid-cols-2 gap-2">
                 <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => onPoiStatusChange(poi.id, 'available')}>
-                    <ThumbsUp className="mr-2"/> TEM DINHEIRO
+                    <ThumbsUp className="mr-2"/> TEM DINHEiro
                 </Button>
                 <Button variant="outline" className="bg-red-100 border-red-500 text-red-700 hover:bg-red-200" onClick={() => onPoiStatusChange(poi.id, 'unavailable')}>
                     <ThumbsDown className="mr-2"/> NÃO TEM DINHEIRO
@@ -83,8 +83,7 @@ const ATMStatus = ({poi, onPoiStatusChange}: {poi: PointOfInterest, onPoiStatusC
     )
 }
 
-const SanitationTicket = ({poi, onPoiStatusChange, onAddUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], onAddUpdate: PointOfInterestDetailsProps['onAddUpdate']}) => {
-    const { user } = useAuth();
+const SanitationTicket = ({poi, onPoiStatusChange}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange']}) => {
     
     const getStatusBadge = () => {
         if (poi.status === 'full') return <Badge className="bg-orange-500 hover:bg-orange-600">Cheio</Badge>
@@ -117,8 +116,6 @@ const SanitationTicket = ({poi, onPoiStatusChange, onAddUpdate}: {poi: PointOfIn
                     </Button>
                 </div>
              </div>
-             
-             <Timeline poi={poi} onAddUpdate={onAddUpdate} showAiButton={false}/>
         </div>
     )
 }
@@ -201,11 +198,13 @@ const Timeline = ({poi, onAddUpdate, showAiButton}: {poi: PointOfInterest, onAdd
     // In a real app this would be based on user roles.
     const isManager = !!user;
 
+    const canGenerateAiResponse = showAiButton && poi.updates && poi.updates.length > 0 && poi.updates[0].authorId !== user?.uid;
+
     return (
         <div className="mt-4">
             <Separator />
             <div className="py-4">
-                <h3 className="font-semibold mb-4">Linha do Tempo e Respostas</h3>
+                <h3 className="font-semibold mb-4">Linha do Tempo e Fiscalização</h3>
                 
                  { isManager && (
                     <form onSubmit={handleSubmit} className="mb-6 space-y-4">
@@ -228,7 +227,7 @@ const Timeline = ({poi, onAddUpdate, showAiButton}: {poi: PointOfInterest, onAdd
                                 <MessageSquarePlus className="mr-2 h-4 w-4" />
                                 Adicionar Atualização
                             </Button>
-                             {showAiButton && (
+                             {canGenerateAiResponse && (
                                 <Button type="button" size="sm" variant="outline" onClick={handleGenerateResponse} disabled={isGenerating}>
                                     <Wand2 className="mr-2 h-4 w-4" />
                                     {isGenerating ? "A gerar..." : "Gerar Resposta com IA"}
@@ -249,7 +248,7 @@ const Timeline = ({poi, onAddUpdate, showAiButton}: {poi: PointOfInterest, onAdd
                                     </div>
                                )}
                                <p className="text-xs text-muted-foreground mt-2">
-                                    {`Atualizado ${formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })} por um ${update.authorId === user?.uid ? 'gestor' : 'cidadão'}.`}
+                                    {`Atualizado ${formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })} por um ${update.authorId === poi.authorId ? 'cidadão' : 'gestor'}.`}
                                </p>
                             </div>
                         ))
@@ -269,6 +268,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   if (!poi) return null;
 
   const config = layerConfig[poi.type];
+  const showTimeline = poi.type === 'construction' || poi.type === 'incident' || poi.type === 'sanitation';
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -292,9 +292,18 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 <p className="text-muted-foreground">{`Lat: ${poi.position.lat.toFixed(6)}, Lng: ${poi.position.lng.toFixed(6)}`}</p>
             </div>
             {poi.type === 'incident' && <IncidentTags description={poi.description} />}
+            
             {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} />}
-            {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} onAddUpdate={onAddUpdate}/>}
-            {poi.type === 'construction' && <Timeline poi={poi} onAddUpdate={onAddUpdate} showAiButton={true} />}
+            
+            {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} />}
+            
+            {showTimeline && (
+                <Timeline 
+                    poi={poi} 
+                    onAddUpdate={onAddUpdate} 
+                    showAiButton={poi.type === 'construction'} 
+                />
+            )}
         </div>
       </SheetContent>
     </Sheet>
