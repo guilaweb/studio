@@ -137,7 +137,8 @@ export default function Home() {
       id: `${type}-${Date.now()}`,
       type: type,
       authorId: user.uid,
-      position: newIncidentLocation
+      position: newIncidentLocation,
+      lastReported: new Date().toISOString(),
     };
     
     addPoint(incidentToAdd);
