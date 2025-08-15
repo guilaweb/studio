@@ -93,11 +93,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         
         const newUpdate: PointOfInterestUpdate = {
             id: `upd-${pointId}-${Date.now()}`,
-            text: update.text,
-            authorId: update.authorId,
-            authorDisplayName: update.authorDisplayName,
-            timestamp: update.timestamp,
-            photoDataUri: update.photoDataUri,
+            ...update // This now includes text, authorId, authorDisplayName, and optionally photoDataUri
         };
         
         await updateDoc(pointRef, {
