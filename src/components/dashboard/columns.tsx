@@ -14,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import Link from "next/link"
 
 const typeVariantMap: { [key in PointOfInterest['type']]: "default" | "secondary" | "destructive" | "outline" } = {
     atm: "default",
@@ -29,6 +28,15 @@ const typeLabelMap: { [key in PointOfInterest['type']]: string } = {
     incident: "Incidente",
     sanitation: "Saneamento"
 }
+
+const statusLabelMap: { [key in NonNullable<PointOfInterest['status']>]: string } = {
+    available: "Disponível",
+    unavailable: "Indisponível",
+    unknown: "Desconhecido",
+    collected: "Recolhido",
+    full: "Cheio",
+    damaged: "Danificado",
+};
 
 
 export const columns: ColumnDef<PointOfInterest>[] = [
@@ -49,7 +57,10 @@ export const columns: ColumnDef<PointOfInterest>[] = [
     header: "Estado",
     cell: ({ row }) => {
         const status = row.getValue("status") as PointOfInterest['status']
-        return status ? <span className="capitalize">{status}</span> : <span className="text-muted-foreground">N/A</span>
+        if (!status) {
+            return <span className="text-muted-foreground">N/A</span>
+        }
+        return <span>{statusLabelMap[status]}</span>
     }
   },
   {
