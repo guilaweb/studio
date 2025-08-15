@@ -161,7 +161,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     newIncidentData: Omit<PointOfInterest, 'id' | 'authorId'> & { photoDataUri?: string }, 
     type: PointOfInterest['type'] = 'incident'
   ) => {
-    if (!user) {
+    if (!user || !profile) {
         toast({
             variant: "destructive",
             title: "Ação necessária",
@@ -198,6 +198,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             const newUpdate: Omit<PointOfInterestUpdate, 'id'> = {
                 text: `(Reporte duplicado) ${incidentDetails.description}`,
                 authorId: user.uid,
+                authorDisplayName: profile.displayName,
                 timestamp: new Date().toISOString(),
                 photoDataUri: photoDataUri,
             };
@@ -221,6 +222,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         id: `upd-initial-${Date.now()}`,
         text: incidentDetails.description,
         authorId: user.uid,
+        authorDisplayName: profile.displayName,
         timestamp: timestamp,
     };
     
@@ -279,7 +281,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   };
 
   const handleAddUpdate = (poiId: string, updateText: string, photoDataUri?: string) => {
-    if (!user) {
+    if (!user || !profile) {
         toast({
             variant: "destructive",
             title: "Ação necessária",
@@ -291,6 +293,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     const newUpdate: Omit<PointOfInterestUpdate, 'id'> = {
         text: updateText,
         authorId: user.uid,
+        authorDisplayName: profile.displayName,
         timestamp: new Date().toISOString(),
     };
     
@@ -408,3 +411,5 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       </SidebarProvider>
   );
 }
+
+    

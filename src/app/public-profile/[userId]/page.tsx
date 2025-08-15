@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import { ArrowLeft, Award, Shield, Star, Trash2, Siren } from "lucide-react";
 import { PointOfInterest } from "@/lib/data";
+import { useAuth } from "@/hooks/use-auth";
 
 // This component can be expanded to fetch user data from a database
 // For now, we'll derive what we can from the points data.
@@ -19,15 +20,25 @@ const getMockUserData = (userId: string, allData: PointOfInterest[]) => {
     // In a real app, this data would come from a user profile service.
     // We are mocking it for demonstration.
     // We can try to get the real display name from one of the updates if available
-    const latestUpdate = userContributions.flatMap(p => p.updates || []).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+    const latestUpdateWithAuthorName = userContributions
+        .flatMap(p => p.updates || [])
+        .filter(u => u.authorId === userId && u.authorDisplayName)
+        .sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+    
+    const displayName = latestUpdateWithAuthorName?.authorDisplayName || `Cidadão ${userId.substring(0, 5)}`;
+    
+    // In a real app, you would fetch the creation date from the user's profile.
+    // We mock it based on the first contribution.
+    const firstContribution = userContributions.sort((a,b) => new Date(a.lastReported || 0).getTime() - new Date(b.lastReported || 0).getTime())[0];
+
 
     return {
         uid: userId,
-        displayName: latestUpdate?.authorId || `Cidadão ${userId.substring(0, 5)}`,
+        displayName: displayName,
         photoURL: `https://i.pravatar.cc/150?u=${userId}`,
         email: `cidadão_${userId.substring(0,5)}@email.com`,
         metadata: {
-            creationTime: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // Mock: 30 days ago
+            creationTime: firstContribution.lastReported || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
         }
     };
 }
@@ -136,8 +147,8 @@ function PublicProfilePage({ params }: { params: { userId: string } }) {
 
     if (!user) {
         return (
-             <div className="flex min-h-screen w-full flex-col bg-muted/40 items-center justify-center">
-                <Card>
+             <div className="flex min-h-screen w-full flex-col bg-muted/40 items-center justify-center p-4">
+                <Card className="w-full max-w-md">
                     <CardHeader>
                         <CardTitle>Utilizador não encontrado</CardTitle>
                         <CardDescription>
@@ -161,9 +172,9 @@ function PublicProfilePage({ params }: { params: { userId: string } }) {
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
             <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
                 <Button size="icon" variant="outline" asChild>
-                    <Link href="/dashboard">
+                    <Link href="/admin/users">
                         <ArrowLeft className="h-5 w-5" />
-                        <span className="sr-only">Voltar ao Painel</span>
+                        <span className="sr-only">Voltar à Gestão de Utilizadores</span>
                     </Link>
                 </Button>
                 <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
@@ -237,3 +248,5 @@ function PublicProfilePage({ params }: { params: { userId: string } }) {
 }
 
 export default PublicProfilePage;
+
+    

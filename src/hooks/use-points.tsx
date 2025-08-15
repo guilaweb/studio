@@ -34,6 +34,7 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         lastReported: data.lastReported,
         authorId: data.authorId,
         updates: data.updates || [],
+        priority: data.priority,
     };
 };
 
@@ -82,11 +83,13 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
   const addUpdateToPoint = async (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
-        const newUpdate: PointOfInterestUpdate = {
+        
+        const newUpdate: Partial<PointOfInterestUpdate> = {
+            id: `upd-${pointId}-${Date.now()}`,
             text: update.text,
             authorId: update.authorId,
+            authorDisplayName: update.authorDisplayName,
             timestamp: update.timestamp,
-            id: `upd-${pointId}-${Date.now()}`,
         };
         
         if (update.photoDataUri) {
@@ -104,8 +107,8 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 
   // This is a client-side sort. For large datasets, consider sorting with Firestore queries.
   const sortedData = [...allData].sort((a, b) => {
-      const dateA = a.updates?.[0]?.timestamp || a.lastReported || '1970-01-01';
-      const dateB = b.updates?.[0]?.timestamp || b.lastReported || '1970-01-01';
+      const dateA = a.updates?.[a.updates.length-1]?.timestamp || a.lastReported || '1970-01-01';
+      const dateB = b.updates?.[b.updates.length-1]?.timestamp || b.lastReported || '1970-01-01';
       return new Date(dateB).getTime() - new Date(dateA).getTime();
   });
 
@@ -118,3 +121,5 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const usePoints = () => useContext(PointsContext);
+
+    

@@ -5,6 +5,7 @@ export const PointOfInterestUpdateSchema = z.object({
   id: z.string(),
   text: z.string(),
   authorId: z.string(),
+  authorDisplayName: z.string().optional(),
   timestamp: z.string(),
   photoDataUri: z.string().optional(),
 });
@@ -94,3 +95,5 @@ export const DetectDuplicateOutputSchema = z.object({
     duplicateOfId: z.string().optional().describe('The ID of the existing incident it is a duplicate of, if any.'),
 });
 export type DetectDuplicateOutput = z.infer<typeof DetectDuplicateOutputSchema>;
+
+    

@@ -260,7 +260,7 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
                                     </div>
                                )}
                                <p className="text-xs text-muted-foreground mt-2">
-                                    {`Atualizado ${formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })} por um ${update.authorId === poi.authorId ? 'cidadão' : 'gestor'}.`}
+                                    {`Atualizado ${formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })} por ${update.authorDisplayName || 'um gestor'}.`}
                                </p>
                             </div>
                         ))
@@ -330,3 +330,5 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </Sheet>
   );
 }
+
+    
