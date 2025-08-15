@@ -222,8 +222,11 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         text: incidentDetails.description,
         authorId: user.uid,
         timestamp: timestamp,
-        ...(photoDataUri && { photoDataUri }),
     };
+    
+    if (photoDataUri) {
+        initialUpdate.photoDataUri = photoDataUri;
+    }
 
     const incidentToAdd: PointOfInterest = {
       ...incidentDetails,
@@ -289,8 +292,11 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         text: updateText,
         authorId: user.uid,
         timestamp: new Date().toISOString(),
-        photoDataUri: photoDataUri,
     };
+    
+    if (photoDataUri) {
+        newUpdate.photoDataUri = photoDataUri;
+    }
     
     addUpdateToPoint(poiId, newUpdate);
     setSelectedPoi(prevPoi => {
