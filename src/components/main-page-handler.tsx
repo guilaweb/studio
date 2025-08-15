@@ -22,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -30,6 +30,7 @@ import MapSearchBox from "@/components/map-search-box";
 import { detectDuplicate } from "@/ai/flows/detect-duplicate-flow";
 import { calculateIncidentPriority } from "@/services/incident-priority-service";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import TrafficLightReport from "./traffic-light-report";
 
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -53,6 +54,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
   const [isIncidentSheetOpen, setIsIncidentSheetOpen] = React.useState(false);
   const [isSanitationSheetOpen, setIsSanitationSheetOpen] = React.useState(false);
+  const [isTrafficLightSheetOpen, setIsTrafficLightSheetOpen] = React.useState(false);
   const [incidentToEdit, setIncidentToEdit] = React.useState<PointOfInterest | null>(null);
 
 
@@ -252,7 +254,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
 
 
-    const incidentToAdd: Omit<PointOfInterest, 'updates' | 'status'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+    const incidentToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
       ...incidentDetails,
       id: `incident-${Date.now()}`,
       type: 'incident',
@@ -309,6 +311,58 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: "Obrigado por ajudar a manter o mapa de saneamento da cidade atualizado.",
     });
   }
+  
+  const handleAddNewTrafficLightReport = async (
+    newPointData: Pick<PointOfInterest, 'description' | 'position'>
+  ) => {
+    if (!user || !profile) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para reportar.",
+        });
+        return;
+    }
+    setIsTrafficLightSheetOpen(false);
+    const timestamp = new Date().toISOString();
+
+    const incidentTitle = "Semáforo com defeito";
+    let priority: PointOfInterest['priority'] | undefined = 'medium'; // Default for traffic lights
+    try {
+        const result = await calculateIncidentPriority({
+            title: incidentTitle,
+            description: newPointData.description,
+        });
+        priority = result.priority;
+    } catch (error) {
+        console.error("Error calculating priority, defaulting to medium:", error);
+    }
+
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `incident-${Date.now()}`,
+      type: 'incident',
+      title: incidentTitle,
+      authorId: user.uid,
+      lastReported: timestamp,
+      incidentDate: timestamp,
+      description: newPointData.description,
+      position: newPointData.position,
+      priority: priority,
+      updates: [{
+          text: newPointData.description,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+      }]
+    };
+    
+    addPoint(pointToAdd);
+
+    toast({
+      title: "Semáforo reportado!",
+      description: "A sua contribuição foi registada e será analisada. Obrigado!",
+    });
+  }
 
 
   const handleEditIncident = async (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => {
@@ -343,6 +397,18 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         return;
     }
     setIsSanitationSheetOpen(true);
+  }
+
+  const handleStartTrafficLightReport = () => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para reportar.",
+        });
+        return;
+    }
+    setIsTrafficLightSheetOpen(true);
   }
 
   const handleStartEditing = (poi: PointOfInterest) => {
@@ -457,6 +523,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Trash className="mr-2 h-4 w-4" />
                             Mapear Contentor
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleStartTrafficLightReport}>
+                            <LightbulbOff className="mr-2 h-4 w-4" />
+                            Reportar Semáforo
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -517,6 +587,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Trash className="mr-2 h-4 w-4" />
                             Mapear Contentor
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleStartTrafficLightReport}>
+                            <LightbulbOff className="mr-2 h-4 w-4" />
+                            Reportar Semáforo
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -547,6 +621,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             open={isSanitationSheetOpen}
             onOpenChange={setIsSanitationSheetOpen}
             onSanitationSubmit={handleAddNewSanitationPoint}
+            initialCenter={mapCenter}
+        />
+        <TrafficLightReport
+            open={isTrafficLightSheetOpen}
+            onOpenChange={setIsTrafficLightSheetOpen}
+            onTrafficLightSubmit={handleAddNewTrafficLightReport}
             initialCenter={mapCenter}
         />
       </SidebarProvider>

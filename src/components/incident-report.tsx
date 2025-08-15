@@ -222,7 +222,6 @@ export default function IncidentReport({
                         <SelectItem value="Atropelamento">Atropelamento</SelectItem>
                         <SelectItem value="Acidente de Moto">Acidente de Moto</SelectItem>
                         <SelectItem value="Buraco na via">Buraco na via</SelectItem>
-                        <SelectItem value="Semáforo com defeito">Semáforo com defeito</SelectItem>
                         <SelectItem value="Iluminação pública com defeito">Iluminação pública com defeito</SelectItem>
                         <SelectItem value="Outro">Outro</SelectItem>
                         </SelectContent>
