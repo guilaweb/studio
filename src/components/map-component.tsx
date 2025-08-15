@@ -71,7 +71,14 @@ const getPinStyle = (point: PointOfInterest) => {
         return { background: 'hsl(var(--secondary-foreground))', borderColor: 'hsl(var(--secondary-foreground))', glyphColor: 'hsl(var(--secondary))' };
     }
     if (point.type === 'incident') {
-        return { background: 'hsl(var(--accent))', borderColor: 'hsl(var(--accent))', glyphColor: 'hsl(var(--accent-foreground))' };
+        switch (point.priority) {
+            case 'high':
+                return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
+            case 'medium':
+                return { background: '#f97316', borderColor: '#ea580c', glyphColor: '#ffffff' }; // orange
+            default:
+                 return { background: 'hsl(var(--accent))', borderColor: 'hsl(var(--accent))', glyphColor: 'hsl(var(--accent-foreground))' };
+        }
     }
     if (point.type === 'sanitation') {
         switch (point.status) {
