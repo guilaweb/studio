@@ -1,10 +1,12 @@
 
+
 "use client";
 
-import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef } from "@vis.gl/react-google-maps";
+import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, Siren, Trash, Search } from "lucide-react";
 import React from "react";
+import MapInfoWindow from "./map-infowindow";
 
 type MapComponentProps = {
   activeLayers: ActiveLayers;
@@ -95,12 +97,19 @@ const getPinStyle = (point: PointOfInterest) => {
     return {};
 }
 
-const PointOfInterestMarker = ({ point, onClick }: { point: PointOfInterest; onClick: (pointId: string) => void }) => {
+const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut }: { point: PointOfInterest; onClick: (pointId: string) => void; onMouseOver: (pointId: string) => void; onMouseOut: () => void; }) => {
   const [markerRef, marker] = useAdvancedMarkerRef();
   const pinStyle = getPinStyle(point);
 
   return (
-    <AdvancedMarker ref={markerRef} position={point.position} title={point.title} onClick={() => onClick(point.id)}>
+    <AdvancedMarker 
+        ref={markerRef} 
+        position={point.position} 
+        title={point.title} 
+        onClick={() => onClick(point.id)}
+        onMouseOver={() => onMouseOver(point.id)}
+        onMouseOut={onMouseOut}
+    >
         <Pin 
             background={pinStyle.background} 
             borderColor={pinStyle.borderColor} 
@@ -114,11 +123,15 @@ const PointOfInterestMarker = ({ point, onClick }: { point: PointOfInterest; onC
 
 export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
   
+  const [hoveredPoiId, setHoveredPoiId] = React.useState<string | null>(null);
+  
   const handleCameraChange = (e: google.maps.MapCameraChangedEvent) => {
     onCenterChanged(e.detail.center);
     onZoomChanged(e.detail.zoom);
   };
 
+  const hoveredPoi = React.useMemo(() => data.find(p => p.id === hoveredPoiId), [data, hoveredPoiId]);
+  
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Map
@@ -133,8 +146,25 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
         {data
           .filter((point) => activeLayers[point.type])
           .map((point) => (
-            <PointOfInterestMarker key={point.id} point={point} onClick={onMarkerClick} />
+            <PointOfInterestMarker 
+                key={point.id} 
+                point={point} 
+                onClick={onMarkerClick}
+                onMouseOver={() => setHoveredPoiId(point.id)}
+                onMouseOut={() => setHoveredPoiId(null)}
+             />
           ))}
+          
+        {hoveredPoi && (
+            <InfoWindow
+                anchor={new google.maps.Marker({position: hoveredPoi.position})}
+                onCloseClick={() => setHoveredPoiId(null)}
+                pixelOffset={new google.maps.Size(0, -40)}
+            >
+                <MapInfoWindow poi={hoveredPoi} />
+            </InfoWindow>
+        )}
+
         {userPosition && (
           <AdvancedMarker position={userPosition} title="Sua localização">
             <span className="relative flex h-4 w-4">
@@ -154,3 +184,4 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
     </div>
   );
 }
+
