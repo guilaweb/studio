@@ -11,7 +11,7 @@ interface PointsContextType {
   addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => Promise<void>;
   updatePointStatus: (pointId: string, status: PointOfInterest['status']) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
-  updatePointDetails: (pointId: string, updates: Pick<PointOfInterest, 'title' | 'description'> & { photoDataUri?: string }) => Promise<void>;
+  updatePointDetails: (pointId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }) => Promise<void>;
   loading: boolean;
 }
 
@@ -110,18 +110,22 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updatePointDetails = async (pointId: string, updates: Pick<PointOfInterest, 'title' | 'description'> & { photoDataUri?: string }) => {
+  const updatePointDetails = async (pointId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         
-        const dataToUpdate: Partial<PointOfInterest & { 'updates.0.photoDataUri': string }> = {
+        const dataToUpdate: Partial<PointOfInterest> & { 'updates.0.photoDataUri'?: string } = {
             title: updates.title,
             description: updates.description,
+            position: updates.position, // Also update position
         };
 
         const pointToUpdate = allData.find(p => p.id === pointId);
-        if (pointToUpdate && pointToUpdate.updates && pointToUpdate.updates.length > 0) {
-            pointToUpdate.updates[0].photoDataUri = updates.photoDataUri;
+        
+        // If there's a new photo, update the original update's photo URI
+        if (updates.photoDataUri && pointToUpdate && pointToUpdate.updates && pointToUpdate.updates.length > 0) {
+            const originalUpdate = pointToUpdate.updates[pointToUpdate.updates.length - 1]; // Oldest is last
+            originalUpdate.photoDataUri = updates.photoDataUri;
             dataToUpdate.updates = pointToUpdate.updates;
         }
 

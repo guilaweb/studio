@@ -51,7 +51,7 @@ type IncidentReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId'> & { photoDataUri?: string }, type?: PointOfInterest['type']) => void;
-  onIncidentEdit: (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description'> & { photoDataUri?: string }) => void;
+  onIncidentEdit: (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
   incidentToEdit: PointOfInterest | null;
 };
@@ -98,8 +98,13 @@ export default function IncidentReport({
         form.setValue("title", incidentToEdit.title);
         form.setValue("description", incidentToEdit.description);
         form.setValue("position", incidentToEdit.position);
-        if (incidentToEdit.updates?.[0]?.photoDataUri) {
-            setPhotoPreview(incidentToEdit.updates[0].photoDataUri);
+        // Look for photo in the most recent update, assuming it's the original report photo
+        if (incidentToEdit.updates && incidentToEdit.updates.length > 0) {
+           const sortedUpdates = [...incidentToEdit.updates].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+           const originalReportUpdate = sortedUpdates[sortedUpdates.length - 1];
+            if (originalReportUpdate.photoDataUri) {
+                setPhotoPreview(originalReportUpdate.photoDataUri);
+            }
         }
     } else {
         form.setValue("position", initialCenter);
@@ -121,18 +126,15 @@ export default function IncidentReport({
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const finalValues = {
-        title: values.title,
-        description: values.description,
-    };
+    // Always get the latest map center on submit
+    const finalPosition = mapRef.current?.getCenter()?.toJSON() || form.getValues('position');
 
     const handleSubmission = (photoDataUri?: string) => {
         if (isEditMode && incidentToEdit) {
-            onIncidentEdit(incidentToEdit.id, { ...finalValues, photoDataUri });
+            onIncidentEdit(incidentToEdit.id, { ...values, position: finalPosition, photoDataUri });
         } else {
             const isSanitation = values.title === 'Contentor de lixo';
             const type = isSanitation ? 'sanitation' : 'incident';
-            const finalPosition = mapRef.current?.getCenter()?.toJSON() || form.getValues('position');
             onIncidentSubmit({ ...values, position: finalPosition, photoDataUri }, type);
         }
     };
@@ -179,8 +181,8 @@ export default function IncidentReport({
              <div className="relative h-[40vh] bg-muted">
                 <Map
                     ref={mapRef}
-                    center={getInitialCenter()}
-                    zoom={getInitialZoom()}
+                    defaultCenter={getInitialCenter()}
+                    defaultZoom={getInitialZoom()}
                     gestureHandling={'greedy'}
                 >
                 </Map>

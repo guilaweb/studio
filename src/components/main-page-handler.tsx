@@ -268,7 +268,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
   };
 
-  const handleEditIncident = async (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description'> & { photoDataUri?: string }) => {
+  const handleEditIncident = async (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }) => {
     await updatePointDetails(incidentId, updates);
     handleIncidentSheetOpen(false);
     toast({
