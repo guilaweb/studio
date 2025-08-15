@@ -35,6 +35,7 @@ import { Map } from "@vis.gl/react-google-maps";
 import { Camera, MapPin } from "lucide-react";
 import { Input } from "./ui/input";
 import Image from "next/image";
+import { Label } from "./ui/label";
 
 
 const formSchema = z.object({
@@ -189,7 +190,7 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
                 )}
                 />
                 <div>
-                    <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2 cursor-pointer">
+                    <Label htmlFor="incident-photo" className="text-sm font-medium text-muted-foreground flex items-center gap-2 cursor-pointer">
                         <Camera className="h-4 w-4" />
                         Fotografia (Opcional)
                     </Label>
