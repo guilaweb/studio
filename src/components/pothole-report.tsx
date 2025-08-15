@@ -25,7 +25,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { PointOfInterest } from "@/lib/data";
 import { Map } from "@vis.gl/react-google-maps";
-import { MapPin } from "lucide-react";
+import { Camera, MapPin } from "lucide-react";
+import Image from "next/image";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
 
 
 const formSchema = z.object({
@@ -35,7 +38,7 @@ const formSchema = z.object({
 type PotholeReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPotholeSubmit: (data: Pick<PointOfInterest, 'description' | 'position'>) => void;
+  onPotholeSubmit: (data: Pick<PointOfInterest, 'description' | 'position'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -50,6 +53,8 @@ export default function PotholeReport({
 }: PotholeReportProps) {
   const [mapCenter, setMapCenter] = useState(initialCenter);
   const [mapZoom, setMapZoom] = useState(15);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -62,6 +67,8 @@ export default function PotholeReport({
     form.reset({
         description: "",
     });
+    setPhotoFile(null);
+    setPhotoPreview(null);
   }
 
   useEffect(() => {
@@ -74,10 +81,39 @@ export default function PotholeReport({
     }
   }, [open, initialCenter]);
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalPosition = mapCenter;
-    onPotholeSubmit({ ...values, position: finalPosition });
+
+    const handleSubmission = (photoDataUri?: string) => {
+        onPotholeSubmit({ 
+            ...values, 
+            position: finalPosition,
+            photoDataUri 
+        });
+    };
+
+    if (photoFile) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            handleSubmission(reader.result as string);
+        };
+        reader.readAsDataURL(photoFile);
+    } else {
+        handleSubmission();
+    }
   }
 
 
@@ -98,7 +134,7 @@ export default function PotholeReport({
         </SheetHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
-             <div className="relative h-[50vh] bg-muted">
+             <div className="relative h-[45vh] bg-muted">
                 <Map
                     center={mapCenter}
                     zoom={mapZoom}
@@ -128,6 +164,16 @@ export default function PotholeReport({
                     </FormItem>
                 )}
                 />
+                 <div>
+                    <Label htmlFor="pothole-photo" className="text-sm font-medium">
+                        <div className="flex items-center gap-2 cursor-pointer">
+                            <Camera className="h-4 w-4" />
+                            Fotografia (Opcional)
+                        </div>
+                    </Label>
+                    <Input id="pothole-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-2 h-auto p-1"/>
+                </div>
+                {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={100} height={100} className="rounded-md object-cover" />}
             </div>
             <SheetFooter className="p-6 pt-4 border-t bg-background">
                 <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
