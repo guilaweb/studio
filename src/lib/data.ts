@@ -4,6 +4,8 @@ export type PointOfInterest = {
   position: { lat: number; lng: number };
   title: string;
   description: string;
+  status?: 'available' | 'unavailable' | 'unknown'; // For ATMs
+  lastReported?: string; // For ATMs
 };
 
 export type Layer = 'atm' | 'construction' | 'incident';
@@ -21,6 +23,8 @@ export const atms: PointOfInterest[] = [
     position: { lat: -8.8385, lng: 13.2312 },
     title: 'ATM Largo do Kinaxixi',
     description: 'Caixa Eletrônico 24h no centro do largo.',
+    status: 'available',
+    lastReported: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
   },
   {
     id: 'atm-2',
@@ -28,6 +32,8 @@ export const atms: PointOfInterest[] = [
     position: { lat: -8.8145, lng: 13.2309 },
     title: 'ATM Baía de Luanda',
     description: 'Localizado dentro do shopping.',
+    status: 'unavailable',
+    lastReported: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
   },
   {
     id: 'atm-3',
@@ -35,6 +41,8 @@ export const atms: PointOfInterest[] = [
     position: { lat: -8.8118, lng: 13.2355 },
     title: 'ATM Av. Comandante Valódia',
     description: 'Próximo ao Hospital Josina Machel.',
+    status: 'unknown',
+    lastReported: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
   },
 ];
 

@@ -40,13 +40,16 @@ export default function Home() {
     lng: 13.2343,
   });
   const [zoom, setZoom] = React.useState(13);
+  const [allData, setAllData] = React.useState<PointOfInterest[]>([]);
+
+  React.useEffect(() => {
+    // Combine all data sources into one array
+    setAllData([...atms, ...constructionSites, ...incidents]);
+  }, []);
+
 
   const { toast } = useToast();
   const { user, loading, logout } = useAuth();
-
-  const allData: PointOfInterest[] = React.useMemo(() => {
-    return [...atms, ...constructionSites, ...incidents];
-  }, []);
 
   const handleLocateUser = () => {
     if (navigator.geolocation) {
@@ -87,7 +90,9 @@ export default function Home() {
       id: `incident-${Date.now()}`,
       type: 'incident',
     };
-    incidents.push(incidentToAdd);
+    
+    setAllData(prevData => [...prevData, incidentToAdd]);
+
     toast({
       title: "Incidência reportada!",
       description: "Obrigado pela sua contribuição para uma cidade melhor.",
@@ -100,6 +105,21 @@ export default function Home() {
 
   const handleDetailsClose = () => {
     setSelectedPoi(null);
+  };
+
+  const handleAtmStatusChange = (poiId: string, status: 'available' | 'unavailable') => {
+    setAllData(currentData =>
+      currentData.map(poi =>
+        poi.id === poiId
+          ? { ...poi, status, lastReported: new Date().toISOString() }
+          : poi
+      )
+    );
+    setSelectedPoi(prevPoi => prevPoi ? { ...prevPoi, status, lastReported: new Date().toISOString() } : null);
+    toast({
+        title: "Estado do ATM atualizado!",
+        description: "Obrigado pela sua contribuição.",
+    })
   };
 
   const UserMenu = () => {
@@ -197,6 +217,7 @@ export default function Home() {
             handleDetailsClose();
           }
         }}
+        onAtmStatusChange={handleAtmStatusChange}
         />
       <Toaster />
     </APIProvider>

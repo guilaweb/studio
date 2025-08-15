@@ -52,23 +52,25 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
   }
 };
 
-const pinStyles = {
-  atm: {
-    background: 'hsl(var(--primary))',
-    borderColor: 'hsl(var(--primary))',
-    glyphColor: 'hsl(var(--primary-foreground))',
-  },
-  construction: {
-    background: 'hsl(var(--secondary))',
-    borderColor: 'hsl(var(--secondary))',
-    glyphColor: 'hsl(var(--secondary-foreground))',
-  },
-  incident: {
-    background: 'hsl(var(--accent))',
-    borderColor: 'hsl(var(--accent))',
-    glyphColor: 'hsl(var(--accent-foreground))',
-  },
-};
+const getPinStyle = (point: PointOfInterest) => {
+    if (point.type === 'atm') {
+        switch (point.status) {
+            case 'available':
+                return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
+            case 'unavailable':
+                return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
+            default:
+                 return { background: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary))', glyphColor: 'hsl(var(--primary-foreground))' };
+        }
+    }
+    if (point.type === 'construction') {
+        return { background: 'hsl(var(--secondary))', borderColor: 'hsl(var(--secondary))', glyphColor: 'hsl(var(--secondary-foreground))' };
+    }
+    if (point.type === 'incident') {
+        return { background: 'hsl(var(--accent))', borderColor: 'hsl(var(--accent))', glyphColor: 'hsl(var(--accent-foreground))' };
+    }
+    return {};
+}
 
 const MapEvents = ({ onCenterChanged, onZoomChanged }: { onCenterChanged: (center: google.maps.LatLngLiteral) => void, onZoomChanged: (zoom: number) => void }) => {
     const map = useMap();
@@ -101,13 +103,14 @@ const MapEvents = ({ onCenterChanged, onZoomChanged }: { onCenterChanged: (cente
 
 const PointOfInterestMarker = ({ point, onClick }: { point: PointOfInterest; onClick: (point: PointOfInterest) => void }) => {
   const [markerRef, marker] = useAdvancedMarkerRef();
+  const pinStyle = getPinStyle(point);
 
   return (
     <AdvancedMarker ref={markerRef} position={point.position} title={point.title} onClick={() => onClick(point)}>
         <Pin 
-        background={pinStyles[point.type].background} 
-        borderColor={pinStyles[point.type].borderColor} 
-        glyphColor={pinStyles[point.type].glyphColor}
+            background={pinStyle.background} 
+            borderColor={pinStyle.borderColor} 
+            glyphColor={pinStyle.glyphColor}
         >
             <MarkerIcon type={point.type} />
         </Pin>
