@@ -140,7 +140,7 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
              <div className="relative h-[40vh] bg-muted">
                 <Map
                     center={mapCenter}
-                    zoom={16}
+                    zoom={14}
                     gestureHandling={'greedy'}
                     disableDefaultUI={false}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
