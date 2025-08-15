@@ -30,8 +30,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState, useRef } from "react";
-import { PointOfInterest } from "@/lib/data";
-import { Map } from "@vis.gl/react-google-maps";
+import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
+import { Map, useMap } from "@vis.gl/react-google-maps";
 import { Camera, MapPin, Calendar as CalendarIcon } from "lucide-react";
 import { Input } from "./ui/input";
 import Image from "next/image";
@@ -58,7 +58,7 @@ const formSchema = z.object({
 type IncidentReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId'> & { photoDataUri?: string }, type?: PointOfInterest['type']) => void;
+  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId' | 'updates'> & { photoDataUri?: string }, type?: PointOfInterest['type']) => void;
   onIncidentEdit: (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
   incidentToEdit: PointOfInterest | null;
@@ -115,17 +115,15 @@ export default function IncidentReport({
             form.setValue("incidentDate", incidentToEdit.incidentDate ? new Date(incidentToEdit.incidentDate) : new Date(incidentToEdit.lastReported || Date.now()));
             setMapCenter(incidentToEdit.position);
             setMapZoom(16);
-            if (incidentToEdit.updates && incidentToEdit.updates.length > 0) {
-               const sortedUpdates = [...incidentToEdit.updates].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-               const originalReportUpdate = sortedUpdates[sortedUpdates.length - 1];
-                if (originalReportUpdate.photoDataUri) {
-                    setPhotoPreview(originalReportUpdate.photoDataUri);
-                } else {
-                    setPhotoPreview(null);
-                }
+
+            // Find the original update to get the photo
+            const originalUpdate = incidentToEdit.updates?.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())[0];
+            if (originalUpdate?.photoDataUri) {
+                setPhotoPreview(originalUpdate.photoDataUri);
             } else {
                 setPhotoPreview(null);
             }
+
         } else {
             const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
             const center = isDefaultLocation ? defaultCenter : initialCenter;

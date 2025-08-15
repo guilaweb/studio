@@ -38,11 +38,11 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         title: data.title,
         description: data.description,
         status: data.status,
+        priority: data.priority,
         lastReported: data.lastReported,
+        incidentDate: data.incidentDate,
         authorId: data.authorId,
         updates: sortedUpdates,
-        priority: data.priority,
-        incidentDate: data.incidentDate,
     };
 };
 
@@ -72,7 +72,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
   const addPoint = async (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', point.id);
-        const completeUpdates = point.updates.map(u => ({...u, id: `upd-${point.id}-${Date.now()}`}));
+        const completeUpdates = point.updates.map(u => ({...u, id: `upd-${point.id}-${Date.now()}-${Math.random()}`}));
         const pointToAdd: PointOfInterest = {...point, updates: completeUpdates};
         await setDoc(pointRef, pointToAdd);
     } catch (error) {
@@ -98,7 +98,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         
         const newUpdateWithId: PointOfInterestUpdate = {
             ...update,
-            id: `upd-${pointId}-${Date.now()}`
+            id: `upd-${pointId}-${Date.now()}-${Math.random()}`
         };
         
         await updateDoc(pointRef, {
@@ -124,18 +124,22 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 
         const pointToUpdate = allData.find(p => p.id === pointId);
         
-        if (updates.photoDataUri && pointToUpdate && pointToUpdate.updates && pointToUpdate.updates.length > 0) {
-            const originalUpdateIndex = pointToUpdate.updates.length - 1;
-            const newUpdates = [...pointToUpdate.updates];
-            newUpdates[originalUpdateIndex] = {
-                ...newUpdates[originalUpdateIndex],
-                photoDataUri: updates.photoDataUri,
+        if (pointToUpdate?.updates && pointToUpdate.updates.length > 0) {
+            // Find the original report update (should be the last in a chronologically sorted array)
+            const newUpdates = [...pointToUpdate.updates].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+            
+            // Update the description on the original update
+            newUpdates[0] = {
+                ...newUpdates[0],
+                text: updates.description,
+                photoDataUri: updates.photoDataUri !== undefined ? updates.photoDataUri : newUpdates[0].photoDataUri,
             };
-            dataToUpdate.updates = newUpdates;
+            
+            dataToUpdate.updates = newUpdates.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); // Sort back to newest first
         }
 
 
-        await updateDoc(pointRef, dataToUpdate);
+        await updateDoc(pointRef, dataToUpdate as any);
 
     } catch (error) {
         console.error("Error updating point details: ", error);
