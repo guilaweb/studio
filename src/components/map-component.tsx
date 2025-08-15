@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Map, AdvancedMarker, Pin, useMap, useAdvancedMarkerRef } from "@vis.gl/react-google-maps";
+import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, Siren, Trash, Search } from "lucide-react";
 import React from "react";
@@ -88,35 +88,6 @@ const getPinStyle = (point: PointOfInterest) => {
     return {};
 }
 
-const MapEvents = ({ onCenterChanged, onZoomChanged }: { onCenterChanged: (center: google.maps.LatLngLiteral) => void, onZoomChanged: (zoom: number) => void }) => {
-    const map = useMap();
-  
-    React.useEffect(() => {
-      if (!map) return;
-  
-      const dragListener = map.addListener('dragend', () => {
-        const center = map.getCenter();
-        if (center) {
-            onCenterChanged(center.toJSON());
-        }
-      });
-  
-      const zoomListener = map.addListener('zoom_changed', () => {
-        const zoom = map.getZoom();
-        if (zoom) {
-            onZoomChanged(zoom);
-        }
-      });
-  
-      return () => {
-        dragListener.remove();
-        zoomListener.remove();
-      };
-    }, [map, onCenterChanged, onZoomChanged]);
-  
-    return null;
-  };
-
 const PointOfInterestMarker = ({ point, onClick }: { point: PointOfInterest; onClick: (pointId: string) => void }) => {
   const [markerRef, marker] = useAdvancedMarkerRef();
   const pinStyle = getPinStyle(point);
@@ -135,6 +106,12 @@ const PointOfInterestMarker = ({ point, onClick }: { point: PointOfInterest; onC
 };
 
 export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
+  
+  const handleCameraChange = (e: google.maps.MapCameraChangedEvent) => {
+    onCenterChanged(e.detail.center);
+    onZoomChanged(e.detail.zoom);
+  };
+
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Map
@@ -144,6 +121,7 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
         gestureHandling={"greedy"}
         disableDefaultUI={false}
         styles={mapStyles}
+        onCameraChanged={handleCameraChange}
       >
         {data
           .filter((point) => activeLayers[point.type])
@@ -165,7 +143,6 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                 </Pin>
             </AdvancedMarker>
         )}
-        <MapEvents onCenterChanged={onCenterChanged} onZoomChanged={onZoomChanged} />
       </Map>
     </div>
   );
