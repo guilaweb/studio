@@ -236,29 +236,29 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         photoDataUri: photoDataUri,
     };
     
-    let priority: PointOfInterest['priority'] = undefined;
+    let priority: PointOfInterest['priority'] | undefined = undefined;
     if (type === 'incident') {
         try {
-            priority = await calculateIncidentPriority({
+            const result = await calculateIncidentPriority({
                 title: incidentDetails.title,
                 description: incidentDetails.description,
             });
+            priority = result;
         } catch (error) {
             console.error("Error calculating priority, defaulting to low:", error);
             priority = 'low';
         }
     }
 
-
     const incidentToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
       ...incidentDetails,
       id: `${type}-${Date.now()}`,
       type: type,
-      priority: priority,
       authorId: user.uid,
       lastReported: timestamp,
       incidentDate: incidentDetails.incidentDate,
-      updates: [initialUpdate]
+      updates: [initialUpdate],
+      ...(priority && { priority }),
     };
     
     addPoint(incidentToAdd);
@@ -293,6 +293,14 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   };
 
   const handleStartEditing = (poi: PointOfInterest) => {
+    if (user?.uid !== poi.authorId) {
+        toast({
+            variant: "destructive",
+            title: "Acesso Negado",
+            description: "Apenas o autor original pode editar este incidente.",
+        });
+        return;
+    }
     setIncidentToEdit(poi);
     setIsIncidentSheetOpen(true);
     setSelectedPoi(null); // Close details sheet
