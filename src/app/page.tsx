@@ -278,7 +278,7 @@ export default function Home() {
             </SidebarContent>
             <SidebarFooter className="space-y-2">
               {user && (
-                <Button onClick={handleStartReporting}>
+                <Button onClick={handleStartReporting} className="hidden md:flex">
                     <Plus className="mr-2 h-4 w-4" />
                     Reportar Incidente
                 </Button>
@@ -307,7 +307,7 @@ export default function Home() {
             >
               <UserMenu />
             </AppHeader>
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden relative">
                <MapComponent
                 activeLayers={activeLayers}
                 data={allData}
@@ -319,6 +319,15 @@ export default function Home() {
                 onZoomChanged={setZoom}
                 onMarkerClick={handleMarkerClick}
               />
+              {user && (
+                <Button
+                    onClick={handleStartReporting}
+                    className="md:hidden absolute bottom-6 left-6 z-10 h-14 w-14 rounded-full bg-red-600 text-white shadow-lg hover:bg-red-700"
+                    aria-label="Reportar Incidente"
+                >
+                    <Plus className="h-7 w-7" />
+                </Button>
+              )}
             </div>
           </SidebarInset>
         </div>
