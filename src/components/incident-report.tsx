@@ -33,7 +33,7 @@ import { useState } from "react";
 import { PointOfInterest } from "@/lib/data";
 
 const formSchema = z.object({
-  title: z.string().min(1, "O tipo de incidência é obrigatório."),
+  title: z.string().min(1, "O tipo de incidente é obrigatório."),
   description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres.")
 });
 
@@ -66,13 +66,13 @@ export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full">Reportar Incidência</Button>
+        <Button className="w-full">Reportar Incidente</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Reportar uma incidência</DialogTitle>
+          <DialogTitle>Reportar Incidente Rodoviário</DialogTitle>
           <DialogDescription>
-            Ajude a sua cidade. Descreva a incidência que encontrou.
+            Ajude a identificar os pontos negros da cidade. Descreva o incidente que presenciou.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -82,15 +82,18 @@ export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tipo de Incidência</FormLabel>
+                  <FormLabel>Tipo de Incidente</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo de incidência" />
+                        <SelectValue placeholder="Selecione o tipo de incidente" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Acidente de Trânsito">Acidente de Trânsito</SelectItem>
+                      <SelectItem value="Colisão Ligeira">Colisão Ligeira</SelectItem>
+                      <SelectItem value="Colisão Grave">Colisão Grave</SelectItem>
+                      <SelectItem value="Atropelamento">Atropelamento</SelectItem>
+                      <SelectItem value="Acidente de Moto">Acidente de Moto</SelectItem>
                       <SelectItem value="Buraco na via">Buraco na via</SelectItem>
                       <SelectItem value="Semáforo com defeito">Semáforo com defeito</SelectItem>
                        <SelectItem value="Iluminação pública com defeito">Iluminação pública com defeito</SelectItem>
@@ -106,10 +109,10 @@ export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descrição</FormLabel>
+                  <FormLabel>Descrição (Opcional: adicione tags como #falta-de-sinalização)</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Descreva a incidência com o máximo de detalhes possível."
+                      placeholder="Descreva a incidência com detalhes. Ex: Colisão no cruzamento, um dos carros capotou. #trânsitocortado"
                       {...field}
                     />
                   </FormControl>
@@ -118,7 +121,7 @@ export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps
               )}
             />
             <DialogFooter>
-              <Button type="submit">Reportar</Button>
+              <Button type="submit">Reportar Anonimamente</Button>
             </DialogFooter>
           </form>
         </Form>

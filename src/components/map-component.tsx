@@ -2,7 +2,7 @@
 
 import { Map, AdvancedMarker, Pin, useMap, useAdvancedMarkerRef } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, TriangleAlert } from "lucide-react";
+import { Landmark, Construction, Siren } from "lucide-react";
 import React from "react";
 
 type MapComponentProps = {
@@ -46,7 +46,7 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
     case "construction":
       return <Construction className={commonClasses} />;
     case "incident":
-      return <TriangleAlert className={commonClasses} />;
+      return <Siren className={commonClasses} />;
     default:
       return null;
   }
@@ -59,14 +59,14 @@ const pinStyles = {
     glyphColor: 'hsl(var(--primary-foreground))',
   },
   construction: {
+    background: 'hsl(var(--secondary))',
+    borderColor: 'hsl(var(--secondary))',
+    glyphColor: 'hsl(var(--secondary-foreground))',
+  },
+  incident: {
     background: 'hsl(var(--accent))',
     borderColor: 'hsl(var(--accent))',
     glyphColor: 'hsl(var(--accent-foreground))',
-  },
-  incident: {
-    background: 'hsl(var(--destructive))',
-    borderColor: 'hsl(var(--destructive))',
-    glyphColor: 'hsl(var(--destructive-foreground))',
   },
 };
 

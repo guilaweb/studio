@@ -68,13 +68,13 @@ export const incidents: PointOfInterest[] = [
     type: 'incident',
     position: { lat: -8.816, lng: 13.232 },
     title: 'Semáforo avariado',
-    description: 'Cruzamento da Av. de Portugal com a Rua Rainha Ginga. Cuidado redobrado ao atravessar.',
+    description: 'Cruzamento da Av. de Portugal com a Rua Rainha Ginga. Cuidado redobrado ao atravessar. #falta-de-sinalização',
   },
   {
     id: 'incident-2',
     type: 'incident',
     position: { lat: -8.825, lng: 13.245 },
     title: 'Acidente na Av. Ho Chi Minh',
-    description: 'Colisão entre dois carros, faixa da direita bloqueada. Trânsito lento no local.',
+    description: 'Colisão entre dois carros, faixa da direita bloqueada. Trânsito lento no local. #acidente',
   },
 ];

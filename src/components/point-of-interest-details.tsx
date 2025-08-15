@@ -2,7 +2,7 @@
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest } from "@/lib/data";
-import { Landmark, Construction, TriangleAlert } from "lucide-react";
+import { Landmark, Construction, Siren } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 type PointOfInterestDetailsProps = {
@@ -14,7 +14,7 @@ type PointOfInterestDetailsProps = {
 const layerConfig = {
     atm: { label: "Caixa Eletrônico", Icon: Landmark, variant: "default" as const},
     construction: { label: "Obras e Projetos", Icon: Construction, variant: "secondary" as const },
-    incident: { label: "Incidência", Icon: TriangleAlert, variant: "destructive" as const},
+    incident: { label: "Incidente", Icon: Siren, variant: "destructive" as const},
 };
 
 export default function PointOfInterestDetails({ poi, open, onOpenChange }: PointOfInterestDetailsProps) {
