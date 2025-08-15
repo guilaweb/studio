@@ -93,9 +93,6 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialCenter]);
   
-  useEffect(() => {
-    form.setValue("position", mapCenter);
-  }, [mapCenter, form]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -114,15 +111,21 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
     const isSanitation = values.title === 'Contentor de lixo';
     const type = isSanitation ? 'sanitation' : 'incident';
     
+    // Ensure the final position is from the map center
+    const submissionValues = {
+        ...values,
+        position: mapCenter
+    }
+
     if (photoFile) {
         const reader = new FileReader();
         reader.onloadend = () => {
             const photoDataUri = reader.result as string;
-            onIncidentSubmit({ ...values, photoDataUri }, type);
+            onIncidentSubmit({ ...submissionValues, photoDataUri }, type);
         };
         reader.readAsDataURL(photoFile);
     } else {
-        onIncidentSubmit(values, type);
+        onIncidentSubmit(submissionValues, type);
     }
   }
 
