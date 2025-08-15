@@ -83,20 +83,20 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         const newUpdate: PointOfInterestUpdate = {
-            ...update,
+            text: update.text,
+            authorId: update.authorId,
+            timestamp: update.timestamp,
             id: `upd-${pointId}-${Date.now()}`,
         };
-        // Firestore's arrayUnion adds elements to an array but won't add duplicates.
-        // To add a new update every time, we ensure the object is unique (which it is due to the new ID).
-        // To prepend, we would need to read the document, prepend locally, and then write the whole array back.
-        // For simplicity and performance, we'll append and sort on the client-side if needed.
+        
+        if (update.photoDataUri) {
+            newUpdate.photoDataUri = update.photoDataUri;
+        }
+
         await updateDoc(pointRef, {
             updates: arrayUnion(newUpdate)
         });
 
-        // Note: For a prepending effect (newest first), you'd read the doc, update the array in code, then set the doc.
-        // Or, more simply, sort the updates array on the client-side when displaying it. The current implementation in
-        // point-of-interest-details already sorts the array by displaying the copy from local state first.
     } catch (error) {
         console.error("Error adding update to point: ", error);
     }
