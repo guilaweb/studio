@@ -377,14 +377,14 @@ export default function Home() {
         }}
         onPoiStatusChange={handlePoiStatusChange}
         onAddUpdate={handleAddUpdate}
-        />
-        <IncidentReport 
-            open={!!newIncidentLocation}
-            onOpenChange={(isOpen) => {
-                if (!isOpen) handleCancelReporting();
-            }}
-            onIncidentSubmit={handleAddNewIncident}
-        />
+      />
+      <IncidentReport 
+        open={!!newIncidentLocation}
+        onOpenChange={(isOpen) => {
+            if (!isOpen) handleCancelReporting();
+        }}
+        onIncidentSubmit={handleAddNewIncident}
+      />
       <Toaster />
     </APIProvider>
   );
