@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData, query, orderBy } from 'firebase/firestore';
 import { PointOfInterest, PointOfInterestUpdate } from '@/lib/data';
 
 interface PointsContextType {
@@ -50,8 +50,10 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const pointsCollectionRef = collection(db, 'pointsOfInterest');
+    // Query for points of interest, ordered by lastReported date descending
+    const q = query(pointsCollectionRef, orderBy("lastReported", "desc"));
     
-    const unsubscribe = onSnapshot(pointsCollectionRef, (querySnapshot) => {
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const pointsData = querySnapshot.docs.map(convertDocToPointOfInterest);
         setAllData(pointsData);
         setLoading(false);
@@ -108,16 +110,9 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // This is a client-side sort. For large datasets, consider sorting with Firestore queries.
-  const sortedData = [...allData].sort((a, b) => {
-      const dateA = a.lastReported || a.updates?.[a.updates.length-1]?.timestamp || '1970-01-01';
-      const dateB = b.lastReported || b.updates?.[b.updates.length-1]?.timestamp || '1970-01-01';
-      return new Date(dateB).getTime() - new Date(dateA).getTime();
-  });
-
 
   return (
-    <PointsContext.Provider value={{ allData: sortedData, addPoint, updatePointStatus, addUpdateToPoint, loading }}>
+    <PointsContext.Provider value={{ allData, addPoint, updatePointStatus, addUpdateToPoint, loading }}>
       {children}
     </PointsContext.Provider>
   );
