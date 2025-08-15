@@ -358,7 +358,7 @@ export default function Home() {
                 zoom={zoom}
                 onCenterChanged={setMapCenter}
                 onZoomChanged={setZoom}
-                onMarkerClick={(poiId) => handleMarkerClick(poiId)}
+                onMarkerClick={handleMarkerClick}
                 isReporting={isReporting}
                 onMapClick={handleMapClick}
               />
