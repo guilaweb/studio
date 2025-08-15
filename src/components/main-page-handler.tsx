@@ -45,11 +45,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     lng: 18.5,
   });
   const [zoom, setZoom] = React.useState(5);
-  const { allData, addPoint, updatePointStatus, addUpdateToPoint } = usePoints();
+  const { allData, addPoint, updatePointStatus, addUpdateToPoint, updatePointDetails } = usePoints();
   const searchParams = useSearchParams();
   const prevDataRef = React.useRef<PointOfInterest[]>([]);
 
   const [isIncidentSheetOpen, setIsIncidentSheetOpen] = React.useState(false);
+  const [incidentToEdit, setIncidentToEdit] = React.useState<PointOfInterest | null>(null);
 
 
   const { toast } = useToast();
@@ -157,6 +158,13 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
   };
 
+  const handleIncidentSheetOpen = (open: boolean) => {
+    if (!open) {
+        setIncidentToEdit(null);
+    }
+    setIsIncidentSheetOpen(open);
+  }
+
   const handleAddNewIncident = async (
     newIncidentData: Omit<PointOfInterest, 'id' | 'authorId'> & { photoDataUri?: string }, 
     type: PointOfInterest['type'] = 'incident'
@@ -170,7 +178,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         return;
     }
 
-    setIsIncidentSheetOpen(false);
+    handleIncidentSheetOpen(false);
 
      const { photoDataUri, ...incidentDetails } = newIncidentData;
     
@@ -260,6 +268,15 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
   };
 
+  const handleEditIncident = async (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description'> & { photoDataUri?: string }) => {
+    await updatePointDetails(incidentId, updates);
+    handleIncidentSheetOpen(false);
+    toast({
+        title: "Incidência atualizada!",
+        description: "As suas alterações foram guardadas com sucesso.",
+    });
+  }
+
   const handleStartReporting = () => {
     if (!user) {
         toast({
@@ -269,8 +286,15 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         });
         return;
     }
+    setIncidentToEdit(null);
     setIsIncidentSheetOpen(true);
   };
+
+  const handleStartEditing = (poi: PointOfInterest) => {
+    setIncidentToEdit(poi);
+    setIsIncidentSheetOpen(true);
+    setSelectedPoi(null); // Close details sheet
+  }
 
   const handleMarkerClick = (poiId: string) => {
     const poi = allData.find(p => p.id === poiId) || null;
@@ -411,12 +435,15 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             }}
             onPoiStatusChange={handlePoiStatusChange}
             onAddUpdate={handleAddUpdate}
+            onEdit={handleStartEditing}
         />
         <IncidentReport 
             open={isIncidentSheetOpen}
-            onOpenChange={setIsIncidentSheetOpen}
+            onOpenChange={handleIncidentSheetOpen}
             onIncidentSubmit={handleAddNewIncident}
+            onIncidentEdit={handleEditIncident}
             initialCenter={mapCenter}
+            incidentToEdit={incidentToEdit}
         />
       </SidebarProvider>
   );

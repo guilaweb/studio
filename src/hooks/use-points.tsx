@@ -11,6 +11,7 @@ interface PointsContextType {
   addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => Promise<void>;
   updatePointStatus: (pointId: string, status: PointOfInterest['status']) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
+  updatePointDetails: (pointId: string, updates: Pick<PointOfInterest, 'title' | 'description'> & { photoDataUri?: string }) => Promise<void>;
   loading: boolean;
 }
 
@@ -19,6 +20,7 @@ const PointsContext = createContext<PointsContextType>({
   addPoint: async () => {},
   updatePointStatus: async () => {},
   addUpdateToPoint: async () => {},
+  updatePointDetails: async () => {},
   loading: true,
 });
 
@@ -108,9 +110,31 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updatePointDetails = async (pointId: string, updates: Pick<PointOfInterest, 'title' | 'description'> & { photoDataUri?: string }) => {
+    try {
+        const pointRef = doc(db, 'pointsOfInterest', pointId);
+        
+        const dataToUpdate: Partial<PointOfInterest & { 'updates.0.photoDataUri': string }> = {
+            title: updates.title,
+            description: updates.description,
+        };
+
+        const pointToUpdate = allData.find(p => p.id === pointId);
+        if (pointToUpdate && pointToUpdate.updates && pointToUpdate.updates.length > 0) {
+            pointToUpdate.updates[0].photoDataUri = updates.photoDataUri;
+            dataToUpdate.updates = pointToUpdate.updates;
+        }
+
+        await updateDoc(pointRef, dataToUpdate);
+
+    } catch (error) {
+        console.error("Error updating point details: ", error);
+    }
+  };
+
 
   return (
-    <PointsContext.Provider value={{ allData, addPoint, updatePointStatus, addUpdateToPoint, loading }}>
+    <PointsContext.Provider value={{ allData, addPoint, updatePointStatus, addUpdateToPoint, updatePointDetails, loading }}>
       {children}
     </PointsContext.Provider>
   );

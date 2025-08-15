@@ -6,7 +6,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +25,7 @@ type PointOfInterestDetailsProps = {
   onOpenChange: (open: boolean) => void;
   onPoiStatusChange: (poiId: string, status: PointOfInterest['status']) => void;
   onAddUpdate: (poiId: string, updateText: string, photoDataUri?: string) => void;
+  onEdit: (poi: PointOfInterest) => void;
 };
 
 const layerConfig = {
@@ -280,8 +281,8 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
 }
 
 
-export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange, onAddUpdate }: PointOfInterestDetailsProps) {
-  const { profile } = useAuth();
+export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange, onAddUpdate, onEdit }: PointOfInterestDetailsProps) {
+  const { user, profile } = useAuth();
   
   if (!poi) return null;
 
@@ -289,12 +290,15 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
   const showTimeline = poi.type === 'construction' || poi.type === 'incident' || poi.type === 'sanitation';
   const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
+  const isOwner = poi.authorId === user?.uid;
+  const canEdit = isOwner || isManager;
+
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="text-left mb-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-start gap-4">
             <div className="flex-1">
                 <Badge variant={config.variant} className="mb-2">{config.label}</Badge>
                 <SheetTitle className="text-2xl">{poi.title}</SheetTitle>
@@ -305,7 +309,15 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                     </div>
                 )}
             </div>
-            <config.Icon className="h-10 w-10 text-muted-foreground" />
+            <div className="flex flex-col items-end gap-2">
+                <config.Icon className="h-10 w-10 text-muted-foreground" />
+                {canEdit && (
+                    <Button variant="outline" size="sm" onClick={() => onEdit(poi)}>
+                        <Pencil className="mr-2 h-3 w-3"/>
+                        Editar
+                    </Button>
+                )}
+            </div>
           </div>
         </SheetHeader>
         <div className="space-y-4">
@@ -334,5 +346,3 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </Sheet>
   );
 }
-
-    

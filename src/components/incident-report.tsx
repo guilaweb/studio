@@ -51,16 +51,26 @@ type IncidentReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId'> & { photoDataUri?: string }, type?: PointOfInterest['type']) => void;
+  onIncidentEdit: (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
+  incidentToEdit: PointOfInterest | null;
 };
 
 const defaultCenter = { lat: -12.5, lng: 18.5 };
 const defaultZoom = 5;
 
-export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, initialCenter }: IncidentReportProps) {
+export default function IncidentReport({ 
+    open, 
+    onOpenChange, 
+    onIncidentSubmit, 
+    onIncidentEdit,
+    initialCenter, 
+    incidentToEdit 
+}: IncidentReportProps) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -83,14 +93,19 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
   }
 
   useEffect(() => {
-    if (open) {
-        form.setValue("position", initialCenter);
+    setIsEditMode(!!incidentToEdit);
+    if (incidentToEdit) {
+        form.setValue("title", incidentToEdit.title);
+        form.setValue("description", incidentToEdit.description);
+        form.setValue("position", incidentToEdit.position);
+        if (incidentToEdit.updates?.[0]?.photoDataUri) {
+            setPhotoPreview(incidentToEdit.updates[0].photoDataUri);
+        }
     } else {
-      clearForm();
+        form.setValue("position", initialCenter);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialCenter]);
-  
+  }, [incidentToEdit, open, form, initialCenter]);
+
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -106,42 +121,57 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const isSanitation = values.title === 'Contentor de lixo';
-    const type = isSanitation ? 'sanitation' : 'incident';
-    
-    const finalPosition = mapRef.current?.getCenter()?.toJSON() || form.getValues('position');
-    
-    const submissionValues = {
-        ...values,
-        position: finalPosition
-    }
+    const finalValues = {
+        title: values.title,
+        description: values.description,
+    };
 
+    const handleSubmission = (photoDataUri?: string) => {
+        if (isEditMode && incidentToEdit) {
+            onIncidentEdit(incidentToEdit.id, { ...finalValues, photoDataUri });
+        } else {
+            const isSanitation = values.title === 'Contentor de lixo';
+            const type = isSanitation ? 'sanitation' : 'incident';
+            const finalPosition = mapRef.current?.getCenter()?.toJSON() || form.getValues('position');
+            onIncidentSubmit({ ...values, position: finalPosition, photoDataUri }, type);
+        }
+    };
+    
     if (photoFile) {
         const reader = new FileReader();
         reader.onloadend = () => {
-            const photoDataUri = reader.result as string;
-            onIncidentSubmit({ ...submissionValues, photoDataUri }, type);
+            handleSubmission(reader.result as string);
         };
         reader.readAsDataURL(photoFile);
     } else {
-        onIncidentSubmit(submissionValues, type);
+        // If there's a preview but no new file, it means we keep the old photo in edit mode
+        handleSubmission(photoPreview && isEditMode ? photoPreview : undefined);
     }
   }
 
-  const getInitialCenter = () => (initialCenter.lat === 0 && initialCenter.lng === 0) ? defaultCenter : initialCenter;
-  const getInitialZoom = () => (initialCenter.lat === 0 && initialCenter.lng === 0) ? defaultZoom : 15;
+  const getInitialCenter = () => {
+    if (incidentToEdit) return incidentToEdit.position;
+    return (initialCenter.lat === 0 && initialCenter.lng === 0) ? defaultCenter : initialCenter;
+  }
+  const getInitialZoom = () => {
+    if (incidentToEdit) return 16;
+    return (initialCenter.lat === 0 && initialCenter.lng === 0) ? defaultZoom : 15;
+  }
 
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={(isOpen) => {
+        if (!isOpen) clearForm();
+        onOpenChange(isOpen);
+    }}>
       <SheetContent 
         className="sm:max-w-lg w-full flex flex-col p-0"
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         <SheetHeader className="p-6 pb-2">
-          <SheetTitle>Reportar Incidência</SheetTitle>
+          <SheetTitle>{isEditMode ? 'Editar Incidência' : 'Reportar Incidência'}</SheetTitle>
           <SheetDescription>
-            Forneça os detalhes do que presenciou e ajuste o pino no mapa para a localização exata.
+            {isEditMode ? 'Altere os detalhes da sua incidência e guarde as alterações.' : 'Forneça os detalhes do que presenciou e ajuste o pino no mapa para a localização exata.'}
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -217,7 +247,7 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
             </div>
             <SheetFooter className="p-6 pt-4 border-t bg-background">
                 <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                <Button type="submit">Submeter Reporte</Button>
+                <Button type="submit">{isEditMode ? 'Guardar Alterações' : 'Submeter Reporte'}</Button>
             </SheetFooter>
           </form>
         </Form>
