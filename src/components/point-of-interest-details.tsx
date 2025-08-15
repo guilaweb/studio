@@ -95,6 +95,8 @@ const ATMStatus = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, o
 
 const SanitationTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], canUpdate: boolean}) => {
     
+    if (poi.type !== 'sanitation') return null;
+
     const getStatusBadge = () => {
         if (poi.status === 'full') return <Badge className="bg-orange-500 hover:bg-orange-600">Cheio</Badge>
         if (poi.status === 'damaged') return <Badge variant="destructive">Danificado</Badge>
@@ -332,3 +334,5 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </Sheet>
   );
 }
+
+    
