@@ -26,6 +26,7 @@ import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
 import MapSearchBox from "@/components/map-search-box";
+import { calculateIncidentPriority } from "@/services/alert-service";
 
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -136,6 +137,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       ...incidentDetails,
       id: `${type}-${Date.now()}`,
       type: type,
+      priority: type === 'incident' ? calculateIncidentPriority(incidentDetails.title, incidentDetails.description) : undefined,
       authorId: user.uid,
       lastReported: timestamp,
       updates: [initialUpdate]

@@ -4,7 +4,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { PointOfInterest } from "@/lib/data"
 import { Badge } from "@/components/ui/badge"
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal, AlertTriangle, ArrowUp, ArrowRight, ArrowDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 
 const typeVariantMap: { [key in PointOfInterest['type']]: "default" | "secondary" | "destructive" | "outline" } = {
     atm: "default",
@@ -39,6 +40,12 @@ const statusLabelMap: { [key in NonNullable<PointOfInterest['status']>]: string 
     damaged: "Danificado",
     in_progress: "Em Resolução",
 };
+
+const priorityIcons = {
+    high: { icon: ArrowUp, color: "text-red-500", label: "Alta" },
+    medium: { icon: ArrowRight, color: "text-yellow-500", label: "Média" },
+    low: { icon: ArrowDown, color: "text-green-500", label: "Baixa" },
+}
 
 
 export const columns: ColumnDef<PointOfInterest>[] = [
@@ -65,6 +72,45 @@ export const columns: ColumnDef<PointOfInterest>[] = [
         return <Badge variant={typeVariantMap[type]}>{typeLabelMap[type]}</Badge>
     },
     filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
+  },
+    {
+    accessorKey: "priority",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Prioridade
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => {
+      const priority = row.getValue("priority") as PointOfInterest['priority'];
+      if (!priority) {
+        return <div className="text-center">-</div>;
+      }
+      const { icon: Icon, color, label } = priorityIcons[priority];
+      return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger>
+                    <div className="flex items-center gap-2 justify-center">
+                        <Icon className={`h-4 w-4 ${color}`} />
+                        <span className="sr-only">{label}</span>
+                    </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>Prioridade: {label}</p>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+      );
+    },
+     filterFn: (row, id, value) => {
         return value.includes(row.getValue(id))
     },
   },

@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { APIProvider } from "@vis.gl/react-google-maps";
 import DashboardMap from "@/components/dashboard/dashboard-map";
 import IntelligentAlerts from "@/components/dashboard/intelligent-alerts";
-import { getIncidentClusters } from "@/services/alert-service";
+import { getIntelligentAlerts } from "@/services/alert-service";
 import RecentActivityFeed from "@/components/dashboard/recent-activity-feed";
 import IntelligentSummary from "@/components/dashboard/intelligent-summary";
 import { withAuth } from "@/hooks/use-auth";
@@ -82,7 +82,7 @@ function DashboardPage() {
 
   const kpis = React.useMemo(() => getMockKPIs(allData), [allData]);
   
-  const incidentClusters = React.useMemo(() => getIncidentClusters(allData), [allData]);
+  const intelligentAlerts = React.useMemo(() => getIntelligentAlerts(allData), [allData]);
 
   const chartData = React.useMemo(() => {
     const counts = allData.reduce((acc, point) => {
@@ -181,7 +181,7 @@ function DashboardPage() {
                 </Card>
 
                 <div className="grid auto-rows-max items-start gap-4">
-                    <IntelligentAlerts alerts={incidentClusters} onViewOnMap={handleViewOnMap} />
+                    <IntelligentAlerts alerts={intelligentAlerts} onViewOnMap={handleViewOnMap} />
                     <Card>
                         <CardHeader>
                             <CardTitle>Visão Geral dos Reportes</CardTitle>

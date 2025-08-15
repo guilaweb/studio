@@ -63,6 +63,12 @@ const statusLabelMap: { [key in NonNullable<PointOfInterest['status']>]: string 
     in_progress: "Em Resolução",
 };
 
+const priorityLabelMap: { [key in NonNullable<PointOfInterest['priority']>]: string } = {
+    high: "Alta",
+    medium: "Média",
+    low: "Baixa",
+}
+
 
 export function DataTable<TData extends PointOfInterest, TValue>({
   columns,
@@ -115,6 +121,7 @@ export function DataTable<TData extends PointOfInterest, TValue>({
         { label: "ID", key: "id" },
         { label: "Título", key: "title" },
         { label: "Tipo", key: "type" },
+        { label: "Prioridade", key: "priority" },
         { label: "Descrição", key: "description" },
         { label: "Estado", key: "status" },
         { label: "Último Reporte", key: "lastReported" },
@@ -128,6 +135,7 @@ export function DataTable<TData extends PointOfInterest, TValue>({
         return {
             ...poi,
             type: typeLabelMap[poi.type],
+            priority: poi.priority ? priorityLabelMap[poi.priority] : "N/A",
             status: poi.status ? statusLabelMap[poi.status] : "N/A",
             lastReported: poi.lastReported ? new Date(poi.lastReported).toLocaleString('pt-PT') : "N/A"
         }
@@ -167,6 +175,32 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                                         const currentFilter = table.getColumn("type")?.getFilterValue() as string[] || [];
                                         const newFilter = value ? [...currentFilter, key] : currentFilter.filter(k => k !== key);
                                         table.getColumn("type")?.setFilterValue(newFilter.length ? newFilter : undefined)
+                                    }}
+                                >
+                                    {label}
+                                </DropdownMenuCheckboxItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+                 {table.getColumn("priority") && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="h-9">
+                                <ChevronDown className="mr-2 h-4 w-4" />
+                                Prioridade
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {Object.entries(priorityLabelMap).map(([key, label]) => (
+                                <DropdownMenuCheckboxItem
+                                    key={key}
+                                    className="capitalize"
+                                    checked={(table.getColumn("priority")?.getFilterValue() as string[] || []).includes(key)}
+                                    onCheckedChange={(value) => {
+                                        const currentFilter = table.getColumn("priority")?.getFilterValue() as string[] || [];
+                                        const newFilter = value ? [...currentFilter, key] : currentFilter.filter(k => k !== key);
+                                        table.getColumn("priority")?.setFilterValue(newFilter.length ? newFilter : undefined)
                                     }}
                                 >
                                     {label}

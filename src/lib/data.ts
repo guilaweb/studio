@@ -15,6 +15,7 @@ export type PointOfInterest = {
   title: string;
   description: string;
   status?: 'available' | 'unavailable' | 'unknown' | 'full' | 'damaged' | 'collected' | 'in_progress'; // Added 'in_progress'
+  priority?: 'low' | 'medium' | 'high';
   lastReported?: string; // For ATMs and Sanitation
   authorId?: string; // ID of the user who reported it
   updates?: PointOfInterestUpdate[]; // For Construction timeline & Sanitation proof

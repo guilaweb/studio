@@ -5,9 +5,11 @@ export interface IncidentClusterAlert {
     id: string;
     title: string;
     description: string;
-    location: { lat: number; lng: number };
-    incidentCount: number;
+    location?: { lat: number; lng: number };
+    incidentCount?: number;
     incidentIds: string[];
+    priority: 'high' | 'medium';
+    type: 'cluster' | 'priority';
 }
 
 const getDistance = (pos1: { lat: number; lng: number }, pos2: { lat: number; lng: number }): number => {
@@ -25,12 +27,46 @@ const getDistance = (pos1: { lat: number; lng: number }, pos2: { lat: number; ln
     return R * c; // in metres
 };
 
-export const getIncidentClusters = (
+export const calculateIncidentPriority = (title: string, description: string): PointOfInterest['priority'] => {
+    const highPriorityKeywords = ['grave', 'urgente', 'perigo', 'fatal', 'atropelamento', 'colisão grave'];
+    const mediumPriorityKeywords = ['danificado', 'defeito', 'colisão ligeira', 'semáforo', 'iluminação', 'obstrução'];
+    
+    const text = `${title.toLowerCase()} ${description.toLowerCase()}`;
+
+    if (highPriorityKeywords.some(keyword => text.includes(keyword))) {
+        return 'high';
+    }
+    if (mediumPriorityKeywords.some(keyword => text.includes(keyword))) {
+        return 'medium';
+    }
+    return 'low';
+};
+
+
+export const getIntelligentAlerts = (
     allData: PointOfInterest[],
     distanceThreshold: number = 500, // 500 meters
     timeThreshold: number = 48 * 60 * 60 * 1000 // 48 hours
 ): IncidentClusterAlert[] => {
+    const now = new Date().getTime();
     const incidents = allData.filter(p => p.type === 'incident' && p.lastReported);
+    const alerts: IncidentClusterAlert[] = [];
+    
+    // High Priority Incident Alerts
+    const highPriorityIncidents = incidents.filter(p => p.priority === 'high' && p.lastReported && (now - new Date(p.lastReported).getTime() < timeThreshold));
+    highPriorityIncidents.forEach(p => {
+        alerts.push({
+            id: `priority-${p.id}`,
+            title: `Incidente de Alta Prioridade: ${p.title}`,
+            description: `Um novo incidente de alta prioridade foi reportado. Requer atenção imediata.`,
+            incidentIds: [p.id],
+            priority: 'high',
+            type: 'priority',
+        });
+    });
+
+
+    // Cluster Alerts
     const clusters: PointOfInterest[][] = [];
     const visited = new Set<string>();
 
@@ -52,24 +88,28 @@ export const getIncidentClusters = (
             }
         }
         
-        if (currentCluster.length > 1) {
+        if (currentCluster.length > 2) { // Only consider clusters of 3 or more
             clusters.push(currentCluster);
         }
     }
 
-    return clusters.map((cluster, index) => {
+    clusters.forEach((cluster, index) => {
         const centerLat = cluster.reduce((sum, p) => sum + p.position.lat, 0) / cluster.length;
         const centerLng = cluster.reduce((sum, p) => sum + p.position.lng, 0) / cluster.length;
 
         const timeFrameHours = Math.round(timeThreshold / (60 * 60 * 1000));
 
-        return {
+        alerts.push({
             id: `cluster-${index}`,
             title: `Cluster de ${cluster.length} Incidentes`,
             description: `${cluster.length} incidentes reportados numa área de ${distanceThreshold}m nas últimas ${timeFrameHours} horas.`,
             location: { lat: centerLat, lng: centerLng },
             incidentCount: cluster.length,
             incidentIds: cluster.map(p => p.id),
-        };
+            priority: 'medium',
+            type: 'cluster',
+        });
     });
+
+    return alerts.sort((a, b) => (a.priority === 'high' ? -1 : 1));
 };

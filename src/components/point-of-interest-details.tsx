@@ -6,7 +6,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +33,13 @@ const layerConfig = {
     incident: { label: "Incidente", Icon: Siren, variant: "destructive" as const},
     sanitation: { label: "Ponto de Saneamento", Icon: Trash, variant: "outline" as const},
 };
+
+const priorityConfig = {
+    high: { icon: ArrowUp, color: "text-red-500 bg-red-100/50", label: "Alta Prioridade" },
+    medium: { icon: ArrowRight, color: "text-yellow-500 bg-yellow-100/50", label: "Média Prioridade" },
+    low: { icon: ArrowDown, color: "text-green-500 bg-green-100/50", label: "Baixa Prioridade" },
+}
+
 
 const getLastReportedTime = (lastReported?: string) => {
     if (!lastReported) return null;
@@ -275,8 +282,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   if (!poi) return null;
 
   const config = layerConfig[poi.type];
+  const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
   const showTimeline = poi.type === 'construction' || poi.type === 'incident' || poi.type === 'sanitation';
-
   const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
 
   return (
@@ -287,6 +294,12 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             <div className="flex-1">
                 <Badge variant={config.variant} className="mb-2">{config.label}</Badge>
                 <SheetTitle className="text-2xl">{poi.title}</SheetTitle>
+                 {priorityInfo && (
+                    <div className={`mt-2 inline-flex items-center gap-2 text-sm font-semibold p-2 rounded-md ${priorityInfo.color}`}>
+                       <priorityInfo.icon className="h-4 w-4" />
+                       <span>{priorityInfo.label}</span>
+                    </div>
+                )}
             </div>
             <config.Icon className="h-10 w-10 text-muted-foreground" />
           </div>
