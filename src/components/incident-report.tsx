@@ -88,16 +88,16 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg w-full">
-        <SheetHeader>
+      <SheetContent className="sm:max-w-lg w-full flex flex-col p-0">
+        <SheetHeader className="p-6">
           <SheetTitle>Reportar Incidência</SheetTitle>
           <SheetDescription>
             Forneça os detalhes do que presenciou e ajuste o pino no mapa para a localização exata.
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-6 flex flex-col h-[calc(100%-80px)]">
-            <div className="h-[250px] relative rounded-lg overflow-hidden">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col">
+            <div className="flex-1 relative">
                 <Map
                     defaultCenter={initialCenter}
                     defaultZoom={15}
@@ -110,54 +110,56 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
                     <MapPin className="text-primary h-10 w-10" />
                  </div>
             </div>
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tipo de Reporte</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <div className="p-6 space-y-4 bg-background">
+                <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Tipo de Reporte</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo de reporte" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        <SelectItem value="Colisão Ligeira">Colisão Ligeira</SelectItem>
+                        <SelectItem value="Colisão Grave">Colisão Grave</SelectItem>
+                        <SelectItem value="Atropelamento">Atropelamento</SelectItem>
+                        <SelectItem value="Acidente de Moto">Acidente de Moto</SelectItem>
+                        <SelectItem value="Buraco na via">Buraco na via</SelectItem>
+                        <SelectItem value="Semáforo com defeito">Semáforo com defeito</SelectItem>
+                        <SelectItem value="Iluminação pública com defeito">Iluminação pública com defeito</SelectItem>
+                        <SelectItem value="Contentor de lixo">Mapear Contentor de Lixo</SelectItem>
+                        <SelectItem value="Outro">Outro</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Descrição (Opcional: adicione tags como #falta-de-sinalização)</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo de reporte" />
-                      </SelectTrigger>
+                        <Textarea
+                        placeholder="Descreva a incidência com detalhes. Ex: Colisão no cruzamento, um dos carros capotou. #trânsitocortado"
+                        {...field}
+                        />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Colisão Ligeira">Colisão Ligeira</SelectItem>
-                      <SelectItem value="Colisão Grave">Colisão Grave</SelectItem>
-                      <SelectItem value="Atropelamento">Atropelamento</SelectItem>
-                      <SelectItem value="Acidente de Moto">Acidente de Moto</SelectItem>
-                      <SelectItem value="Buraco na via">Buraco na via</SelectItem>
-                      <SelectItem value="Semáforo com defeito">Semáforo com defeito</SelectItem>
-                      <SelectItem value="Iluminação pública com defeito">Iluminação pública com defeito</SelectItem>
-                      <SelectItem value="Contentor de lixo">Mapear Contentor de Lixo</SelectItem>
-                      <SelectItem value="Outro">Outro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição (Opcional: adicione tags como #falta-de-sinalização)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Descreva a incidência com detalhes. Ex: Colisão no cruzamento, um dos carros capotou. #trânsitocortado"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <SheetFooter className="mt-auto">
-                <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                <Button type="submit">Submeter Reporte</Button>
-            </SheetFooter>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <SheetFooter>
+                    <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                    <Button type="submit">Submeter Reporte</Button>
+                </SheetFooter>
+            </div>
           </form>
         </Form>
       </SheetContent>
