@@ -265,6 +265,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       authorId: user.uid,
       lastReported: timestamp,
       incidentDate: incidentDetails.incidentDate,
+      status: 'unknown',
       updates: [initialUpdate],
       ...(priority && { priority }),
     };
@@ -352,6 +353,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: newPointData.description,
       position: newPointData.position,
       priority: priority,
+      status: 'unknown',
       updates: [{
           text: newPointData.description,
           authorId: user.uid,
@@ -404,6 +406,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: newPointData.description,
       position: newPointData.position,
       priority: priority,
+      status: 'unknown',
       updates: [{
           text: newPointData.description,
           authorId: user.uid,
@@ -457,6 +460,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: newPointData.description,
       position: newPointData.position,
       priority: priority,
+      status: 'unknown',
       updates: [{
           text: newPointData.description,
           authorId: user.uid,
@@ -484,7 +488,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
 
-  const handleStartReporting = () => {
+  const handleStartReporting = (type: 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting') => {
     if (!user) {
         toast({
             variant: "destructive",
@@ -494,56 +498,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         return;
     }
     setIncidentToEdit(null);
-    setIsIncidentSheetOpen(true);
+    if(type === 'incident') setIsIncidentSheetOpen(true);
+    if(type === 'sanitation') setIsSanitationSheetOpen(true);
+    if(type === 'traffic_light') setIsTrafficLightSheetOpen(true);
+    if(type === 'pothole') setIsPotholeSheetOpen(true);
+    if(type === 'public_lighting') setIsPublicLightingSheetOpen(true);
   };
-  
-  const handleStartMapping = () => {
-    if (!user) {
-        toast({
-            variant: "destructive",
-            title: "Ação necessária",
-            description: "Por favor, faça login para mapear.",
-        });
-        return;
-    }
-    setIsSanitationSheetOpen(true);
-  }
-
-  const handleStartTrafficLightReport = () => {
-    if (!user) {
-        toast({
-            variant: "destructive",
-            title: "Ação necessária",
-            description: "Por favor, faça login para reportar.",
-        });
-        return;
-    }
-    setIsTrafficLightSheetOpen(true);
-  }
-  
-  const handleStartPotholeReport = () => {
-    if (!user) {
-        toast({
-            variant: "destructive",
-            title: "Ação necessária",
-            description: "Por favor, faça login para reportar.",
-        });
-        return;
-    }
-    setIsPotholeSheetOpen(true);
-  }
-
-  const handleStartPublicLightingReport = () => {
-    if (!user) {
-        toast({
-            variant: "destructive",
-            title: "Ação necessária",
-            description: "Por favor, faça login para reportar.",
-        });
-        return;
-    }
-    setIsPublicLightingSheetOpen(true);
-  }
 
 
   const handleStartEditing = (poi: PointOfInterest) => {
@@ -650,23 +610,23 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="right" align="start">
-                        <DropdownMenuItem onClick={handleStartReporting}>
+                        <DropdownMenuItem onClick={() => handleStartReporting('incident')}>
                             <Siren className="mr-2 h-4 w-4" />
                             Reportar Incidente
                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={handleStartMapping}>
+                         <DropdownMenuItem onClick={() => handleStartReporting('sanitation')}>
                             <Trash className="mr-2 h-4 w-4" />
                             Mapear Contentor
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleStartTrafficLightReport}>
+                        <DropdownMenuItem onClick={() => handleStartReporting('traffic_light')}>
                             <LightbulbOff className="mr-2 h-4 w-4" />
                             Reportar Semáforo
                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={handleStartPublicLightingReport}>
+                         <DropdownMenuItem onClick={() => handleStartReporting('public_lighting')}>
                             <LightbulbOff className="mr-2 h-4 w-4" />
                             Reportar Iluminação
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleStartPotholeReport}>
+                        <DropdownMenuItem onClick={() => handleStartReporting('pothole')}>
                             <CircleDashed className="mr-2 h-4 w-4" />
                             Reportar Buraco na Via
                         </DropdownMenuItem>
@@ -722,23 +682,23 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="top" align="start">
-                        <DropdownMenuItem onClick={handleStartReporting}>
+                        <DropdownMenuItem onClick={() => handleStartReporting('incident')}>
                             <Siren className="mr-2 h-4 w-4" />
                             Reportar Incidente
                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={handleStartMapping}>
+                         <DropdownMenuItem onClick={() => handleStartReporting('sanitation')}>
                             <Trash className="mr-2 h-4 w-4" />
                             Mapear Contentor
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleStartTrafficLightReport}>
+                        <DropdownMenuItem onClick={() => handleStartReporting('traffic_light')}>
                             <LightbulbOff className="mr-2 h-4 w-4" />
                             Reportar Semáforo
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleStartPublicLightingReport}>
+                        <DropdownMenuItem onClick={() => handleStartReporting('public_lighting')}>
                             <LightbulbOff className="mr-2 h-4 w-4" />
                             Reportar Iluminação
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleStartPotholeReport}>
+                        <DropdownMenuItem onClick={() => handleStartReporting('pothole')}>
                             <CircleDashed className="mr-2 h-4 w-4" />
                             Reportar Buraco na Via
                         </DropdownMenuItem>
@@ -762,7 +722,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         />
         <IncidentReport 
             open={isIncidentSheetOpen}
-            onOpenChange={handleIncidentSheetOpen}
+            onOpenChange={setIsIncidentSheetOpen}
             onIncidentSubmit={handleAddNewIncident}
             onIncidentEdit={handleEditIncident}
             initialCenter={mapCenter}
