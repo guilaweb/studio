@@ -1,14 +1,18 @@
 "use client";
 
-import { Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
+import { Map, AdvancedMarker, Pin, useMap } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, TriangleAlert } from "lucide-react";
+import React from "react";
 
 type MapComponentProps = {
   activeLayers: ActiveLayers;
   data: PointOfInterest[];
   userPosition: google.maps.LatLngLiteral | null;
   center: google.maps.LatLngLiteral;
+  zoom: number;
+  onCenterChanged: (center: google.maps.LatLngLiteral) => void;
+  onZoomChanged: (zoom: number) => void;
 };
 
 const mapStyles: google.maps.MapTypeStyle[] = [
@@ -65,13 +69,43 @@ const pinStyles = {
   },
 };
 
-export default function MapComponent({ activeLayers, data, userPosition, center }: MapComponentProps) {
+const MapEvents = ({ onCenterChanged, onZoomChanged }: { onCenterChanged: (center: google.maps.LatLngLiteral) => void, onZoomChanged: (zoom: number) => void }) => {
+    const map = useMap();
+  
+    React.useEffect(() => {
+      if (!map) return;
+  
+      const dragListener = map.addListener('dragend', () => {
+        const center = map.getCenter();
+        if (center) {
+            onCenterChanged(center.toJSON());
+        }
+      });
+  
+      const zoomListener = map.addListener('zoom_changed', () => {
+        const zoom = map.getZoom();
+        if (zoom) {
+            onZoomChanged(zoom);
+        }
+      });
+  
+      return () => {
+        dragListener.remove();
+        zoomListener.remove();
+      };
+    }, [map, onCenterChanged, onZoomChanged]);
+  
+    return null;
+  };
+
+export default function MapComponent({ activeLayers, data, userPosition, center, zoom, onCenterChanged, onZoomChanged }: MapComponentProps) {
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Map
+        key={`${center.lat}-${center.lng}-${zoom}`}
         mapId="cidadao-online-map"
-        center={center}
-        zoom={13}
+        defaultCenter={center}
+        defaultZoom={zoom}
         gestureHandling={"greedy"}
         disableDefaultUI={false}
         styles={mapStyles}
@@ -97,6 +131,7 @@ export default function MapComponent({ activeLayers, data, userPosition, center 
             </span>
           </AdvancedMarker>
         )}
+        <MapEvents onCenterChanged={onCenterChanged} onZoomChanged={onZoomChanged} />
       </Map>
     </div>
   );

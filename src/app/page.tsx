@@ -37,6 +37,7 @@ export default function Home() {
     lat: -8.8368,
     lng: 13.2343,
   });
+  const [zoom, setZoom] = React.useState(13);
 
   const { toast } = useToast();
   const { user, loading, logout } = useAuth();
@@ -55,6 +56,7 @@ export default function Home() {
           };
           setUserPosition(pos);
           setMapCenter(pos);
+          setZoom(15);
           toast({
             title: "Localização encontrada",
             description: "O mapa foi centralizado na sua localização atual.",
@@ -168,6 +170,9 @@ export default function Home() {
                 data={allData}
                 userPosition={userPosition}
                 center={mapCenter}
+                zoom={zoom}
+                onCenterChanged={setMapCenter}
+                onZoomChanged={setZoom}
               />
             </div>
           </SidebarInset>
