@@ -291,7 +291,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const showTimeline = poi.type === 'construction' || poi.type === 'incident' || poi.type === 'sanitation';
   const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
   const isOwner = poi.authorId === user?.uid;
-  const canEdit = isOwner || isManager;
+  const canEdit = isOwner;
 
 
   return (
