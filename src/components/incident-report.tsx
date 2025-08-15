@@ -54,6 +54,8 @@ type IncidentReportProps = {
   initialCenter: google.maps.LatLngLiteral;
 };
 
+const defaultCenter = { lat: -12.5, lng: 18.5 };
+
 export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, initialCenter }: IncidentReportProps) {
   const [mapCenter, setMapCenter] = useState(initialCenter);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -81,8 +83,10 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
 
   useEffect(() => {
     if (open) {
-      setMapCenter(initialCenter);
-      form.setValue("position", initialCenter);
+      // If the map is at the default (0,0), center it on Angola
+      const newCenter = initialCenter.lat === 0 && initialCenter.lng === 0 ? defaultCenter : initialCenter;
+      setMapCenter(newCenter);
+      form.setValue("position", newCenter);
     } else {
       clearForm();
     }
@@ -136,9 +140,9 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
              <div className="relative h-[40vh] bg-muted">
                 <Map
                     center={mapCenter}
-                    zoom={15}
+                    zoom={16}
                     gestureHandling={'greedy'}
-                    disableDefaultUI={true}
+                    disableDefaultUI={false}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
                 >
                 </Map>
