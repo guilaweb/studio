@@ -211,29 +211,30 @@ function DashboardPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="p-2">
-                            <ChartContainer config={chartConfig} className="h-[150px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData} accessibilityLayer layout="vertical">
-                                <CartesianGrid horizontal={false} />
-                                <YAxis
-                                    dataKey="name"
-                                    type="category"
-                                    tickLine={false}
-                                    tickMargin={10}
-                                    axisLine={false}
-                                    className="text-xs"
-                                />
-                                <XAxis 
-                                    type="number"
-                                    hide
-                                />
-                                <ChartTooltip
-                                    cursor={false}
-                                    content={<ChartTooltipContent hideLabel />}
-                                />
-                                <Bar dataKey="total" layout="vertical" radius={5} />
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <ChartContainer config={chartConfig} className="h-[230px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={chartData} layout="vertical" margin={{ left: 10 }}>
+                                    <CartesianGrid horizontal={false} />
+                                    <YAxis
+                                        dataKey="name"
+                                        type="category"
+                                        tickLine={false}
+                                        tickMargin={10}
+                                        axisLine={false}
+                                        className="text-xs"
+                                        width={80}
+                                    />
+                                    <XAxis 
+                                        type="number"
+                                        hide
+                                    />
+                                    <ChartTooltip
+                                        cursor={false}
+                                        content={<ChartTooltipContent hideLabel />}
+                                    />
+                                    <Bar dataKey="total" layout="vertical" radius={5} />
+                                    </BarChart>
+                                </ResponsiveContainer>
                             </ChartContainer>
                         </CardContent>
                     </Card>
