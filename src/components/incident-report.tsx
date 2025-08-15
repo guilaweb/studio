@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { PointOfInterest } from "@/lib/data";
 import { Map } from "@vis.gl/react-google-maps";
 import { Camera, MapPin } from "lucide-react";
@@ -55,10 +55,10 @@ type IncidentReportProps = {
 };
 
 const defaultCenter = { lat: -12.5, lng: 18.5 };
+const defaultZoom = 5;
 
 export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, initialCenter }: IncidentReportProps) {
-  const [mapCenter, setMapCenter] = useState(initialCenter);
-  const [mapZoom, setMapZoom] = useState(5);
+  const mapRef = useRef<google.maps.Map | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
@@ -85,7 +85,6 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
   useEffect(() => {
     if (open) {
         const newCenter = (initialCenter.lat === 0 && initialCenter.lng === 0) ? defaultCenter : initialCenter;
-        setMapCenter(newCenter);
         form.setValue("position", newCenter);
     } else {
       clearForm();
@@ -111,10 +110,11 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
     const isSanitation = values.title === 'Contentor de lixo';
     const type = isSanitation ? 'sanitation' : 'incident';
     
-    // Ensure the final position is from the map center
+    const finalPosition = mapRef.current?.getCenter()?.toJSON() || form.getValues('position');
+    
     const submissionValues = {
         ...values,
-        position: mapCenter
+        position: finalPosition
     }
 
     if (photoFile) {
@@ -145,12 +145,9 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[40vh] bg-muted">
                 <Map
-                    center={mapCenter}
-                    zoom={mapZoom}
-                    gestureHandling={'greedy'}
-                    disableDefaultUI={false}
-                    onCenterChanged={(e) => setMapCenter(e.detail.center)}
-                    onZoomChanged={(e) => setMapZoom(e.detail.zoom)}
+                    ref={mapRef}
+                    defaultCenter={initialCenter.lat === 0 && initialCenter.lng === 0 ? defaultCenter : initialCenter}
+                    defaultZoom={defaultZoom}
                 >
                 </Map>
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
