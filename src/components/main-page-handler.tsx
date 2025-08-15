@@ -176,7 +176,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
 
   const handleAddNewIncident = async (
-    newIncidentData: Omit<PointOfInterest, 'id' | 'authorId' | 'updates' | 'type'> & { photoDataUri?: string }
+    newIncidentData: Omit<PointOfInterest, 'id' | 'authorId' | 'updates' | 'type' | 'status'> & { photoDataUri?: string }
   ) => {
     if (!user || !profile) {
         toast({
@@ -559,16 +559,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
 
-
-  const handleEditIncident = async (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => {
-    await updatePointDetails(incidentId, updates);
-    handleSheetOpenChange(false);
-    toast({
-        title: "Incidência atualizada!",
-        description: "As suas alterações foram guardadas com sucesso.",
-    });
-  }
-
   const handleStartReporting = (type: ActiveSheet) => {
     if (!user) {
         toast({
@@ -592,9 +582,19 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         });
         return;
     }
-    setIncidentToEdit(poi);
-    setActiveSheet('incident');
-    setSelectedPoi(null); // Close details sheet
+    
+    if (poi.type === 'incident') {
+        setIncidentToEdit(poi);
+        setActiveSheet('incident');
+        setSelectedPoi(null); // Close details sheet
+    } else {
+        // For now, only incidents can be edited.
+        // In the future, we could open other sheets here.
+        toast({
+            title: "Funcionalidade não disponível",
+            description: "De momento, apenas incidentes podem ser editados.",
+        });
+    }
   }
 
   const handleMarkerClick = (poiId: string) => {
@@ -817,7 +817,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             open={activeSheet === 'incident'}
             onOpenChange={handleSheetOpenChange}
             onIncidentSubmit={handleAddNewIncident}
-            onIncidentEdit={handleEditIncident}
             initialCenter={mapCenter}
             incidentToEdit={incidentToEdit}
         />

@@ -55,8 +55,7 @@ const formSchema = z.object({
 type IncidentReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId' | 'updates' | 'type'> & { photoDataUri?: string }) => void;
-  onIncidentEdit: (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => void;
+  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId' | 'updates' | 'type' | 'status'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
   incidentToEdit: PointOfInterest | null;
 };
@@ -68,7 +67,6 @@ export default function IncidentReport({
     open, 
     onOpenChange, 
     onIncidentSubmit, 
-    onIncidentEdit,
     initialCenter, 
     incidentToEdit 
 }: IncidentReportProps) {
@@ -110,7 +108,6 @@ export default function IncidentReport({
             setMapCenter(incidentToEdit.position);
             setMapZoom(16);
 
-            // Find the original update to get the photo
             const originalUpdate = incidentToEdit.updates?.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())[0];
             if (originalUpdate?.photoDataUri) {
                 setPhotoPreview(originalUpdate.photoDataUri);
@@ -125,6 +122,7 @@ export default function IncidentReport({
             setMapCenter(center);
             setMapZoom(zoom);
             form.setValue("incidentDate", new Date());
+            clearForm();
         }
     }
   }, [incidentToEdit, open, form, initialCenter]);
@@ -155,7 +153,7 @@ export default function IncidentReport({
         };
 
         if (isEditMode && incidentToEdit) {
-            onIncidentEdit(incidentToEdit.id, submissionData);
+            // onIncidentEdit(incidentToEdit.id, submissionData);
         } else {
             onIncidentSubmit(submissionData);
         }
@@ -168,7 +166,6 @@ export default function IncidentReport({
         };
         reader.readAsDataURL(photoFile);
     } else {
-        // If there's a preview but no new file, it means we keep the old photo in edit mode
         handleSubmission(photoPreview && isEditMode ? photoPreview : undefined);
     }
   }
