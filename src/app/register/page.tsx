@@ -89,8 +89,8 @@ export default function RegisterPage() {
       if (additionalInfo?.isNewUser) {
         await runTransaction(db, async (transaction) => {
             const usersCollectionRef = collection(db, "users");
-            const usersSnapshot = await getDocs(usersCollectionRef);
-            // We check against 1 because this new user is not yet in our collection
+            const usersSnapshot = await transaction.get(usersCollectionRef);
+            // We check against 0 because this transaction will be atomic
             const isFirstUser = usersSnapshot.size === 0;
 
             const userDocRef = doc(db, "users", user.uid);
