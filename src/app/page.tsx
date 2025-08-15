@@ -24,10 +24,11 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LogOut, User, LayoutDashboard } from "lucide-react";
+import { LogOut, User, LayoutDashboard, Search } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
+import MapSearchBox from "@/components/map-search-box";
 
 
 export default function Home() {
@@ -38,6 +39,7 @@ export default function Home() {
     sanitation: true,
   });
   const [selectedPoi, setSelectedPoi] = React.useState<PointOfInterest | null>(null);
+  const [searchedPlace, setSearchedPlace] = React.useState<google.maps.places.PlaceResult | null>(null);
   const [userPosition, setUserPosition] = React.useState<google.maps.LatLngLiteral | null>(null);
   const [mapCenter, setMapCenter] = React.useState<google.maps.LatLngLiteral>({
     lat: -8.8368,
@@ -62,6 +64,16 @@ export default function Home() {
       }
     }
   }, [searchParams, allData]);
+
+  const handlePlaceSelect = (place: google.maps.places.PlaceResult | null) => {
+    if (place?.geometry?.location) {
+      setSearchedPlace(place);
+      const newCenter = place.geometry.location.toJSON();
+      setMapCenter(newCenter);
+      setZoom(16);
+      setSelectedPoi(null);
+    }
+  };
 
 
   const handleLocateUser = () => {
@@ -125,6 +137,7 @@ export default function Home() {
   const handleMarkerClick = (poiId: string) => {
     const poi = allData.find(p => p.id === poiId) || null;
     setSelectedPoi(poi);
+    setSearchedPlace(null);
   };
 
   const handleDetailsClose = () => {
@@ -228,7 +241,7 @@ export default function Home() {
   }
 
   return (
-    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!} libraries={['places']}>
       <SidebarProvider>
         <div className="flex h-screen w-full">
           <Sidebar collapsible="icon" className="border-r">
@@ -255,7 +268,10 @@ export default function Home() {
           </Sidebar>
 
           <SidebarInset className="flex flex-col">
-            <AppHeader onLocateClick={handleLocateUser}>
+            <AppHeader 
+              onLocateClick={handleLocateUser}
+              searchBox={<MapSearchBox onPlaceSelect={handlePlaceSelect} />}
+            >
               <UserMenu />
             </AppHeader>
             <div className="flex-1 overflow-hidden">
@@ -263,6 +279,7 @@ export default function Home() {
                 activeLayers={activeLayers}
                 data={allData}
                 userPosition={userPosition}
+                searchedPlace={searchedPlace?.geometry?.location?.toJSON()}
                 center={mapCenter}
                 zoom={zoom}
                 onCenterChanged={setMapCenter}

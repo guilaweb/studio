@@ -1,14 +1,16 @@
+
 "use client";
 
 import { Map, AdvancedMarker, Pin, useMap, useAdvancedMarkerRef } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search } from "lucide-react";
 import React from "react";
 
 type MapComponentProps = {
   activeLayers: ActiveLayers;
   data: PointOfInterest[];
   userPosition: google.maps.LatLngLiteral | null;
+  searchedPlace: google.maps.LatLngLiteral | null;
   center: google.maps.LatLngLiteral;
   zoom: number;
   onCenterChanged: (center: google.maps.LatLngLiteral) => void;
@@ -132,7 +134,7 @@ const PointOfInterestMarker = ({ point, onClick }: { point: PointOfInterest; onC
   );
 };
 
-export default function MapComponent({ activeLayers, data, userPosition, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
+export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Map
@@ -156,6 +158,13 @@ export default function MapComponent({ activeLayers, data, userPosition, center,
               <span className="relative inline-flex rounded-full h-4 w-4 bg-primary border-2 border-white"></span>
             </span>
           </AdvancedMarker>
+        )}
+        {searchedPlace && (
+            <AdvancedMarker position={searchedPlace} title="Local Pesquisado">
+                <Pin>
+                    <Search className="h-5 w-5" />
+                </Pin>
+            </AdvancedMarker>
         )}
         <MapEvents onCenterChanged={onCenterChanged} onZoomChanged={onZoomChanged} />
       </Map>
