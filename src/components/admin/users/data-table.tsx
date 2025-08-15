@@ -24,28 +24,21 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { UserProfile } from "@/lib/data"
+import { UserProfile, UserProfileWithStats } from "@/lib/data"
+import { columns } from "./columns"
 
 
-interface UserDataTableProps<TData, TValue> {
-  data: TData[],
+interface UserDataTableProps {
+  data: UserProfileWithStats[],
   onUpdateUserRole: (uid: string, role: UserProfile['role']) => Promise<void>
 }
 
-export function UserDataTable<TData, TValue>({
+export function UserDataTable({
   data,
   onUpdateUserRole
-}: UserDataTableProps<TData, TValue>) {
+}: UserDataTableProps) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-
-    const columns: ColumnDef<TData, TValue>[] = (React.useMemo(() => {
-        // Dynamically import columns to avoid circular dependencies if columns import this table
-        // This is a common pattern for creating modular and reusable table components
-        const { columns: userColumns } = require('./columns');
-        return userColumns;
-    }, []) as ColumnDef<TData, TValue>[]);
-
 
     const table = useReactTable({
         data,
@@ -142,4 +135,3 @@ export function UserDataTable<TData, TValue>({
     </div>
   )
 }
-
