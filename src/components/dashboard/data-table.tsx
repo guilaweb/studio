@@ -288,8 +288,8 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                     <Button variant="outline" className="h-9" asChild>
                         <CSVLink 
                             data={csvData.data}
-                            headers={csvData.headers.map(h => ({label: h.label, key: h.key.replace('.', '_')}))}
-                            filename={"reportes.csv"}
+                            headers={csvData.headers}
+                            filename={"reportes-cidadao-online.csv"}
                             className="flex items-center"
                             target="_blank"
                         >
