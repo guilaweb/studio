@@ -23,6 +23,7 @@ import DashboardMap from "@/components/dashboard/dashboard-map";
 import IntelligentAlerts from "@/components/dashboard/intelligent-alerts";
 import { getIncidentClusters } from "@/services/alert-service";
 import RecentActivityFeed from "@/components/dashboard/recent-activity-feed";
+import IntelligentSummary from "@/components/dashboard/intelligent-summary";
 
 
 const chartConfig = {
@@ -116,6 +117,7 @@ export default function DashboardPage() {
         </header>
       <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-1 lg:grid-cols-3">
         <div className="grid auto-rows-max items-start gap-4 lg:col-span-3">
+            <IntelligentSummary allData={allData} />
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
                 <Card>
                     <CardHeader className="pb-2">
