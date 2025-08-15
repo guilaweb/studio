@@ -44,21 +44,21 @@ export const constructionSites: PointOfInterest[] = [
     type: 'construction',
     position: { lat: -8.83, lng: 13.24 },
     title: 'Reabilitação da Avenida 4 de Fevereiro',
-    description: 'Entidade: Administração Municipal de Luanda. Estado: Em curso. Previsão de término: Final de 2024. Trânsito condicionado.',
+    description: 'Entidade: Administração Municipal de Luanda.\nEstado: Em curso.\nPrevisão de término: Final de 2024.\n\nObservações: Trânsito condicionado nos horários de pico.',
   },
   {
     id: 'construction-2',
     type: 'construction',
     position: { lat: -8.851, lng: 13.269 },
     title: 'Construção do novo viaduto do Zango',
-    description: 'Entidade: Governo Provincial de Luanda. Estado: Em curso. Espere ruído e poeira durante o dia.',
+    description: 'Entidade: Governo Provincial de Luanda.\nEstado: Em curso.\n\nObservações: Espere ruído e poeira durante o dia. Desvios sinalizados na área.',
   },
   {
     id: 'construction-3',
     type: 'construction',
     position: { lat: -8.87, lng: 13.22 },
     title: 'Limpeza e Desassoreamento da Vala do Prenda',
-    description: 'Entidade: Ministério das Obras Públicas. Estado: Planeada. Início previsto: Próximo trimestre.',
+    description: 'Entidade: Ministério das Obras Públicas.\nEstado: Planeada.\nInício previsto: Próximo trimestre.',
   }
 ];
 
@@ -68,13 +68,13 @@ export const incidents: PointOfInterest[] = [
     type: 'incident',
     position: { lat: -8.816, lng: 13.232 },
     title: 'Semáforo avariado',
-    description: 'Cruzamento da Av. de Portugal com a Rua Rainha Ginga. Cuidado redobrado.',
+    description: 'Cruzamento da Av. de Portugal com a Rua Rainha Ginga. Cuidado redobrado ao atravessar.',
   },
   {
     id: 'incident-2',
     type: 'incident',
     position: { lat: -8.825, lng: 13.245 },
     title: 'Acidente na Av. Ho Chi Minh',
-    description: 'Colisão entre dois carros, faixa da direita bloqueada.',
+    description: 'Colisão entre dois carros, faixa da direita bloqueada. Trânsito lento no local.',
   },
 ];

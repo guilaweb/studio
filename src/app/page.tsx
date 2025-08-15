@@ -24,6 +24,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LogOut } from "lucide-react";
+import PointOfInterestDetails from "@/components/point-of-interest-details";
 
 
 export default function Home() {
@@ -32,6 +33,7 @@ export default function Home() {
     construction: true,
     incident: true,
   });
+  const [selectedPoi, setSelectedPoi] = React.useState<PointOfInterest | null>(null);
   const [userPosition, setUserPosition] = React.useState<google.maps.LatLngLiteral | null>(null);
   const [mapCenter, setMapCenter] = React.useState<google.maps.LatLngLiteral>({
     lat: -8.8368,
@@ -90,6 +92,14 @@ export default function Home() {
       title: "Incidência reportada!",
       description: "Obrigado pela sua contribuição para uma cidade melhor.",
     });
+  };
+
+  const handleMarkerClick = (poi: PointOfInterest) => {
+    setSelectedPoi(poi);
+  };
+
+  const handleDetailsClose = () => {
+    setSelectedPoi(null);
   };
 
   const UserMenu = () => {
@@ -173,11 +183,21 @@ export default function Home() {
                 zoom={zoom}
                 onCenterChanged={setMapCenter}
                 onZoomChanged={setZoom}
+                onMarkerClick={handleMarkerClick}
               />
             </div>
           </SidebarInset>
         </div>
       </SidebarProvider>
+      <PointOfInterestDetails
+        poi={selectedPoi}
+        open={!!selectedPoi}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            handleDetailsClose();
+          }
+        }}
+        />
       <Toaster />
     </APIProvider>
   );

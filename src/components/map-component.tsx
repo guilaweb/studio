@@ -1,6 +1,6 @@
 "use client";
 
-import { Map, AdvancedMarker, Pin, useMap } from "@vis.gl/react-google-maps";
+import { Map, AdvancedMarker, Pin, useMap, useAdvancedMarkerRef } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, TriangleAlert } from "lucide-react";
 import React from "react";
@@ -13,6 +13,7 @@ type MapComponentProps = {
   zoom: number;
   onCenterChanged: (center: google.maps.LatLngLiteral) => void;
   onZoomChanged: (zoom: number) => void;
+  onMarkerClick: (point: PointOfInterest) => void;
 };
 
 const mapStyles: google.maps.MapTypeStyle[] = [
@@ -98,7 +99,23 @@ const MapEvents = ({ onCenterChanged, onZoomChanged }: { onCenterChanged: (cente
     return null;
   };
 
-export default function MapComponent({ activeLayers, data, userPosition, center, zoom, onCenterChanged, onZoomChanged }: MapComponentProps) {
+const PointOfInterestMarker = ({ point, onClick }: { point: PointOfInterest; onClick: (point: PointOfInterest) => void }) => {
+  const [markerRef, marker] = useAdvancedMarkerRef();
+
+  return (
+    <AdvancedMarker ref={markerRef} position={point.position} title={point.title} onClick={() => onClick(point)}>
+        <Pin 
+        background={pinStyles[point.type].background} 
+        borderColor={pinStyles[point.type].borderColor} 
+        glyphColor={pinStyles[point.type].glyphColor}
+        >
+            <MarkerIcon type={point.type} />
+        </Pin>
+    </AdvancedMarker>
+  );
+};
+
+export default function MapComponent({ activeLayers, data, userPosition, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Map
@@ -113,15 +130,7 @@ export default function MapComponent({ activeLayers, data, userPosition, center,
         {data
           .filter((point) => activeLayers[point.type])
           .map((point) => (
-            <AdvancedMarker key={point.id} position={point.position} title={point.title}>
-              <Pin 
-                background={pinStyles[point.type].background} 
-                borderColor={pinStyles[point.type].borderColor} 
-                glyphColor={pinStyles[point.type].glyphColor}
-              >
-                  <MarkerIcon type={point.type} />
-              </Pin>
-            </AdvancedMarker>
+            <PointOfInterestMarker key={point.id} point={point} onClick={onMarkerClick} />
           ))}
         {userPosition && (
           <AdvancedMarker position={userPosition} title="Sua localização">
