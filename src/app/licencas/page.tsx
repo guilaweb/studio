@@ -85,6 +85,24 @@ function LicencasPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="architectName">Nome Completo do Arquiteto</Label>
+                                    <Input id="architectName" placeholder="Insira o nome do arquiteto" required />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="architectLicense">Nº da Carteira Profissional</Label>
+                                        <Input id="architectLicense" placeholder="Ex: 12345N" required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="architectIdCard">Nº do BI</Label>
+                                        <Input id="architectIdCard" placeholder="Ex: 12345678" required />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="architectNif">NIF</Label>
+                                    <Input id="architectNif" placeholder="Ex: 123456789" required />
+                                </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="projectDescription">Descrição do Projeto</Label>
                                     <Textarea id="projectDescription" placeholder="Descreva brevemente os trabalhos a realizar." rows={4} required/>
