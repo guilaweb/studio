@@ -219,8 +219,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
     const timestamp = new Date().toISOString();
 
-    const initialUpdate: PointOfInterestUpdate = {
-        id: `upd-initial-${Date.now()}`,
+    const initialUpdate: Omit<PointOfInterestUpdate, 'id'> = {
         text: incidentDetails.description,
         authorId: user.uid,
         authorDisplayName: profile.displayName,
@@ -242,7 +241,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
 
 
-    const incidentToAdd: PointOfInterest = {
+    const incidentToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
       ...incidentDetails,
       id: `${type}-${Date.now()}`,
       type: type,
@@ -305,7 +304,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     const newUpdate: Omit<PointOfInterestUpdate, 'id'> = {
         text: updateText,
         authorId: user.uid,
-        authorDisplayName: profile.displayName,
+        authorDisplayName: profile.displayName || user.displayName || "Utilizador Anónimo",
         timestamp: new Date().toISOString(),
         photoDataUri: photoDataUri,
     };
@@ -319,7 +318,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           {...newUpdate, id: `temp-${Date.now()}`}, 
           ...(prevPoi.updates || [])
       ];
-      return { ...prevPoi, updates: updatedUpdates };
+      return { ...prevPoi, updates: updatedUpdates, lastReported: new Date().toISOString() };
     });
 
     toast({

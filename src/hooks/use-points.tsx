@@ -3,12 +3,12 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData, query, orderBy, writeBatch } from 'firebase/firestore';
 import { PointOfInterest, PointOfInterestUpdate } from '@/lib/data';
 
 interface PointsContextType {
   allData: PointOfInterest[];
-  addPoint: (point: PointOfInterest) => Promise<void>;
+  addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => Promise<void>;
   updatePointStatus: (pointId: string, status: PointOfInterest['status']) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
   loading: boolean;
@@ -66,10 +66,12 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
 
-  const addPoint = async (point: PointOfInterest) => {
+  const addPoint = async (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', point.id);
-        await setDoc(pointRef, point);
+        const completeUpdates = point.updates.map(u => ({...u, id: `upd-${point.id}-${Date.now()}`}));
+        const pointToAdd: PointOfInterest = {...point, updates: completeUpdates};
+        await setDoc(pointRef, pointToAdd);
     } catch (error) {
         console.error("Error adding point: ", error);
     }
@@ -91,13 +93,13 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         
-        const newUpdate: PointOfInterestUpdate = {
-            id: `upd-${pointId}-${Date.now()}`,
-            ...update // This now includes text, authorId, authorDisplayName, and optionally photoDataUri
+        const newUpdateWithId: PointOfInterestUpdate = {
+            ...update,
+            id: `upd-${pointId}-${Date.now()}`
         };
         
         await updateDoc(pointRef, {
-            updates: arrayUnion(newUpdate),
+            updates: arrayUnion(newUpdateWithId),
             lastReported: new Date().toISOString(), // Also update the main lastReported field
         });
 
