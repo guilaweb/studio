@@ -4,7 +4,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { PointOfInterest } from "@/lib/data"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -44,7 +44,18 @@ const statusLabelMap: { [key in NonNullable<PointOfInterest['status']>]: string 
 export const columns: ColumnDef<PointOfInterest>[] = [
   {
     accessorKey: "title",
-    header: "Título",
+    header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Título
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+    cell: ({ row }) => <div className="pl-4">{row.getValue("title")}</div>,
   },
   {
     accessorKey: "type",
@@ -52,7 +63,10 @@ export const columns: ColumnDef<PointOfInterest>[] = [
     cell: ({ row }) => {
         const type = row.getValue("type") as PointOfInterest['type']
         return <Badge variant={typeVariantMap[type]}>{typeLabelMap[type]}</Badge>
-    }
+    },
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
   },
   {
     accessorKey: "status",
@@ -63,8 +77,32 @@ export const columns: ColumnDef<PointOfInterest>[] = [
             return <span className="text-muted-foreground">N/A</span>
         }
         return <span>{statusLabelMap[status]}</span>
-    }
+    },
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
   },
+   {
+    accessorKey: "lastReported",
+    header: ({ column }) => {
+        return (
+            <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+            Último Reporte
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        )
+    },
+    cell: ({ row }) => {
+        const date = row.getValue("lastReported") as string | undefined;
+        if (!date) {
+            return <div className="text-center">-</div>
+        }
+        return <div className="text-left font-medium">{new Date(date).toLocaleDateString('pt-PT')}</div>
+    }
+   },
   {
     id: "actions",
     cell: ({ row, table }) => {
