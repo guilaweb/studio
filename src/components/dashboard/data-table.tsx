@@ -31,7 +31,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { PointOfInterest } from "@/lib/data"
-import { ChevronDown, X } from "lucide-react"
+import { ChevronDown, X, Calendar as CalendarIcon } from "lucide-react"
+import { DateRange } from "react-day-picker"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -65,6 +71,7 @@ export function DataTable<TData extends PointOfInterest, TValue>({
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+    const [date, setDate] = React.useState<DateRange | undefined>()
 
   const table = useReactTable({
     data,
@@ -86,29 +93,37 @@ export function DataTable<TData extends PointOfInterest, TValue>({
     }
   })
 
+  React.useEffect(() => {
+    if (date?.from && date?.to) {
+        table.getColumn('lastReported')?.setFilterValue([date.from.toISOString(), date.to.toISOString()]);
+    } else {
+        table.getColumn('lastReported')?.setFilterValue(undefined);
+    }
+  }, [date, table]);
+
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
     <div>
-        <div className="flex items-center justify-between py-4">
-            <div className="flex flex-1 items-center gap-2">
-                <Input
-                    placeholder="Filtrar por título..."
-                    value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) =>
-                        table.getColumn("title")?.setFilterValue(event.target.value)
-                    }
-                    className="max-w-sm h-9"
-                />
+        <div className="flex items-center justify-between py-4 gap-2 flex-wrap">
+            <Input
+                placeholder="Filtrar por título..."
+                value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+                onChange={(event) =>
+                    table.getColumn("title")?.setFilterValue(event.target.value)
+                }
+                className="max-w-sm h-9"
+            />
+            <div className="flex gap-2 flex-wrap justify-end flex-1">
                  {table.getColumn("type") && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="h-9 ml-auto">
+                            <Button variant="outline" className="h-9">
                                 <ChevronDown className="mr-2 h-4 w-4" />
                                 Tipo
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
+                        <DropdownMenuContent align="end">
                             {Object.entries(typeLabelMap).map(([key, label]) => (
                                 <DropdownMenuCheckboxItem
                                     key={key}
@@ -127,12 +142,12 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                  {table.getColumn("status") && (
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="h-9 ml-auto">
+                            <Button variant="outline" className="h-9">
                                 <ChevronDown className="mr-2 h-4 w-4" />
                                 Estado
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
+                        <DropdownMenuContent align="end">
                             {Object.entries(statusLabelMap).map(([key, label]) => (
                                 <DropdownMenuCheckboxItem
                                     key={key}
@@ -148,10 +163,49 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                         </DropdownMenuContent>
                     </DropdownMenu>
                  )}
+                <Popover>
+                    <PopoverTrigger asChild>
+                    <Button
+                        id="date"
+                        variant={"outline"}
+                        className={cn(
+                        "h-9 w-[260px] justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                        )}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date?.from ? (
+                        date.to ? (
+                            <>
+                            {format(date.from, "LLL dd, y")} -{" "}
+                            {format(date.to, "LLL dd, y")}
+                            </>
+                        ) : (
+                            format(date.from, "LLL dd, y")
+                        )
+                        ) : (
+                        <span>Selecione um intervalo</span>
+                        )}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={date?.from}
+                        selected={date}
+                        onSelect={setDate}
+                        numberOfMonths={2}
+                    />
+                    </PopoverContent>
+                </Popover>
                  {isFiltered && (
                     <Button
                         variant="ghost"
-                        onClick={() => table.resetColumnFilters()}
+                        onClick={() => {
+                            table.resetColumnFilters();
+                            setDate(undefined);
+                        }}
                         className="h-9 px-2 lg:px-3"
                     >
                         Limpar
@@ -225,3 +279,5 @@ export function DataTable<TData extends PointOfInterest, TValue>({
     </div>
   )
 }
+
+    

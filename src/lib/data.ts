@@ -1,3 +1,4 @@
+
 export type PointOfInterestUpdate = {
   id: string;
   text: string;
@@ -35,6 +36,7 @@ export const atms: PointOfInterest[] = [
     description: 'Caixa Eletrônico 24h no centro do largo.',
     status: 'available',
     lastReported: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+    authorId: 'user-1'
   },
   {
     id: 'atm-2',
@@ -44,6 +46,7 @@ export const atms: PointOfInterest[] = [
     description: 'Localizado dentro do shopping.',
     status: 'unavailable',
     lastReported: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+    authorId: 'user-2'
   },
   {
     id: 'atm-3',
@@ -53,6 +56,7 @@ export const atms: PointOfInterest[] = [
     description: 'Próximo ao Hospital Josina Machel.',
     status: 'unknown',
     lastReported: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    authorId: 'user-1'
   },
 ];
 
@@ -63,6 +67,8 @@ export const constructionSites: PointOfInterest[] = [
     position: { lat: -8.83, lng: 13.24 },
     title: 'Reabilitação da Avenida 4 de Fevereiro',
     description: 'Entidade: Administração Municipal de Luanda.\nEstado: Em curso.\nPrevisão de término: Final de 2024.\n\nObservações: Trânsito condicionado nos horários de pico.',
+    lastReported: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    authorId: 'user-1',
     updates: [
         { id: 'upd-1-1', text: 'As obras parecem estar paradas há uma semana. Ninguém a trabalhar no local.', authorId: 'user-2', timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()},
         { id: 'upd-1-2', text: 'Hoje vi maquinaria pesada a chegar. Parece que vão recomeçar os trabalhos na zona sul da avenida.', authorId: 'user-1', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()},
@@ -74,6 +80,8 @@ export const constructionSites: PointOfInterest[] = [
     position: { lat: -8.851, lng: 13.269 },
     title: 'Construção do novo viaduto do Zango',
     description: 'Entidade: Governo Provincial de Luanda.\nEstado: Em curso.\n\nObservações: Espere ruído e poeira durante o dia. Desvios sinalizados na área.',
+    lastReported: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    authorId: 'system',
     updates: []
   },
   {
@@ -82,6 +90,8 @@ export const constructionSites: PointOfInterest[] = [
     position: { lat: -8.87, lng: 13.22 },
     title: 'Limpeza e Desassoreamento da Vala do Prenda',
     description: 'Entidade: Ministério das Obras Públicas.\nEstado: Planeada.\nInício previsto: Próximo trimestre.',
+    lastReported: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    authorId: 'system',
     updates: []
   }
 ];
@@ -93,7 +103,8 @@ export const incidents: PointOfInterest[] = [
     position: { lat: -8.816, lng: 13.232 },
     title: 'Semáforo avariado',
     description: 'Cruzamento da Av. de Portugal com a Rua Rainha Ginga. Cuidado redobrado ao atravessar. #falta-de-sinalização',
-    authorId: 'system'
+    authorId: 'system',
+    lastReported: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 'incident-2',
@@ -101,7 +112,8 @@ export const incidents: PointOfInterest[] = [
     position: { lat: -8.825, lng: 13.245 },
     title: 'Acidente na Av. Ho Chi Minh',
     description: 'Colisão entre dois carros, faixa da direita bloqueada. Trânsito lento no local. #acidente',
-    authorId: 'system'
+    authorId: 'user-2',
+    lastReported: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
@@ -114,6 +126,7 @@ export const sanitationPoints: PointOfInterest[] = [
       description: 'Contentor de lixo de grande capacidade.',
       status: 'collected',
       lastReported: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      authorId: 'user-1'
     },
     {
       id: 'sanitation-2',
@@ -123,5 +136,8 @@ export const sanitationPoints: PointOfInterest[] = [
       description: 'Ponto de recolha de lixo próximo ao hospital.',
       status: 'full',
       lastReported: new Date(Date.now() - 22 * 60 * 1000).toISOString(), // 22 minutes ago
+      authorId: 'user-2'
     },
   ];
+
+    

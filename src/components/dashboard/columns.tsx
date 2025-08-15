@@ -101,6 +101,21 @@ export const columns: ColumnDef<PointOfInterest>[] = [
             return <div className="text-center">-</div>
         }
         return <div className="text-left font-medium">{new Date(date).toLocaleDateString('pt-PT')}</div>
+    },
+    filterFn: (row, id, value) => {
+        const date = row.getValue(id) as string;
+        if (!date) return false;
+
+        const [start, end] = value as string[];
+        const reportDate = new Date(date);
+        
+        const startDate = new Date(start);
+        startDate.setHours(0, 0, 0, 0);
+
+        const endDate = new Date(end);
+        endDate.setHours(23, 59, 59, 999);
+
+        return reportDate >= startDate && reportDate <= endDate;
     }
    },
   {
@@ -139,3 +154,5 @@ export const columns: ColumnDef<PointOfInterest>[] = [
     },
   },
 ]
+
+    
