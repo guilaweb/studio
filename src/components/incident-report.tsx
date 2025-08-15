@@ -84,14 +84,17 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
 
   useEffect(() => {
     if (open) {
-      // If the map is at the default (0,0), center it on Angola
-      const newCenter = initialCenter.lat === 0 && initialCenter.lng === 0 ? defaultCenter : initialCenter;
-      setMapCenter(newCenter);
-      form.setValue("position", newCenter);
+      if (mapCenter.lat === 0 && mapCenter.lng === 0) {
+        const newCenter = initialCenter.lat === 0 && initialCenter.lng === 0 ? defaultCenter : initialCenter;
+        setMapCenter(newCenter);
+        form.setValue("position", newCenter);
+      } else {
+        form.setValue("position", mapCenter);
+      }
     } else {
       clearForm();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialCenter]);
   
   useEffect(() => {
