@@ -4,13 +4,15 @@
 import React from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { generateOfficialResponse } from "@/ai/flows/generate-official-response-flow";
+import { useToast } from "@/hooks/use-toast";
 
 type PointOfInterestDetailsProps = {
   poi: PointOfInterest | null;
@@ -111,6 +113,8 @@ const SanitationStatus = ({poi, onPoiStatusChange}: {poi: PointOfInterest, onPoi
 
 const ConstructionTimeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointOfInterestDetailsProps['onAddUpdate']}) => {
     const [updateText, setUpdateText] = React.useState("");
+    const [isGenerating, setIsGenerating] = React.useState(false);
+    const { toast } = useToast();
     
     if (poi.type !== 'construction') return null;
 
@@ -119,6 +123,36 @@ const ConstructionTimeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUp
         if (updateText.trim()) {
             onAddUpdate(poi.id, updateText);
             setUpdateText("");
+        }
+    }
+
+    const handleGenerateResponse = async () => {
+        const lastCitizenUpdate = poi.updates?.find(u => u.authorId !== 'municipality'); // Simple check for non-official updates
+        if (!lastCitizenUpdate) {
+            toast({
+                variant: "destructive",
+                title: "Não há contribuições para responder",
+                description: "A IA só pode gerar respostas para contribuições de cidadãos.",
+            });
+            return;
+        }
+
+        setIsGenerating(true);
+        try {
+            const result = await generateOfficialResponse({
+                citizenContribution: lastCitizenUpdate.text,
+                projectName: poi.title,
+            });
+            setUpdateText(result.response);
+        } catch (error) {
+            console.error("Error generating AI response:", error);
+            toast({
+                variant: "destructive",
+                title: "Erro ao gerar resposta",
+                description: "Não foi possível gerar uma resposta com IA. Tente novamente.",
+            });
+        } finally {
+            setIsGenerating(false);
         }
     }
 
@@ -134,10 +168,16 @@ const ConstructionTimeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUp
                         value={updateText}
                         onChange={(e) => setUpdateText(e.target.value)}
                     />
-                    <Button type="submit" size="sm" disabled={!updateText.trim()}>
-                        <MessageSquarePlus className="mr-2 h-4 w-4" />
-                        Adicionar Fiscalização
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                        <Button type="submit" size="sm" disabled={!updateText.trim()}>
+                            <MessageSquarePlus className="mr-2 h-4 w-4" />
+                            Adicionar Fiscalização
+                        </Button>
+                        <Button type="button" size="sm" variant="outline" onClick={handleGenerateResponse} disabled={isGenerating}>
+                            <Wand2 className="mr-2 h-4 w-4" />
+                            {isGenerating ? "A gerar..." : "Gerar Resposta com IA"}
+                        </Button>
+                    </div>
                 </form>
 
                 <div className="space-y-4">
