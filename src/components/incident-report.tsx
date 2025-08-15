@@ -31,7 +31,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState, useRef } from "react";
 import { PointOfInterest } from "@/lib/data";
-import { Map, useMap } from "@vis.gl/react-google-maps";
+import { Map } from "@vis.gl/react-google-maps";
 import { Camera, MapPin } from "lucide-react";
 import { Input } from "./ui/input";
 import Image from "next/image";
@@ -61,9 +61,7 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
   const mapRef = useRef<google.maps.Map | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [mapZoom, setMapZoom] = useState(defaultZoom);
-  const [mapCenter, setMapCenter] = useState(defaultCenter);
-
+  
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,9 +84,7 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
 
   useEffect(() => {
     if (open) {
-        const newCenter = (initialCenter.lat === 0 && initialCenter.lng === 0) ? defaultCenter : initialCenter;
-        setMapCenter(newCenter);
-        form.setValue("position", newCenter);
+        form.setValue("position", initialCenter);
     } else {
       clearForm();
     }
@@ -132,6 +128,10 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
     }
   }
 
+  const getInitialCenter = () => (initialCenter.lat === 0 && initialCenter.lng === 0) ? defaultCenter : initialCenter;
+  const getInitialZoom = () => (initialCenter.lat === 0 && initialCenter.lng === 0) ? defaultZoom : 15;
+
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
@@ -149,8 +149,8 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
              <div className="relative h-[40vh] bg-muted">
                 <Map
                     ref={mapRef}
-                    defaultCenter={(initialCenter.lat === 0 && initialCenter.lng === 0) ? defaultCenter : initialCenter}
-                    defaultZoom={defaultZoom}
+                    center={getInitialCenter()}
+                    zoom={getInitialZoom()}
                     gestureHandling={'greedy'}
                 >
                 </Map>
