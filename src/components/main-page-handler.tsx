@@ -22,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -34,9 +34,10 @@ import TrafficLightReport from "./traffic-light-report";
 import PotholeReport from "./pothole-report";
 import PublicLightingReport from "./public-lighting-report";
 import ConstructionReport from "./construction-report";
+import AtmReport from "./atm-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm';
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
   const [activeLayers, setActiveLayers] = React.useState({
@@ -518,6 +519,45 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
 
+  const handleAddNewAtmPoint = async (
+    newPointData: Pick<PointOfInterest, 'title' | 'description' | 'position'>
+  ) => {
+     if (!user || !profile) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para mapear um ATM.",
+        });
+        return;
+    }
+    handleSheetOpenChange(false);
+    const timestamp = new Date().toISOString();
+
+     const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `atm-${Date.now()}`,
+      type: 'atm',
+      title: newPointData.title,
+      authorId: user.uid,
+      lastReported: timestamp,
+      status: 'unknown',
+      description: newPointData.description,
+      position: newPointData.position,
+      updates: [{
+          text: `ATM Mapeado: ${newPointData.description}`,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+      }]
+    };
+    
+    addPoint(pointToAdd);
+
+    toast({
+      title: "Caixa Eletrónico mapeado!",
+      description: "Obrigado por ajudar a manter o mapa de ATMs da cidade atualizado.",
+    });
+  }
+
 
   const handleEditIncident = async (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => {
     await updatePointDetails(incidentId, updates);
@@ -670,6 +710,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Construction className="mr-2 h-4 w-4" />
                             Mapear Obra/Projeto
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStartReporting('atm')}>
+                            <Landmark className="mr-2 h-4 w-4" />
+                            Mapear Caixa Eletrónico
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -746,6 +790,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Construction className="mr-2 h-4 w-4" />
                             Mapear Obra/Projeto
                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => handleStartReporting('atm')}>
+                            <Landmark className="mr-2 h-4 w-4" />
+                            Mapear Caixa Eletrónico
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -800,6 +848,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             open={activeSheet === 'construction'}
             onOpenChange={handleSheetOpenChange}
             onConstructionSubmit={handleAddNewConstructionProject}
+            initialCenter={mapCenter}
+        />
+        <AtmReport
+            open={activeSheet === 'atm'}
+            onOpenChange={handleSheetOpenChange}
+            onAtmSubmit={handleAddNewAtmPoint}
             initialCenter={mapCenter}
         />
       </SidebarProvider>

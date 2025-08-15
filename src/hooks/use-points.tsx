@@ -41,6 +41,8 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         priority: data.priority,
         lastReported: data.lastReported,
         incidentDate: data.incidentDate,
+        startDate: data.startDate,
+        endDate: data.endDate,
         authorId: data.authorId,
         updates: sortedUpdates,
     };
