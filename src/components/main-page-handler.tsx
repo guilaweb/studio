@@ -18,16 +18,18 @@ import AppHeader from "@/components/app-header";
 import MapComponent from "@/components/map-component";
 import LayerControls from "@/components/layer-controls";
 import IncidentReport from "@/components/incident-report";
+import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
 import MapSearchBox from "@/components/map-search-box";
 import { detectDuplicate } from "@/ai/flows/detect-duplicate-flow";
 import { calculateIncidentPriority } from "@/services/incident-priority-service";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -50,6 +52,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   const prevDataRef = React.useRef<PointOfInterest[]>([]);
 
   const [isIncidentSheetOpen, setIsIncidentSheetOpen] = React.useState(false);
+  const [isSanitationSheetOpen, setIsSanitationSheetOpen] = React.useState(false);
   const [incidentToEdit, setIncidentToEdit] = React.useState<PointOfInterest | null>(null);
 
 
@@ -167,8 +170,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
 
   const handleAddNewIncident = async (
-    newIncidentData: Omit<PointOfInterest, 'id' | 'authorId'> & { photoDataUri?: string }, 
-    type: PointOfInterest['type'] = 'incident'
+    newIncidentData: Omit<PointOfInterest, 'id' | 'authorId' | 'updates'> & { photoDataUri?: string }
   ) => {
     if (!user || !profile) {
         toast({
@@ -187,7 +189,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     const timeThreshold = 48 * 60 * 60 * 1000; // 48 hours
     const now = new Date().getTime();
     const recentIncidents = allData.filter(p => 
-        p.type === type && 
+        p.type === 'incident' && 
         p.lastReported && 
         (now - new Date(p.lastReported).getTime() < timeThreshold)
     );
@@ -237,35 +239,28 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     };
     
     let priority: PointOfInterest['priority'] | undefined = undefined;
-    if (type === 'incident') {
-        try {
-            const result = await calculateIncidentPriority({
-                title: incidentDetails.title,
-                description: incidentDetails.description,
-            });
-            priority = result.priority;
-        } catch (error) {
-            console.error("Error calculating priority, defaulting to low:", error);
-            priority = 'low';
-        }
-    }
-
-    let status: PointOfInterest['status'] | undefined;
-    if (type === 'sanitation') {
-        status = 'unknown';
+    
+    try {
+        const result = await calculateIncidentPriority({
+            title: incidentDetails.title,
+            description: incidentDetails.description,
+        });
+        priority = result.priority;
+    } catch (error) {
+        console.error("Error calculating priority, defaulting to low:", error);
+        priority = 'low';
     }
 
 
-    const incidentToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+    const incidentToAdd: Omit<PointOfInterest, 'updates' | 'status'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
       ...incidentDetails,
-      id: `${type}-${Date.now()}`,
-      type: type,
+      id: `incident-${Date.now()}`,
+      type: 'incident',
       authorId: user.uid,
       lastReported: timestamp,
       incidentDate: incidentDetails.incidentDate,
       updates: [initialUpdate],
       ...(priority && { priority }),
-      ...(status && { status }),
     };
     
     addPoint(incidentToAdd);
@@ -274,8 +269,47 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       title: "Incidência reportada!",
       description: "Obrigado pela sua contribuição para uma cidade melhor.",
     });
-
   };
+
+  const handleAddNewSanitationPoint = async (
+    newPointData: Pick<PointOfInterest, 'description' | 'position'>
+  ) => {
+    if (!user || !profile) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para mapear um contentor.",
+        });
+        return;
+    }
+    setIsSanitationSheetOpen(false);
+    const timestamp = new Date().toISOString();
+
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `sanitation-${Date.now()}`,
+      type: 'sanitation',
+      title: 'Contentor de Lixo',
+      authorId: user.uid,
+      lastReported: timestamp,
+      status: 'unknown',
+      description: newPointData.description,
+      position: newPointData.position,
+      updates: [{
+          text: 'Ponto de saneamento mapeado.',
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+      }]
+    };
+    
+    addPoint(pointToAdd);
+
+    toast({
+      title: "Contentor mapeado!",
+      description: "Obrigado por ajudar a manter o mapa de saneamento da cidade atualizado.",
+    });
+  }
+
 
   const handleEditIncident = async (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => {
     await updatePointDetails(incidentId, updates);
@@ -291,13 +325,25 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         toast({
             variant: "destructive",
             title: "Ação necessária",
-            description: "Por favor, faça login para reportar uma incidência.",
+            description: "Por favor, faça login para reportar.",
         });
         return;
     }
     setIncidentToEdit(null);
     setIsIncidentSheetOpen(true);
   };
+  
+  const handleStartMapping = () => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para mapear.",
+        });
+        return;
+    }
+    setIsSanitationSheetOpen(true);
+  }
 
   const handleStartEditing = (poi: PointOfInterest) => {
     if (user?.uid !== poi.authorId) {
@@ -395,10 +441,24 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             </SidebarContent>
             <SidebarFooter className="space-y-2">
               {user && (
-                <Button onClick={handleStartReporting} className="hidden md:flex">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Reportar Incidente
-                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button className="hidden md:flex">
+                             <Plus className="mr-2 h-4 w-4" />
+                             Nova Contribuição
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="right" align="start">
+                        <DropdownMenuItem onClick={handleStartReporting}>
+                            <Siren className="mr-2 h-4 w-4" />
+                            Reportar Incidente
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onClick={handleStartMapping}>
+                            <Trash className="mr-2 h-4 w-4" />
+                            Mapear Contentor
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
               )}
                {isManager && (
                     <>
@@ -439,13 +499,26 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                 onMarkerClick={handleMarkerClick}
               />
               {user && (
-                <Button
-                    onClick={handleStartReporting}
-                    className="md:hidden absolute bottom-6 left-6 z-10 h-14 w-14 rounded-full bg-red-600 text-white shadow-lg hover:bg-red-700"
-                    aria-label="Reportar Incidente"
-                >
-                    <Plus className="h-7 w-7" />
-                </Button>
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            className="md:hidden absolute bottom-6 left-6 z-10 h-14 w-14 rounded-full bg-red-600 text-white shadow-lg hover:bg-red-700"
+                            aria-label="Nova Contribuição"
+                        >
+                            <Plus className="h-7 w-7" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="top" align="start">
+                        <DropdownMenuItem onClick={handleStartReporting}>
+                            <Siren className="mr-2 h-4 w-4" />
+                            Reportar Incidente
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onClick={handleStartMapping}>
+                            <Trash className="mr-2 h-4 w-4" />
+                            Mapear Contentor
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
           </SidebarInset>
@@ -469,6 +542,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             onIncidentEdit={handleEditIncident}
             initialCenter={mapCenter}
             incidentToEdit={incidentToEdit}
+        />
+        <SanitationReport 
+            open={isSanitationSheetOpen}
+            onOpenChange={setIsSanitationSheetOpen}
+            onSanitationSubmit={handleAddNewSanitationPoint}
+            initialCenter={mapCenter}
         />
       </SidebarProvider>
   );

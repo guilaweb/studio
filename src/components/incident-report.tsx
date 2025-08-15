@@ -31,7 +31,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState, useRef } from "react";
 import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
-import { Map, useMap } from "@vis.gl/react-google-maps";
+import { Map } from "@vis.gl/react-google-maps";
 import { Camera, MapPin, Calendar as CalendarIcon } from "lucide-react";
 import { Input } from "./ui/input";
 import Image from "next/image";
@@ -46,10 +46,6 @@ import { Calendar } from "./ui/calendar";
 const formSchema = z.object({
   title: z.string().min(1, "O tipo de incidente é obrigatório."),
   description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres."),
-  position: z.object({
-    lat: z.number(),
-    lng: z.number(),
-  }),
   incidentDate: z.date({
       required_error: "A data do incidente é obrigatória.",
   }),
@@ -58,7 +54,7 @@ const formSchema = z.object({
 type IncidentReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId' | 'updates'> & { photoDataUri?: string }, type?: PointOfInterest['type']) => void;
+  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId' | 'updates' | 'type'> & { photoDataUri?: string }) => void;
   onIncidentEdit: (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
   incidentToEdit: PointOfInterest | null;
@@ -87,7 +83,6 @@ export default function IncidentReport({
     defaultValues: {
       title: "",
       description: "",
-      position: initialCenter,
       incidentDate: new Date(),
     },
   });
@@ -96,7 +91,6 @@ export default function IncidentReport({
     form.reset({
         title: "",
         description: "",
-        position: initialCenter,
         incidentDate: new Date(),
     });
     setPhotoFile(null);
@@ -111,7 +105,6 @@ export default function IncidentReport({
         if (isEditing) {
             form.setValue("title", incidentToEdit.title);
             form.setValue("description", incidentToEdit.description);
-            form.setValue("position", incidentToEdit.position);
             form.setValue("incidentDate", incidentToEdit.incidentDate ? new Date(incidentToEdit.incidentDate) : new Date(incidentToEdit.lastReported || Date.now()));
             setMapCenter(incidentToEdit.position);
             setMapZoom(16);
@@ -130,7 +123,6 @@ export default function IncidentReport({
             const zoom = isDefaultLocation ? defaultZoom : 15;
             setMapCenter(center);
             setMapZoom(zoom);
-            form.setValue("position", center);
             form.setValue("incidentDate", new Date());
         }
     }
@@ -164,9 +156,7 @@ export default function IncidentReport({
         if (isEditMode && incidentToEdit) {
             onIncidentEdit(incidentToEdit.id, submissionData);
         } else {
-            const isSanitation = values.title === 'Contentor de lixo';
-            const type = isSanitation ? 'sanitation' : 'incident';
-            onIncidentSubmit({ ...submissionData }, type);
+            onIncidentSubmit(submissionData);
         }
     };
     
@@ -219,11 +209,11 @@ export default function IncidentReport({
                 name="title"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Tipo de Reporte</FormLabel>
+                    <FormLabel>Tipo de Incidente</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                         <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo de reporte" />
+                            <SelectValue placeholder="Selecione o tipo de incidente" />
                         </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -234,7 +224,6 @@ export default function IncidentReport({
                         <SelectItem value="Buraco na via">Buraco na via</SelectItem>
                         <SelectItem value="Semáforo com defeito">Semáforo com defeito</SelectItem>
                         <SelectItem value="Iluminação pública com defeito">Iluminação pública com defeito</SelectItem>
-                        <SelectItem value="Contentor de lixo">Mapear Contentor de Lixo</SelectItem>
                         <SelectItem value="Outro">Outro</SelectItem>
                         </SelectContent>
                     </Select>
