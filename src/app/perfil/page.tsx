@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Award, Shield, Star } from "lucide-react";
+import { ArrowLeft, Award, Shield, Star, Trash2, Siren } from "lucide-react";
+import { PointOfInterest } from "@/lib/data";
 
 type Medal = {
     name: string;
@@ -21,7 +22,7 @@ type Medal = {
       title: string;
       text: string;
     };
-    requiredContributions: number;
+    isAchieved: (contributions: PointOfInterest[]) => boolean;
 };
 
 const medals: Medal[] = [
@@ -36,11 +37,11 @@ const medals: Medal[] = [
             title: 'text-yellow-800 dark:text-yellow-300',
             text: 'text-yellow-700 dark:text-yellow-400',
         },
-        requiredContributions: 1,
+        isAchieved: (contributions) => contributions.length >= 1,
     },
     {
         name: "Fiscal Atento",
-        description: "Dez contribuições! Os seus olhos estão a fazer a diferença na cidade.",
+        description: "Dez contribuições! Os seus olhos estão a fazer a diferença.",
         Icon: Star,
         colorClasses: {
             bg: 'bg-blue-50 dark:bg-blue-900/20',
@@ -49,7 +50,7 @@ const medals: Medal[] = [
             title: 'text-blue-800 dark:text-blue-300',
             text: 'text-blue-700 dark:text-blue-400',
         },
-        requiredContributions: 10,
+        isAchieved: (contributions) => contributions.length >= 10,
     },
     {
         name: "Guardião da Cidade",
@@ -62,7 +63,33 @@ const medals: Medal[] = [
             title: 'text-green-800 dark:text-green-300',
             text: 'text-green-700 dark:text-green-400',
         },
-        requiredContributions: 25,
+        isAchieved: (contributions) => contributions.length >= 25,
+    },
+    {
+        name: "Vigilante do Saneamento",
+        description: "Reportou 5 pontos de saneamento. A sua ajuda mantém a cidade limpa!",
+        Icon: Trash2,
+        colorClasses: {
+            bg: 'bg-cyan-50 dark:bg-cyan-900/20',
+            border: 'border-cyan-200 dark:border-cyan-800',
+            icon: 'text-cyan-500',
+            title: 'text-cyan-800 dark:text-cyan-300',
+            text: 'text-cyan-700 dark:text-cyan-400',
+        },
+        isAchieved: (contributions) => contributions.filter(c => c.type === 'sanitation').length >= 5,
+    },
+    {
+        name: "Sentinela de Incidentes",
+        description: "Reportou 5 incidentes. A sua prontidão ajuda a manter todos seguros.",
+        Icon: Siren,
+        colorClasses: {
+            bg: 'bg-red-50 dark:bg-red-900/20',
+            border: 'border-red-200 dark:border-red-800',
+            icon: 'text-red-500',
+            title: 'text-red-800 dark:text-red-300',
+            text: 'text-red-700 dark:text-red-400',
+        },
+        isAchieved: (contributions) => contributions.filter(c => c.type === 'incident').length >= 5,
     },
 ];
 
@@ -79,8 +106,8 @@ function PerfilPage() {
     const userPoints = userContributions.length * 10; // Simple point system: 10 points per contribution
 
     const earnedMedals = React.useMemo(() => {
-        return medals.filter(medal => userContributions.length >= medal.requiredContributions);
-    }, [userContributions.length]);
+        return medals.filter(medal => medal.isAchieved(userContributions));
+    }, [userContributions]);
 
 
     if (!user) {
@@ -144,10 +171,10 @@ function PerfilPage() {
                            <div className="space-y-4">
                                 <h4 className="font-semibold">As minhas medalhas</h4>
                                 {earnedMedals.length > 0 ? (
-                                    <div className="grid gap-4">
+                                    <div className="grid gap-4 md:grid-cols-2">
                                         {earnedMedals.map((medal) => (
-                                            <div key={medal.name} className={`flex items-center gap-4 p-4 rounded-lg border ${medal.colorClasses.bg} ${medal.colorClasses.border}`}>
-                                                <medal.Icon className={`h-8 w-8 ${medal.colorClasses.icon}`}/>
+                                            <div key={medal.name} className={`flex items-start gap-4 p-4 rounded-lg border ${medal.colorClasses.bg} ${medal.colorClasses.border}`}>
+                                                <medal.Icon className={`h-8 w-8 shrink-0 ${medal.colorClasses.icon}`}/>
                                                 <div>
                                                     <h5 className={`font-semibold ${medal.colorClasses.title}`}>{medal.name}</h5>
                                                     <p className={`text-sm ${medal.colorClasses.text}`}>{medal.description}</p>
