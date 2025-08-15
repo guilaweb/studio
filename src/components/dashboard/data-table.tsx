@@ -73,6 +73,12 @@ export function DataTable<TData extends PointOfInterest, TValue>({
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [date, setDate] = React.useState<DateRange | undefined>()
+    const [isClient, setIsClient] = React.useState(false)
+
+    React.useEffect(() => {
+        setIsClient(true)
+    }, [])
+
 
   const table = useReactTable({
     data,
@@ -244,18 +250,20 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                         <X className="ml-2 h-4 w-4" />
                     </Button>
                  )}
-                <Button variant="outline" className="h-9" asChild>
-                    <CSVLink 
-                        data={csvData.data}
-                        headers={csvData.headers.map(h => ({label: h.label, key: h.key.replace('.', '_')}))}
-                        filename={"reportes.csv"}
-                        className="flex items-center"
-                        target="_blank"
-                    >
-                        <Download className="mr-2 h-4 w-4" />
-                        Exportar CSV
-                    </CSVLink>
-                </Button>
+                {isClient && (
+                    <Button variant="outline" className="h-9" asChild>
+                        <CSVLink 
+                            data={csvData.data}
+                            headers={csvData.headers.map(h => ({label: h.label, key: h.key.replace('.', '_')}))}
+                            filename={"reportes.csv"}
+                            className="flex items-center"
+                            target="_blank"
+                        >
+                            <Download className="mr-2 h-4 w-4" />
+                            Exportar CSV
+                        </CSVLink>
+                    </Button>
+                )}
             </div>
         </div>
         <div className="rounded-md border">
