@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -57,10 +58,11 @@ export const withAuth = <P extends object>(Component: React.ComponentType<P>) =>
     }, [user, loading, router]);
 
     if (loading || !user) {
-      return <div>Loading...</div>; // Or a proper loader
+      return <div>A carregar...</div>; // Or a proper loader
     }
 
     return <Component {...props} />;
   };
+  AuthComponent.displayName = `WithAuth(${Component.displayName || Component.name || 'Component'})`;
   return AuthComponent;
 };
