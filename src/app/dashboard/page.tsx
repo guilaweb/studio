@@ -22,6 +22,9 @@ import { formatDistanceToNow } from "date-fns";
 import { pt } from 'date-fns/locale';
 import { APIProvider } from "@vis.gl/react-google-maps";
 import DashboardMap from "@/components/dashboard/dashboard-map";
+import IntelligentAlerts from "@/components/dashboard/intelligent-alerts";
+import { getIncidentClusters, IncidentClusterAlert } from "@/services/alert-service";
+
 
 const chartConfig = {
   reports: {
@@ -111,6 +114,8 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const kpis = React.useMemo(() => getMockKPIs(allData), [allData]);
+  
+  const incidentClusters = React.useMemo(() => getIncidentClusters(allData), [allData]);
 
   const chartData = React.useMemo(() => {
     const counts = allData.reduce((acc, point) => {
@@ -208,6 +213,7 @@ export default function DashboardPage() {
                 </Card>
 
                 <div className="grid auto-rows-max items-start gap-4">
+                    <IntelligentAlerts alerts={incidentClusters} onViewOnMap={handleViewOnMap} />
                     <Card>
                         <CardHeader>
                             <CardTitle>Visão Geral dos Reportes</CardTitle>
@@ -262,7 +268,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
-
-    
