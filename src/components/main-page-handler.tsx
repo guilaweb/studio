@@ -520,7 +520,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
 
   const handleAddNewAtmPoint = async (
-    newPointData: Pick<PointOfInterest, 'title' | 'description' | 'position'>
+    newPointData: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }
   ) => {
      if (!user || !profile) {
         toast({
@@ -547,6 +547,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           authorId: user.uid,
           authorDisplayName: profile.displayName,
           timestamp: timestamp,
+          photoDataUri: newPointData.photoDataUri,
       }]
     };
     
