@@ -31,7 +31,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { PointOfInterest } from "@/lib/data";
-import { Map, Pin as MapPinIcon } from "@vis.gl/react-google-maps";
+import { Map } from "@vis.gl/react-google-maps";
 import { MapPin } from "lucide-react";
 
 
@@ -106,10 +106,8 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
                 >
                 </Map>
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full">
-                    <MapPinIcon>
-                      <MapPin className="text-primary h-10 w-10" />
-                    </MapPinIcon>
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                    <MapPin className="text-primary h-10 w-10" />
                  </div>
             </div>
             <FormField
