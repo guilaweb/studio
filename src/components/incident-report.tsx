@@ -58,6 +58,7 @@ const defaultCenter = { lat: -12.5, lng: 18.5 };
 
 export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, initialCenter }: IncidentReportProps) {
   const [mapCenter, setMapCenter] = useState(initialCenter);
+  const [mapZoom, setMapZoom] = useState(14);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
@@ -140,10 +141,11 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
              <div className="relative h-[40vh] bg-muted">
                 <Map
                     center={mapCenter}
-                    zoom={14}
+                    zoom={mapZoom}
                     gestureHandling={'greedy'}
                     disableDefaultUI={false}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
+                    onZoomChanged={(e) => setMapZoom(e.detail.zoom)}
                 >
                 </Map>
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
