@@ -26,12 +26,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { PointOfInterest } from "@/lib/data";
 import { Map } from "@vis.gl/react-google-maps";
-import { MapPin, Calendar as CalendarIcon } from "lucide-react";
+import { Camera, MapPin, Calendar as CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Calendar } from "./ui/calendar";
+import Image from "next/image";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
 
 
 const formSchema = z.object({
@@ -44,7 +47,7 @@ const formSchema = z.object({
 type TrafficLightReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTrafficLightSubmit: (data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'>) => void;
+  onTrafficLightSubmit: (data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -59,6 +62,8 @@ export default function TrafficLightReport({
 }: TrafficLightReportProps) {
   const [mapCenter, setMapCenter] = useState(initialCenter);
   const [mapZoom, setMapZoom] = useState(15);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -73,6 +78,8 @@ export default function TrafficLightReport({
         description: "",
         incidentDate: new Date(),
     });
+    setPhotoFile(null);
+    setPhotoPreview(null);
   }
 
   useEffect(() => {
@@ -86,14 +93,40 @@ export default function TrafficLightReport({
     }
   }, [open, initialCenter, form]);
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalPosition = mapCenter;
-    onTrafficLightSubmit({ 
-        ...values, 
-        incidentDate: values.incidentDate.toISOString(),
-        position: finalPosition 
-    });
+
+    const handleSubmission = (photoDataUri?: string) => {
+        onTrafficLightSubmit({ 
+            ...values, 
+            incidentDate: values.incidentDate.toISOString(),
+            position: finalPosition,
+            photoDataUri
+        });
+    };
+    
+     if (photoFile) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            handleSubmission(reader.result as string);
+        };
+        reader.readAsDataURL(photoFile);
+    } else {
+        handleSubmission();
+    }
   }
 
 
@@ -185,6 +218,16 @@ export default function TrafficLightReport({
                     </FormItem>
                 )}
                 />
+                 <div>
+                    <Label htmlFor="traffic-light-photo" className="text-sm font-medium">
+                        <div className="flex items-center gap-2 cursor-pointer">
+                            <Camera className="h-4 w-4" />
+                            Fotografia (Opcional)
+                        </div>
+                    </Label>
+                    <Input id="traffic-light-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-2 h-auto p-1"/>
+                </div>
+                {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={100} height={100} className="rounded-md object-cover" />}
             </div>
             <SheetFooter className="p-6 pt-4 border-t bg-background">
                 <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>

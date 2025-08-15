@@ -176,7 +176,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
 
   const handleAddNewIncident = async (
-    newIncidentData: Omit<PointOfInterest, 'id' | 'authorId' | 'updates'> & { photoDataUri?: string }
+    newIncidentData: Omit<PointOfInterest, 'id' | 'authorId' | 'updates' | 'type'> & { photoDataUri?: string }
   ) => {
     if (!user || !profile) {
         toast({
@@ -279,7 +279,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   };
 
   const handleAddNewSanitationPoint = async (
-    newPointData: Pick<PointOfInterest, 'description' | 'position'>
+    newPointData: Pick<PointOfInterest, 'description' | 'position'> & { photoDataUri?: string }
   ) => {
     if (!user || !profile) {
         toast({
@@ -306,6 +306,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           authorId: user.uid,
           authorDisplayName: profile.displayName,
           timestamp: timestamp,
+          photoDataUri: newPointData.photoDataUri,
       }]
     };
     
@@ -318,7 +319,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
   
   const handleAddNewTrafficLightReport = async (
-    newPointData: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'>
+    newPointData: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }
   ) => {
     if (!user || !profile) {
         toast({
@@ -359,6 +360,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           authorId: user.uid,
           authorDisplayName: profile.displayName,
           timestamp: timestamp,
+          photoDataUri: newPointData.photoDataUri,
       }]
     };
     
