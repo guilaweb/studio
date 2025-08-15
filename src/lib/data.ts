@@ -44,15 +44,22 @@ export const constructionSites: PointOfInterest[] = [
     type: 'construction',
     position: { lat: -8.83, lng: 13.24 },
     title: 'Reabilitação da Avenida 4 de Fevereiro',
-    description: 'Previsão de término: Final de 2024. Trânsito condicionado.',
+    description: 'Entidade: Administração Municipal de Luanda. Estado: Em curso. Previsão de término: Final de 2024. Trânsito condicionado.',
   },
   {
     id: 'construction-2',
     type: 'construction',
     position: { lat: -8.851, lng: 13.269 },
     title: 'Construção do novo viaduto do Zango',
-    description: 'Espere ruído e poeira durante o dia.',
+    description: 'Entidade: Governo Provincial de Luanda. Estado: Em curso. Espere ruído e poeira durante o dia.',
   },
+  {
+    id: 'construction-3',
+    type: 'construction',
+    position: { lat: -8.87, lng: 13.22 },
+    title: 'Limpeza e Desassoreamento da Vala do Prenda',
+    description: 'Entidade: Ministério das Obras Públicas. Estado: Planeada. Início previsto: Próximo trimestre.',
+  }
 ];
 
 export const incidents: PointOfInterest[] = [

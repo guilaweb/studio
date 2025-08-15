@@ -12,7 +12,7 @@ type LayerControlsProps = {
 
 const layerConfig = [
   { id: "atm", label: "Caixas Eletrônicos", Icon: Landmark },
-  { id: "construction", label: "Obras Públicas", Icon: Construction },
+  { id: "construction", label: "Obras e Projetos", Icon: Construction },
   { id: "incident", label: "Incidências", Icon: TriangleAlert },
 ];
 
