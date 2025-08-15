@@ -12,7 +12,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
-import { PointOfInterest, PointOfInterestUpdate, UserProfile } from "@/lib/data";
+import { PointOfInterest, PointOfInterestUpdate, UserProfile, statusLabelMap } from "@/lib/data";
 import { Logo } from "@/components/icons";
 import AppHeader from "@/components/app-header";
 import MapComponent from "@/components/map-component";
@@ -88,9 +88,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
             const oldPoi = prevData.find(p => p.id === newPoi.id);
             if (oldPoi && oldPoi.status !== newPoi.status && newPoi.status) {
+                const statusLabel = statusLabelMap[newPoi.status] || newPoi.status;
                 toast({
                     title: 'Atualização do seu Reporte',
-                    description: `O estado de "${newPoi.title}" foi atualizado para: ${newPoi.status}`,
+                    description: `O estado de "${newPoi.title}" foi atualizado para: ${statusLabel}`,
                 });
             }
         });
@@ -308,6 +309,14 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   };
 
   const handlePoiStatusChange = (poiId: string, status: PointOfInterest['status']) => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para atualizar o estado.",
+        });
+        return;
+    }
     updatePointStatus(poiId, status);
     setSelectedPoi(prevPoi => prevPoi ? { ...prevPoi, status, lastReported: new Date().toISOString() } : null);
     toast({

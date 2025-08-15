@@ -2,9 +2,9 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { PointOfInterest } from "@/lib/data"
+import { PointOfInterest, priorityLabelMap, statusLabelMap, typeLabelMap } from "@/lib/data"
 import { Badge } from "@/components/ui/badge"
-import { ArrowUpDown, MoreHorizontal, AlertTriangle, ArrowUp, ArrowRight, ArrowDown } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal, ArrowUp, ArrowRight, ArrowDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -23,23 +23,6 @@ const typeVariantMap: { [key in PointOfInterest['type']]: "default" | "secondary
     incident: "destructive",
     sanitation: "outline"
 }
-
-const typeLabelMap: { [key in PointOfInterest['type']]: string } = {
-    atm: "ATM",
-    construction: "Obra",
-    incident: "Incidente",
-    sanitation: "Saneamento"
-}
-
-const statusLabelMap: { [key in NonNullable<PointOfInterest['status']>]: string } = {
-    available: "Disponível",
-    unavailable: "Indisponível",
-    unknown: "Desconhecido",
-    collected: "Recolhido",
-    full: "Cheio",
-    damaged: "Danificado",
-    in_progress: "Em Resolução",
-};
 
 const priorityIcons = {
     high: { icon: ArrowUp, color: "text-red-500", label: "Alta" },

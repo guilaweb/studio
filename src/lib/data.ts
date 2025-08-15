@@ -12,14 +12,24 @@ export const PointOfInterestUpdateSchema = z.object({
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 
+const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress']);
+export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
+
+const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation']);
+export type PointOfInterestType = z.infer<typeof PointOfInterestTypeEnum>;
+
+const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
+export type PointOfInterestPriority = z.infer<typeof PointOfInterestPriorityEnum>;
+
+
 export const PointOfInterestSchema = z.object({
   id: z.string(),
-  type: z.enum(['atm', 'construction', 'incident', 'sanitation']),
+  type: PointOfInterestTypeEnum,
   position: z.object({ lat: z.number(), lng: z.number() }),
   title: z.string(),
   description: z.string(),
-  status: z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress']).optional(),
-  priority: z.enum(['low', 'medium', 'high']).optional(),
+  status: PointOfInterestStatusEnum.optional(),
+  priority: PointOfInterestPriorityEnum.optional(),
   lastReported: z.string().optional(),
   incidentDate: z.string().optional(),
   authorId: z.string().optional(),
@@ -53,6 +63,30 @@ export const UserProfileWithStatsSchema = UserProfileSchema.extend({
     })
 });
 export type UserProfileWithStats = z.infer<typeof UserProfileWithStatsSchema>;
+
+// Label Mappings
+export const typeLabelMap: Record<PointOfInterestType, string> = {
+    atm: "ATM",
+    construction: "Obra",
+    incident: "Incidente",
+    sanitation: "Saneamento"
+};
+
+export const statusLabelMap: Record<PointOfInterestStatus, string> = {
+    available: "Disponível",
+    unavailable: "Indisponível",
+    unknown: "Desconhecido",
+    collected: "Recolhido",
+    full: "Cheio",
+    damaged: "Danificado",
+    in_progress: "Em Resolução",
+};
+
+export const priorityLabelMap: Record<PointOfInterestPriority, string> = {
+    high: "Alta",
+    medium: "Média",
+    low: "Baixa",
+};
 
 
 // Schemas for AI Flows
@@ -105,6 +139,6 @@ export const CalculateIncidentPriorityInputSchema = z.object({
 export type CalculateIncidentPriorityInput = z.infer<typeof CalculateIncidentPriorityInputSchema>;
 
 export const CalculateIncidentPriorityOutputSchema = z.object({
-    priority: z.enum(['low', 'medium', 'high']).describe('The calculated priority of the incident.'),
+    priority: PointOfInterestPriorityEnum.describe('The calculated priority of the incident.'),
 });
 export type CalculateIncidentPriorityOutput = z.infer<typeof CalculateIncidentPriorityOutputSchema>;

@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { PointOfInterest } from "@/lib/data"
+import { PointOfInterest, priorityLabelMap, statusLabelMap, typeLabelMap } from "@/lib/data"
 import { ChevronDown, X, Calendar as CalendarIcon, Download } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -45,30 +45,6 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   onViewOnMap: (id: string) => void;
 }
-
-const typeLabelMap: { [key in PointOfInterest['type']]: string } = {
-    atm: "ATM",
-    construction: "Obra",
-    incident: "Incidente",
-    sanitation: "Saneamento"
-}
-
-const statusLabelMap: { [key in NonNullable<PointOfInterest['status']>]: string } = {
-    available: "Disponível",
-    unavailable: "Indisponível",
-    unknown: "Desconhecido",
-    collected: "Recolhido",
-    full: "Cheio",
-    damaged: "Danificado",
-    in_progress: "Em Resolução",
-};
-
-const priorityLabelMap: { [key in NonNullable<PointOfInterest['priority']>]: string } = {
-    high: "Alta",
-    medium: "Média",
-    low: "Baixa",
-}
-
 
 export function DataTable<TData extends PointOfInterest, TValue>({
   columns,
