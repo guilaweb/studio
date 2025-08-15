@@ -12,7 +12,7 @@ import { ArrowLeft, Award } from "lucide-react";
 import { medals } from "@/lib/medals";
 
 function PerfilPage() {
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
     const { allData } = usePoints();
 
     const userContributions = React.useMemo(() => {
@@ -27,7 +27,7 @@ function PerfilPage() {
     }, [userContributions]);
 
 
-    if (!user) {
+    if (!user || !profile) {
         return null; // The withAuth HOC handles redirection
     }
 
@@ -53,13 +53,13 @@ function PerfilPage() {
                         <CardContent>
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-20 w-20">
-                                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || "User"} />
-                                    <AvatarFallback>{(user.displayName || user.email || "U").charAt(0).toUpperCase()}</AvatarFallback>
+                                    <AvatarImage src={user.photoURL || undefined} alt={profile.displayName || user.email || "User"} />
+                                    <AvatarFallback>{(profile.displayName || user.email || "U").charAt(0).toUpperCase()}</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-1">
-                                    <p className="text-lg font-semibold">{user.displayName}</p>
-                                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                                    <p className="text-xs text-muted-foreground">Membro desde: {user.metadata.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString('pt-PT') : 'N/A'}</p>
+                                    <p className="text-lg font-semibold">{profile.displayName}</p>
+                                    <p className="text-sm text-muted-foreground">{profile.email}</p>
+                                    <p className="text-xs text-muted-foreground">Membro desde: {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('pt-PT') : 'N/A'}</p>
                                 </div>
                             </div>
                         </CardContent>

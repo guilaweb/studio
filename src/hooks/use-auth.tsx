@@ -50,11 +50,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setProfile(doc.data() as UserProfile);
             } else {
                 // This could happen for users who existed before the profiles collection was created
+                // Or for a brief moment after a new Google Sign-In
                 setProfile({
                     uid: user.uid,
                     displayName: user.displayName || 'Utilizador Anónimo',
                     email: user.email || '',
-                    role: 'Cidadao',
+                    role: 'Cidadao', // Default role
+                    createdAt: user.metadata.creationTime || new Date().toISOString()
                 });
             }
             setLoading(false);
