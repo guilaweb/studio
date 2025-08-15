@@ -32,7 +32,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { PointOfInterest } from "@/lib/data";
 import { Map } from "@vis.gl/react-google-maps";
-import { MapPin } from "lucide-react";
+import { Camera, MapPin } from "lucide-react";
+import { Input } from "./ui/input";
+import Image from "next/image";
 
 
 const formSchema = z.object({
@@ -41,18 +43,22 @@ const formSchema = z.object({
   position: z.object({
     lat: z.number(),
     lng: z.number(),
-  })
+  }),
+  photoDataUri: z.string().optional(),
 });
 
 type IncidentReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId'>, type?: PointOfInterest['type']) => void;
+  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId'> & { photoDataUri?: string }, type?: PointOfInterest['type']) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
 export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, initialCenter }: IncidentReportProps) {
   const [mapCenter, setMapCenter] = useState(initialCenter);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -62,15 +68,21 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
       position: initialCenter,
     },
   });
+  
+  const clearForm = () => {
+    form.reset({
+        title: "",
+        description: "",
+        position: initialCenter
+    });
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setMapCenter(initialCenter);
+  }
 
   useEffect(() => {
     if (open) {
-        form.reset({
-            title: "",
-            description: "",
-            position: initialCenter
-        });
-        setMapCenter(initialCenter);
+      clearForm();
     }
   }, [open, initialCenter, form]);
   
@@ -78,12 +90,33 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
     form.setValue("position", mapCenter);
   }, [mapCenter, form]);
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     const isSanitation = values.title === 'Contentor de lixo';
     const type = isSanitation ? 'sanitation' : 'incident';
     
-    // The position is already in the values object from the form state
-    onIncidentSubmit(values, type);
+    if (photoFile) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const photoDataUri = reader.result as string;
+            onIncidentSubmit({ ...values, photoDataUri }, type);
+        };
+        reader.readAsDataURL(photoFile);
+    } else {
+        onIncidentSubmit(values, type);
+    }
   }
 
   return (
@@ -97,7 +130,7 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
         </SheetHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
-             <div className="relative h-[40vh]">
+             <div className="relative h-[40vh] bg-muted">
                 <Map
                     defaultCenter={initialCenter}
                     defaultZoom={15}
@@ -155,6 +188,15 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
                     </FormItem>
                 )}
                 />
+                <div>
+                    <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2 cursor-pointer">
+                        <Camera className="h-4 w-4" />
+                        Fotografia (Opcional)
+                    </Label>
+                    <Input id="incident-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-1 h-auto p-1"/>
+                </div>
+                {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={100} height={100} className="rounded-md object-cover" />}
+
                 <SheetFooter className="pt-4">
                     <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
                     <Button type="submit">Submeter Reporte</Button>

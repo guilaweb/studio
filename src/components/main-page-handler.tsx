@@ -109,7 +109,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   };
 
   const handleAddNewIncident = (
-    newIncident: Omit<PointOfInterest, 'id' | 'authorId'>, 
+    newIncidentData: Omit<PointOfInterest, 'id' | 'authorId'> & { photoDataUri?: string }, 
     type: PointOfInterest['type'] = 'incident'
   ) => {
     if (!user) {
@@ -121,12 +121,24 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         return;
     }
 
+    const { photoDataUri, ...incidentDetails } = newIncidentData;
+    const timestamp = new Date().toISOString();
+
+    const initialUpdate: PointOfInterestUpdate = {
+        id: `upd-initial-${Date.now()}`,
+        text: incidentDetails.description,
+        authorId: user.uid,
+        timestamp: timestamp,
+        ...(photoDataUri && { photoDataUri }),
+    };
+
     const incidentToAdd: PointOfInterest = {
-      ...newIncident,
+      ...incidentDetails,
       id: `${type}-${Date.now()}`,
       type: type,
       authorId: user.uid,
-      lastReported: new Date().toISOString(),
+      lastReported: timestamp,
+      updates: [initialUpdate]
     };
     
     addPoint(incidentToAdd);
