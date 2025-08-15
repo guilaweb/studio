@@ -27,6 +27,7 @@ import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
 import MapSearchBox from "@/components/map-search-box";
 import { calculateIncidentPriority } from "@/services/alert-service";
+import { detectDuplicate } from "@/ai/flows/detect-duplicate-flow";
 
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -109,7 +110,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
   };
 
-  const handleAddNewIncident = (
+  const handleAddNewIncident = async (
     newIncidentData: Omit<PointOfInterest, 'id' | 'authorId'> & { photoDataUri?: string }, 
     type: PointOfInterest['type'] = 'incident'
   ) => {
@@ -122,7 +123,51 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         return;
     }
 
-    const { photoDataUri, ...incidentDetails } = newIncidentData;
+    setIsIncidentSheetOpen(false);
+
+     const { photoDataUri, ...incidentDetails } = newIncidentData;
+    
+    // Duplicate detection
+    const timeThreshold = 48 * 60 * 60 * 1000; // 48 hours
+    const now = new Date().getTime();
+    const recentIncidents = allData.filter(p => 
+        p.type === type && 
+        p.lastReported && 
+        (now - new Date(p.lastReported).getTime() < timeThreshold)
+    );
+
+    try {
+        const duplicateResult = await detectDuplicate({
+            newIncident: {
+                title: incidentDetails.title,
+                description: incidentDetails.description,
+                position: incidentDetails.position,
+            },
+            existingIncidents: recentIncidents,
+        });
+
+        if (duplicateResult.isDuplicate && duplicateResult.duplicateOfId) {
+            const originalIncidentId = duplicateResult.duplicateOfId;
+            const newUpdate: Omit<PointOfInterestUpdate, 'id'> = {
+                text: `(Reporte duplicado) ${incidentDetails.description}`,
+                authorId: user.uid,
+                timestamp: new Date().toISOString(),
+                photoDataUri: photoDataUri,
+            };
+            await addUpdateToPoint(originalIncidentId, newUpdate);
+            toast({
+                title: "Reporte Agregado!",
+                description: "Detectámos que este incidente já tinha sido reportado. A sua contribuição foi adicionada ao reporte original. Obrigado!",
+            });
+            return;
+        }
+
+    } catch(error) {
+        console.error("Error detecting duplicate, proceeding to create new incident:", error);
+    }
+    // End of duplicate detection
+
+
     const timestamp = new Date().toISOString();
 
     const initialUpdate: PointOfInterestUpdate = {
@@ -150,7 +195,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: "Obrigado pela sua contribuição para uma cidade melhor.",
     });
 
-    setIsIncidentSheetOpen(false);
   };
 
   const handleStartReporting = () => {

@@ -85,7 +85,8 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
     if (open) {
       clearForm();
     }
-  }, [open, initialCenter, form]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialCenter]);
   
   useEffect(() => {
     form.setValue("position", mapCenter);

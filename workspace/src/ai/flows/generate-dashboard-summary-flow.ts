@@ -4,44 +4,10 @@
  * @fileOverview Flow to generate a dashboard summary.
  *
  * - generateDashboardSummary - A function that generates an executive summary for the dashboard.
- * - GenerateDashboardSummaryInput - The input type for the generateDashboardSummary function.
- * - GenerateDashboardSummaryOutput - The return type for the generateDashboardSummary function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-export const PointOfInterestUpdateSchema = z.object({
-    id: z.string(),
-    text: z.string(),
-    authorId: z.string(),
-    timestamp: z.string(),
-    photoDataUri: z.string().optional(),
-});
-
-export const PointOfInterestSchema = z.object({
-    id: z.string(),
-    type: z.enum(['atm', 'construction', 'incident', 'sanitation']),
-    position: z.object({ lat: z.number(), lng: z.number() }),
-    title: z.string(),
-    description: z.string(),
-    status: z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress']).optional(),
-    lastReported: z.string().optional(),
-    authorId: z.string().optional(),
-    updates: z.array(PointOfInterestUpdateSchema).optional(),
-    priority: z.enum(['low', 'medium', 'high']).optional(),
-});
-
-const GenerateDashboardSummaryInputSchema = z.object({
-  pointsOfInterest: z.array(PointOfInterestSchema),
-  currentDate: z.string().describe("The current date and time in ISO format, for context."),
-});
-export type GenerateDashboardSummaryInput = z.infer<typeof GenerateDashboardSummaryInputSchema>;
-
-const GenerateDashboardSummaryOutputSchema = z.object({
-  summary: z.string().describe('The generated executive summary, in plain text. Should be concise and informative.'),
-});
-export type GenerateDashboardSummaryOutput = z.infer<typeof GenerateDashboardSummaryOutputSchema>;
+import { GenerateDashboardSummaryInput, GenerateDashboardSummaryInputSchema, GenerateDashboardSummaryOutput, GenerateDashboardSummaryOutputSchema } from '@/lib/data';
 
 
 export async function generateDashboardSummary(input: GenerateDashboardSummaryInput): Promise<GenerateDashboardSummaryOutput> {
