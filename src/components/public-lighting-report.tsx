@@ -90,6 +90,7 @@ export default function PublicLightingReport({
         setMapCenter(center);
         setMapZoom(zoom);
         form.setValue("incidentDate", new Date());
+        clearForm();
     }
   }, [open, initialCenter, form]);
 
@@ -166,7 +167,7 @@ export default function PublicLightingReport({
                     name="incidentDate"
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
-                        <FormLabel>Data do Incidente</FormLabel>
+                        <FormLabel>Data de Observação</FormLabel>
                         <Popover>
                             <PopoverTrigger asChild>
                             <FormControl>

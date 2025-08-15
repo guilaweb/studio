@@ -39,6 +39,8 @@ import AtmReport from "./atm-report";
 
 type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm';
 
+type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
+
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
   const [activeLayers, setActiveLayers] = React.useState({
     atm: true,
@@ -331,11 +333,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: "Obrigado por ajudar a manter o mapa de saneamento da cidade atualizado.",
     });
   }
-  
-  const handleAddNewTrafficLightReport = async (
-    newPointData: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }
+
+  const handleAddNewSpecializedIncident = async (
+    incidentTitle: string,
+    newPointData: SpecializedIncidentData
   ) => {
-    if (!user || !profile) {
+     if (!user || !profile) {
         toast({
             variant: "destructive",
             title: "Ação necessária",
@@ -346,114 +349,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     handleSheetOpenChange(false);
     const timestamp = new Date().toISOString();
 
-    const incidentTitle = "Semáforo com defeito";
-    let priority: PointOfInterest['priority'] | undefined = 'medium'; // Default for traffic lights
-    try {
-        const result = await calculateIncidentPriority({
-            title: incidentTitle,
-            description: newPointData.description,
-        });
-        priority = result.priority;
-    } catch (error) {
-        console.error("Error calculating priority, defaulting to medium:", error);
-    }
-
-    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
-      id: `incident-${Date.now()}`,
-      type: 'incident',
-      title: incidentTitle,
-      authorId: user.uid,
-      lastReported: timestamp,
-      incidentDate: newPointData.incidentDate,
-      description: newPointData.description,
-      priority: priority,
-      status: 'unknown',
-      updates: [{
-          text: newPointData.description,
-          authorId: user.uid,
-          authorDisplayName: profile.displayName,
-          timestamp: timestamp,
-          photoDataUri: newPointData.photoDataUri,
-      }]
-    };
-    
-    addPoint(pointToAdd);
-
-    toast({
-      title: "Semáforo reportado!",
-      description: "A sua contribuição foi registada e será analisada. Obrigado!",
-    });
-  }
-
-  const handleAddNewPotholeReport = async (
-    newPointData: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }
-  ) => {
-    if (!user || !profile) {
-        toast({
-            variant: "destructive",
-            title: "Ação necessária",
-            description: "Por favor, faça login para reportar.",
-        });
-        return;
-    }
-    handleSheetOpenChange(false);
-    const timestamp = new Date().toISOString();
-
-    const incidentTitle = "Buraco na via";
-    let priority: PointOfInterest['priority'] | undefined = 'medium'; // Default
-    try {
-        const result = await calculateIncidentPriority({
-            title: incidentTitle,
-            description: newPointData.description,
-        });
-        priority = result.priority;
-    } catch (error) {
-        console.error("Error calculating priority, defaulting to medium:", error);
-    }
-
-    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
-      id: `incident-${Date.now()}`,
-      type: 'incident',
-      title: incidentTitle,
-      authorId: user.uid,
-      lastReported: timestamp,
-      incidentDate: newPointData.incidentDate,
-      description: newPointData.description,
-      priority: priority,
-      status: 'unknown',
-      updates: [{
-          text: newPointData.description,
-          authorId: user.uid,
-          authorDisplayName: profile.displayName,
-          timestamp: timestamp,
-          photoDataUri: newPointData.photoDataUri,
-      }]
-    };
-    
-    addPoint(pointToAdd);
-
-    toast({
-      title: "Buraco na via reportado!",
-      description: "A sua contribuição foi registada e será analisada. Obrigado!",
-    });
-  }
-
-  const handleAddNewPublicLightingReport = async (
-    newPointData: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }
-  ) => {
-    if (!user || !profile) {
-        toast({
-            variant: "destructive",
-            title: "Ação necessária",
-            description: "Por favor, faça login para reportar.",
-        });
-        return;
-    }
-    handleSheetOpenChange(false);
-    const timestamp = new Date().toISOString();
-
-    const incidentTitle = "Iluminação pública com defeito";
-    let priority: PointOfInterest['priority'] | undefined = 'low'; // Default
+    let priority: PointOfInterest['priority'] | undefined;
     try {
         const result = await calculateIncidentPriority({
             title: incidentTitle,
@@ -462,6 +358,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         priority = result.priority;
     } catch (error) {
         console.error("Error calculating priority, defaulting to low:", error);
+        priority = 'low';
     }
 
     const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
@@ -472,6 +369,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       lastReported: timestamp,
       incidentDate: newPointData.incidentDate,
       description: newPointData.description,
+      position: newPointData.position,
       priority: priority,
       status: 'unknown',
       updates: [{
@@ -486,9 +384,21 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     addPoint(pointToAdd);
 
     toast({
-      title: "Iluminação pública reportada!",
-      description: "A sua contribuição foi registada e será analisada. Obrigado!",
+      title: "Reporte recebido!",
+      description: `O seu reporte sobre "${incidentTitle}" foi registado. Obrigado!`,
     });
+  }
+
+  const handleAddNewTrafficLightReport = (data: SpecializedIncidentData) => {
+    handleAddNewSpecializedIncident("Semáforo com defeito", data);
+  }
+
+  const handleAddNewPotholeReport = (data: SpecializedIncidentData) => {
+     handleAddNewSpecializedIncident("Buraco na via", data);
+  }
+
+  const handleAddNewPublicLightingReport = (data: SpecializedIncidentData) => {
+      handleAddNewSpecializedIncident("Iluminação pública com defeito", data);
   }
 
   const handleAddNewConstructionProject = async (
