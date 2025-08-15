@@ -124,7 +124,7 @@ export default function IncidentReport({
             form.setValue("position", center);
         }
     }
-  }, [incidentToedit, open, form, initialCenter]);
+  }, [incidentToEdit, open, form, initialCenter]);
 
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -263,5 +263,3 @@ export default function IncidentReport({
     </Sheet>
   );
 }
-
-    
