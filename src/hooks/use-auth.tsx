@@ -8,6 +8,7 @@ import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { UserProfile } from '@/lib/data';
+import { useToast } from './use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -53,7 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     uid: user.uid,
                     displayName: user.displayName || 'Utilizador Anónimo',
                     email: user.email || '',
-                    role: 'Cidadão',
+                    role: 'Cidadao',
                 });
             }
             setLoading(false);
@@ -89,6 +90,7 @@ export const withAuth = <P extends object>(
   const AuthComponent = (props: P) => {
     const { user, profile, loading } = useAuth();
     const router = useRouter();
+    const { toast } = useToast();
 
     useEffect(() => {
       if (loading) return; // Wait for loading to complete
@@ -108,7 +110,7 @@ export const withAuth = <P extends object>(
         router.push('/');
       }
 
-    }, [user, profile, loading, router]);
+    }, [user, profile, loading, router, toast]);
 
     if (loading || !user || (allowedRoles && (!profile || !allowedRoles.includes(profile.role)))) {
       return <div>A carregar...</div>; // Or a proper loader
@@ -119,7 +121,3 @@ export const withAuth = <P extends object>(
   AuthComponent.displayName = `WithAuth(${Component.displayName || Component.name || 'Component'})`;
   return AuthComponent;
 };
-function toast(arg0: { variant: "destructive"; title: string; description: string; }) {
-    throw new Error('Function not implemented.');
-}
-

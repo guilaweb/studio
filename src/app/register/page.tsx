@@ -54,7 +54,7 @@ export default function RegisterPage() {
         uid: user.uid,
         displayName: values.displayName,
         email: user.email,
-        role: "Cidadão", // Default role
+        role: "Cidadao", // Default role
         createdAt: new Date().toISOString(),
       });
 
@@ -85,7 +85,7 @@ export default function RegisterPage() {
         displayName: user.displayName,
         email: user.email,
         photoURL: user.photoURL,
-        role: "Cidadão",
+        role: "Cidadao",
         createdAt: new Date().toISOString(),
        }, { merge: true }); // Use merge to not overwrite if doc already exists
       

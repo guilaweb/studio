@@ -31,6 +31,6 @@ export type UserProfile = {
     displayName: string;
     email: string;
     photoURL?: string;
-    role: 'Cidadão' | 'Agente Municipal' | 'Administrador';
+    role: 'Cidadao' | 'Agente Municipal' | 'Administrador';
     createdAt?: string;
 };
