@@ -31,8 +31,8 @@ export default function Home() {
   });
   const [userPosition, setUserPosition] = React.useState<google.maps.LatLngLiteral | null>(null);
   const [mapCenter, setMapCenter] = React.useState<google.maps.LatLngLiteral>({
-    lat: -23.55052,
-    lng: -46.633308,
+    lat: -8.8368,
+    lng: 13.2343,
   });
 
   const { toast } = useToast();

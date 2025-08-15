@@ -53,10 +53,10 @@ export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // For now, we use a random position. In a real app, you'd get this from the map.
+    // For now, we use a random position around Luanda. In a real app, you'd get this from the map.
     const randomPosition = {
-        lat: -23.55052 + (Math.random() - 0.5) * 0.1,
-        lng: -46.633308 + (Math.random() - 0.5) * 0.1,
+        lat: -8.8368 + (Math.random() - 0.5) * 0.1,
+        lng: 13.2343 + (Math.random() - 0.5) * 0.1,
     }
     onIncidentSubmit({...values, position: randomPosition});
     form.reset();

@@ -13,28 +13,28 @@ export type ActiveLayers = {
 };
 
 
-// Mock data for São Paulo
+// Mock data for Luanda
 export const atms: PointOfInterest[] = [
   {
     id: 'atm-1',
     type: 'atm',
-    position: { lat: -23.5506, lng: -46.6333 },
-    title: 'ATM Praça da Sé',
-    description: 'Caixa Eletrônico 24h no centro da praça.',
+    position: { lat: -8.8385, lng: 13.2312 },
+    title: 'ATM Largo do Kinaxixi',
+    description: 'Caixa Eletrônico 24h no centro do largo.',
   },
   {
     id: 'atm-2',
     type: 'atm',
-    position: { lat: -23.5469, lng: -46.6339 },
-    title: 'ATM Rua Boa Vista',
-    description: 'Localizado dentro da agência bancária.',
+    position: { lat: -8.8145, lng: 13.2309 },
+    title: 'ATM Baía de Luanda',
+    description: 'Localizado dentro do shopping.',
   },
   {
     id: 'atm-3',
     type: 'atm',
-    position: { lat: -23.5614, lng: -46.6563 },
-    title: 'ATM Av. Paulista',
-    description: 'Próximo à estação de metrô Trianon-Masp.',
+    position: { lat: -8.8118, lng: 13.2355 },
+    title: 'ATM Av. Comandante Valódia',
+    description: 'Próximo ao Hospital Josina Machel.',
   },
 ];
 
@@ -42,16 +42,16 @@ export const constructionSites: PointOfInterest[] = [
   {
     id: 'construction-1',
     type: 'construction',
-    position: { lat: -23.553, lng: -46.636 },
-    title: 'Reforma do Viaduto do Chá',
-    description: 'Previsão de término: Dezembro 2024. Trânsito pode estar lento na região.',
+    position: { lat: -8.83, lng: 13.24 },
+    title: 'Reabilitação da Avenida 4 de Fevereiro',
+    description: 'Previsão de término: Final de 2024. Trânsito condicionado.',
   },
   {
     id: 'construction-2',
     type: 'construction',
-    position: { lat: -23.548, lng: -46.64 },
-    title: 'Construção de nova estação de metrô',
-    description: 'Linha 6-Laranja. Espere ruído e poeira durante o dia.',
+    position: { lat: -8.851, lng: 13.269 },
+    title: 'Construção do novo viaduto do Zango',
+    description: 'Espere ruído e poeira durante o dia.',
   },
 ];
 
@@ -59,15 +59,15 @@ export const incidents: PointOfInterest[] = [
   {
     id: 'incident-1',
     type: 'incident',
-    position: { lat: -23.551, lng: -46.634 },
-    title: 'Semáforo quebrado',
-    description: 'Cruzamento da Rua Direita com a Rua São Bento. Cuidado redobrado.',
+    position: { lat: -8.816, lng: 13.232 },
+    title: 'Semáforo avariado',
+    description: 'Cruzamento da Av. de Portugal com a Rua Rainha Ginga. Cuidado redobrado.',
   },
   {
     id: 'incident-2',
     type: 'incident',
-    position: { lat: -23.56, lng: -46.65 },
-    title: 'Acidente na Av. 9 de Julho',
+    position: { lat: -8.825, lng: 13.245 },
+    title: 'Acidente na Av. Ho Chi Minh',
     description: 'Colisão entre dois carros, faixa da direita bloqueada.',
   },
 ];
