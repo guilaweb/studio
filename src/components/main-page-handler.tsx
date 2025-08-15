@@ -35,6 +35,8 @@ import PotholeReport from "./pothole-report";
 import PublicLightingReport from "./public-lighting-report";
 
 
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting';
+
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
   const [activeLayers, setActiveLayers] = React.useState({
     atm: true,
@@ -54,11 +56,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   const searchParams = useSearchParams();
   const prevDataRef = React.useRef<PointOfInterest[]>([]);
 
-  const [isIncidentSheetOpen, setIsIncidentSheetOpen] = React.useState(false);
-  const [isSanitationSheetOpen, setIsSanitationSheetOpen] = React.useState(false);
-  const [isTrafficLightSheetOpen, setIsTrafficLightSheetOpen] = React.useState(false);
-  const [isPotholeSheetOpen, setIsPotholeSheetOpen] = React.useState(false);
-  const [isPublicLightingSheetOpen, setIsPublicLightingSheetOpen] = React.useState(false);
+  const [activeSheet, setActiveSheet] = React.useState<ActiveSheet>(null);
   const [incidentToEdit, setIncidentToEdit] = React.useState<PointOfInterest | null>(null);
 
 
@@ -168,11 +166,11 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
   };
 
-  const handleIncidentSheetOpen = (open: boolean) => {
+  const handleSheetOpenChange = (open: boolean) => {
     if (!open) {
         setIncidentToEdit(null);
+        setActiveSheet(null);
     }
-    setIsIncidentSheetOpen(open);
   }
 
   const handleAddNewIncident = async (
@@ -187,7 +185,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         return;
     }
 
-    handleIncidentSheetOpen(false);
+    handleSheetOpenChange(false);
 
      const { photoDataUri, ...incidentDetails } = newIncidentData;
     
@@ -289,7 +287,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         });
         return;
     }
-    setIsSanitationSheetOpen(false);
+    handleSheetOpenChange(false);
     const timestamp = new Date().toISOString();
 
     const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
@@ -329,7 +327,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         });
         return;
     }
-    setIsTrafficLightSheetOpen(false);
+    handleSheetOpenChange(false);
     const timestamp = new Date().toISOString();
 
     const incidentTitle = "Semáforo com defeito";
@@ -352,7 +350,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       lastReported: timestamp,
       incidentDate: newPointData.incidentDate,
       description: newPointData.description,
-      position: newPointData.position,
       priority: priority,
       status: 'unknown',
       updates: [{
@@ -383,7 +380,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         });
         return;
     }
-    setIsPotholeSheetOpen(false);
+    handleSheetOpenChange(false);
     const timestamp = new Date().toISOString();
 
     const incidentTitle = "Buraco na via";
@@ -406,7 +403,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       lastReported: timestamp,
       incidentDate: newPointData.incidentDate,
       description: newPointData.description,
-      position: newPointData.position,
       priority: priority,
       status: 'unknown',
       updates: [{
@@ -437,7 +433,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         });
         return;
     }
-    setIsPublicLightingSheetOpen(false);
+    handleSheetOpenChange(false);
     const timestamp = new Date().toISOString();
 
     const incidentTitle = "Iluminação pública com defeito";
@@ -460,7 +456,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       lastReported: timestamp,
       incidentDate: newPointData.incidentDate,
       description: newPointData.description,
-      position: newPointData.position,
       priority: priority,
       status: 'unknown',
       updates: [{
@@ -483,14 +478,14 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
   const handleEditIncident = async (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => {
     await updatePointDetails(incidentId, updates);
-    handleIncidentSheetOpen(false);
+    handleSheetOpenChange(false);
     toast({
         title: "Incidência atualizada!",
         description: "As suas alterações foram guardadas com sucesso.",
     });
   }
 
-  const handleStartReporting = (type: 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting') => {
+  const handleStartReporting = (type: ActiveSheet) => {
     if (!user) {
         toast({
             variant: "destructive",
@@ -500,11 +495,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         return;
     }
     setIncidentToEdit(null);
-    if(type === 'incident') setIsIncidentSheetOpen(true);
-    if(type === 'sanitation') setIsSanitationSheetOpen(true);
-    if(type === 'traffic_light') setIsTrafficLightSheetOpen(true);
-    if(type === 'pothole') setIsPotholeSheetOpen(true);
-    if(type === 'public_lighting') setIsPublicLightingSheetOpen(true);
+    setActiveSheet(type);
   };
 
 
@@ -518,7 +509,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         return;
     }
     setIncidentToEdit(poi);
-    setIsIncidentSheetOpen(true);
+    setActiveSheet('incident');
     setSelectedPoi(null); // Close details sheet
   }
 
@@ -723,34 +714,34 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             onEdit={handleStartEditing}
         />
         <IncidentReport 
-            open={isIncidentSheetOpen}
-            onOpenChange={setIsIncidentSheetOpen}
+            open={activeSheet === 'incident'}
+            onOpenChange={handleSheetOpenChange}
             onIncidentSubmit={handleAddNewIncident}
             onIncidentEdit={handleEditIncident}
             initialCenter={mapCenter}
             incidentToEdit={incidentToEdit}
         />
         <SanitationReport 
-            open={isSanitationSheetOpen}
-            onOpenChange={setIsSanitationSheetOpen}
+            open={activeSheet === 'sanitation'}
+            onOpenChange={handleSheetOpenChange}
             onSanitationSubmit={handleAddNewSanitationPoint}
             initialCenter={mapCenter}
         />
         <TrafficLightReport
-            open={isTrafficLightSheetOpen}
-            onOpenChange={setIsTrafficLightSheetOpen}
+            open={activeSheet === 'traffic_light'}
+            onOpenChange={handleSheetOpenChange}
             onTrafficLightSubmit={handleAddNewTrafficLightReport}
             initialCenter={mapCenter}
         />
         <PotholeReport
-            open={isPotholeSheetOpen}
-            onOpenChange={setIsPotholeSheetOpen}
+            open={activeSheet === 'pothole'}
+            onOpenChange={handleSheetOpenChange}
             onPotholeSubmit={handleAddNewPotholeReport}
             initialCenter={mapCenter}
         />
         <PublicLightingReport
-            open={isPublicLightingSheetOpen}
-            onOpenChange={setIsPublicLightingSheetOpen}
+            open={activeSheet === 'public_lighting'}
+            onOpenChange={handleSheetOpenChange}
             onPublicLightingSubmit={handleAddNewPublicLightingReport}
             initialCenter={mapCenter}
         />
