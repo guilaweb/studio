@@ -13,9 +13,11 @@ type MapComponentProps = {
   searchedPlace: google.maps.LatLngLiteral | null;
   center: google.maps.LatLngLiteral;
   zoom: number;
+  isReporting?: boolean;
   onCenterChanged: (center: google.maps.LatLngLiteral) => void;
   onZoomChanged: (zoom: number) => void;
   onMarkerClick: (pointId: string) => void;
+  onMapClick?: (e: google.maps.MapMouseEvent) => void;
 };
 
 const mapStyles: google.maps.MapTypeStyle[] = [
@@ -134,7 +136,7 @@ const PointOfInterestMarker = ({ point, onClick }: { point: PointOfInterest; onC
   );
 };
 
-export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
+export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, isReporting, onCenterChanged, onZoomChanged, onMarkerClick, onMapClick }: MapComponentProps) {
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Map
@@ -145,6 +147,11 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
         gestureHandling={"greedy"}
         disableDefaultUI={false}
         styles={mapStyles}
+        onClick={onMapClick}
+        options={{
+            draggableCursor: isReporting ? 'crosshair' : undefined,
+            draggingCursor: isReporting ? 'crosshair' : undefined,
+        }}
       >
         {data
           .filter((point) => activeLayers[point.type])

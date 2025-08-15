@@ -6,14 +6,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Form,
   FormControl,
@@ -30,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useEffect } from "react";
 import { PointOfInterest } from "@/lib/data";
 
 const formSchema = z.object({
@@ -39,11 +38,12 @@ const formSchema = z.object({
 });
 
 type IncidentReportProps = {
-  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'type' | 'authorId'>, type?: PointOfInterest['type']) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'position'>, type?: PointOfInterest['type']) => void;
 };
 
-export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function IncidentReport({ open, onOpenChange, onIncidentSubmit }: IncidentReportProps) {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,35 +53,32 @@ export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // For now, we use a random position around Luanda. In a real app, you'd get this from the map.
-    const randomPosition = {
-        lat: -8.8368 + (Math.random() - 0.5) * 0.1,
-        lng: 13.2343 + (Math.random() - 0.5) * 0.1,
+  useEffect(() => {
+    if (!open) {
+      form.reset();
     }
+  }, [open, form]);
 
+  function onSubmit(values: z.infer<typeof formSchema>) {
     const isSanitation = values.title === 'Contentor de lixo';
     const type = isSanitation ? 'sanitation' : 'incident';
     
-    onIncidentSubmit({...values, position: randomPosition}, type);
+    onIncidentSubmit(values, type);
     form.reset();
-    setIsOpen(false);
+    onOpenChange(false);
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-full">Reportar Incidente</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Reportar Incidência ou Ponto de Interesse</DialogTitle>
-          <DialogDescription>
-            Ajude a identificar os pontos negros da cidade. Descreva o que presenciou ou mapeie um novo ponto.
-          </DialogDescription>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="sm:max-w-[425px]">
+        <SheetHeader>
+          <SheetTitle>Reportar Incidência</SheetTitle>
+          <SheetDescription>
+            Localização selecionada. Agora, por favor, forneça os detalhes do que presenciou.
+          </SheetDescription>
+        </SheetHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-6">
             <FormField
               control={form.control}
               name="title"
@@ -126,12 +123,13 @@ export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps
                 </FormItem>
               )}
             />
-            <DialogFooter>
-              <Button type="submit">Submeter Reporte</Button>
-            </DialogFooter>
+            <SheetFooter>
+                <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                <Button type="submit">Submeter Reporte</Button>
+            </SheetFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

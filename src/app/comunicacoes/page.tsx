@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { APIProvider, Map } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,13 +10,78 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { withAuth } from "@/hooks/use-auth";
+
+// Component to handle the drawing functionality on the map
+const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon) => void}> = ({onPolygonComplete}) => {
+    const map = useMap();
+    const drawing = useMapsLibrary('drawing');
+    const [drawingManager, setDrawingManager] = React.useState<google.maps.drawing.DrawingManager | null>(null);
+    const [polygon, setPolygon] = React.useState<google.maps.Polygon | null>(null);
+
+    React.useEffect(() => {
+        if (!map || !drawing) return;
+
+        const manager = new drawing.DrawingManager({
+            drawingMode: drawing.OverlayType.POLYGON,
+            drawingControl: true,
+            drawingControlOptions: {
+                position: google.maps.ControlPosition.TOP_CENTER,
+                drawingModes: [drawing.OverlayType.POLYGON],
+            },
+            polygonOptions: {
+                fillColor: "hsl(var(--primary) / 0.2)",
+                strokeColor: "hsl(var(--primary))",
+                strokeWeight: 2,
+                editable: true,
+            },
+        });
+        
+        setDrawingManager(manager);
+        manager.setMap(map);
+        
+        const listener = manager.addListener('polygoncomplete', (poly: google.maps.Polygon) => {
+            onPolygonComplete(poly);
+            setPolygon(poly);
+            manager.setDrawingMode(null); // Exit drawing mode
+        });
+        
+        return () => {
+            listener.remove();
+            manager.setMap(null);
+        };
+
+    }, [map, drawing, onPolygonComplete]);
+
+    const handleClearPolygon = () => {
+        if (polygon) {
+            polygon.setMap(null);
+            setPolygon(null);
+            if (drawingManager) {
+                drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
+            }
+        }
+    }
+
+    return (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
+            {polygon && (
+                <Button onClick={handleClearPolygon} variant="destructive" size="sm">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Limpar Seleção
+                </Button>
+            )}
+        </div>
+    );
+};
+
 
 function ComunicacoesPage() {
     const { toast } = useToast();
     const [title, setTitle] = React.useState("");
     const [message, setMessage] = React.useState("");
+    const [drawnPolygon, setDrawnPolygon] = React.useState<google.maps.Polygon | null>(null);
 
     const handleSend = () => {
         if (!title || !message) {
@@ -28,17 +93,29 @@ function ComunicacoesPage() {
             return;
         }
 
-        // Simulate sending the announcement
-        console.log("Sending announcement:", { title, message });
+        if (!drawnPolygon) {
+             toast({
+                variant: "destructive",
+                title: "Área em falta",
+                description: "Por favor, desenhe uma área no mapa para enviar a comunicação.",
+            });
+            return;
+        }
+
+        // In a real app, you would get the polygon path and send it to your backend
+        const path = drawnPolygon.getPath().getArray().map(p => p.toJSON());
+        console.log("Sending announcement:", { title, message, area: path });
 
         toast({
-            title: "Anúncio Enviado!",
+            title: "Anúncio Simulado!",
             description: "A sua comunicação foi enviada para a área selecionada.",
         });
 
         // Reset form
         setTitle("");
         setMessage("");
+        drawnPolygon.setMap(null);
+        setDrawnPolygon(null);
     };
     
     const mapStyles: google.maps.MapTypeStyle[] = [
@@ -84,7 +161,7 @@ function ComunicacoesPage() {
                             <CardHeader>
                                 <CardTitle>Criar Anúncio</CardTitle>
                                 <CardDescription>
-                                    Escreva a sua mensagem e selecione a área no mapa para notificar os cidadãos.
+                                    Escreva a sua mensagem e desenhe a área no mapa para notificar os cidadãos.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -118,10 +195,10 @@ function ComunicacoesPage() {
                             <CardHeader>
                                 <CardTitle>Mapa de Seleção</CardTitle>
                                 <CardDescription>
-                                    Use o mapa para definir a área de abrangência do seu anúncio. (Funcionalidade de desenho a ser implementada).
+                                    Use as ferramentas de desenho para definir a área de abrangência do seu anúncio.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="h-[500px] p-0">
+                            <CardContent className="h-[500px] p-0 relative">
                                 <Map
                                     defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
                                     defaultZoom={12}
@@ -129,7 +206,7 @@ function ComunicacoesPage() {
                                     disableDefaultUI={true}
                                     styles={mapStyles}
                                 >
-                                     {/* Future: Drawing tools will be added here */}
+                                     <DrawingManager onPolygonComplete={setDrawnPolygon} />
                                 </Map>
                             </CardContent>
                         </Card>
