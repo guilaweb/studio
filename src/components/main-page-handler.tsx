@@ -243,12 +243,18 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                 title: incidentDetails.title,
                 description: incidentDetails.description,
             });
-            priority = result;
+            priority = result.priority;
         } catch (error) {
             console.error("Error calculating priority, defaulting to low:", error);
             priority = 'low';
         }
     }
+
+    let status: PointOfInterest['status'] | undefined;
+    if (type === 'sanitation') {
+        status = 'unknown';
+    }
+
 
     const incidentToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
       ...incidentDetails,
@@ -259,6 +265,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       incidentDate: incidentDetails.incidentDate,
       updates: [initialUpdate],
       ...(priority && { priority }),
+      ...(status && { status }),
     };
     
     addPoint(incidentToAdd);

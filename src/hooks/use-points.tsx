@@ -74,7 +74,13 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         const pointRef = doc(db, 'pointsOfInterest', point.id);
         const completeUpdates = point.updates.map(u => ({...u, id: `upd-${point.id}-${Date.now()}-${Math.random()}`}));
         const pointToAdd: PointOfInterest = {...point, updates: completeUpdates};
-        await setDoc(pointRef, pointToAdd);
+        
+        // Remove undefined fields before sending to Firestore
+        const cleanedPoint = Object.fromEntries(
+            Object.entries(pointToAdd).filter(([, value]) => value !== undefined)
+        );
+
+        await setDoc(pointRef, cleanedPoint);
     } catch (error) {
         console.error("Error adding point: ", error);
     }
