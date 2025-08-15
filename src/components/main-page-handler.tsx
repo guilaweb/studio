@@ -26,8 +26,8 @@ import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
 import MapSearchBox from "@/components/map-search-box";
-import { calculateIncidentPriority } from "@/services/alert-service";
 import { detectDuplicate } from "@/ai/flows/detect-duplicate-flow";
+import { calculateIncidentPriority } from "@/services/incident-priority-service";
 
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -226,12 +226,26 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         timestamp: timestamp,
         photoDataUri: photoDataUri,
     };
+    
+    let priority: PointOfInterest['priority'] = undefined;
+    if (type === 'incident') {
+        try {
+            priority = await calculateIncidentPriority({
+                title: incidentDetails.title,
+                description: incidentDetails.description,
+            });
+        } catch (error) {
+            console.error("Error calculating priority, defaulting to low:", error);
+            priority = 'low';
+        }
+    }
+
 
     const incidentToAdd: PointOfInterest = {
       ...incidentDetails,
       id: `${type}-${Date.now()}`,
       type: type,
-      priority: type === 'incident' ? calculateIncidentPriority(incidentDetails.title, incidentDetails.description) : undefined,
+      priority: priority,
       authorId: user.uid,
       lastReported: timestamp,
       updates: [initialUpdate]

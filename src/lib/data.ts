@@ -96,4 +96,13 @@ export const DetectDuplicateOutputSchema = z.object({
 });
 export type DetectDuplicateOutput = z.infer<typeof DetectDuplicateOutputSchema>;
 
-    
+export const CalculateIncidentPriorityInputSchema = z.object({
+    title: z.string().describe("The title of the incident."),
+    description: z.string().describe("The description of the incident."),
+});
+export type CalculateIncidentPriorityInput = z.infer<typeof CalculateIncidentPriorityInputSchema>;
+
+export const CalculateIncidentPriorityOutputSchema = z.object({
+    priority: z.enum(['low', 'medium', 'high']).describe('The calculated priority of the incident.'),
+});
+export type CalculateIncidentPriorityOutput = z.infer<typeof CalculateIncidentPriorityOutputSchema>;

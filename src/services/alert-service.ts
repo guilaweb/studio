@@ -27,21 +27,6 @@ const getDistance = (pos1: { lat: number; lng: number }, pos2: { lat: number; ln
     return R * c; // in metres
 };
 
-export const calculateIncidentPriority = (title: string, description: string): PointOfInterest['priority'] => {
-    const highPriorityKeywords = ['grave', 'urgente', 'perigo', 'fatal', 'atropelamento', 'colisão grave'];
-    const mediumPriorityKeywords = ['danificado', 'defeito', 'colisão ligeira', 'semáforo', 'iluminação', 'obstrução'];
-    
-    const text = `${title.toLowerCase()} ${description.toLowerCase()}`;
-
-    if (highPriorityKeywords.some(keyword => text.includes(keyword))) {
-        return 'high';
-    }
-    if (mediumPriorityKeywords.some(keyword => text.includes(keyword))) {
-        return 'medium';
-    }
-    return 'low';
-};
-
 
 export const getIntelligentAlerts = (
     allData: PointOfInterest[],
