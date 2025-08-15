@@ -10,7 +10,7 @@ import {
   ChartConfig,
 } from "@/components/ui/chart";
 import { usePoints } from "@/hooks/use-points";
-import { Layer, PointOfInterest } from "@/lib/data";
+import { Layer, PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -25,6 +25,8 @@ import { getIntelligentAlerts } from "@/services/alert-service";
 import RecentActivityFeed from "@/components/dashboard/recent-activity-feed";
 import IntelligentSummary from "@/components/dashboard/intelligent-summary";
 import { withAuth } from "@/hooks/use-auth";
+import { formatDistanceStrict } from "date-fns";
+import { pt } from "date-fns/locale";
 
 
 const chartConfig = {
@@ -49,7 +51,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const getMockKPIs = (data: PointOfInterest[]) => {
+const getKPIs = (data: PointOfInterest[]) => {
     const now = new Date();
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
@@ -58,14 +60,34 @@ const getMockKPIs = (data: PointOfInterest[]) => {
         return reportDate && new Date(reportDate) > twentyFourHoursAgo;
     });
 
-    const resolvedSanitation = data.filter(p => p.type === 'sanitation' && p.status === 'collected');
-    const totalSanitation = data.filter(p => p.type === 'sanitation');
-    const resolutionRate = totalSanitation.length > 0 ? (resolvedSanitation.length / totalSanitation.length) * 100 : 0;
+    // --- Sanitation KPIs ---
+    const sanitationPoints = data.filter(p => p.type === 'sanitation');
+    const resolvedSanitation = sanitationPoints.filter(p => p.status === 'collected');
+    const resolutionRate = sanitationPoints.length > 0 ? (resolvedSanitation.length / sanitationPoints.length) * 100 : 0;
     
-    // Mock TMR
-    const avgResolutionTime = "1d 4h"; 
+    const resolutionTimes = resolvedSanitation.reduce((acc, p) => {
+        if (!p.updates || p.updates.length < 2) return acc;
+        
+        const sortedUpdates = [...p.updates].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        const creationUpdate = sortedUpdates[0];
+        const resolutionUpdate = sortedUpdates.find(u => (u as any).status === 'collected') || sortedUpdates[sortedUpdates.length - 1]; // Fallback to last update
 
-    const activeReports = data.filter(p => p.status !== 'collected').length;
+        if (creationUpdate && resolutionUpdate) {
+            const creationTime = new Date(creationUpdate.timestamp).getTime();
+            const resolutionTime = new Date(resolutionUpdate.timestamp).getTime();
+            acc.push(resolutionTime - creationTime);
+        }
+        return acc;
+    }, [] as number[]);
+
+    let avgResolutionTime = "N/A";
+    if (resolutionTimes.length > 0) {
+        const avgMillis = resolutionTimes.reduce((sum, time) => sum + time, 0) / resolutionTimes.length;
+        avgResolutionTime = formatDistanceStrict(new Date(0), new Date(avgMillis), { locale: pt });
+    }
+    
+    // --- General KPIs ---
+    const activeReports = data.filter(p => p.status !== 'collected' && p.status !== 'available').length;
 
     return {
         newReportsCount: newReports.length,
@@ -73,14 +95,13 @@ const getMockKPIs = (data: PointOfInterest[]) => {
         resolutionRate: resolutionRate.toFixed(0),
         activeReports,
     }
-
 }
 
 function DashboardPage() {
   const { allData } = usePoints();
   const router = useRouter();
 
-  const kpis = React.useMemo(() => getMockKPIs(allData), [allData]);
+  const kpis = React.useMemo(() => getKPIs(allData), [allData]);
   
   const intelligentAlerts = React.useMemo(() => getIntelligentAlerts(allData), [allData]);
 
@@ -134,7 +155,7 @@ function DashboardPage() {
                  <Card>
                     <CardHeader className="pb-2">
                         <CardDescription>Tempo Médio de Resolução</CardDescription>
-                        <CardTitle className="text-4xl">{kpis.avgResolutionTime}</CardTitle>
+                        <CardTitle className="text-3xl">{kpis.avgResolutionTime}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-xs text-muted-foreground">
