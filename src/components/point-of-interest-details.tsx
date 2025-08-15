@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from "react";
@@ -214,6 +213,11 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
 
     const canGenerateAiResponse = isManager && poi.type === 'construction' && poi.updates && poi.updates.length > 0 && poi.updates[0].authorId !== user?.uid;
 
+    const sortedUpdates = React.useMemo(() => {
+        if (!poi.updates) return [];
+        return [...poi.updates].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    }, [poi.updates]);
+
     return (
         <div className="mt-4">
             <Separator />
@@ -254,20 +258,34 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
                  )}
 
                 <div className="space-y-4">
-                    {poi.updates && poi.updates.length > 0 ? (
-                        poi.updates.map(update => (
-                            <div key={update.id} className="p-3 rounded-lg bg-muted/50 text-sm">
-                               <p className="whitespace-pre-wrap">{update.text}</p>
-                               {update.photoDataUri && (
-                                    <div className="mt-2">
-                                        <Image src={update.photoDataUri} alt="Prova de execução" width={200} height={150} className="rounded-md object-cover" />
-                                    </div>
-                               )}
-                               <p className="text-xs text-muted-foreground mt-2">
-                                    {`Atualizado ${formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })} por ${update.authorDisplayName || 'um gestor'}.`}
-                               </p>
-                            </div>
-                        ))
+                    {sortedUpdates.length > 0 ? (
+                        sortedUpdates.map((update, index) => {
+                            const isOriginalReport = index === 0;
+                            return (
+                                <div key={update.id} className="p-3 rounded-lg bg-muted/50 text-sm">
+                                   {isOriginalReport ? (
+                                        <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                                           Incidente reportado por {update.authorDisplayName || 'um cidadão'}
+                                        </p>
+                                   ) : (
+                                        <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                                            Atualização de {update.authorDisplayName || 'um gestor'}
+                                        </p>
+                                   )}
+                                   <p className="whitespace-pre-wrap">{update.text}</p>
+                                   {update.photoDataUri && (
+                                        <div className="mt-2">
+                                            <a href={update.photoDataUri} target="_blank" rel="noopener noreferrer">
+                                                <Image src={update.photoDataUri} alt="Prova de execução ou foto do incidente" width={200} height={150} className="rounded-md object-cover" />
+                                            </a>
+                                        </div>
+                                   )}
+                                   <p className="text-xs text-muted-foreground mt-2">
+                                        {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })}
+                                   </p>
+                                </div>
+                            )
+                        })
                     ) : (
                         <p className="text-sm text-muted-foreground text-center py-4">
                            Ainda não há fiscalizações ou atualizações.
@@ -286,7 +304,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   if (!poi) return null;
 
   const config = layerConfig[poi.type];
-  const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
+  const priorityInfo = poi.priority ? priorityConfig[poi.y] : null;
   const showTimeline = poi.type === 'construction' || poi.type === 'incident' || poi.type === 'sanitation';
   const isOwner = poi.authorId === user?.uid;
   const canEdit = isOwner;
@@ -352,3 +370,5 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </Sheet>
   );
 }
+
+    
