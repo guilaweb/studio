@@ -131,7 +131,10 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg w-full flex flex-col p-0">
+      <SheetContent 
+        className="sm:max-w-lg w-full flex flex-col p-0"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <SheetHeader className="p-6 pb-2">
           <SheetTitle>Reportar Incidência</SheetTitle>
           <SheetDescription>
