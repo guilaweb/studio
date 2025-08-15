@@ -350,6 +350,7 @@ export default function Home() {
             </AppHeader>
             <div className="flex-1 overflow-hidden">
                <MapComponent
+                key={isReporting ? 'reporting' : 'browsing'}
                 activeLayers={activeLayers}
                 data={allData}
                 userPosition={userPosition}

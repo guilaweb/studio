@@ -90,7 +90,7 @@ const getPinStyle = (point: PointOfInterest) => {
     return {};
 }
 
-const MapEvents = ({ onCenterChanged, onZoomChanged }: { onCenterChanged: (center: google.maps.LatLngLiteral) => void, onZoomChanged: (zoom: number) => void }) => {
+const MapEvents = ({ onCenterChanged, onZoomChanged }: { onCenterChanged: (center: google.maps.LatLngLiteral) => void, onZoomChanged: (number) => void }) => {
     const map = useMap();
   
     React.useEffect(() => {
@@ -140,10 +140,9 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Map
-        key={`${center.lat}-${center.lng}-${zoom}`}
         mapId="cidadao-online-map"
-        defaultCenter={center}
-        defaultZoom={zoom}
+        center={center}
+        zoom={zoom}
         gestureHandling={"greedy"}
         disableDefaultUI={false}
         styles={mapStyles}
