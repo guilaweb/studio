@@ -200,14 +200,11 @@ function ComunicacoesPage() {
                             </CardHeader>
                             <CardContent className="h-[500px] p-0 relative">
                                 <Map
-                                    defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
-                                    defaultZoom={12}
+                                    defaultCenter={{ lat: -12.5, lng: 18.5 }}
+                                    defaultZoom={5}
                                     gestureHandling={'greedy'}
                                     disableDefaultUI={true}
                                     styles={mapStyles}
-                                    onCameraChanged={function (ev: google.maps.MapCameraChangedEvent): void {
-                                        throw new Error("Function not implemented.");
-                                    } }
                                 >
                                      <DrawingManager onPolygonComplete={setDrawnPolygon} />
                                 </Map>

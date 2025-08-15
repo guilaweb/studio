@@ -36,8 +36,8 @@ const DashboardMap: React.FC<DashboardMapProps> = ({ data }) => {
     <div style={{ height: "100%", width: "100%" }}>
       <Map
         mapId={'dashboard-map'}
-        defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
-        defaultZoom={12}
+        defaultCenter={{ lat: -12.5, lng: 18.5 }}
+        defaultZoom={5}
         gestureHandling={'greedy'}
         disableDefaultUI={true}
         styles={mapStyles}
