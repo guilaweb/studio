@@ -56,6 +56,7 @@ type IncidentReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId' | 'updates' | 'type' | 'status'> & { photoDataUri?: string }) => void;
+  onIncidentEdit: (incidentId: string, incident: Omit<PointOfInterest, 'id' | 'authorId' | 'updates' | 'type' | 'status'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
   incidentToEdit: PointOfInterest | null;
 };
@@ -67,6 +68,7 @@ export default function IncidentReport({
     open, 
     onOpenChange, 
     onIncidentSubmit, 
+    onIncidentEdit,
     initialCenter, 
     incidentToEdit 
 }: IncidentReportProps) {
@@ -153,7 +155,7 @@ export default function IncidentReport({
         };
 
         if (isEditMode && incidentToEdit) {
-            // onIncidentEdit(incidentToEdit.id, submissionData);
+            onIncidentEdit(incidentToEdit.id, submissionData);
         } else {
             onIncidentSubmit(submissionData);
         }

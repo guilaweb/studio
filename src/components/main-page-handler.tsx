@@ -59,7 +59,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   const prevDataRef = React.useRef<PointOfInterest[]>([]);
 
   const [activeSheet, setActiveSheet] = React.useState<ActiveSheet>(null);
-  const [incidentToEdit, setIncidentToEdit] = React.useState<PointOfInterest | null>(null);
+  const [poiToEdit, setPoiToEdit] = React.useState<PointOfInterest | null>(null);
 
 
   const { toast } = useToast();
@@ -170,7 +170,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
   const handleSheetOpenChange = (open: boolean) => {
     if (!open) {
-        setIncidentToEdit(null);
+        setPoiToEdit(null);
         setActiveSheet(null);
     }
   }
@@ -275,6 +275,20 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     toast({
       title: "Incidência reportada!",
       description: "Obrigado pela sua contribuição para uma cidade melhor.",
+    });
+  };
+  
+  const handleEditIncident = async (
+    incidentId: string,
+    updatedData: Omit<PointOfInterest, 'id' | 'authorId' | 'updates' | 'type' | 'status'> & { photoDataUri?: string }
+    ) => {
+    handleSheetOpenChange(false);
+    
+    await updatePointDetails(incidentId, updatedData);
+    
+    toast({
+        title: "Incidência atualizada!",
+        description: "As suas alterações foram guardadas com sucesso.",
     });
   };
 
@@ -558,6 +572,18 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: "Obrigado por ajudar a manter o mapa de ATMs da cidade atualizado.",
     });
   }
+  
+  const handleEditAtmPoint = async (
+    poiId: string,
+    updatedData: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }
+  ) => {
+    handleSheetOpenChange(false);
+    await updatePointDetails(poiId, updatedData);
+    toast({
+      title: "Caixa Eletrónico atualizado!",
+      description: "As suas alterações foram guardadas com sucesso.",
+    });
+  };
 
   const handleStartReporting = (type: ActiveSheet) => {
     if (!user) {
@@ -568,7 +594,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         });
         return;
     }
-    setIncidentToEdit(null);
+    setPoiToEdit(null);
     setActiveSheet(type);
   };
 
@@ -578,23 +604,14 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         toast({
             variant: "destructive",
             title: "Acesso Negado",
-            description: "Apenas o autor original pode editar este incidente.",
+            description: "Apenas o autor original pode editar este item.",
         });
         return;
     }
     
-    if (poi.type === 'incident') {
-        setIncidentToEdit(poi);
-        setActiveSheet('incident');
-        setSelectedPoi(null); // Close details sheet
-    } else {
-        // For now, only incidents can be edited.
-        // In the future, we could open other sheets here.
-        toast({
-            title: "Funcionalidade não disponível",
-            description: "De momento, apenas incidentes podem ser editados.",
-        });
-    }
+    setPoiToEdit(poi);
+    setSelectedPoi(null); // Close details sheet
+    setActiveSheet(poi.type as ActiveSheet);
   }
 
   const handleMarkerClick = (poiId: string) => {
@@ -817,8 +834,9 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             open={activeSheet === 'incident'}
             onOpenChange={handleSheetOpenChange}
             onIncidentSubmit={handleAddNewIncident}
+            onIncidentEdit={handleEditIncident}
             initialCenter={mapCenter}
-            incidentToEdit={incidentToEdit}
+            incidentToEdit={poiToEdit}
         />
         <SanitationReport 
             open={activeSheet === 'sanitation'}
@@ -854,7 +872,9 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             open={activeSheet === 'atm'}
             onOpenChange={handleSheetOpenChange}
             onAtmSubmit={handleAddNewAtmPoint}
+            onAtmEdit={handleEditAtmPoint}
             initialCenter={mapCenter}
+            poiToEdit={poiToEdit}
         />
       </SidebarProvider>
   );

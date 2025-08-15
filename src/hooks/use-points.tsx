@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -11,7 +12,7 @@ interface PointsContextType {
   addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => Promise<void>;
   updatePointStatus: (pointId: string, status: PointOfInterest['status']) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
-  updatePointDetails: (pointId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => Promise<void>;
+  updatePointDetails: (pointId: string, updates: Partial<Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'>> & { photoDataUri?: string }) => Promise<void>;
   loading: boolean;
 }
 
@@ -119,35 +120,41 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updatePointDetails = async (pointId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => {
+  const updatePointDetails = async (pointId: string, updates: Partial<Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'>> & { photoDataUri?: string }) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         
+        const { photoDataUri, ...otherUpdates } = updates;
+
         const dataToUpdate: Partial<PointOfInterest> & { 'updates.0.photoDataUri'?: string } = {
-            title: updates.title,
-            description: updates.description,
-            position: updates.position,
-            incidentDate: updates.incidentDate,
+            ...otherUpdates
         };
 
         const pointToUpdate = allData.find(p => p.id === pointId);
         
         if (pointToUpdate?.updates && pointToUpdate.updates.length > 0) {
-            // Find the original report update (should be the last in a chronologically sorted array)
+            // Create a mutable copy of updates and sort chronologically
             const newUpdates = [...pointToUpdate.updates].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
             
             // Update the description on the original update
             newUpdates[0] = {
                 ...newUpdates[0],
-                text: updates.description,
-                photoDataUri: updates.photoDataUri !== undefined ? updates.photoDataUri : newUpdates[0].photoDataUri,
+                text: updates.description !== undefined ? updates.description : newUpdates[0].text,
+                photoDataUri: photoDataUri !== undefined ? photoDataUri : newUpdates[0].photoDataUri,
             };
             
-            dataToUpdate.updates = newUpdates.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); // Sort back to newest first
+            // Sort back to newest first for Firestore
+            dataToUpdate.updates = newUpdates.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); 
         }
 
+        // Remove undefined fields before sending to Firestore
+        const cleanedData = Object.fromEntries(
+            Object.entries(dataToUpdate).filter(([, value]) => value !== undefined)
+        );
 
-        await updateDoc(pointRef, dataToUpdate as any);
+        if (Object.keys(cleanedData).length > 0) {
+             await updateDoc(pointRef, cleanedData);
+        }
 
     } catch (error) {
         console.error("Error updating point details: ", error);

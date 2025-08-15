@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -40,7 +41,9 @@ type AtmReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAtmSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }) => void;
+  onAtmEdit: (poiId: string, data: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
+  poiToEdit: PointOfInterest | null;
 };
 
 const defaultCenter = { lat: -12.5, lng: 18.5 };
@@ -50,12 +53,15 @@ export default function AtmReport({
     open, 
     onOpenChange, 
     onAtmSubmit,
-    initialCenter, 
+    onAtmEdit,
+    initialCenter,
+    poiToEdit,
 }: AtmReportProps) {
   const [mapCenter, setMapCenter] = useState(initialCenter);
   const [mapZoom, setMapZoom] = useState(15);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,14 +82,31 @@ export default function AtmReport({
 
   useEffect(() => {
     if (open) {
-        const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
-        const center = isDefaultLocation ? defaultCenter : initialCenter;
-        const zoom = isDefaultLocation ? defaultZoom : 15;
-        setMapCenter(center);
-        setMapZoom(zoom);
-        form.reset();
+        const isEditing = !!poiToEdit && poiToEdit.type === 'atm';
+        setIsEditMode(isEditing);
+
+        if (isEditing) {
+            form.setValue("title", poiToEdit.title);
+            form.setValue("description", poiToEdit.description);
+            setMapCenter(poiToEdit.position);
+            setMapZoom(16);
+
+            const originalUpdate = poiToEdit.updates?.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())[0];
+            if (originalUpdate?.photoDataUri) {
+                setPhotoPreview(originalUpdate.photoDataUri);
+            } else {
+                setPhotoPreview(null);
+            }
+        } else {
+            const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
+            const center = isDefaultLocation ? defaultCenter : initialCenter;
+            const zoom = isDefaultLocation ? defaultZoom : 15;
+            setMapCenter(center);
+            setMapZoom(zoom);
+            clearForm();
+        }
     }
-  }, [open, initialCenter, form]);
+  }, [poiToEdit, open, form, initialCenter]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -101,7 +124,13 @@ export default function AtmReport({
     const finalPosition = mapCenter;
 
     const handleSubmission = (photoDataUri?: string) => {
-        onAtmSubmit({ ...values, position: finalPosition, photoDataUri });
+        const submissionData = { ...values, position: finalPosition, photoDataUri };
+
+        if (isEditMode && poiToEdit) {
+            onAtmEdit(poiToEdit.id, submissionData);
+        } else {
+            onAtmSubmit(submissionData);
+        }
     };
 
     if (photoFile) {
@@ -111,7 +140,7 @@ export default function AtmReport({
         };
         reader.readAsDataURL(photoFile);
     } else {
-        handleSubmission();
+        handleSubmission(photoPreview && isEditMode ? photoPreview : undefined);
     }
   }
 
@@ -126,9 +155,9 @@ export default function AtmReport({
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         <SheetHeader className="p-6 pb-2">
-          <SheetTitle>Mapear Caixa Eletrónico (ATM)</SheetTitle>
+          <SheetTitle>{isEditMode ? 'Editar Caixa Eletrónico' : 'Mapear Caixa Eletrónico (ATM)'}</SheetTitle>
           <SheetDescription>
-            Ajuste o pino no mapa para a localização exata do ATM e adicione uma identificação.
+            {isEditMode ? 'Altere os detalhes deste ATM e guarde as alterações.' : 'Ajuste o pino no mapa para a localização exata do ATM e adicione uma identificação.'}
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -189,7 +218,7 @@ export default function AtmReport({
             </div>
             <SheetFooter className="p-6 pt-4 border-t bg-background">
                 <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                <Button type="submit">Mapear ATM</Button>
+                <Button type="submit">{isEditMode ? 'Guardar Alterações' : 'Mapear ATM'}</Button>
             </SheetFooter>
           </form>
         </Form>
