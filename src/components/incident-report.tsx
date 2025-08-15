@@ -84,13 +84,9 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
 
   useEffect(() => {
     if (open) {
-      if (mapCenter.lat === 0 && mapCenter.lng === 0) {
-        const newCenter = initialCenter.lat === 0 && initialCenter.lng === 0 ? defaultCenter : initialCenter;
+        const newCenter = (initialCenter.lat === 0 && initialCenter.lng === 0) ? defaultCenter : initialCenter;
         setMapCenter(newCenter);
         form.setValue("position", newCenter);
-      } else {
-        form.setValue("position", mapCenter);
-      }
     } else {
       clearForm();
     }
