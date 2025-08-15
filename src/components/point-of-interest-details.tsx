@@ -6,12 +6,12 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { generateOfficialResponse } from "@/ai/flows/generate-official-response-flow";
 import { useToast } from "@/hooks/use-toast";
@@ -210,9 +210,8 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
     }
     
     const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
-    const isOwner = poi.authorId === user?.uid;
+    const canAddUpdate = user; // Any logged in user can add an update now
 
-    const canAddUpdate = isManager || isOwner;
     const canGenerateAiResponse = isManager && poi.type === 'construction' && poi.updates && poi.updates.length > 0 && poi.updates[0].authorId !== user?.uid;
 
     return (
@@ -282,16 +281,17 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
 
 
 export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange, onAddUpdate, onEdit }: PointOfInterestDetailsProps) {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   
   if (!poi) return null;
 
   const config = layerConfig[poi.type];
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
   const showTimeline = poi.type === 'construction' || poi.type === 'incident' || poi.type === 'sanitation';
-  const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
   const isOwner = poi.authorId === user?.uid;
   const canEdit = isOwner;
+
+  const incidentDate = poi.incidentDate || poi.lastReported;
 
 
   return (
@@ -321,6 +321,12 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
           </div>
         </SheetHeader>
         <div className="space-y-4">
+            {incidentDate && (
+                <div className="flex items-center text-sm text-muted-foreground">
+                   <Calendar className="mr-2 h-4 w-4" />
+                   <span>Ocorrido em: {format(new Date(incidentDate), "PPP", { locale: pt })}</span>
+                </div>
+            )}
             <div>
                 <h3 className="font-semibold mb-2">Descrição</h3>
                 <p className="text-muted-foreground whitespace-pre-wrap">{poi.description}</p>
@@ -331,9 +337,9 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             </div>
             {poi.type === 'incident' && <IncidentTags description={poi.description} />}
             
-            {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={isManager} />}
+            {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
             
-            {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={isManager} />}
+            {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
             
             {showTimeline && (
                 <Timeline 

@@ -32,10 +32,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState, useRef } from "react";
 import { PointOfInterest } from "@/lib/data";
 import { Map } from "@vis.gl/react-google-maps";
-import { Camera, MapPin } from "lucide-react";
+import { Camera, MapPin, Calendar as CalendarIcon } from "lucide-react";
 import { Input } from "./ui/input";
 import Image from "next/image";
 import { Label } from "./ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { pt } from "date-fns/locale";
+import { Calendar } from "./ui/calendar";
 
 
 const formSchema = z.object({
@@ -45,13 +50,16 @@ const formSchema = z.object({
     lat: z.number(),
     lng: z.number(),
   }),
+  incidentDate: z.date({
+      required_error: "A data do incidente é obrigatória.",
+  }),
 });
 
 type IncidentReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId'> & { photoDataUri?: string }, type?: PointOfInterest['type']) => void;
-  onIncidentEdit: (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }) => void;
+  onIncidentEdit: (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
   incidentToEdit: PointOfInterest | null;
 };
@@ -80,6 +88,7 @@ export default function IncidentReport({
       title: "",
       description: "",
       position: initialCenter,
+      incidentDate: new Date(),
     },
   });
   
@@ -87,7 +96,8 @@ export default function IncidentReport({
     form.reset({
         title: "",
         description: "",
-        position: initialCenter
+        position: initialCenter,
+        incidentDate: new Date(),
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -102,6 +112,7 @@ export default function IncidentReport({
             form.setValue("title", incidentToEdit.title);
             form.setValue("description", incidentToEdit.description);
             form.setValue("position", incidentToEdit.position);
+            form.setValue("incidentDate", incidentToEdit.incidentDate ? new Date(incidentToEdit.incidentDate) : new Date(incidentToEdit.lastReported || Date.now()));
             setMapCenter(incidentToEdit.position);
             setMapZoom(16);
             if (incidentToEdit.updates && incidentToEdit.updates.length > 0) {
@@ -122,6 +133,7 @@ export default function IncidentReport({
             setMapCenter(center);
             setMapZoom(zoom);
             form.setValue("position", center);
+            form.setValue("incidentDate", new Date());
         }
     }
   }, [incidentToEdit, open, form, initialCenter]);
@@ -144,12 +156,19 @@ export default function IncidentReport({
     const finalPosition = mapCenter;
 
     const handleSubmission = (photoDataUri?: string) => {
+        const submissionData = {
+            ...values,
+            position: finalPosition,
+            incidentDate: values.incidentDate.toISOString(),
+            photoDataUri
+        };
+
         if (isEditMode && incidentToEdit) {
-            onIncidentEdit(incidentToEdit.id, { ...values, position: finalPosition, photoDataUri });
+            onIncidentEdit(incidentToEdit.id, submissionData);
         } else {
             const isSanitation = values.title === 'Contentor de lixo';
             const type = isSanitation ? 'sanitation' : 'incident';
-            onIncidentSubmit({ ...values, position: finalPosition, photoDataUri }, type);
+            onIncidentSubmit({ ...submissionData }, type);
         }
     };
     
@@ -183,7 +202,7 @@ export default function IncidentReport({
         </SheetHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
-             <div className="relative h-[40vh] bg-muted">
+             <div className="relative h-[35vh] bg-muted">
                 <Map
                     center={mapCenter}
                     zoom={mapZoom}
@@ -225,6 +244,47 @@ export default function IncidentReport({
                     </FormItem>
                 )}
                 />
+                 <FormField
+                    control={form.control}
+                    name="incidentDate"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Data do Incidente</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, "PPP", { locale: pt })
+                                ) : (
+                                    <span>Selecione uma data</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                date > new Date() || date < new Date("2000-01-01")
+                                }
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                 />
                 <FormField
                 control={form.control}
                 name="description"

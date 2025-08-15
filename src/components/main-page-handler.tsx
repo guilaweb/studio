@@ -256,6 +256,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       priority: priority,
       authorId: user.uid,
       lastReported: timestamp,
+      incidentDate: incidentDetails.incidentDate,
       updates: [initialUpdate]
     };
     
@@ -268,7 +269,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
   };
 
-  const handleEditIncident = async (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }) => {
+  const handleEditIncident = async (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => {
     await updatePointDetails(incidentId, updates);
     handleIncidentSheetOpen(false);
     toast({

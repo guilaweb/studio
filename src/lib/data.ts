@@ -21,6 +21,7 @@ export const PointOfInterestSchema = z.object({
   status: z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress']).optional(),
   priority: z.enum(['low', 'medium', 'high']).optional(),
   lastReported: z.string().optional(),
+  incidentDate: z.string().optional(),
   authorId: z.string().optional(),
   updates: z.array(PointOfInterestUpdateSchema).optional(),
 });

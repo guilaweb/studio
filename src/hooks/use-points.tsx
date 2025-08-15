@@ -11,7 +11,7 @@ interface PointsContextType {
   addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => Promise<void>;
   updatePointStatus: (pointId: string, status: PointOfInterest['status']) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
-  updatePointDetails: (pointId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }) => Promise<void>;
+  updatePointDetails: (pointId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => Promise<void>;
   loading: boolean;
 }
 
@@ -42,6 +42,7 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         authorId: data.authorId,
         updates: sortedUpdates,
         priority: data.priority,
+        incidentDate: data.incidentDate,
     };
 };
 
@@ -110,24 +111,29 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updatePointDetails = async (pointId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }) => {
+  const updatePointDetails = async (pointId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         
         const dataToUpdate: Partial<PointOfInterest> & { 'updates.0.photoDataUri'?: string } = {
             title: updates.title,
             description: updates.description,
-            position: updates.position, // Also update position
+            position: updates.position,
+            incidentDate: updates.incidentDate,
         };
 
         const pointToUpdate = allData.find(p => p.id === pointId);
         
-        // If there's a new photo, update the original update's photo URI
         if (updates.photoDataUri && pointToUpdate && pointToUpdate.updates && pointToUpdate.updates.length > 0) {
-            const originalUpdate = pointToUpdate.updates[pointToUpdate.updates.length - 1]; // Oldest is last
-            originalUpdate.photoDataUri = updates.photoDataUri;
-            dataToUpdate.updates = pointToUpdate.updates;
+            const originalUpdateIndex = pointToUpdate.updates.length - 1;
+            const newUpdates = [...pointToUpdate.updates];
+            newUpdates[originalUpdateIndex] = {
+                ...newUpdates[originalUpdateIndex],
+                photoDataUri: updates.photoDataUri,
+            };
+            dataToUpdate.updates = newUpdates;
         }
+
 
         await updateDoc(pointRef, dataToUpdate);
 
