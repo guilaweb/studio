@@ -38,7 +38,7 @@ const formSchema = z.object({
 });
 
 type IncidentReportProps = {
-  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'type'>) => void;
+  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'type'>, type?: PointOfInterest['type']) => void;
 };
 
 export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps) {
@@ -58,7 +58,11 @@ export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps
         lat: -8.8368 + (Math.random() - 0.5) * 0.1,
         lng: 13.2343 + (Math.random() - 0.5) * 0.1,
     }
-    onIncidentSubmit({...values, position: randomPosition});
+
+    const isSanitation = values.title === 'Contentor de lixo';
+    const type = isSanitation ? 'sanitation' : 'incident';
+    
+    onIncidentSubmit({...values, position: randomPosition}, type);
     form.reset();
     setIsOpen(false);
   }
@@ -70,9 +74,9 @@ export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Reportar Incidente Rodoviário</DialogTitle>
+          <DialogTitle>Reportar Incidência ou Ponto de Interesse</DialogTitle>
           <DialogDescription>
-            Ajude a identificar os pontos negros da cidade. Descreva o incidente que presenciou.
+            Ajude a identificar os pontos negros da cidade. Descreva o que presenciou ou mapeie um novo ponto.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -82,11 +86,11 @@ export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tipo de Incidente</FormLabel>
+                  <FormLabel>Tipo de Reporte</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo de incidente" />
+                        <SelectValue placeholder="Selecione o tipo de reporte" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -96,7 +100,8 @@ export default function IncidentReport({ onIncidentSubmit }: IncidentReportProps
                       <SelectItem value="Acidente de Moto">Acidente de Moto</SelectItem>
                       <SelectItem value="Buraco na via">Buraco na via</SelectItem>
                       <SelectItem value="Semáforo com defeito">Semáforo com defeito</SelectItem>
-                       <SelectItem value="Iluminação pública com defeito">Iluminação pública com defeito</SelectItem>
+                      <SelectItem value="Iluminação pública com defeito">Iluminação pública com defeito</SelectItem>
+                      <SelectItem value="Contentor de lixo">Mapear Contentor de Lixo</SelectItem>
                       <SelectItem value="Outro">Outro</SelectItem>
                     </SelectContent>
                   </Select>

@@ -1,14 +1,14 @@
 export type PointOfInterest = {
   id: string;
-  type: 'atm' | 'construction' | 'incident';
+  type: 'atm' | 'construction' | 'incident' | 'sanitation';
   position: { lat: number; lng: number };
   title: string;
   description: string;
-  status?: 'available' | 'unavailable' | 'unknown'; // For ATMs
-  lastReported?: string; // For ATMs
+  status?: 'available' | 'unavailable' | 'unknown' | 'full' | 'damaged' | 'collected'; // For ATMs and Sanitation
+  lastReported?: string; // For ATMs and Sanitation
 };
 
-export type Layer = 'atm' | 'construction' | 'incident';
+export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation';
 
 export type ActiveLayers = {
   [key in Layer]: boolean;
@@ -86,3 +86,24 @@ export const incidents: PointOfInterest[] = [
     description: 'Colisão entre dois carros, faixa da direita bloqueada. Trânsito lento no local. #acidente',
   },
 ];
+
+export const sanitationPoints: PointOfInterest[] = [
+    {
+      id: 'sanitation-1',
+      type: 'sanitation',
+      position: { lat: -8.837, lng: 13.233 },
+      title: 'Contentor Rua da Missão',
+      description: 'Contentor de lixo de grande capacidade.',
+      status: 'collected',
+      lastReported: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    },
+    {
+      id: 'sanitation-2',
+      type: 'sanitation',
+      position: { lat: -8.812, lng: 13.238 },
+      title: 'Ecoponto Josina Machel',
+      description: 'Ponto de recolha de lixo próximo ao hospital.',
+      status: 'full',
+      lastReported: new Date(Date.now() - 22 * 60 * 1000).toISOString(), // 22 minutes ago
+    },
+  ];

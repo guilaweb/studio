@@ -2,7 +2,7 @@
 
 import { Map, AdvancedMarker, Pin, useMap, useAdvancedMarkerRef } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren } from "lucide-react";
+import { Landmark, Construction, Siren, Trash } from "lucide-react";
 import React from "react";
 
 type MapComponentProps = {
@@ -47,6 +47,8 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
       return <Construction className={commonClasses} />;
     case "incident":
       return <Siren className={commonClasses} />;
+    case "sanitation":
+        return <Trash className={commonClasses} />;
     default:
       return null;
   }
@@ -68,6 +70,18 @@ const getPinStyle = (point: PointOfInterest) => {
     }
     if (point.type === 'incident') {
         return { background: 'hsl(var(--accent))', borderColor: 'hsl(var(--accent))', glyphColor: 'hsl(var(--accent-foreground))' };
+    }
+    if (point.type === 'sanitation') {
+        switch (point.status) {
+            case 'full':
+                return { background: '#f97316', borderColor: '#ea580c', glyphColor: '#ffffff' }; // orange
+            case 'damaged':
+                return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
+            case 'collected':
+                return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
+            default:
+                return { background: '#a1a1aa', borderColor: '#71717a', glyphColor: '#ffffff' }; // gray
+        }
     }
     return {};
 }

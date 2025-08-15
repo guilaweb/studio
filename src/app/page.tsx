@@ -12,7 +12,7 @@ import {
 import { APIProvider } from "@vis.gl/react-google-maps";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
-import { atms, constructionSites, incidents, PointOfInterest, Layer, ActiveLayers } from "@/lib/data";
+import { atms, constructionSites, incidents, sanitationPoints, PointOfInterest, Layer, ActiveLayers } from "@/lib/data";
 import { Logo } from "@/components/icons";
 import AppHeader from "@/components/app-header";
 import MapComponent from "@/components/map-component";
@@ -32,6 +32,7 @@ export default function Home() {
     atm: true,
     construction: true,
     incident: true,
+    sanitation: true,
   });
   const [selectedPoi, setSelectedPoi] = React.useState<PointOfInterest | null>(null);
   const [userPosition, setUserPosition] = React.useState<google.maps.LatLngLiteral | null>(null);
@@ -44,7 +45,7 @@ export default function Home() {
 
   React.useEffect(() => {
     // Combine all data sources into one array
-    setAllData([...atms, ...constructionSites, ...incidents]);
+    setAllData([...atms, ...constructionSites, ...incidents, ...sanitationPoints]);
   }, []);
 
 
@@ -84,11 +85,11 @@ export default function Home() {
     }
   };
 
-  const handleAddNewIncident = (newIncident: Omit<PointOfInterest, 'id' | 'type'>) => {
+  const handleAddNewIncident = (newIncident: Omit<PointOfInterest, 'id' >, type: PointOfInterest['type'] = 'incident') => {
     const incidentToAdd: PointOfInterest = {
       ...newIncident,
-      id: `incident-${Date.now()}`,
-      type: 'incident',
+      id: `${type}-${Date.now()}`,
+      type: type,
     };
     
     setAllData(prevData => [...prevData, incidentToAdd]);
@@ -107,7 +108,7 @@ export default function Home() {
     setSelectedPoi(null);
   };
 
-  const handleAtmStatusChange = (poiId: string, status: 'available' | 'unavailable') => {
+  const handlePoiStatusChange = (poiId: string, status: PointOfInterest['status']) => {
     setAllData(currentData =>
       currentData.map(poi =>
         poi.id === poiId
@@ -117,7 +118,7 @@ export default function Home() {
     );
     setSelectedPoi(prevPoi => prevPoi ? { ...prevPoi, status, lastReported: new Date().toISOString() } : null);
     toast({
-        title: "Estado do ATM atualizado!",
+        title: "Estado atualizado!",
         description: "Obrigado pela sua contribuição.",
     })
   };
@@ -217,7 +218,7 @@ export default function Home() {
             handleDetailsClose();
           }
         }}
-        onAtmStatusChange={handleAtmStatusChange}
+        onPoiStatusChange={handlePoiStatusChange}
         />
       <Toaster />
     </APIProvider>
