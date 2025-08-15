@@ -43,6 +43,15 @@ export const UserProfileSchema = z.object({
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 
+export const UserProfileWithStatsSchema = UserProfileSchema.extend({
+    stats: z.object({
+        contributions: z.number(),
+        sanitationReports: z.number(),
+        incidentReports: z.number(),
+    })
+});
+export type UserProfileWithStats = z.infer<typeof UserProfileWithStatsSchema>;
+
 
 // Schemas for AI Flows
 

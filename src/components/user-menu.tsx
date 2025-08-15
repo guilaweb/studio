@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -35,7 +35,8 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
       )
     }
 
-    const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
+    const isAgentOrAdmin = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
+    const isAdmin = profile?.role === 'Administrador';
 
     return (
         <DropdownMenu>
@@ -65,7 +66,7 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                     </Link>
                 </DropdownMenuItem>
                 
-                {isManager && (
+                {isAgentOrAdmin && (
                     <>
                         <DropdownMenuItem asChild>
                             <Link href="/dashboard">
@@ -81,6 +82,16 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                         </DropdownMenuItem>
                     </>
                 )}
+
+                {isAdmin && (
+                    <DropdownMenuItem asChild>
+                        <Link href="/admin/users">
+                            <Users className="mr-2 h-4 w-4" />
+                            <span>Gerir Utilizadores</span>
+                        </Link>
+                    </DropdownMenuItem>
+                )}
+
 
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
