@@ -189,6 +189,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                 title: incidentDetails.title,
                 description: incidentDetails.description,
                 position: incidentDetails.position,
+                authorDisplayName: profile.displayName
             },
             existingIncidents: recentIncidents,
         });

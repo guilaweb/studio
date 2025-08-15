@@ -85,6 +85,7 @@ export const DetectDuplicateInputSchema = z.object({
     title: z.string(),
     description: z.string(),
     position: z.object({ lat: z.number(), lng: z.number() }),
+    authorDisplayName: z.string().optional(),
   }),
   existingIncidents: z.array(PointOfInterestSchema),
 });
