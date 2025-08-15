@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -80,10 +81,20 @@ function PerfilPage() {
                            </div>
                            <div className="space-y-2">
                                 <h4 className="font-semibold">As minhas medalhas</h4>
-                                <div className="flex items-center gap-4 text-muted-foreground p-4 rounded-lg border border-dashed">
-                                    <Award className="h-8 w-8 text-yellow-500"/>
-                                    <p className="text-sm">Em breve poderá ganhar medalhas e subir de nível. Continue a contribuir para desbloquear as suas primeiras conquistas!</p>
-                                </div>
+                                {userContributions.length > 0 ? (
+                                    <div className="flex items-center gap-4 p-4 rounded-lg bg-yellow-50 border border-yellow-200">
+                                        <Award className="h-8 w-8 text-yellow-500"/>
+                                        <div>
+                                            <h5 className="font-semibold text-yellow-800">Fiscal Iniciante</h5>
+                                            <p className="text-sm text-yellow-700">Parabéns pela sua primeira contribuição! Continue assim.</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-4 text-muted-foreground p-4 rounded-lg border border-dashed">
+                                        <Award className="h-8 w-8 text-slate-400"/>
+                                        <p className="text-sm">Faça a sua primeira contribuição para ganhar a sua primeira medalha. Continue a contribuir para desbloquear novas conquistas!</p>
+                                    </div>
+                                )}
                            </div>
                         </CardContent>
                     </Card>
