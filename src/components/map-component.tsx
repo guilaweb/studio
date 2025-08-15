@@ -73,7 +73,7 @@ export default function MapComponent({ activeLayers, data, userPosition, center 
         center={center}
         zoom={13}
         gestureHandling={"greedy"}
-        disableDefaultUI={true}
+        disableDefaultUI={false}
         styles={mapStyles}
       >
         {data
