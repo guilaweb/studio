@@ -89,15 +89,15 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-lg w-full flex flex-col p-0">
-        <SheetHeader className="p-6">
+        <SheetHeader className="p-6 pb-2">
           <SheetTitle>Reportar Incidência</SheetTitle>
           <SheetDescription>
             Forneça os detalhes do que presenciou e ajuste o pino no mapa para a localização exata.
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col">
-            <div className="flex-1 relative">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
+             <div className="relative h-[40vh]">
                 <Map
                     defaultCenter={initialCenter}
                     defaultZoom={15}
@@ -110,7 +110,7 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
                     <MapPin className="text-primary h-10 w-10" />
                  </div>
             </div>
-            <div className="p-6 space-y-4 bg-background">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <FormField
                 control={form.control}
                 name="title"
@@ -155,7 +155,7 @@ export default function IncidentReport({ open, onOpenChange, onIncidentSubmit, i
                     </FormItem>
                 )}
                 />
-                <SheetFooter>
+                <SheetFooter className="pt-4">
                     <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
                     <Button type="submit">Submeter Reporte</Button>
                 </SheetFooter>
