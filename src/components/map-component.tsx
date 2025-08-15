@@ -68,7 +68,7 @@ const getPinStyle = (point: PointOfInterest) => {
         }
     }
     if (point.type === 'construction') {
-        return { background: 'hsl(var(--secondary))', borderColor: 'hsl(var(--secondary))', glyphColor: 'hsl(var(--secondary-foreground))' };
+        return { background: 'hsl(var(--secondary-foreground))', borderColor: 'hsl(var(--secondary-foreground))', glyphColor: 'hsl(var(--secondary))' };
     }
     if (point.type === 'incident') {
         return { background: 'hsl(var(--accent))', borderColor: 'hsl(var(--accent))', glyphColor: 'hsl(var(--accent-foreground))' };

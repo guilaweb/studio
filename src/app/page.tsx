@@ -247,12 +247,12 @@ export default function Home() {
         <div className="flex h-screen w-full">
           <Sidebar collapsible="icon" className="border-r">
             <SidebarHeader className="h-16 items-center">
-              <div className="group/logo flex items-center gap-2" aria-label="Cidadão Online">
+              <Link href="/" className="group/logo flex items-center gap-2" aria-label="Cidadão Online">
                 <Logo className="size-8 shrink-0 text-primary group-data-[collapsible=icon]:size-6" />
-                <Link href="/" className="text-lg font-semibold group-data-[collapsible=icon]:hidden">
+                <div className="text-lg font-semibold group-data-[collapsible=icon]:hidden">
                   Cidadão Online
-                </Link>
-              </div>
+                </div>
+              </Link>
             </SidebarHeader>
             <SidebarContent>
               <LayerControls activeLayers={activeLayers} onLayerChange={setActiveLayers} />
