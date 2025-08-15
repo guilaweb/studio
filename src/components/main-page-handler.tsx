@@ -315,7 +315,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
   
   const handleAddNewTrafficLightReport = async (
-    newPointData: Pick<PointOfInterest, 'description' | 'position'>
+    newPointData: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'>
   ) => {
     if (!user || !profile) {
         toast({
@@ -346,7 +346,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       title: incidentTitle,
       authorId: user.uid,
       lastReported: timestamp,
-      incidentDate: timestamp,
+      incidentDate: newPointData.incidentDate,
       description: newPointData.description,
       position: newPointData.position,
       priority: priority,
@@ -367,7 +367,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
 
   const handleAddNewPotholeReport = async (
-    newPointData: Pick<PointOfInterest, 'description' | 'position'> & { photoDataUri?: string }
+    newPointData: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }
   ) => {
     if (!user || !profile) {
         toast({
@@ -398,7 +398,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       title: incidentTitle,
       authorId: user.uid,
       lastReported: timestamp,
-      incidentDate: timestamp,
+      incidentDate: newPointData.incidentDate,
       description: newPointData.description,
       position: newPointData.position,
       priority: priority,

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -25,20 +26,28 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { PointOfInterest } from "@/lib/data";
 import { Map } from "@vis.gl/react-google-maps";
-import { Camera, MapPin } from "lucide-react";
+import { Camera, MapPin, Calendar as CalendarIcon } from "lucide-react";
 import Image from "next/image";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { pt } from "date-fns/locale";
+import { Calendar } from "./ui/calendar";
 
 
 const formSchema = z.object({
   description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres."),
+  incidentDate: z.date({
+      required_error: "A data do incidente é obrigatória.",
+  }),
 });
 
 type PotholeReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPotholeSubmit: (data: Pick<PointOfInterest, 'description' | 'position'> & { photoDataUri?: string }) => void;
+  onPotholeSubmit: (data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -60,12 +69,14 @@ export default function PotholeReport({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: "",
+      incidentDate: new Date(),
     },
   });
   
   const clearForm = () => {
     form.reset({
         description: "",
+        incidentDate: new Date(),
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -78,8 +89,9 @@ export default function PotholeReport({
         const zoom = isDefaultLocation ? defaultZoom : 15;
         setMapCenter(center);
         setMapZoom(zoom);
+        form.setValue("incidentDate", new Date());
     }
-  }, [open, initialCenter]);
+  }, [open, initialCenter, form]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -99,7 +111,8 @@ export default function PotholeReport({
 
     const handleSubmission = (photoDataUri?: string) => {
         onPotholeSubmit({ 
-            ...values, 
+            ...values,
+            incidentDate: values.incidentDate.toISOString(),
             position: finalPosition,
             photoDataUri 
         });
@@ -134,7 +147,7 @@ export default function PotholeReport({
         </SheetHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
-             <div className="relative h-[45vh] bg-muted">
+             <div className="relative h-[35vh] bg-muted">
                 <Map
                     center={mapCenter}
                     zoom={mapZoom}
@@ -148,6 +161,47 @@ export default function PotholeReport({
                  </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                 <FormField
+                    control={form.control}
+                    name="incidentDate"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Data do Incidente</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, "PPP", { locale: pt })
+                                ) : (
+                                    <span>Selecione uma data</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                date > new Date() || date < new Date("2000-01-01")
+                                }
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                 />
                 <FormField
                 control={form.control}
                 name="description"

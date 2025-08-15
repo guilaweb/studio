@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -25,17 +26,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { PointOfInterest } from "@/lib/data";
 import { Map } from "@vis.gl/react-google-maps";
-import { MapPin } from "lucide-react";
+import { MapPin, Calendar as CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { pt } from "date-fns/locale";
+import { Calendar } from "./ui/calendar";
 
 
 const formSchema = z.object({
   description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres."),
+  incidentDate: z.date({
+      required_error: "A data do incidente é obrigatória.",
+  }),
 });
 
 type TrafficLightReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTrafficLightSubmit: (data: Pick<PointOfInterest, 'description' | 'position'>) => void;
+  onTrafficLightSubmit: (data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'>) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -55,12 +64,14 @@ export default function TrafficLightReport({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: "",
+      incidentDate: new Date(),
     },
   });
   
   const clearForm = () => {
     form.reset({
         description: "",
+        incidentDate: new Date(),
     });
   }
 
@@ -71,13 +82,18 @@ export default function TrafficLightReport({
         const zoom = isDefaultLocation ? defaultZoom : 15;
         setMapCenter(center);
         setMapZoom(zoom);
+        form.setValue("incidentDate", new Date());
     }
-  }, [open, initialCenter]);
+  }, [open, initialCenter, form]);
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalPosition = mapCenter;
-    onTrafficLightSubmit({ ...values, position: finalPosition });
+    onTrafficLightSubmit({ 
+        ...values, 
+        incidentDate: values.incidentDate.toISOString(),
+        position: finalPosition 
+    });
   }
 
 
@@ -98,7 +114,7 @@ export default function TrafficLightReport({
         </SheetHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
-             <div className="relative h-[50vh] bg-muted">
+             <div className="relative h-[45vh] bg-muted">
                 <Map
                     center={mapCenter}
                     zoom={mapZoom}
@@ -112,6 +128,47 @@ export default function TrafficLightReport({
                  </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                 <FormField
+                    control={form.control}
+                    name="incidentDate"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Data do Incidente</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, "PPP", { locale: pt })
+                                ) : (
+                                    <span>Selecione uma data</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                date > new Date() || date < new Date("2000-01-01")
+                                }
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                 />
                 <FormField
                 control={form.control}
                 name="description"
