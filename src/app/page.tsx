@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -23,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, LayoutDashboard } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 
@@ -229,6 +230,12 @@ export default function Home() {
             </SidebarContent>
             <SidebarFooter>
               {user && <IncidentReport onIncidentSubmit={handleAddNewIncident} />}
+               <Button variant="outline" asChild className="mt-4">
+                  <Link href="/dashboard" className="w-full">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    Painel Municipal
+                  </Link>
+              </Button>
             </SidebarFooter>
           </Sidebar>
 
