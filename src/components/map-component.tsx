@@ -88,7 +88,7 @@ const getPinStyle = (point: PointOfInterest) => {
     return {};
 }
 
-const MapEvents = ({ onCenterChanged, onZoomChanged }: { onCenterChanged: (center: google.maps.LatLngLiteral) => void, onZoomChanged: (number) => void }) => {
+const MapEvents = ({ onCenterChanged, onZoomChanged }: { onCenterChanged: (center: google.maps.LatLngLiteral) => void, onZoomChanged: (zoom: number) => void }) => {
     const map = useMap();
   
     React.useEffect(() => {
