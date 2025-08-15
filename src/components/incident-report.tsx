@@ -67,10 +67,11 @@ export default function IncidentReport({
     initialCenter, 
     incidentToEdit 
 }: IncidentReportProps) {
-  const mapRef = useRef<google.maps.Map | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [mapCenter, setMapCenter] = useState(initialCenter);
+  const [mapZoom, setMapZoom] = useState(15);
   
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -93,23 +94,37 @@ export default function IncidentReport({
   }
 
   useEffect(() => {
-    setIsEditMode(!!incidentToEdit);
-    if (incidentToEdit) {
-        form.setValue("title", incidentToEdit.title);
-        form.setValue("description", incidentToEdit.description);
-        form.setValue("position", incidentToEdit.position);
-        // Look for photo in the most recent update, assuming it's the original report photo
-        if (incidentToEdit.updates && incidentToEdit.updates.length > 0) {
-           const sortedUpdates = [...incidentToEdit.updates].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-           const originalReportUpdate = sortedUpdates[sortedUpdates.length - 1];
-            if (originalReportUpdate.photoDataUri) {
-                setPhotoPreview(originalReportUpdate.photoDataUri);
+    if (open) {
+        const isEditing = !!incidentToEdit;
+        setIsEditMode(isEditing);
+
+        if (isEditing) {
+            form.setValue("title", incidentToEdit.title);
+            form.setValue("description", incidentToEdit.description);
+            form.setValue("position", incidentToEdit.position);
+            setMapCenter(incidentToEdit.position);
+            setMapZoom(16);
+            if (incidentToEdit.updates && incidentToEdit.updates.length > 0) {
+               const sortedUpdates = [...incidentToEdit.updates].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+               const originalReportUpdate = sortedUpdates[sortedUpdates.length - 1];
+                if (originalReportUpdate.photoDataUri) {
+                    setPhotoPreview(originalReportUpdate.photoDataUri);
+                } else {
+                    setPhotoPreview(null);
+                }
+            } else {
+                setPhotoPreview(null);
             }
+        } else {
+            const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
+            const center = isDefaultLocation ? defaultCenter : initialCenter;
+            const zoom = isDefaultLocation ? defaultZoom : 15;
+            setMapCenter(center);
+            setMapZoom(zoom);
+            form.setValue("position", center);
         }
-    } else {
-        form.setValue("position", initialCenter);
     }
-  }, [incidentToEdit, open, form, initialCenter]);
+  }, [incidentToedit, open, form, initialCenter]);
 
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,8 +141,7 @@ export default function IncidentReport({
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Always get the latest map center on submit
-    const finalPosition = mapRef.current?.getCenter()?.toJSON() || form.getValues('position');
+    const finalPosition = mapCenter;
 
     const handleSubmission = (photoDataUri?: string) => {
         if (isEditMode && incidentToEdit) {
@@ -151,15 +165,6 @@ export default function IncidentReport({
     }
   }
 
-  const getInitialCenter = () => {
-    if (incidentToEdit) return incidentToEdit.position;
-    return (initialCenter.lat === 0 && initialCenter.lng === 0) ? defaultCenter : initialCenter;
-  }
-  const getInitialZoom = () => {
-    if (incidentToEdit) return 16;
-    return (initialCenter.lat === 0 && initialCenter.lng === 0) ? defaultZoom : 15;
-  }
-
 
   return (
     <Sheet open={open} onOpenChange={(isOpen) => {
@@ -180,9 +185,10 @@ export default function IncidentReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[40vh] bg-muted">
                 <Map
-                    ref={mapRef}
-                    defaultCenter={getInitialCenter()}
-                    defaultZoom={getInitialZoom()}
+                    center={mapCenter}
+                    zoom={mapZoom}
+                    onCenterChanged={(e) => setMapCenter(e.detail.center)}
+                    onZoomChanged={(e) => setMapZoom(e.detail.zoom)}
                     gestureHandling={'greedy'}
                 >
                 </Map>
@@ -257,3 +263,5 @@ export default function IncidentReport({
     </Sheet>
   );
 }
+
+    
