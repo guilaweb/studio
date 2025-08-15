@@ -32,6 +32,7 @@ import { calculateIncidentPriority } from "@/services/incident-priority-service"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import TrafficLightReport from "./traffic-light-report";
 import PotholeReport from "./pothole-report";
+import PublicLightingReport from "./public-lighting-report";
 
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -57,6 +58,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   const [isSanitationSheetOpen, setIsSanitationSheetOpen] = React.useState(false);
   const [isTrafficLightSheetOpen, setIsTrafficLightSheetOpen] = React.useState(false);
   const [isPotholeSheetOpen, setIsPotholeSheetOpen] = React.useState(false);
+  const [isPublicLightingSheetOpen, setIsPublicLightingSheetOpen] = React.useState(false);
   const [incidentToEdit, setIncidentToEdit] = React.useState<PointOfInterest | null>(null);
 
 
@@ -256,7 +258,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
 
 
-    const incidentToAdd: Omit<PointOfInterest, 'updates' | 'status'> & { updates: Omit<PointOfInterestUpdate, 'id'>[], status?: PointOfInterest['status'] } = {
+    const incidentToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
       ...incidentDetails,
       id: `incident-${Date.now()}`,
       type: 'incident',
@@ -289,7 +291,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     setIsSanitationSheetOpen(false);
     const timestamp = new Date().toISOString();
 
-    const pointToAdd: Omit<PointOfInterest, 'updates' | 'status'> & { updates: Omit<PointOfInterestUpdate, 'id'>[], status?: PointOfInterest['status'] } = {
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
       id: `sanitation-${Date.now()}`,
       type: 'sanitation',
       title: 'Contentor de Lixo',
@@ -340,7 +342,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         console.error("Error calculating priority, defaulting to medium:", error);
     }
 
-    const pointToAdd: Omit<PointOfInterest, 'updates' | 'status'> & { updates: Omit<PointOfInterestUpdate, 'id'>[], status?: PointOfInterest['status'] } = {
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
       id: `incident-${Date.now()}`,
       type: 'incident',
       title: incidentTitle,
@@ -392,7 +394,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         console.error("Error calculating priority, defaulting to medium:", error);
     }
 
-    const pointToAdd: Omit<PointOfInterest, 'updates' | 'status'> & { updates: Omit<PointOfInterestUpdate, 'id'>[], status?: PointOfInterest['status'] } = {
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
       id: `incident-${Date.now()}`,
       type: 'incident',
       title: incidentTitle,
@@ -415,6 +417,59 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
     toast({
       title: "Buraco na via reportado!",
+      description: "A sua contribuição foi registada e será analisada. Obrigado!",
+    });
+  }
+
+  const handleAddNewPublicLightingReport = async (
+    newPointData: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }
+  ) => {
+    if (!user || !profile) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para reportar.",
+        });
+        return;
+    }
+    setIsPublicLightingSheetOpen(false);
+    const timestamp = new Date().toISOString();
+
+    const incidentTitle = "Iluminação pública com defeito";
+    let priority: PointOfInterest['priority'] | undefined = 'low'; // Default
+    try {
+        const result = await calculateIncidentPriority({
+            title: incidentTitle,
+            description: newPointData.description,
+        });
+        priority = result.priority;
+    } catch (error) {
+        console.error("Error calculating priority, defaulting to low:", error);
+    }
+
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `incident-${Date.now()}`,
+      type: 'incident',
+      title: incidentTitle,
+      authorId: user.uid,
+      lastReported: timestamp,
+      incidentDate: newPointData.incidentDate,
+      description: newPointData.description,
+      position: newPointData.position,
+      priority: priority,
+      updates: [{
+          text: newPointData.description,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+          photoDataUri: newPointData.photoDataUri,
+      }]
+    };
+    
+    addPoint(pointToAdd);
+
+    toast({
+      title: "Iluminação pública reportada!",
       description: "A sua contribuição foi registada e será analisada. Obrigado!",
     });
   }
@@ -477,6 +532,19 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
     setIsPotholeSheetOpen(true);
   }
+
+  const handleStartPublicLightingReport = () => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para reportar.",
+        });
+        return;
+    }
+    setIsPublicLightingSheetOpen(true);
+  }
+
 
   const handleStartEditing = (poi: PointOfInterest) => {
     if (user?.uid !== poi.authorId) {
@@ -594,6 +662,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <LightbulbOff className="mr-2 h-4 w-4" />
                             Reportar Semáforo
                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={handleStartPublicLightingReport}>
+                            <LightbulbOff className="mr-2 h-4 w-4" />
+                            Reportar Iluminação
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleStartPotholeReport}>
                             <CircleDashed className="mr-2 h-4 w-4" />
                             Reportar Buraco na Via
@@ -662,6 +734,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <LightbulbOff className="mr-2 h-4 w-4" />
                             Reportar Semáforo
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleStartPublicLightingReport}>
+                            <LightbulbOff className="mr-2 h-4 w-4" />
+                            Reportar Iluminação
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleStartPotholeReport}>
                             <CircleDashed className="mr-2 h-4 w-4" />
                             Reportar Buraco na Via
@@ -708,6 +784,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             open={isPotholeSheetOpen}
             onOpenChange={setIsPotholeSheetOpen}
             onPotholeSubmit={handleAddNewPotholeReport}
+            initialCenter={mapCenter}
+        />
+        <PublicLightingReport
+            open={isPublicLightingSheetOpen}
+            onOpenChange={setIsPublicLightingSheetOpen}
+            onPublicLightingSubmit={handleAddNewPublicLightingReport}
             initialCenter={mapCenter}
         />
       </SidebarProvider>

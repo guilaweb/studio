@@ -22,21 +22,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState, useRef } from "react";
-import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
+import { useEffect, useState } from "react";
+import { PointOfInterest } from "@/lib/data";
 import { Map } from "@vis.gl/react-google-maps";
 import { Camera, MapPin, Calendar as CalendarIcon } from "lucide-react";
-import { Input } from "./ui/input";
 import Image from "next/image";
 import { Label } from "./ui/label";
+import { Input } from "./ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -45,44 +38,36 @@ import { Calendar } from "./ui/calendar";
 
 
 const formSchema = z.object({
-  title: z.string().min(1, "O tipo de incidente é obrigatório."),
   description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres."),
   incidentDate: z.date({
       required_error: "A data do incidente é obrigatória.",
   }),
 });
 
-type IncidentReportProps = {
+type PublicLightingReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onIncidentSubmit: (incident: Omit<PointOfInterest, 'id' | 'authorId' | 'updates' | 'type'> & { photoDataUri?: string }) => void;
-  onIncidentEdit: (incidentId: string, updates: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => void;
+  onPublicLightingSubmit: (data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
-  incidentToEdit: PointOfInterest | null;
 };
 
 const defaultCenter = { lat: -12.5, lng: 18.5 };
 const defaultZoom = 5;
 
-export default function IncidentReport({ 
+export default function PublicLightingReport({ 
     open, 
     onOpenChange, 
-    onIncidentSubmit, 
-    onIncidentEdit,
+    onPublicLightingSubmit,
     initialCenter, 
-    incidentToEdit 
-}: IncidentReportProps) {
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
+}: PublicLightingReportProps) {
   const [mapCenter, setMapCenter] = useState(initialCenter);
   const [mapZoom, setMapZoom] = useState(15);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
       description: "",
       incidentDate: new Date(),
     },
@@ -90,7 +75,6 @@ export default function IncidentReport({
   
   const clearForm = () => {
     form.reset({
-        title: "",
         description: "",
         incidentDate: new Date(),
     });
@@ -100,35 +84,14 @@ export default function IncidentReport({
 
   useEffect(() => {
     if (open) {
-        const isEditing = !!incidentToEdit;
-        setIsEditMode(isEditing);
-
-        if (isEditing) {
-            form.setValue("title", incidentToEdit.title);
-            form.setValue("description", incidentToEdit.description);
-            form.setValue("incidentDate", incidentToEdit.incidentDate ? new Date(incidentToEdit.incidentDate) : new Date(incidentToEdit.lastReported || Date.now()));
-            setMapCenter(incidentToEdit.position);
-            setMapZoom(16);
-
-            // Find the original update to get the photo
-            const originalUpdate = incidentToEdit.updates?.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())[0];
-            if (originalUpdate?.photoDataUri) {
-                setPhotoPreview(originalUpdate.photoDataUri);
-            } else {
-                setPhotoPreview(null);
-            }
-
-        } else {
-            const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
-            const center = isDefaultLocation ? defaultCenter : initialCenter;
-            const zoom = isDefaultLocation ? defaultZoom : 15;
-            setMapCenter(center);
-            setMapZoom(zoom);
-            form.setValue("incidentDate", new Date());
-        }
+        const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
+        const center = isDefaultLocation ? defaultCenter : initialCenter;
+        const zoom = isDefaultLocation ? defaultZoom : 15;
+        setMapCenter(center);
+        setMapZoom(zoom);
+        form.setValue("incidentDate", new Date());
     }
-  }, [incidentToEdit, open, form, initialCenter]);
-
+  }, [open, initialCenter, form]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -147,20 +110,14 @@ export default function IncidentReport({
     const finalPosition = mapCenter;
 
     const handleSubmission = (photoDataUri?: string) => {
-        const submissionData = {
+        onPublicLightingSubmit({ 
             ...values,
-            position: finalPosition,
             incidentDate: values.incidentDate.toISOString(),
-            photoDataUri
-        };
-
-        if (isEditMode && incidentToEdit) {
-            onIncidentEdit(incidentToEdit.id, submissionData);
-        } else {
-            onIncidentSubmit(submissionData);
-        }
+            position: finalPosition,
+            photoDataUri 
+        });
     };
-    
+
     if (photoFile) {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -168,8 +125,7 @@ export default function IncidentReport({
         };
         reader.readAsDataURL(photoFile);
     } else {
-        // If there's a preview but no new file, it means we keep the old photo in edit mode
-        handleSubmission(photoPreview && isEditMode ? photoPreview : undefined);
+        handleSubmission();
     }
   }
 
@@ -184,9 +140,9 @@ export default function IncidentReport({
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         <SheetHeader className="p-6 pb-2">
-          <SheetTitle>{isEditMode ? 'Editar Incidência' : 'Reportar Incidência'}</SheetTitle>
+          <SheetTitle>Reportar Falha de Iluminação</SheetTitle>
           <SheetDescription>
-            {isEditMode ? 'Altere os detalhes da sua incidência e guarde as alterações.' : 'Forneça os detalhes do que presenciou e ajuste o pino no mapa para a localização exata.'}
+            Ajuste o pino no mapa para a localização exata do poste ou área afetada e descreva o problema.
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -205,30 +161,6 @@ export default function IncidentReport({
                  </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Tipo de Incidente</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo de incidente" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                        <SelectItem value="Colisão Ligeira">Colisão Ligeira</SelectItem>
-                        <SelectItem value="Colisão Grave">Colisão Grave</SelectItem>
-                        <SelectItem value="Atropelamento">Atropelamento</SelectItem>
-                        <SelectItem value="Acidente de Moto">Acidente de Moto</SelectItem>
-                        <SelectItem value="Outro">Outro</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
                  <FormField
                     control={form.control}
                     name="incidentDate"
@@ -275,10 +207,10 @@ export default function IncidentReport({
                 name="description"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Descrição (Opcional: adicione tags como #falta-de-sinalização)</FormLabel>
+                    <FormLabel>Descrição do Problema</FormLabel>
                     <FormControl>
                         <Textarea
-                        placeholder="Descreva a incidência com detalhes. Ex: Colisão no cruzamento, um dos carros capotou. #trânsitocortado"
+                        placeholder="Ex: Poste de luz totalmente apagado em frente ao número 23."
                         {...field}
                         />
                     </FormControl>
@@ -286,21 +218,20 @@ export default function IncidentReport({
                     </FormItem>
                 )}
                 />
-                <div>
-                    <Label htmlFor="incident-photo" className="text-sm font-medium">
+                 <div>
+                    <Label htmlFor="lighting-photo" className="text-sm font-medium">
                         <div className="flex items-center gap-2 cursor-pointer">
                             <Camera className="h-4 w-4" />
                             Fotografia (Opcional)
                         </div>
                     </Label>
-                    <Input id="incident-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-2 h-auto p-1"/>
+                    <Input id="lighting-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-2 h-auto p-1"/>
                 </div>
                 {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={100} height={100} className="rounded-md object-cover" />}
-
             </div>
             <SheetFooter className="p-6 pt-4 border-t bg-background">
                 <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                <Button type="submit">{isEditMode ? 'Guardar Alterações' : 'Submeter Reporte'}</Button>
+                <Button type="submit">Reportar Falha</Button>
             </SheetFooter>
           </form>
         </Form>
