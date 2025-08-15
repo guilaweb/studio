@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -30,6 +31,22 @@ const getLastReportedTime = (lastReported?: string) => {
     if (!lastReported) return null;
     const time = formatDistanceToNow(new Date(lastReported), { addSuffix: true, locale: pt });
     return <p className="text-xs text-muted-foreground mt-1">Último reporte: {time}</p>
+}
+
+const IncidentTags = ({ description }: { description: string }) => {
+    const tags = description.match(/#\w+/g);
+    if (!tags || tags.length === 0) return null;
+
+    return (
+        <div className="mt-4">
+            <h3 className="font-semibold mb-2">Tags</h3>
+            <div className="flex flex-wrap gap-2">
+                {tags.map((tag, index) => (
+                    <Badge key={index} variant="outline">{tag}</Badge>
+                ))}
+            </div>
+        </div>
+    )
 }
 
 const ATMStatus = ({poi, onPoiStatusChange}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange']}) => {
@@ -171,6 +188,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 <h3 className="font-semibold mb-2">Localização</h3>
                 <p className="text-muted-foreground">{`Lat: ${poi.position.lat.toFixed(6)}, Lng: ${poi.position.lng.toFixed(6)}`}</p>
             </div>
+            {poi.type === 'incident' && <IncidentTags description={poi.description} />}
             {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} />}
             {poi.type === 'sanitation' && <SanitationStatus poi={poi} onPoiStatusChange={onPoiStatusChange} />}
             {poi.type === 'construction' && <ConstructionTimeline poi={poi} onAddUpdate={onAddUpdate} />}
