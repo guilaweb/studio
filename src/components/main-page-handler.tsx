@@ -47,12 +47,59 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   const [zoom, setZoom] = React.useState(5);
   const { allData, addPoint, updatePointStatus, addUpdateToPoint } = usePoints();
   const searchParams = useSearchParams();
+  const prevDataRef = React.useRef<PointOfInterest[]>([]);
 
   const [isIncidentSheetOpen, setIsIncidentSheetOpen] = React.useState(false);
 
 
   const { toast } = useToast();
   const { user, profile } = useAuth();
+  
+  // Real-time notifications effect
+  React.useEffect(() => {
+    const prevData = prevDataRef.current;
+    if (prevData.length === 0) {
+        prevDataRef.current = allData;
+        return;
+    }
+    
+    const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
+
+    // Agent/Admin Notifications for high-priority incidents
+    if (isManager) {
+        const prevIds = new Set(prevData.map(p => p.id));
+        const newHighPriorityIncidents = allData.filter(
+            p => !prevIds.has(p.id) && p.type === 'incident' && p.priority === 'high'
+        );
+        newHighPriorityIncidents.forEach(p => {
+            toast({
+                variant: 'destructive',
+                title: 'Alerta de Alta Prioridade!',
+                description: `Novo incidente reportado: "${p.title}"`,
+            });
+        });
+    }
+
+    // Citizen notifications for their own reports
+    if (user) {
+        allData.forEach(newPoi => {
+            if (newPoi.authorId !== user.uid) return;
+
+            const oldPoi = prevData.find(p => p.id === newPoi.id);
+            if (oldPoi && oldPoi.status !== newPoi.status && newPoi.status) {
+                toast({
+                    title: 'Atualização do seu Reporte',
+                    description: `O estado de "${newPoi.title}" foi atualizado para: ${newPoi.status}`,
+                });
+            }
+        });
+    }
+
+
+    prevDataRef.current = allData;
+
+  }, [allData, user, profile, toast]);
+
 
   React.useEffect(() => {
     const poiId = searchParams.get('poi');
