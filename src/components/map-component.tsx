@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
@@ -6,6 +7,7 @@ import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, Siren, Trash, Search, Droplet, Square } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
+import LandPlotClusterer from "./land-plot-clusterer";
 
 type MapComponentProps = {
   activeLayers: ActiveLayers;
@@ -61,7 +63,7 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
   }
 };
 
-const getPinStyle = (point: PointOfInterest) => {
+export const getPinStyle = (point: PointOfInterest) => {
     if (point.type === 'atm') {
         switch (point.status) {
             case 'available':
@@ -222,6 +224,9 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
 
   const hoveredPoi = React.useMemo(() => data.find(p => p.id === hoveredPoiId), [data, hoveredPoiId]);
   
+  const landPlots = React.useMemo(() => data.filter(p => p.type === 'land_plot'), [data]);
+  const otherPois = React.useMemo(() => data.filter(p => p.type !== 'land_plot'), [data]);
+  
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Map
@@ -233,7 +238,7 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
         styles={mapStyles}
         onCameraChanged={handleCameraChange}
       >
-        {data
+        {otherPois
           .filter((point) => activeLayers[point.type])
           .map((point) => (
             <PointOfInterestMarker 
@@ -244,6 +249,8 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                 onMouseOut={() => setHoveredPoiId(null)}
              />
           ))}
+
+        {activeLayers.land_plot && <LandPlotClusterer landPlots={landPlots} onMarkerClick={onMarkerClick} />}
           
         {hoveredPoi && (
             <InfoWindow
