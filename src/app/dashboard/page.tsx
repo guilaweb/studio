@@ -162,145 +162,146 @@ function DashboardPage() {
                 Painel Municipal
             </h1>
         </header>
-      <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-1 lg:grid-cols-3">
-        <div className="grid auto-rows-max items-start gap-4 lg:col-span-3">
-            <IntelligentSummary allData={allData} />
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardDescription>Novos Reportes (24h)</CardDescription>
-                        <CardTitle className="text-4xl">{kpis.newReportsCount}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-xs text-muted-foreground">
-                            Atualizado em tempo real
-                        </div>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="pb-2">
-                        <CardDescription>Tempo Médio de Resolução</CardDescription>
-                        <CardTitle className="text-3xl">{kpis.avgResolutionTime}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-xs text-muted-foreground">
-                            Baseado em reportes de saneamento
-                        </div>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="pb-2">
-                        <CardDescription>Taxa de Resolução</CardDescription>
-                        <CardTitle className="text-4xl">{kpis.resolutionRate}%</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-xs text-muted-foreground">
-                            Baseado em reportes de saneamento
-                        </div>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="pb-2">
-                        <CardDescription>Total de Reportes Ativos</CardDescription>
-                        <CardTitle className="text-4xl">{kpis.activeReports}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-xs text-muted-foreground">
-                            Exclui itens já resolvidos
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Visão Geral dos Reportes</CardTitle>
-                            <CardDescription>
-                            Número total por categoria.
-                            </CardDescription>
+      <main className="flex-1 space-y-4 p-4 sm:px-6 sm:py-6">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+             {/* Coluna Principal (Esquerda) */}
+             <div className="lg:col-span-2 space-y-4">
+                <IntelligentSummary allData={allData} />
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Novos Reportes (24h)</CardDescription>
+                            <CardTitle className="text-4xl">{kpis.newReportsCount}</CardTitle>
                         </CardHeader>
-                        <CardContent className="p-2">
-                            <ChartContainer config={chartConfig} className="h-[230px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={chartData} layout="vertical" margin={{ left: 10 }}>
-                                    <CartesianGrid horizontal={false} />
-                                    <YAxis
-                                        dataKey="name"
-                                        type="category"
-                                        tickLine={false}
-                                        tickMargin={10}
-                                        axisLine={false}
-                                        className="text-xs"
-                                        width={80}
-                                    />
-                                    <XAxis 
-                                        type="number"
-                                        hide
-                                    />
-                                    <ChartTooltip
-                                        cursor={false}
-                                        content={<ChartTooltipContent hideLabel />}
-                                    />
-                                    <Bar dataKey="total" layout="vertical" radius={5} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </ChartContainer>
+                        <CardContent>
+                            <div className="text-xs text-muted-foreground">
+                                Atualizado em tempo real
+                            </div>
                         </CardContent>
                     </Card>
-                    <IntelligentAlerts alerts={intelligentAlerts} onViewOnMap={handleViewOnMap} />
-                    <RecentActivityFeed data={allData} />
-                </div>
-                <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
-                    <Card className="lg:col-span-2">
-                        <Tabs value={mapView} onValueChange={(value) => setMapView(value as any)} className="w-full">
-                             <CardHeader className="flex flex-row items-center justify-between">
-                                <div>
-                                    <CardTitle>Mapa Operacional</CardTitle>
-                                    <CardDescription>
-                                        Alterne entre a visualização de pontos quentes e agrupamentos.
-                                    </CardDescription>
-                                </div>
-                                 <TabsList>
-                                    <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
-                                    <TabsTrigger value="cluster">Clusters</TabsTrigger>
-                                </TabsList>
-                            </CardHeader>
-                            <CardContent className="h-[500px] p-0">
-                                <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-                                    <Map
-                                        mapId={'dashboard-map'}
-                                        defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
-                                        defaultZoom={12}
-                                        gestureHandling={'greedy'}
-                                        disableDefaultUI={true}
-                                        styles={mapStyles}
-                                    >
-                                        {mapView === 'heatmap' && <HeatmapLayer data={mapData} />}
-                                        {mapView === 'cluster' && <DashboardClusterer data={mapData} />}
-                                    </Map>
-                                </APIProvider>
-                            </CardContent>
-                        </Tabs>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Tempo Médio de Resolução</CardDescription>
+                            <CardTitle className="text-3xl">{kpis.avgResolutionTime}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-xs text-muted-foreground">
+                                Baseado em reportes de saneamento
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Taxa de Resolução</CardDescription>
+                            <CardTitle className="text-4xl">{kpis.resolutionRate}%</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-xs text-muted-foreground">
+                                Baseado em reportes de saneamento
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardDescription>Total de Reportes Ativos</CardDescription>
+                            <CardTitle className="text-4xl">{kpis.activeReports}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-xs text-muted-foreground">
+                                Exclui itens já resolvidos
+                            </div>
+                        </CardContent>
                     </Card>
                 </div>
-            </div>
-             <Card>
-                <CardHeader>
-                    <CardTitle>Todos os Reportes</CardTitle>
-                    <CardDescription>
-                        Veja, filtre e gira todos os pontos de interesse reportados pelos cidadãos.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <DataTable columns={columns} data={allData} onViewOnMap={handleViewOnMap} />
-                </CardContent>
-            </Card>
+                 <Card>
+                    <Tabs value={mapView} onValueChange={(value) => setMapView(value as any)} className="w-full">
+                            <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle>Mapa Operacional</CardTitle>
+                                <CardDescription>
+                                    Alterne entre a visualização de pontos quentes e agrupamentos.
+                                </CardDescription>
+                            </div>
+                                <TabsList>
+                                <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+                                <TabsTrigger value="cluster">Clusters</TabsTrigger>
+                            </TabsList>
+                        </CardHeader>
+                        <CardContent className="h-[500px] p-0">
+                            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+                                <Map
+                                    mapId={'dashboard-map'}
+                                    defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
+                                    defaultZoom={12}
+                                    gestureHandling={'greedy'}
+                                    disableDefaultUI={true}
+                                    styles={mapStyles}
+                                >
+                                    {mapView === 'heatmap' && <HeatmapLayer data={mapData} />}
+                                    {mapView === 'cluster' && <DashboardClusterer data={mapData} />}
+                                </Map>
+                            </APIProvider>
+                        </CardContent>
+                    </Tabs>
+                </Card>
+             </div>
+             {/* Coluna Lateral (Direita) */}
+             <div className="lg:col-span-1 space-y-4">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Visão Geral dos Reportes</CardTitle>
+                        <CardDescription>
+                        Número total por categoria.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-2">
+                        <ChartContainer config={chartConfig} className="h-[230px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData} layout="vertical" margin={{ left: 10 }}>
+                                <CartesianGrid horizontal={false} />
+                                <YAxis
+                                    dataKey="name"
+                                    type="category"
+                                    tickLine={false}
+                                    tickMargin={10}
+                                    axisLine={false}
+                                    className="text-xs"
+                                    width={80}
+                                />
+                                <XAxis 
+                                    type="number"
+                                    hide
+                                />
+                                <ChartTooltip
+                                    cursor={false}
+                                    content={<ChartTooltipContent hideLabel />}
+                                />
+                                <Bar dataKey="total" layout="vertical" radius={5} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
+                <IntelligentAlerts alerts={intelligentAlerts} onViewOnMap={handleViewOnMap} />
+                <RecentActivityFeed data={allData} />
+             </div>
         </div>
-
+         <Card>
+            <CardHeader>
+                <CardTitle>Todos os Reportes</CardTitle>
+                <CardDescription>
+                    Veja, filtre e gira todos os pontos de interesse reportados pelos cidadãos.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <DataTable columns={columns} data={allData} onViewOnMap={handleViewOnMap} />
+            </CardContent>
+        </Card>
       </main>
     </div>
   );
 }
 
 export default withAuth(DashboardPage, ['Agente Municipal', 'Administrador']);
+
+    
