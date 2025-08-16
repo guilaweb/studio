@@ -25,11 +25,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { PointOfInterest, PointOfInterestStatus, PointOfInterestUsageType } from "@/lib/data";
 import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { Trash2 } from "lucide-react";
+import { Camera, Trash2 } from "lucide-react";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "./ui/separator";
+import Image from "next/image";
+import { Label } from "./ui/label";
 
 
 // Component to handle the drawing functionality on the map
@@ -121,8 +123,8 @@ const formSchema = z.object({
 type LandPlotReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onLandPlotSubmit: (data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'>) => void;
-  onLandPlotEdit: (id: string, data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'>) => void;
+  onLandPlotSubmit: (data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'> & { photoDataUri?: string }) => void;
+  onLandPlotEdit: (id: string, data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
   poiToEdit: PointOfInterest | null;
 };
@@ -141,6 +143,8 @@ export default function LandPlotReport({
   const [mapCenter, setMapCenter] = useState(initialCenter);
   const [mapZoom, setMapZoom] = useState(15);
   const [drawnPolygon, setDrawnPolygon] = useState<google.maps.Polygon | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const { toast } = useToast();
   
@@ -171,6 +175,8 @@ export default function LandPlotReport({
         drawnPolygon.setMap(null);
     }
     setDrawnPolygon(null);
+    setPhotoFile(null);
+    setPhotoPreview(null);
   }
 
   useEffect(() => {
@@ -190,6 +196,13 @@ export default function LandPlotReport({
             });
             setMapCenter(poiToEdit.position);
             setMapZoom(16);
+
+            const originalUpdate = poiToEdit.updates?.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())[0];
+            if (originalUpdate?.photoDataUri) {
+                setPhotoPreview(originalUpdate.photoDataUri);
+            } else {
+                setPhotoPreview(null);
+            }
         } else {
             const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
             const center = isDefaultLocation ? defaultCenter : initialCenter;
@@ -200,6 +213,18 @@ export default function LandPlotReport({
         }
     }
   }, [poiToEdit, open, form, initialCenter]);
+  
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     if (!drawnPolygon) {
@@ -213,17 +238,31 @@ export default function LandPlotReport({
     
     const polygonPath = drawnPolygon.getPath().getArray().map(p => p.toJSON());
 
-    const submissionData = {
-        ...values,
-        status: values.status as PointOfInterestStatus,
-        usageType: values.usageType as PointOfInterestUsageType,
-        polygon: polygonPath,
-    };
+    const handleSubmission = (photoDataUri?: string) => {
+        const submissionData = {
+            ...values,
+            status: values.status as PointOfInterestStatus,
+            usageType: values.usageType as PointOfInterestUsageType,
+            polygon: polygonPath,
+            photoDataUri,
+        };
 
-    if (isEditMode && poiToEdit) {
-        onLandPlotEdit(poiToEdit.id, submissionData);
+        if (isEditMode && poiToEdit) {
+            onLandPlotEdit(poiToEdit.id, submissionData);
+        } else {
+            onLandPlotSubmit(submissionData);
+        }
+    }
+
+    if (photoFile) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            handleSubmission(reader.result as string);
+        };
+        reader.readAsDataURL(photoFile);
     } else {
-        onLandPlotSubmit(submissionData);
+        // For edit mode, if there was a photo and it wasn't changed, pass it along.
+        handleSubmission(photoPreview && isEditMode ? photoPreview : undefined);
     }
   }
 
@@ -385,6 +424,19 @@ export default function LandPlotReport({
                         </FormItem>
                     )}
                 />
+
+                <Separator />
+                
+                <div>
+                    <Label htmlFor="land-plot-photo" className="text-sm font-medium">
+                        <div className="flex items-center gap-2 cursor-pointer">
+                            <Camera className="h-4 w-4" />
+                            Fotografia do Lote (Opcional)
+                        </div>
+                    </Label>
+                    <Input id="land-plot-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-2 h-auto p-1"/>
+                </div>
+                {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={100} height={100} className="rounded-md object-cover" />}
             </div>
             <SheetFooter className="p-6 pt-4 border-t bg-background">
                 <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
@@ -396,3 +448,5 @@ export default function LandPlotReport({
     </Sheet>
   );
 }
+
+    

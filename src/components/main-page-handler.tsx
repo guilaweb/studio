@@ -542,7 +542,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   };
 
   const handleAddNewLandPlot = async (
-    data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'>
+    data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'> & { photoDataUri?: string }
   ) => {
     if (!user || !profile) {
         toast({
@@ -579,6 +579,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           authorId: user.uid,
           authorDisplayName: profile.displayName,
           timestamp: timestamp,
+          photoDataUri: data.photoDataUri,
       }]
     };
     
@@ -592,7 +593,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
   const handleEditLandPlot = async (
     poiId: string,
-    data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'>
+    data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'> & { photoDataUri?: string }
   ) => {
     handleSheetOpenChange(false);
 
@@ -957,3 +958,5 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       </SidebarProvider>
   );
 }
+
+    
