@@ -27,6 +27,8 @@ import IntelligentSummary from "@/components/dashboard/intelligent-summary";
 import { withAuth } from "@/hooks/use-auth";
 import { formatDistanceStrict } from "date-fns";
 import { pt } from "date-fns/locale";
+import DashboardClusterer from "@/components/dashboard/dashboard-clusterer";
+import { Map } from "@vis.gl/react-google-maps";
 
 
 const chartConfig = {
@@ -50,6 +52,28 @@ const chartConfig = {
     color: "hsl(var(--chart-2))",
   },
 } satisfies ChartConfig;
+
+const mapStyles: google.maps.MapTypeStyle[] = [
+    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
+    { featureType: "administrative.land_parcel", stylers: [{ visibility: "off" }] },
+    { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
+    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
+    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+    { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#e5e5e5" }] },
+    { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+    { featureType: "road.arterial", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#dadada" }] },
+    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+    { featureType: "transit.line", elementType: "geometry", stylers: [{ color: "#e5e5e5" }] },
+    { featureType: "transit.station", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+  ];
 
 const getKPIs = (data: PointOfInterest[]) => {
     const now = new Date();
@@ -122,7 +146,7 @@ function DashboardPage() {
     router.push(`/?poi=${poiId}`);
   };
 
-  const heatmapData = React.useMemo(() => allData.map(p => p.position), [allData]);
+  const mapData = React.useMemo(() => allData.map(p => p.position), [allData]);
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -187,23 +211,8 @@ function DashboardPage() {
                 </Card>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Card className="lg:col-span-2">
-                     <CardHeader>
-                        <CardTitle>Mapa Operacional (Pontos Quentes)</CardTitle>
-                        <CardDescription>
-                            Visualização da densidade de reportes na cidade.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="h-[400px] p-0">
-                        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-                           <DashboardMap data={heatmapData} />
-                        </APIProvider>
-                    </CardContent>
-                </Card>
-
-                <div className="grid auto-rows-max items-start gap-4">
-                    <IntelligentAlerts alerts={intelligentAlerts} onViewOnMap={handleViewOnMap} />
-                    <Card>
+                <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
+                     <Card>
                         <CardHeader>
                             <CardTitle>Visão Geral dos Reportes</CardTitle>
                             <CardDescription>
@@ -238,7 +247,45 @@ function DashboardPage() {
                             </ChartContainer>
                         </CardContent>
                     </Card>
+                    <IntelligentAlerts alerts={intelligentAlerts} onViewOnMap={handleViewOnMap} />
                     <RecentActivityFeed data={allData} />
+                </div>
+                <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
+                    <Card className="lg:col-span-2">
+                        <CardHeader>
+                            <CardTitle>Mapa Operacional (Pontos Quentes)</CardTitle>
+                            <CardDescription>
+                                Visualização da densidade de reportes na cidade.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="h-[400px] p-0">
+                            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+                            <DashboardMap data={mapData} />
+                            </APIProvider>
+                        </CardContent>
+                    </Card>
+                     <Card className="lg:col-span-2">
+                        <CardHeader>
+                            <CardTitle>Mapa de Agrupamentos (Clusters)</CardTitle>
+                            <CardDescription>
+                                Exploração interativa dos agrupamentos de reportes.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="h-[400px] p-0">
+                            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+                                 <Map
+                                    mapId={'dashboard-cluster-map'}
+                                    defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
+                                    defaultZoom={12}
+                                    gestureHandling={'greedy'}
+                                    disableDefaultUI={true}
+                                    styles={mapStyles}
+                                >
+                                    <DashboardClusterer data={mapData} />
+                                </Map>
+                            </APIProvider>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
              <Card>
@@ -260,3 +307,5 @@ function DashboardPage() {
 }
 
 export default withAuth(DashboardPage, ['Agente Municipal', 'Administrador']);
+
+    
