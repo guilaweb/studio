@@ -3,63 +3,66 @@
 
 import React, { useEffect, useRef } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
-import MarkerClusterer from "@googlemaps/markerclustererplus";
+import MarkerClusterer, { MarkerClustererOptions } from "@googlemaps/markerclustererplus";
 import type { PointOfInterest } from "@/lib/data";
+import { getPinStyle } from "../map-component"; // We need a way to style the markers
 
 interface DashboardClustererProps {
-  data: google.maps.LatLngLiteral[];
+  points: PointOfInterest[];
 }
 
-const DashboardClusterer: React.FC<DashboardClustererProps> = ({ data }) => {
+const DashboardClusterer: React.FC<DashboardClustererProps> = ({ points }) => {
     const map = useMap();
     const markersRef = useRef<google.maps.Marker[]>([]);
     const clustererRef = useRef<MarkerClusterer | null>(null);
 
-    // This effect is for initializing and cleaning up the clusterer
     useEffect(() => {
         if (!map) return;
 
-        // Initialize clusterer
-        if (!clustererRef.current) {
-            // Create new markers
-            const newMarkers = data.map(pos => 
-                new google.maps.Marker({ position: pos })
-            );
-            markersRef.current = newMarkers;
-
-            // Pass the map instance and markers to the constructor
-            clustererRef.current = new MarkerClusterer(map, newMarkers, {
-                imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-            });
+        // Clean up previous markers and clusterer
+        if (clustererRef.current) {
+            clustererRef.current.clearMarkers();
         }
+        markersRef.current.forEach(marker => marker.setMap(null));
+        markersRef.current = [];
+
+        // Create new markers
+        const newMarkers = points.map(point => {
+             // We can't use AdvancedMarker here, so we create a simple icon
+             const pinStyle = getPinStyle(point);
+             const icon = {
+                path: google.maps.SymbolPath.CIRCLE,
+                fillColor: pinStyle.background || '#4285F4',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 1.5,
+                scale: 8,
+            };
+            return new google.maps.Marker({ 
+                position: point.position,
+                icon: icon,
+                title: point.title
+            });
+        });
+
+        markersRef.current = newMarkers;
+
+        const clustererOptions: MarkerClustererOptions = {
+            imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+        };
         
-        // Cleanup on unmount
+        clustererRef.current = new MarkerClusterer(map, newMarkers, clustererOptions);
+
         return () => {
             if (clustererRef.current) {
                 clustererRef.current.clearMarkers();
             }
         };
-    }, [map, data]); // Rerun if map or data changes
-
-    // This effect is for updating markers when data changes after initial load
-    useEffect(() => {
-        if (!map || !clustererRef.current) return;
-
-        // Clear existing markers
-        clustererRef.current.clearMarkers();
-        
-        // Create new markers from the new data
-        const newMarkers = data.map(pos => 
-            new google.maps.Marker({ position: pos })
-        );
-        markersRef.current = newMarkers;
-
-        // Add new markers to the clusterer
-        clustererRef.current.addMarkers(newMarkers);
-        
-    }, [data, map]);
+    }, [map, points]);
 
     return null;
 };
 
 export default DashboardClusterer;
+
+    

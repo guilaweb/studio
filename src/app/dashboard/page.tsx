@@ -147,7 +147,9 @@ function DashboardPage() {
     router.push(`/?poi=${poiId}`);
   };
 
-  const mapData = React.useMemo(() => allData.map(p => p.position), [allData]);
+  const mapData = React.useMemo(() => {
+    return allData.filter(p => p.type !== 'land_plot').map(p => p.position)
+  }, [allData]);
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -238,7 +240,7 @@ function DashboardPage() {
                                     styles={mapStyles}
                                 >
                                     {mapView === 'heatmap' && <HeatmapLayer data={mapData} />}
-                                    {mapView === 'cluster' && <DashboardClusterer data={mapData} />}
+                                    {mapView === 'cluster' && <DashboardClusterer points={allData.filter(p => p.type !== 'land_plot')} />}
                                 </Map>
                             </APIProvider>
                         </CardContent>
