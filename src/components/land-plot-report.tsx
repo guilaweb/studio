@@ -163,6 +163,9 @@ export default function LandPlotReport({
       plotNumber: "",
       registrationCode: "",
       zoningInfo: "",
+      usageType: undefined,
+      maxHeight: undefined,
+      buildingRatio: undefined,
     });
     if (drawnPolygon) {
         drawnPolygon.setMap(null);
@@ -182,8 +185,8 @@ export default function LandPlotReport({
                 registrationCode: poiToEdit.registrationCode,
                 zoningInfo: poiToEdit.zoningInfo,
                 usageType: poiToEdit.usageType,
-                maxHeight: poiToEdit.maxHeight,
-                buildingRatio: poiToEdit.buildingRatio,
+                maxHeight: poiToEdit.maxHeight ?? undefined,
+                buildingRatio: poiToEdit.buildingRatio ?? undefined,
             });
             setMapCenter(poiToEdit.position);
             setMapZoom(16);
@@ -288,7 +291,7 @@ export default function LandPlotReport({
                         <FormItem>
                         <FormLabel>Nº do Lote (Opcional)</FormLabel>
                         <FormControl>
-                            <Input placeholder="Ex: Lote 24-A" {...field} />
+                            <Input placeholder="Ex: Lote 24-A" {...field} value={field.value ?? ''}/>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -301,7 +304,7 @@ export default function LandPlotReport({
                         <FormItem>
                         <FormLabel>Código de Registo Predial (Opcional)</FormLabel>
                         <FormControl>
-                            <Input placeholder="Ex: 12345/IGCA/2024" {...field} />
+                            <Input placeholder="Ex: 12345/IGCA/2024" {...field} value={field.value ?? ''}/>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -343,7 +346,7 @@ export default function LandPlotReport({
                             <FormItem>
                             <FormLabel>Altura Máx. (Pisos)</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="Ex: 4" {...field} />
+                                <Input type="number" placeholder="Ex: 4" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -356,7 +359,7 @@ export default function LandPlotReport({
                             <FormItem>
                             <FormLabel>Índice Construção (%)</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="Ex: 60" {...field} />
+                                <Input type="number" placeholder="Ex: 60" {...field} value={field.value ?? ''}/>
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -375,6 +378,7 @@ export default function LandPlotReport({
                             <Textarea
                                 placeholder="Descreva outras restrições ou observações relevantes..."
                                 {...field}
+                                value={field.value ?? ''}
                             />
                         </FormControl>
                         <FormMessage />
