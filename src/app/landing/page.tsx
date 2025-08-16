@@ -132,6 +132,7 @@ export default function LandingPage() {
             <div>
                 <p className="font-semibold">Dianguila Empreendimentos, (SU), Lda.</p>
                 <p>NIF: 5001706802 | Matrícula: 39110-23/231102</p>
+                <p>Acto de Constituição: Insc.1 Ap.419/231102</p>
             </div>
         </div>
       </footer>
