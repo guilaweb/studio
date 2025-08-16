@@ -129,8 +129,10 @@ export const columns: ColumnDef<PointOfInterest>[] = [
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => alert(`A ver detalhes do projeto: ${project.title}`)}>
-                        Ver Detalhes do Projeto
+                    <DropdownMenuItem asChild>
+                        <Link href={`/admin/projetos/${project.id}`}>
+                            Ver Detalhes do Projeto
+                        </Link>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

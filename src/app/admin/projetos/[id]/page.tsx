@@ -1,0 +1,249 @@
+
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { withAuth, useAuth } from "@/hooks/use-auth";
+import { usePoints } from "@/hooks/use-points";
+import { useUserProfile } from "@/services/user-service";
+import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/data";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { formatDistanceToNow } from "date-fns";
+import { pt } from "date-fns/locale";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+
+const getStatusIcon = (status: PointOfInterest['status']) => {
+    switch (status) {
+        case 'approved':
+            return <Check className="h-4 w-4 text-green-500" />;
+        case 'rejected':
+            return <X className="h-4 w-4 text-red-500" />;
+        case 'under_review':
+        case 'submitted':
+            return <Circle className="h-4 w-4 text-yellow-500 animate-pulse" />;
+        default:
+            return <MessageSquare className="h-4 w-4 text-muted-foreground" />;
+    }
+}
+
+const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
+     if (!updates || updates.length === 0) {
+        return <p className="text-sm text-muted-foreground text-center py-8">Sem atualizações ou comunicações registadas.</p>
+    }
+    
+    // Ensure updates are sorted chronologically from oldest to newest
+    const sortedUpdates = [...updates].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+    return (
+        <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:h-full before:w-0.5 before:bg-border before:-translate-x-px">
+            {sortedUpdates.map((update, index) => (
+                <div key={update.id} className="relative flex items-start gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full border bg-background z-10">
+                        {getStatusIcon(index === 0 ? 'submitted' : 'under_review')}
+                    </div>
+                    <div className="flex-1 pt-1">
+                        <p className="font-semibold text-sm">{update.text}</p>
+                        <p className="text-xs text-muted-foreground">
+                            Por {update.authorDisplayName || 'Sistema'} • {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })}
+                        </p>
+                         {update.photoDataUri && (
+                            <div className="mt-2">
+                                <a href={update.photoDataUri} target="_blank" rel="noopener noreferrer">
+                                    <img src={update.photoDataUri} alt="Documento ou foto anexa" className="rounded-md object-cover max-h-40 border" />
+                                </a>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ))}
+        </div>
+    )
+}
+
+function AdminProjectDetailPage({ params }: { params: { id: string } }) {
+    const { id: projectId } = params;
+    const { profile: adminProfile } = useAuth();
+    const { allData, loading: loadingPoints, addUpdateToPoint } = usePoints();
+    const [project, setProject] = React.useState<PointOfInterest | null>(null);
+    const { user: applicant, loading: loadingApplicant } = useUserProfile(project?.authorId || null);
+    const [updateText, setUpdateText] = React.useState("");
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const {toast} = useToast();
+
+    React.useEffect(() => {
+        if (allData.length > 0) {
+            const foundProject = allData.find(p => p.id === projectId);
+            setProject(foundProject || null);
+        }
+    }, [allData, projectId]);
+
+    const handleAddUpdate = async () => {
+        if (!project || !updateText.trim() || !adminProfile) return;
+
+        setIsSubmitting(true);
+        try {
+            const newUpdate: Omit<PointOfInterestUpdate, 'id'> = {
+                text: updateText,
+                authorId: adminProfile.uid,
+                authorDisplayName: adminProfile.displayName,
+                timestamp: new Date().toISOString(),
+            };
+            await addUpdateToPoint(project.id, newUpdate);
+            setUpdateText("");
+            toast({
+                title: "Comunicação Adicionada",
+                description: "A sua mensagem foi adicionada à linha do tempo do projeto."
+            });
+        } catch (error) {
+            console.error("Failed to add update", error);
+             toast({
+                variant: "destructive",
+                title: "Erro",
+                description: "Não foi possível adicionar a sua comunicação."
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+
+    if (loadingPoints || loadingApplicant) {
+        return <div className="flex min-h-screen items-center justify-center">A carregar detalhes do projeto...</div>;
+    }
+
+    if (!project) {
+        return <div className="flex min-h-screen items-center justify-center">Projeto não encontrado.</div>;
+    }
+    
+    return (
+        <div className="flex min-h-screen w-full flex-col bg-muted/40">
+            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+                <Button size="icon" variant="outline" asChild>
+                    <Link href="/admin/projetos">
+                        <ArrowLeft className="h-5 w-5" />
+                        <span className="sr-only">Voltar</span>
+                    </Link>
+                </Button>
+                <div className="flex-1">
+                    <h1 className="text-xl font-semibold tracking-tight">{project.title}</h1>
+                    <p className="text-sm text-muted-foreground">ID do Processo: {project.id}</p>
+                </div>
+            </header>
+            <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
+                 <div className="grid auto-rows-max items-start gap-4 md:col-span-2 lg:col-span-3">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Linha do Tempo, Comunicações e Pareceres</CardTitle>
+                            <CardDescription>
+                                Histórico completo de todas as interações e fases do processo de licenciamento.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Timeline updates={project.updates || []} />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Adicionar Comunicação ou Parecer</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Textarea 
+                                placeholder="Escreva aqui a sua comunicação, parecer ou despacho..." 
+                                value={updateText}
+                                onChange={(e) => setUpdateText(e.target.value)}
+                            />
+                            <Button onClick={handleAddUpdate} disabled={isSubmitting || !updateText.trim()}>
+                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Adicionar à Linha do Tempo
+                            </Button>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Documentos do Projeto</CardTitle>
+                             <CardDescription>
+                                Ficheiros submetidos pelo requerente.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center gap-4 rounded-lg border p-4">
+                                <FileText className="h-8 w-8 text-muted-foreground" />
+                                <div>
+                                    <p className="font-semibold">Plantas_e_Memoria.pdf</p>
+                                    <p className="text-sm text-muted-foreground">Submetido em {new Date(project.lastReported!).toLocaleDateString('pt-PT')}</p>
+                                </div>
+                                <Button variant="outline" size="sm" className="ml-auto">
+                                    Download
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                 </div>
+                 <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Estado do Processo</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Estado Atual</span>
+                                <Badge variant={project.status === 'approved' ? 'default' : (project.status === 'rejected' ? 'destructive' : 'secondary')} className={project.status === 'approved' ? 'bg-green-600' : ''}>
+                                    {project.status ? statusLabelMap[project.status] : "N/A"}
+                                </Badge>
+                             </div>
+                             <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Data Submissão</span>
+                                <span>{new Date(project.lastReported!).toLocaleDateString('pt-PT')}</span>
+                             </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Detalhes do Projeto</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2 text-sm">
+                            <div className="flex items-start gap-2">
+                                <Building className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                <p><span className="font-semibold">Tipo:</span> {project.projectType || "Não especificado"}</p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                                <Briefcase className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                <p><span className="font-semibold">Arquiteto:</span> {project.architectName || "Não especificado"}</p>
+                            </div>
+                            <Separator className="my-4"/>
+                            <p className="text-muted-foreground whitespace-pre-wrap">{project.description}</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Requerente</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                             {applicant && (
+                                <div className="flex items-center gap-4">
+                                    <Avatar>
+                                        <AvatarImage src={applicant.photoURL} />
+                                        <AvatarFallback>{applicant.displayName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-semibold">{applicant.displayName}</p>
+                                        <p className="text-sm text-muted-foreground">{applicant.email}</p>
+                                        <Link href={`/public-profile/${applicant.uid}`} className="text-xs text-primary hover:underline">Ver Perfil Público</Link>
+                                    </div>
+                                </div>
+                             )}
+                        </CardContent>
+                    </Card>
+                 </div>
+            </main>
+        </div>
+    );
+}
+
+export default withAuth(AdminProjectDetailPage, ['Agente Municipal', 'Administrador']);
