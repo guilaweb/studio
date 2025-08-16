@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
-import { MarkerClusterer } from "@googlemaps/markerclustererplus";
+import MarkerClusterer from "@googlemaps/markerclustererplus";
 import type { PointOfInterest } from "@/lib/data";
 
 interface LandPlotClustererProps {
@@ -76,5 +76,6 @@ const LandPlotClusterer: React.FC<LandPlotClustererProps> = ({ landPlots, onMark
 };
 
 export default LandPlotClusterer;
+
 
 
