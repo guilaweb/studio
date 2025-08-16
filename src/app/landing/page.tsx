@@ -4,9 +4,9 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/icons';
-import { Building, FileText, ArrowRight, UserCheck, BarChart3, Users, CheckCircle } from 'lucide-react';
+import { Building, FileText, ArrowRight, UserCheck, BarChart3, Users, CheckCircle, Map, Layers, Siren, Briefcase, FileCheck, LayoutDashboard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { APIProvider, Map } from '@vis.gl/react-google-maps';
+import { APIProvider, Map as GoogleMap } from '@vis.gl/react-google-maps';
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
@@ -95,7 +95,7 @@ export default function LandingPage() {
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
         <div className="relative flex flex-col min-h-screen bg-background text-foreground">
             <div className="fixed inset-0 z-0 opacity-40">
-                 <Map
+                 <GoogleMap
                     defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
                     defaultZoom={13}
                     gestureHandling={'none'}
@@ -213,6 +213,74 @@ export default function LandingPage() {
                         </div>
                     </section>
 
+                    <section id="features" className="w-full py-12 md:py-24 lg:py-32">
+                        <div className="container px-4 md:px-6">
+                            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+                                <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Funcionalidades Principais</div>
+                                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Ferramentas para uma Cidade Inteligente</h2>
+                                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                                Explore as ferramentas que colocamos à sua disposição para participar, fiscalizar e gerir a cidade.
+                                </p>
+                            </div>
+                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center gap-4">
+                                        <div className="bg-primary/10 p-3 rounded-full"><Map className="w-6 h-6 text-primary" /></div>
+                                        <CardTitle>Mapa Interativo</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">Visualize todos os dados da cidade num mapa dinâmico e fácil de usar, desde incidentes a obras.</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center gap-4">
+                                        <div className="bg-primary/10 p-3 rounded-full"><Layers className="w-6 h-6 text-primary" /></div>
+                                        <CardTitle>Gestão de Camadas</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">Sobreponha diferentes camadas de informação como redes de água, saneamento e zonas de risco.</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center gap-4">
+                                        <div className="bg-primary/10 p-3 rounded-full"><Siren className="w-6 h-6 text-primary" /></div>
+                                        <CardTitle>Reporte de Incidentes</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">Comunique problemas como buracos, falhas de iluminação ou acidentes de forma rápida e georreferenciada.</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center gap-4">
+                                        <div className="bg-primary/10 p-3 rounded-full"><Briefcase className="w-6 h-6 text-primary" /></div>
+                                        <CardTitle>Acompanhamento de Obras</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">Consulte o progresso de obras públicas e privadas, e deixe o seu feedback para fiscalização.</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center gap-4">
+                                        <div className="bg-primary/10 p-3 rounded-full"><FileCheck className="w-6 h-6 text-primary" /></div>
+                                        <CardTitle>Licenciamento Digital</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">Submeta e acompanhe o seu processo de licenciamento de construção de forma 100% online.</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center gap-4">
+                                        <div className="bg-primary/10 p-3 rounded-full"><LayoutDashboard className="w-6 h-6 text-primary" /></div>
+                                        <CardTitle>Painel de Gestão</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">Dashboards com IA para o município analisar dados, detetar tendências e otimizar operações.</p>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
+                    </section>
+
                     <section id="how-it-works" className="w-full py-12 md:py-24 lg:py-32">
                     <div className="container px-4 md:px-6">
                         <Card>
@@ -297,3 +365,5 @@ export default function LandingPage() {
     </APIProvider>
   )
 }
+
+    
