@@ -137,8 +137,9 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         
         const { photoDataUri, ...otherUpdates } = updates as any;
 
-        const dataToUpdate: Partial<PointOfInterest> & { updates?: PointOfInterestUpdate[] } = {
-            ...otherUpdates
+        const dataToUpdate: Partial<PointOfInterest> & { updates?: PointOfInterestUpdate[], status?: PointOfInterest['status'] } = {
+            ...otherUpdates,
+            status: (updates as any).status, // Ensure status is explicitly included
         };
 
         // Handle photo update specifically for incident/atm types
