@@ -729,10 +729,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         <div className="flex h-screen w-full">
           <Sidebar collapsible="icon" className="border-r">
             <SidebarHeader className="h-16 items-center">
-              <Link href="/" className="group/logo flex items-center gap-2" aria-label="Cidadão Online">
+              <Link href="/" className="group/logo flex items-center gap-2" aria-label="MUNITU">
                 <Logo className="size-8 shrink-0 text-primary group-data-[collapsible=icon]:size-6" />
                 <div className="text-lg font-semibold group-data-[collapsible=icon]:hidden">
-                  Cidadão Online
+                  MUNITU
                 </div>
               </Link>
             </SidebarHeader>

@@ -161,7 +161,7 @@ function DashboardPage() {
                 </Link>
             </Button>
             <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                Painel Municipal
+                Painel Municipal - MUNITU
             </h1>
         </header>
       <main className="flex-1 space-y-4 p-4 sm:px-6 sm:py-6">

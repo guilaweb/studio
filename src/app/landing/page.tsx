@@ -110,7 +110,7 @@ export default function LandingPage() {
                 <header className="px-4 lg:px-6 h-16 flex items-center border-b sticky top-0 bg-background/80 backdrop-blur-sm z-20">
                     <Link href="#" className="flex items-center justify-center gap-2" prefetch={false}>
                     <Logo className="h-6 w-6 text-primary" />
-                    <span className="font-semibold text-lg">Cidadão Online</span>
+                    <span className="font-semibold text-lg">MUNITU</span>
                     </Link>
                     <nav className="ml-auto flex gap-4 sm:gap-6">
                     <Button variant="ghost" asChild>
@@ -133,10 +133,10 @@ export default function LandingPage() {
                                 <CardContent className="p-10 flex flex-col justify-center space-y-4 text-center">
                                     <div className="space-y-4">
                                         <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
-                                            A sua ponte direta com a cidade.
+                                            MUNITU: Você faz a cidade.
                                         </h1>
                                         <p className="max-w-[600px] mx-auto text-muted-foreground md:text-xl">
-                                            Participe, reporte, consulte e fiscalize. A plataforma Cidadão Online capacita-o a ter um papel ativo na melhoria da sua comunidade, de forma transparente e eficiente.
+                                            MUNITU não é apenas uma ferramenta, é uma parceria. O espaço digital onde a gestão da cidade é uma responsabilidade partilhada e uma co-criação.
                                         </p>
                                     </div>
                                     <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
@@ -347,7 +347,7 @@ export default function LandingPage() {
                                 <CardContent className="p-10">
                                     <Accordion type="single" collapsible className="w-full">
                                         <AccordionItem value="item-1">
-                                            <AccordionTrigger>Quem pode usar a plataforma Cidadão Online?</AccordionTrigger>
+                                            <AccordionTrigger>Quem pode usar a plataforma MUNITU?</AccordionTrigger>
                                             <AccordionContent>
                                                 A plataforma é para todos! Qualquer cidadão pode registar-se gratuitamente para reportar incidentes, acompanhar o estado da cidade, fiscalizar obras e solicitar licenças. Os funcionários e gestores municipais utilizam a plataforma para gerir todos os processos, responder às solicitações e comunicar com a comunidade.
                                             </AccordionContent>
@@ -404,7 +404,7 @@ export default function LandingPage() {
                 </main>
                 <footer className="flex flex-col gap-4 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t bg-background">
                     <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-muted-foreground">
-                        <p>&copy; 2024 Cidadão Online. Todos os direitos reservados.</p>
+                        <p>&copy; 2024 MUNITU. Todos os direitos reservados.</p>
                         <Link href="/docs" className="underline hover:text-primary">Documentação Técnica</Link>
                     </div>
                     <div className="sm:ml-auto flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground text-center sm:text-right">

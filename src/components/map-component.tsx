@@ -233,7 +233,7 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Map
-        mapId="cidadao-online-map"
+        mapId="jango-digital-map"
         center={center}
         zoom={zoom}
         gestureHandling={"greedy"}
