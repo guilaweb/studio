@@ -18,6 +18,7 @@ import { pt } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { generateOfficialResponse } from "@/ai/flows/generate-official-response-flow";
 
 const getStatusIcon = (status: PointOfInterest['status']) => {
     switch (status) {
@@ -70,12 +71,13 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
 function AdminProjectDetailPage() {
     const params = useParams();
     const projectId = params.id as string;
-    const { profile: adminProfile } = useAuth();
+    const { profile: adminProfile, user } = useAuth();
     const { allData, loading: loadingPoints, addUpdateToPoint } = usePoints();
     const [project, setProject] = React.useState<PointOfInterest | null>(null);
     const { user: applicant, loading: loadingApplicant } = useUserProfile(project?.authorId || null);
     const [updateText, setUpdateText] = React.useState("");
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [isGenerating, setIsGenerating] = React.useState(false);
     const {toast} = useToast();
 
     React.useEffect(() => {
@@ -111,6 +113,40 @@ function AdminProjectDetailPage() {
             });
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleGenerateResponse = async () => {
+        if (!project) return;
+        const lastCitizenUpdate = [...(project.updates || [])]
+            .sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .find(u => u.authorId !== user?.uid);
+        
+        if (!lastCitizenUpdate) {
+            toast({
+                variant: "destructive",
+                title: "Não há contribuições para responder",
+                description: "A IA só pode gerar respostas para contribuições de cidadãos.",
+            });
+            return;
+        }
+
+        setIsGenerating(true);
+        try {
+            const result = await generateOfficialResponse({
+                citizenContribution: lastCitizenUpdate.text,
+                projectName: project.title,
+            });
+            setUpdateText(result.response);
+        } catch (error) {
+            console.error("Error generating AI response:", error);
+            toast({
+                variant: "destructive",
+                title: "Erro ao gerar resposta",
+                description: "Não foi possível gerar uma resposta com IA. Tente novamente.",
+            });
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -159,11 +195,18 @@ function AdminProjectDetailPage() {
                                 placeholder="Escreva aqui a sua comunicação, parecer ou despacho..." 
                                 value={updateText}
                                 onChange={(e) => setUpdateText(e.target.value)}
+                                rows={5}
                             />
-                            <Button onClick={handleAddUpdate} disabled={isSubmitting || !updateText.trim()}>
-                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Adicionar à Linha do Tempo
-                            </Button>
+                            <div className="flex flex-wrap gap-2">
+                                <Button onClick={handleAddUpdate} disabled={isSubmitting || !updateText.trim()}>
+                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MessageSquare className="mr-2 h-4 w-4"/>}
+                                    Adicionar à Linha do Tempo
+                                </Button>
+                                <Button variant="outline" onClick={handleGenerateResponse} disabled={isGenerating}>
+                                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                                    Gerar Resposta (IA)
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                      <Card>
