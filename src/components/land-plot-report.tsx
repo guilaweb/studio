@@ -23,12 +23,13 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
-import { PointOfInterest, PointOfInterestStatus } from "@/lib/data";
+import { PointOfInterest, PointOfInterestStatus, PointOfInterestUsageType } from "@/lib/data";
 import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Trash2 } from "lucide-react";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "./ui/separator";
 
 
 // Component to handle the drawing functionality on the map
@@ -100,12 +101,15 @@ const formSchema = z.object({
   registrationCode: z.string().optional(),
   zoningInfo: z.string().optional(),
   status: z.enum(['available', 'occupied', 'protected', 'in_dispute', 'reserved']),
+  usageType: z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']).optional(),
+  maxHeight: z.coerce.number().optional(),
+  buildingRatio: z.coerce.number().optional(),
 });
 
 type LandPlotReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onLandPlotSubmit: (data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon'>) => void;
+  onLandPlotSubmit: (data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'>) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -130,6 +134,9 @@ export default function LandPlotReport({
       plotNumber: "",
       registrationCode: "",
       zoningInfo: "",
+      usageType: undefined,
+      maxHeight: undefined,
+      buildingRatio: undefined,
     },
   });
   
@@ -172,6 +179,7 @@ export default function LandPlotReport({
     onLandPlotSubmit({ 
         ...values,
         status: values.status as PointOfInterestStatus,
+        usageType: values.usageType as PointOfInterestUsageType,
         polygon: polygonPath,
     });
   }
@@ -189,7 +197,7 @@ export default function LandPlotReport({
         <SheetHeader className="p-6 pb-2">
           <SheetTitle>Mapear Lote de Terreno</SheetTitle>
           <SheetDescription>
-            Desenhe os limites do lote no mapa e preencha as informações cadastrais.
+            Desenhe os limites do lote no mapa e preencha as informações cadastrais e de zoneamento.
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -248,7 +256,7 @@ export default function LandPlotReport({
                     name="registrationCode"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Código de Registo (Opcional)</FormLabel>
+                        <FormLabel>Código de Registo Predial (Opcional)</FormLabel>
                         <FormControl>
                             <Input placeholder="Ex: 12345/IGCA/2024" {...field} />
                         </FormControl>
@@ -256,15 +264,73 @@ export default function LandPlotReport({
                         </FormItem>
                     )}
                  />
+                <Separator />
+                <h4 className="text-sm font-semibold text-foreground">Informação de Zoneamento</h4>
+
+                 <FormField
+                    control={form.control}
+                    name="usageType"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Tipo de Uso Permitido</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecione o uso permitido" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="residential">Residencial</SelectItem>
+                                <SelectItem value="commercial">Comercial</SelectItem>
+                                <SelectItem value="industrial">Industrial</SelectItem>
+                                <SelectItem value="mixed">Misto</SelectItem>
+                                <SelectItem value="other">Outro</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                     <FormField
+                        control={form.control}
+                        name="maxHeight"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Altura Máx. (Pisos)</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="Ex: 4" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="buildingRatio"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Índice Construção (%)</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="Ex: 60" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+
                 <FormField
                     control={form.control}
                     name="zoningInfo"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Informação de Zoneamento (Opcional)</FormLabel>
+                        <FormLabel>Notas de Zoneamento (Opcional)</FormLabel>
                         <FormControl>
                             <Textarea
-                                placeholder="Descreva as restrições de uso, altura máxima, etc."
+                                placeholder="Descreva outras restrições ou observações relevantes..."
                                 {...field}
                             />
                         </FormControl>

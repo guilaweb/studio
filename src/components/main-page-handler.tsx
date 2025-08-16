@@ -542,7 +542,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   };
 
   const handleAddNewLandPlot = async (
-    data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon'>
+    data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'>
   ) => {
     if (!user || !profile) {
         toast({
@@ -571,6 +571,9 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       plotNumber: data.plotNumber,
       registrationCode: data.registrationCode,
       zoningInfo: data.zoningInfo,
+      usageType: data.usageType,
+      maxHeight: data.maxHeight,
+      buildingRatio: data.buildingRatio,
       updates: [{
           text: `Lote mapeado com estado: ${statusLabelMap[data.status!]}`,
           authorId: user.uid,

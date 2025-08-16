@@ -50,6 +50,9 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         plotNumber: data.plotNumber,
         registrationCode: data.registrationCode,
         zoningInfo: data.zoningInfo,
+        usageType: data.usageType,
+        maxHeight: data.maxHeight,
+        buildingRatio: data.buildingRatio,
     };
 };
 

@@ -303,30 +303,62 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
 const LandPlotDetails = ({ poi }: { poi: PointOfInterest }) => {
     if (poi.type !== 'land_plot') return null;
 
+    const usageTypeMap = {
+        residential: "Residencial",
+        commercial: "Comercial",
+        industrial: "Industrial",
+        mixed: "Misto",
+        other: "Outro",
+    }
+
     return (
         <div className="space-y-4">
-            <div>
-                <h3 className="font-semibold">Estado do Lote</h3>
-                <Badge variant="outline" className="mt-2">{poi.status ? statusLabelMap[poi.status] : "N/A"}</Badge>
+            <Separator />
+            <div className="py-4">
+                <h3 className="font-semibold mb-2">Detalhes do Lote</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p className="text-muted-foreground">Estado</p>
+                        <p className="font-medium">{poi.status ? statusLabelMap[poi.status] : "N/A"}</p>
+                    </div>
+                     {poi.plotNumber && (
+                        <div>
+                            <p className="text-muted-foreground">Nº do Lote</p>
+                            <p className="font-medium">{poi.plotNumber}</p>
+                        </div>
+                    )}
+                    {poi.registrationCode && (
+                        <div>
+                            <p className="text-muted-foreground">Registo Predial</p>
+                            <p className="font-medium">{poi.registrationCode}</p>
+                        </div>
+                    )}
+                    {poi.usageType && (
+                        <div>
+                            <p className="text-muted-foreground">Uso Permitido</p>
+                            <p className="font-medium">{usageTypeMap[poi.usageType]}</p>
+                        </div>
+                    )}
+                    {poi.maxHeight !== undefined && (
+                        <div>
+                            <p className="text-muted-foreground">Altura Máx. (Pisos)</p>
+                            <p className="font-medium">{poi.maxHeight}</p>
+                        </div>
+                    )}
+                    {poi.buildingRatio !== undefined && (
+                         <div>
+                            <p className="text-muted-foreground">Índice Construção</p>
+                            <p className="font-medium">{poi.buildingRatio}%</p>
+                        </div>
+                    )}
+                </div>
+                {poi.zoningInfo && (
+                    <div className="mt-4">
+                        <p className="text-muted-foreground text-sm">Notas de Zoneamento</p>
+                        <p className="text-sm font-medium whitespace-pre-wrap">{poi.zoningInfo}</p>
+                    </div>
+                )}
             </div>
-            {poi.plotNumber && (
-                <div>
-                    <h3 className="font-semibold">Nº do Lote</h3>
-                    <p className="text-muted-foreground">{poi.plotNumber}</p>
-                </div>
-            )}
-            {poi.registrationCode && (
-                <div>
-                    <h3 className="font-semibold">Código de Registo</h3>
-                    <p className="text-muted-foreground">{poi.registrationCode}</p>
-                </div>
-            )}
-            {poi.zoningInfo && (
-                <div>
-                    <h3 className="font-semibold">Informação de Zoneamento</h3>
-                    <p className="text-muted-foreground whitespace-pre-wrap">{poi.zoningInfo}</p>
-                </div>
-            )}
         </div>
     );
 };
@@ -385,10 +417,12 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                    <span>Ocorrido em: {format(new Date(incidentDate), "PPP", { locale: pt })}</span>
                 </div>
             )}
-            <div>
-                <h3 className="font-semibold mb-2">Descrição</h3>
-                <p className="text-muted-foreground whitespace-pre-wrap">{poi.description}</p>
-            </div>
+            {poi.type !== 'land_plot' && (
+                <div>
+                    <h3 className="font-semibold mb-2">Descrição</h3>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{poi.description}</p>
+                </div>
+            )}
              {poi.type !== 'land_plot' && (
                 <div>
                     <h3 className="font-semibold mb-2">Localização (Centroide)</h3>

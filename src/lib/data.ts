@@ -41,7 +41,10 @@ export const PointOfInterestSchema = z.object({
   // Land Plot Specific
   plotNumber: z.string().optional(),
   registrationCode: z.string().optional(),
-  zoningInfo: z.string().optional(),
+  zoningInfo: z.string().optional(), // General notes
+  usageType: z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']).optional(),
+  maxHeight: z.number().optional(), // in floors
+  buildingRatio: z.number().optional(), // percentage
 });
 
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
