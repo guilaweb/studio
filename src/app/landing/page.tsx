@@ -106,7 +106,7 @@ export default function LandingPage() {
             </div>
         
             <div className="relative z-10 flex flex-col flex-1">
-                <header className="px-4 lg:px-6 h-16 flex items-center border-b sticky top-0 bg-background backdrop-blur-sm">
+                <header className="px-4 lg:px-6 h-16 flex items-center border-b sticky top-0 bg-background/80 backdrop-blur-sm z-20">
                     <Link href="#" className="flex items-center justify-center gap-2" prefetch={false}>
                     <Logo className="h-6 w-6 text-primary" />
                     <span className="font-semibold text-lg">Cidadão Online</span>
