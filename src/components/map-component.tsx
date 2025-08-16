@@ -1,11 +1,10 @@
 
-
 "use client";
 
-import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, Polygon } from "@vis.gl/react-google-maps";
+import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, Siren, Trash, Search, Droplet, Square } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 
 type MapComponentProps = {
@@ -116,6 +115,62 @@ const getPinStyle = (point: PointOfInterest) => {
     return {};
 }
 
+// Custom Polygon component since it's not exported directly
+const Polygon = (props: google.maps.PolygonOptions) => {
+    const map = useMap();
+    const [polygon, setPolygon] = useState<google.maps.Polygon | null>(null);
+
+    useEffect(() => {
+        if (!map) return;
+
+        if (!polygon) {
+            const newPolygon = new google.maps.Polygon(props);
+            newPolygon.setMap(map);
+            setPolygon(newPolygon);
+        } else {
+            polygon.setOptions(props);
+        }
+
+        return () => {
+            if (polygon) {
+                polygon.setMap(null);
+            }
+        };
+    }, [map, polygon, props]);
+
+    useEffect(() => {
+        if (!polygon) return;
+        const clickListener = polygon.addListener('click', (e: google.maps.MapMouseEvent) => {
+            if (props.onClick) {
+                props.onClick(e);
+            }
+        });
+
+         const mouseOverListener = polygon.addListener('mouseover', (e: google.maps.MapMouseEvent) => {
+            if (props.onMouseOver) {
+                props.onMouseOver(e);
+            }
+        });
+
+         const mouseOutListener = polygon.addListener('mouseout', (e: google.maps.MapMouseEvent) => {
+            if (props.onMouseOut) {
+                props.onMouseOut(e);
+            }
+        });
+
+
+        return () => {
+            clickListener.remove();
+            mouseOverListener.remove();
+            mouseOutListener.remove();
+        }
+    }, [polygon, props]);
+
+
+    return null;
+};
+
+
 const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut }: { point: PointOfInterest; onClick: (pointId: string) => void; onMouseOver: (pointId: string) => void; onMouseOut: () => void; }) => {
   const [markerRef, marker] = useAdvancedMarkerRef();
   const pinStyle = getPinStyle(point);
@@ -219,3 +274,5 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
     </div>
   );
 }
+
+    
