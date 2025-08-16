@@ -67,7 +67,7 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
 }
 
 function AdminProjectDetailPage({ params }: { params: { id: string } }) {
-    const { id: projectId } = params;
+    const projectId = params.id;
     const { profile: adminProfile } = useAuth();
     const { allData, loading: loadingPoints, addUpdateToPoint } = usePoints();
     const [project, setProject] = React.useState<PointOfInterest | null>(null);
@@ -247,3 +247,5 @@ function AdminProjectDetailPage({ params }: { params: { id: string } }) {
 }
 
 export default withAuth(AdminProjectDetailPage, ['Agente Municipal', 'Administrador']);
+
+    
