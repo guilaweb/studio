@@ -5,6 +5,7 @@ import { LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeSwitcher } from "./theme-switcher";
 
 type AppHeaderProps = {
   onLocateClick: () => void;
@@ -33,7 +34,8 @@ export default function AppHeader({ onLocateClick, children, searchBox }: AppHea
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        <ThemeSwitcher />
         {children}
       </div>
     </header>
