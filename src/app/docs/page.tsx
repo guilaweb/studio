@@ -24,6 +24,7 @@ const pointOfInterestExample = `
       "id": "update-01",
       "text": "Acidente entre dois veículos no cruzamento principal.",
       "authorId": "user123",
+      "authorDisplayName": "Nome do Cidadão",
       "timestamp": "2024-05-26T12:40:27.883Z"
     }
   ]

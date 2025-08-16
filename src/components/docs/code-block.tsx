@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Check, Copy } from 'lucide-react';
@@ -11,8 +11,13 @@ interface CodeBlockProps {
 }
 
 export const CodeBlock: React.FC<CodeBlockProps> = ({ code }) => {
-  const [hasCopied, setHasCopied] = React.useState(false);
+  const [hasCopied, setHasCopied] = useState(false);
   const { toast } = useToast();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(code).then(() => {
@@ -21,6 +26,10 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ code }) => {
       setTimeout(() => setHasCopied(false), 2000);
     });
   };
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className="relative">
