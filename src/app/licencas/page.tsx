@@ -401,8 +401,8 @@ function LicencasPage() {
                                                                 </div>
                                                             </div>
                                                             <Badge variant={project.status === 'approved' ? 'default' : 'secondary'} className={
-                                                                project.status === 'approved' ? 'bg-green-600' : 
-                                                                project.status === 'rejected' ? 'bg-red-600' :
+                                                                project.status === 'approved' ? 'bg-green-600 text-white' : 
+                                                                project.status === 'rejected' ? 'bg-red-600 text-white' :
                                                                 ''
                                                             }>
                                                                 {project.status ? statusLabelMap[project.status] : "N/A"}
@@ -465,3 +465,4 @@ function LicencasPage() {
 
 export default withAuth(LicencasPage);
 
+    
