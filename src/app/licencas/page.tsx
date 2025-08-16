@@ -155,6 +155,8 @@ function LicencasPage() {
     
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmitting(true);
+
         const form = e.currentTarget as HTMLFormElement;
         const formData = new FormData(form);
         const projectData = Object.fromEntries(formData.entries());
@@ -165,11 +167,20 @@ function LicencasPage() {
                 title: "Lote não selecionado",
                 description: "Por favor, selecione um lote no mapa para submeter o projeto.",
             });
+            setIsSubmitting(false);
             return;
         }
 
-        setIsSubmitting(true);
+        // Simulate the manual submission process first
+        // In a real app, this would submit the form data to a backend service.
+        console.log("Submitting for plot:", selectedPlot.id, "with data:", projectData);
+        toast({
+            title: "Submissão em Processo",
+            description: `O seu projeto para o lote ${selectedPlot.plotNumber || selectedPlot.id} foi recebido e está a ser processado.`,
+        });
 
+
+        // Then, run the AI compliance check as an assistive tool
         try {
             const complianceResult = await analyzeProjectComplianceFlow({
                 projectType: projectData.projectType as string,
@@ -192,27 +203,20 @@ function LicencasPage() {
                  toast({
                     variant: "destructive",
                     title: "Análise IA: Potencial Inconformidade",
-                    description: complianceResult.analysis,
+                    description: `${complianceResult.analysis} O seu projeto foi submetido, mas poderá requerer revisão manual.`,
                     duration: 10000,
                 });
             }
-             // In a real app, this would submit the form data to a backend service.
-            console.log("Submitting for plot:", selectedPlot.id, "with data:", projectData);
-            
         } catch (error) {
              console.error("Error analyzing project compliance:", error);
             toast({
                 variant: "destructive",
-                title: "Erro na Análise",
-                description: "Não foi possível analisar a conformidade do projeto. A submissão continuará sem a verificação automática.",
+                title: "Erro na Análise de IA",
+                description: "Não foi possível realizar a verificação automática. O seu projeto foi submetido e será revisto manualmente.",
             });
         } finally {
             setIsSubmitting(false);
-            // Simulate submission
-             toast({
-                title: "Submissão em Desenvolvimento",
-                description: `O seu projeto para o lote ${selectedPlot.plotNumber || selectedPlot.id} foi simulado.`,
-            });
+            // Here you might clear the form or redirect the user
         }
     };
 
@@ -237,7 +241,7 @@ function LicencasPage() {
                                 <CardHeader>
                                     <CardTitle>Submeter Novo Projeto</CardTitle>
                                     <CardDescription>
-                                        Selecione o lote no mapa e preencha o formulário para iniciar o processo de licenciamento.
+                                        Selecione o lote no mapa e preencha o formulário para iniciar o processo de licenciamento. A nossa IA fará uma pré-análise.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
