@@ -172,7 +172,7 @@ function AdminProjectDetailPage() {
             setLicenseDataUri(result.licenseDataUri);
             toast({
                 title: "Licença Digital Gerada",
-                description: "A licença foi gerada com sucesso e está pronta para download.",
+                description: "A licença foi gerada com sucesso e está pronta para visualização.",
             });
         } catch (error) {
             console.error("Failed to generate license:", error);
@@ -204,7 +204,7 @@ function AdminProjectDetailPage() {
         return <div className="flex min-h-screen items-center justify-center">Projeto não encontrado.</div>;
     }
     
-    const licenseFileName = `Licenca_Construcao_${project.id}.txt`;
+    const licenseFileName = `Licenca_Construcao_${project.id}.html`;
     
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -288,12 +288,12 @@ function AdminProjectDetailPage() {
                                     <div className="flex items-center gap-4 rounded-lg border p-4 bg-green-50 text-green-800 border-green-200">
                                         <FileCheck className="h-8 w-8" />
                                         <div>
-                                            <p className="font-semibold">{licenseFileName}</p>
-                                            <p className="text-sm">Gerada e pronta para download.</p>
+                                            <p className="font-semibold">Licença do Projeto</p>
+                                            <p className="text-sm">Gerada e pronta para visualização.</p>
                                         </div>
                                         <Button variant="outline" size="sm" className="ml-auto text-green-800 border-green-800/50 hover:bg-green-100 hover:text-green-900" asChild>
-                                            <a href={licenseDataUri} download={licenseFileName}>
-                                                Download
+                                            <a href={licenseDataUri} target="_blank" rel="noopener noreferrer">
+                                                Ver Licença
                                             </a>
                                         </Button>
                                     </div>
@@ -385,4 +385,3 @@ function AdminProjectDetailPage() {
 
 export default withAuth(AdminProjectDetailPage, ['Agente Municipal', 'Administrador']);
 
-    

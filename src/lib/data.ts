@@ -222,6 +222,6 @@ export const GenerateLicenseInputSchema = z.object({
 export type GenerateLicenseInput = z.infer<typeof GenerateLicenseInputSchema>;
 
 export const GenerateLicenseOutputSchema = z.object({
-  licenseDataUri: z.string().describe("A data URI representing the generated license file. For this simulation, it will be a text/plain URI, but it represents a future PDF."),
+  licenseDataUri: z.string().describe("A data URI representing the generated license file as an HTML document."),
 });
 export type GenerateLicenseOutput = z.infer<typeof GenerateLicenseOutputSchema>;

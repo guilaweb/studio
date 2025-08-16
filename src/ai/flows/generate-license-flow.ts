@@ -19,13 +19,14 @@ const prompt = ai.definePrompt({
     name: 'generateLicensePrompt',
     input: { schema: GenerateLicenseInputSchema },
     prompt: `
-        You are a municipal administration system. Your task is to generate the text content for a construction license.
-        The output must be a formal document in plain text format, written in Portuguese (Portugal).
-        The license must be clearly structured with headers and include all the information provided.
-        It must include a unique QR code placeholder like "[QR_CODE_PLACEHOLDER]".
+        You are a municipal administration system. Your task is to generate the HTML content for a construction license.
+        The output must be a well-structured and styled HTML document. The theme is formal and official.
+        Use inline CSS for styling. The document should have a header with the municipality's name, a title, the license details in a structured way, a section for the terms and conditions, and a placeholder for a QR code.
+        The document must be in Portuguese (Portugal).
 
-        Compile the following information into a formal license document:
+        The license must include a unique QR code placeholder like "<!-- QR_CODE_PLACEHOLDER -->".
 
+        Here is the information to include:
         - Project Name: {{{projectName}}}
         - Project ID: {{{projectId}}}
         - Requester Name: {{{requesterName}}}
@@ -34,7 +35,7 @@ const prompt = ai.definePrompt({
         - Plot Registration: {{{plotRegistration}}}
         - Issue Date: {{{issueDate}}}
 
-        Generate the license text.
+        Generate the full HTML document now.
     `,
 });
 
@@ -47,14 +48,13 @@ const generateLicenseFlow = ai.defineFlow(
     async (input) => {
         const { text } = await prompt(input);
         
-        // Simulate creating a file (in this case, a plain text file)
-        // and returning it as a data URI. In a real scenario, this could
-        // involve a PDF generation library.
+        // The output is now HTML
         const fileContent = Buffer.from(text, 'utf-8').toString('base64');
-        const dataUri = `data:text/plain;base64,${fileContent}`;
+        const dataUri = `data:text/html;base64,${fileContent}`;
 
         return {
             licenseDataUri: dataUri,
         };
     }
 );
+
