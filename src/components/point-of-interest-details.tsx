@@ -6,7 +6,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,6 +35,7 @@ const layerConfig = {
     sanitation: { label: "Ponto de Saneamento", Icon: Trash, variant: "outline" as const},
     water: { label: "Rede de Água", Icon: Droplet, variant: "default" as const },
     land_plot: { label: "Lote de Terreno", Icon: Square, variant: "secondary" as const },
+    announcement: { label: "Anúncio", Icon: Megaphone, variant: "default" as const },
 };
 
 const priorityConfig = {
@@ -418,7 +419,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                    <span>{format(new Date(poi.startDate), "dd/MM/yy", { locale: pt })} - {format(new Date(poi.endDate), "dd/MM/yy", { locale: pt })}</span>
                 </div>
             )}
-            {poi.type !== 'construction' && poi.type !== 'land_plot' && incidentDate && (
+            {poi.type !== 'construction' && poi.type !== 'land_plot' && poi.type !== 'announcement' && incidentDate && (
                 <div className="flex items-center text-sm text-muted-foreground">
                    <Calendar className="mr-2 h-4 w-4" />
                    <span>Ocorrido em: {format(new Date(incidentDate), "PPP", { locale: pt })}</span>
@@ -430,7 +431,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                     <p className="text-muted-foreground whitespace-pre-wrap">{poi.description}</p>
                 </div>
             )}
-             {poi.type !== 'land_plot' && (
+             {poi.type !== 'land_plot' && poi.type !== 'announcement' && (
                 <div>
                     <h3 className="font-semibold mb-2">Localização (Centroide)</h3>
                     <p className="text-muted-foreground">{`Lat: ${poi.position.lat.toFixed(6)}, Lng: ${poi.position.lng.toFixed(6)}`}</p>
@@ -444,7 +445,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             
             {poi.type === 'land_plot' && <LandPlotDetails poi={poi} />}
 
-            {showTimeline && (
+            {showTimeline && poi.type !== 'announcement' && (
                 <Timeline 
                     poi={poi} 
                     onAddUpdate={onAddUpdate}
@@ -455,3 +456,5 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </Sheet>
   );
 }
+
+    

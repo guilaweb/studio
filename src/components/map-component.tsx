@@ -106,6 +106,7 @@ export const getPinStyle = (point: PointOfInterest) => {
                 return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
             case 'occupied':
             case 'reserved':
+            case 'unknown': // for announcements
                 return { background: '#f97316', borderColor: '#ea580c', glyphColor: '#ffffff' }; // orange
             case 'in_dispute':
                 return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
@@ -179,7 +180,7 @@ const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut, zoom }
   const pinStyle = getPinStyle(point);
   const isPolygonType = (point.type === 'land_plot' || point.type === 'announcement');
 
-  // For land plots, only show the polygon when zoomed in, and the marker when zoomed out.
+  // For land plots or announcements, only show the polygon when zoomed in, and the marker when zoomed out.
   const showPolygon = isPolygonType && point.polygon && zoom >= 15;
   const showMarker = !isPolygonType || (isPolygonType && zoom < 15);
 
@@ -285,3 +286,5 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
     </div>
   );
 }
+
+    
