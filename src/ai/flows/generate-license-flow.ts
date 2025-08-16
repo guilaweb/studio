@@ -8,7 +8,6 @@
 
 import { ai } from '@/ai/genkit';
 import { GenerateLicenseInput, GenerateLicenseInputSchema, GenerateLicenseOutput, GenerateLicenseOutputSchema } from '@/lib/data';
-import { Buffer } from 'buffer';
 
 export async function generateLicense(input: GenerateLicenseInput): Promise<GenerateLicenseOutput> {
     return generateLicenseFlow(input);
@@ -21,7 +20,7 @@ const prompt = ai.definePrompt({
     prompt: `
         You are a municipal administration system. Your task is to generate the HTML content for a construction license.
         The output must be a well-structured and styled HTML document. The theme is formal and official.
-        Use inline CSS for styling. The document should have a header with the municipality's name, a title, the license details in a structured way, a section for the terms and conditions, and a placeholder for a QR code.
+        Use inline CSS for styling to ensure it renders correctly everywhere. The document should have a header with the municipality's name, a title, the license details in a structured way, a section for the terms and conditions, and a placeholder for a QR code.
         The document must be in Portuguese (Portugal).
 
         The license must include a unique QR code placeholder like "<!-- QR_CODE_PLACEHOLDER -->".
@@ -35,7 +34,7 @@ const prompt = ai.definePrompt({
         - Plot Registration: {{{plotRegistration}}}
         - Issue Date: {{{issueDate}}}
 
-        Generate the full HTML document now.
+        Generate the full HTML document now. Ensure all styles are inline within the HTML elements or in a <style> tag in the <head>.
     `,
 });
 
@@ -48,13 +47,8 @@ const generateLicenseFlow = ai.defineFlow(
     async (input) => {
         const { text } = await prompt(input);
         
-        // The output is now HTML
-        const fileContent = Buffer.from(text, 'utf-8').toString('base64');
-        const dataUri = `data:text/html;base64,${fileContent}`;
-
         return {
-            licenseDataUri: dataUri,
+            licenseHtml: text,
         };
     }
 );
-

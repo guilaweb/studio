@@ -81,7 +81,7 @@ function AdminProjectDetailPage() {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isGenerating, setIsGenerating] = React.useState(false);
     const {toast} = useToast();
-    const [licenseDataUri, setLicenseDataUri] = React.useState<string | null>(null);
+    const [licenseHtml, setLicenseHtml] = React.useState<string | null>(null);
     const [isGeneratingLicense, setIsGeneratingLicense] = React.useState(false);
 
 
@@ -169,7 +169,7 @@ function AdminProjectDetailPage() {
                 plotRegistration: project.registrationCode,
                 issueDate: new Date().toLocaleDateString('pt-PT'),
             });
-            setLicenseDataUri(result.licenseDataUri);
+            setLicenseHtml(result.licenseHtml);
             toast({
                 title: "Licença Digital Gerada",
                 description: "A licença foi gerada com sucesso e está pronta para visualização.",
@@ -184,6 +184,12 @@ function AdminProjectDetailPage() {
         } finally {
             setIsGeneratingLicense(false);
         }
+    };
+
+    const handleViewLicense = () => {
+        if (!licenseHtml) return;
+        localStorage.setItem('licensePreview', licenseHtml);
+        window.open('/licenca/preview', '_blank');
     };
     
     const setParecerTemplate = (templateType: 'favoravel' | 'condicionantes' | 'desfavoravel') => {
@@ -203,8 +209,6 @@ function AdminProjectDetailPage() {
     if (!project) {
         return <div className="flex min-h-screen items-center justify-center">Projeto não encontrado.</div>;
     }
-    
-    const licenseFileName = `Licenca_Construcao_${project.id}.html`;
     
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -279,10 +283,10 @@ function AdminProjectDetailPage() {
                                 <CardDescription>O processo foi aprovado. Gere a licença final para o requerente.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                {!licenseDataUri ? (
+                                {!licenseHtml ? (
                                     <Button onClick={handleGenerateLicense} disabled={isGeneratingLicense}>
                                         {isGeneratingLicense ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileCheck className="mr-2 h-4 w-4" />}
-                                        Gerar e Anexar Licença
+                                        Gerar Licença
                                     </Button>
                                 ) : (
                                     <div className="flex items-center gap-4 rounded-lg border p-4 bg-green-50 text-green-800 border-green-200">
@@ -291,10 +295,8 @@ function AdminProjectDetailPage() {
                                             <p className="font-semibold">Licença do Projeto</p>
                                             <p className="text-sm">Gerada e pronta para visualização.</p>
                                         </div>
-                                        <Button variant="outline" size="sm" className="ml-auto text-green-800 border-green-800/50 hover:bg-green-100 hover:text-green-900" asChild>
-                                            <a href={licenseDataUri} target="_blank" rel="noopener noreferrer">
-                                                Ver Licença
-                                            </a>
+                                        <Button variant="outline" size="sm" className="ml-auto text-green-800 border-green-800/50 hover:bg-green-100 hover:text-green-900" onClick={handleViewLicense}>
+                                            Ver Licença
                                         </Button>
                                     </div>
                                 )}
