@@ -13,7 +13,8 @@ import { medals } from "@/lib/medals";
 
 function PublicProfilePage({ params }: { params: { userId: string } }) {
     const { allData } = usePoints();
-    const { user, loading } = useUserProfile(params.userId);
+    const userId = params.userId;
+    const { user, loading } = useUserProfile(userId);
 
     const userContributions = React.useMemo(() => {
         if (!user) return [];
