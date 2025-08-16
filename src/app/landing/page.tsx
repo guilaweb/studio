@@ -367,7 +367,7 @@ export default function LandingPage() {
                                         <AccordionItem value="item-4">
                                             <AccordionTrigger>Os meus dados pessoais estão seguros?</AccordionTrigger>
                                             <AccordionContent>
-                                                Sim. A segurança dos seus dados é a nossa prioridade. A plataforma utiliza as melhores práticas de segurança e está em conformidade com as leis de proteção de dados. As suas informações pessoais são usadas exclusivamente para a gestão das suas contribuições e para a comunicação sobre os seus processos.
+                                                Sim. A segurança dos seus dados é a nossa prioridade. A plataforma utiliza as melhores práticas de segurança e está em conformidade com as leis de proteção de dados. Pode consultar a <a href="https://apd.ao/fotos/frontend_1/editor2/110617_lei_22-11_de_17_junho-proteccao_dados_pessoais.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline">Lei da Proteção de Dados Pessoais de Angola</a> para mais detalhes. As suas informações pessoais são usadas exclusivamente para a gestão das suas contribuições e para a comunicação sobre os seus processos.
                                             </AccordionContent>
                                         </AccordionItem>
                                     </Accordion>
