@@ -7,6 +7,7 @@ import { Logo } from '@/components/icons';
 import { Building, FileText, ArrowRight, UserCheck, BarChart3, Users, CheckCircle, Map, Layers, Siren, Briefcase, FileCheck, LayoutDashboard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APIProvider, Map as GoogleMap } from '@vis.gl/react-google-maps';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
@@ -329,6 +330,52 @@ export default function LandingPage() {
                     </div>
                     </section>
 
+                     <section id="faq" className="w-full py-12 md:py-24 lg:py-32">
+                        <div className="container px-4 md:px-6 space-y-8">
+                            <Card>
+                                <CardContent className="p-10">
+                                    <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                                        <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">FAQ</div>
+                                        <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Perguntas Frequentes</h2>
+                                        <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                                            Tem alguma dúvida? Encontre aqui as respostas para as perguntas mais comuns.
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardContent className="p-10">
+                                    <Accordion type="single" collapsible className="w-full">
+                                        <AccordionItem value="item-1">
+                                            <AccordionTrigger>Quem pode usar a plataforma Cidadão Online?</AccordionTrigger>
+                                            <AccordionContent>
+                                                A plataforma é para todos! Qualquer cidadão pode registar-se gratuitamente para reportar incidentes, acompanhar o estado da cidade, fiscalizar obras e solicitar licenças. Os funcionários e gestores municipais utilizam a plataforma para gerir todos os processos, responder às solicitações e comunicar com a comunidade.
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                        <AccordionItem value="item-2">
+                                            <AccordionTrigger>Preciso de pagar para usar a plataforma?</AccordionTrigger>
+                                            <AccordionContent>
+                                                Não. O registo e a utilização da plataforma para participar, reportar incidentes e consultar informação pública são totalmente gratuitos. Taxas específicas, devidamente regulamentadas, podem ser aplicáveis apenas a serviços formais, como a emissão de uma licença de construção.
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                        <AccordionItem value="item-3">
+                                            <AccordionTrigger>Como é que as minhas contribuições ajudam a cidade?</AccordionTrigger>
+                                            <AccordionContent>
+                                                Cada reporte que faz sobre um buraco na via, uma falha de iluminação ou um contentor cheio é enviado diretamente para a equipa municipal responsável. A sua informação georreferenciada ajuda o município a identificar problemas rapidamente, a priorizar recursos e a resolver as questões de forma mais eficiente. A sua participação ativa é fundamental para uma cidade mais segura e bem cuidada.
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                        <AccordionItem value="item-4">
+                                            <AccordionTrigger>Os meus dados pessoais estão seguros?</AccordionTrigger>
+                                            <AccordionContent>
+                                                Sim. A segurança dos seus dados é a nossa prioridade. A plataforma utiliza as melhores práticas de segurança e está em conformidade com as leis de proteção de dados. As suas informações pessoais são usadas exclusivamente para a gestão das suas contribuições e para a comunicação sobre os seus processos.
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    </Accordion>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </section>
+
                     <section className="w-full py-12 md:py-24 lg:py-32">
                     <div className="container px-4 md:px-6">
                         <Card>
@@ -373,5 +420,3 @@ export default function LandingPage() {
     </APIProvider>
   )
 }
-
-    
