@@ -7,7 +7,6 @@ import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, Siren, Trash, Search, Droplet, Square } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
-import LandPlotClusterer from "./land-plot-clusterer";
 
 type MapComponentProps = {
   activeLayers: ActiveLayers;
@@ -173,29 +172,36 @@ const Polygon = (props: google.maps.PolygonOptions) => {
 };
 
 
-const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut }: { point: PointOfInterest; onClick: (pointId: string) => void; onMouseOver: (pointId: string) => void; onMouseOut: () => void; }) => {
+const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut, zoom }: { point: PointOfInterest; onClick: (pointId: string) => void; onMouseOver: (pointId: string) => void; onMouseOut: () => void; zoom: number }) => {
   const [markerRef, marker] = useAdvancedMarkerRef();
   const pinStyle = getPinStyle(point);
+  const isLandPlot = point.type === 'land_plot';
+
+  // For land plots, only show the polygon when zoomed in, and the marker when zoomed out.
+  const showPolygon = isLandPlot && point.polygon && zoom >= 15;
+  const showMarker = !isLandPlot || (isLandPlot && zoom < 15);
 
   return (
     <>
-        <AdvancedMarker 
-            ref={markerRef} 
-            position={point.position} 
-            title={point.title} 
-            onClick={() => onClick(point.id)}
-            onMouseOver={() => onMouseOver(point.id)}
-            onMouseOut={onMouseOut}
-        >
-            <Pin 
-                background={pinStyle.background} 
-                borderColor={pinStyle.borderColor} 
-                glyphColor={pinStyle.glyphColor}
+        {showMarker && (
+            <AdvancedMarker 
+                ref={markerRef} 
+                position={point.position} 
+                title={point.title} 
+                onClick={() => onClick(point.id)}
+                onMouseOver={() => onMouseOver(point.id)}
+                onMouseOut={onMouseOut}
             >
-                <MarkerIcon type={point.type} />
-            </Pin>
-        </AdvancedMarker>
-        {point.polygon && (
+                <Pin 
+                    background={pinStyle.background} 
+                    borderColor={pinStyle.borderColor} 
+                    glyphColor={pinStyle.glyphColor}
+                >
+                    <MarkerIcon type={point.type} />
+                </Pin>
+            </AdvancedMarker>
+        )}
+        {showPolygon && (
             <Polygon
                 paths={point.polygon}
                 strokeColor={pinStyle.background || 'hsl(var(--primary))'}
@@ -224,9 +230,6 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
 
   const hoveredPoi = React.useMemo(() => data.find(p => p.id === hoveredPoiId), [data, hoveredPoiId]);
   
-  const landPlots = React.useMemo(() => data.filter(p => p.type === 'land_plot'), [data]);
-  const otherPois = React.useMemo(() => data.filter(p => p.type !== 'land_plot'), [data]);
-  
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <Map
@@ -238,7 +241,7 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
         styles={mapStyles}
         onCameraChanged={handleCameraChange}
       >
-        {otherPois
+        {data
           .filter((point) => activeLayers[point.type])
           .map((point) => (
             <PointOfInterestMarker 
@@ -247,10 +250,9 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                 onClick={onMarkerClick}
                 onMouseOver={() => setHoveredPoiId(point.id)}
                 onMouseOut={() => setHoveredPoiId(null)}
+                zoom={zoom}
              />
           ))}
-
-        {activeLayers.land_plot && <LandPlotClusterer landPlots={landPlots} onMarkerClick={onMarkerClick} />}
           
         {hoveredPoi && (
             <InfoWindow
