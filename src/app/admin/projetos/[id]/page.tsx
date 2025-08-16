@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { withAuth, useAuth } from "@/hooks/use-auth";
 import { usePoints } from "@/hooks/use-points";
 import { useUserProfile } from "@/services/user-service";
@@ -66,8 +67,9 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
     )
 }
 
-function AdminProjectDetailPage({ params }: { params: { id: string } }) {
-    const projectId = params.id;
+function AdminProjectDetailPage() {
+    const params = useParams();
+    const projectId = params.id as string;
     const { profile: adminProfile } = useAuth();
     const { allData, loading: loadingPoints, addUpdateToPoint } = usePoints();
     const [project, setProject] = React.useState<PointOfInterest | null>(null);
