@@ -69,25 +69,27 @@ export default function LandingPage() {
 
                 <main className="flex-1">
                     <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
-                    <div className="container px-4 md:px-6">
-                        <div className="flex flex-col justify-center space-y-4 text-center">
-                            <div className="space-y-4">
-                            <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
-                                A sua ponte direta com a cidade.
-                            </h1>
-                            <p className="max-w-[600px] mx-auto text-muted-foreground md:text-xl">
-                                Participe, reporte, consulte e fiscalize. A plataforma Cidadão Online capacita-o a ter um papel ativo na melhoria da sua comunidade, de forma transparente e eficiente.
-                            </p>
-                            </div>
-                            <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
-                            <Button asChild size="lg">
-                                <Link href="/register" prefetch={false}>
-                                Junte-se à Comunidade
-                                </Link>
-                            </Button>
-                            </div>
+                        <div className="container px-4 md:px-6">
+                             <Card>
+                                <CardContent className="p-10 flex flex-col justify-center space-y-4 text-center">
+                                    <div className="space-y-4">
+                                        <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
+                                            A sua ponte direta com a cidade.
+                                        </h1>
+                                        <p className="max-w-[600px] mx-auto text-muted-foreground md:text-xl">
+                                            Participe, reporte, consulte e fiscalize. A plataforma Cidadão Online capacita-o a ter um papel ativo na melhoria da sua comunidade, de forma transparente e eficiente.
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
+                                        <Button asChild size="lg">
+                                            <Link href="/register" prefetch={false}>
+                                            Junte-se à Comunidade
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
-                    </div>
                     </section>
                     
                     <section id="for-whom" className="w-full py-12 md:py-24 lg:py-32">
@@ -237,5 +239,3 @@ export default function LandingPage() {
     </APIProvider>
   )
 }
-
-    
