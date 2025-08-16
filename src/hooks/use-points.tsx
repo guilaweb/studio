@@ -4,8 +4,9 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData, query, orderBy, writeBatch } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData, query, orderBy, writeBatch, getDocs, where } from 'firebase/firestore';
 import { PointOfInterest, PointOfInterestUpdate } from '@/lib/data';
+import { useToast } from './use-toast';
 
 interface PointsContextType {
   allData: PointOfInterest[];
@@ -64,6 +65,7 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
 export const PointsProvider = ({ children }: { children: ReactNode }) => {
   const [allData, setAllData] = useState<PointOfInterest[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const pointsCollectionRef = collection(db, 'pointsOfInterest');
@@ -85,6 +87,24 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 
   const addPoint = async (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => {
     try {
+        // Anti-conflict validator for construction projects
+        if (point.type === 'construction' && point.landPlotId) {
+            const projectsQuery = query(
+                collection(db, 'pointsOfInterest'),
+                where('landPlotId', '==', point.landPlotId),
+                where('status', 'in', ['submitted', 'under_review', 'approved'])
+            );
+            const conflictingProjects = await getDocs(projectsQuery);
+            if (!conflictingProjects.empty) {
+                 toast({
+                    variant: "destructive",
+                    title: "Conflito de Submissão",
+                    description: "Este lote já tem um processo de licenciamento ativo. Não é possível submeter um novo projeto.",
+                });
+                return; // Block submission
+            }
+        }
+
         const pointRef = doc(db, 'pointsOfInterest', point.id);
         const completeUpdates = point.updates.map(u => ({...u, id: `upd-${point.id}-${Date.now()}-${Math.random()}`}));
         const pointToAdd: PointOfInterest = {...point, updates: completeUpdates};
@@ -97,6 +117,11 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         await setDoc(pointRef, cleanedPoint);
     } catch (error) {
         console.error("Error adding point: ", error);
+        toast({
+            variant: "destructive",
+            title: "Erro ao Submeter",
+            description: "Ocorreu um erro ao guardar o seu ponto de interesse.",
+        });
     }
   };
 
