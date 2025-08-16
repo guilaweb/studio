@@ -51,8 +51,8 @@ type TrafficLightReportProps = {
   initialCenter: google.maps.LatLngLiteral;
 };
 
-const defaultCenter = { lat: -12.5, lng: 18.5 };
-const defaultZoom = 5;
+const defaultCenter = { lat: -8.8368, lng: 13.2343 };
+const defaultZoom = 12;
 
 export default function TrafficLightReport({ 
     open, 

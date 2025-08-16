@@ -42,8 +42,8 @@ function LicencasPage() {
     const { toast } = useToast();
     const { profile } = useAuth();
     const [files, setFiles] = React.useState<File[]>([]);
-    const [mapCenter, setMapCenter] = React.useState({ lat: -12.5, lng: 18.5 });
-    const [mapZoom, setMapZoom] = React.useState(5);
+    const [mapCenter, setMapCenter] = React.useState({ lat: -8.8368, lng: 13.2343 });
+    const [mapZoom, setMapZoom] = React.useState(12);
 
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

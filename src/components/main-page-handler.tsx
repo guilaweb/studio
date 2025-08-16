@@ -54,10 +54,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   const [searchedPlace, setSearchedPlace] = React.useState<google.maps.places.PlaceResult | null>(null);
   const [userPosition, setUserPosition] = React.useState<google.maps.LatLngLiteral | null>(null);
   const [mapCenter, setMapCenter] = React.useState<google.maps.LatLngLiteral>({
-    lat: -12.5,
-    lng: 18.5,
+    lat: -8.8368,
+    lng: 13.2343,
   });
-  const [zoom, setZoom] = React.useState(5);
+  const [zoom, setZoom] = React.useState(12);
   const { allData, addPoint, updatePointStatus, addUpdateToPoint, updatePointDetails } = usePoints();
   const searchParams = useSearchParams();
   const prevDataRef = React.useRef<PointOfInterest[]>([]);

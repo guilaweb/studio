@@ -200,8 +200,8 @@ function ComunicacoesPage() {
                             </CardHeader>
                             <CardContent className="h-[500px] p-0 relative">
                                 <Map
-                                    defaultCenter={{ lat: -12.5, lng: 18.5 }}
-                                    defaultZoom={5}
+                                    defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
+                                    defaultZoom={12}
                                     gestureHandling={'greedy'}
                                     disableDefaultUI={true}
                                     styles={mapStyles}
