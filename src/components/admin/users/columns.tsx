@@ -77,7 +77,7 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
     cell: ({ row }) => {
       const user = row.original;
       return (
-        <div className="flex items-center gap-3 pl-4">
+        <Link href={`/public-profile/${user.uid}`} className="flex items-center gap-3 pl-4 group hover:underline">
           <Avatar className="h-9 w-9">
             <AvatarImage src={user.photoURL || undefined} alt={user.displayName} />
             <AvatarFallback>{user.displayName.charAt(0).toUpperCase()}</AvatarFallback>
@@ -86,7 +86,7 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
             <span className="font-medium">{user.displayName}</span>
             <span className="text-xs text-muted-foreground">{user.email}</span>
           </div>
-        </div>
+        </Link>
       );
     },
   },
