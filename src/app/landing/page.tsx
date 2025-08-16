@@ -181,7 +181,10 @@ export default function LandingPage() {
         </section>
       </main>
       <footer className="flex flex-col gap-4 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; 2024 Cidadão Online. Todos os direitos reservados.</p>
+        <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-muted-foreground">
+            <p>&copy; 2024 Cidadão Online. Todos os direitos reservados.</p>
+            <Link href="/docs" className="underline hover:text-primary">Documentação Técnica</Link>
+        </div>
         <div className="sm:ml-auto flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground text-center sm:text-right">
             <div>
                 <p className="font-semibold">Dianguila Empreendimentos, (SU), Lda.</p>
