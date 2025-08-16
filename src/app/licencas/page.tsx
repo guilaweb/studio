@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
-import { PointOfInterest } from "@/lib/data";
+import { PointOfInterest, statusLabelMap } from "@/lib/data";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -99,7 +99,7 @@ const SelectedPlotInfo: React.FC<{plot: PointOfInterest}> = ({plot}) => {
             <div className="grid grid-cols-2 gap-4 text-sm">
                  <div>
                     <p className="text-muted-foreground">Estado</p>
-                    <p className="font-medium">{plot.status ? plot.status : "N/A"}</p>
+                    <p className="font-medium">{plot.status ? statusLabelMap[plot.status] : "N/A"}</p>
                 </div>
                  {plot.usageType && (
                     <div>
