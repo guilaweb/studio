@@ -11,7 +11,7 @@ import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/da
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2 } from "lucide-react";
+import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -150,6 +150,15 @@ function AdminProjectDetailPage() {
             setIsGenerating(false);
         }
     };
+    
+    const setParecerTemplate = (templateType: 'favoravel' | 'condicionantes' | 'desfavoravel') => {
+        const templates = {
+            favoravel: "**PARECER FAVORÁVEL**\n\nApós análise do processo, o projeto cumpre com todos os regulamentos aplicáveis. Recomenda-se a aprovação.",
+            condicionantes: "**PARECER FAVORÁVEL COM CONDICIONANTES**\n\nO projeto é aprovado, sujeito ao cumprimento das seguintes condições:\n1. [Condição 1]\n2. [Condição 2]\n\nApós o cumprimento, o processo poderá avançar para a fase seguinte.",
+            desfavoravel: "**PARECER DESFAVORÁVEL**\n\nO projeto não cumpre com os regulamentos pelos seguintes motivos:\n1. [Motivo 1 - Ex: Violação do recuo frontal]\n2. [Motivo 2 - Ex: Índice de ocupação excede o permitido]\n\nRecomenda-se a rejeição do pedido ou a submissão de um novo projeto corrigido."
+        };
+        setUpdateText(templates[templateType]);
+    }
 
 
     if (loadingPoints || loadingApplicant) {
@@ -191,13 +200,28 @@ function AdminProjectDetailPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Adicionar Comunicação ou Parecer</CardTitle>
+                            <CardDescription>Use os modelos para emitir um parecer ou escreva uma comunicação livre.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                             <div className="flex flex-wrap gap-2">
+                                <Button variant="outline" size="sm" onClick={() => setParecerTemplate('favoravel')}>
+                                    <ThumbsUp className="mr-2 h-4 w-4" />
+                                    Parecer Favorável
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => setParecerTemplate('condicionantes')}>
+                                    <AlertTriangle className="mr-2 h-4 w-4" />
+                                    Parecer com Condicionantes
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => setParecerTemplate('desfavoravel')}>
+                                    <ThumbsDown className="mr-2 h-4 w-4" />
+                                    Parecer Desfavorável
+                                </Button>
+                            </div>
                             <Textarea 
                                 placeholder="Escreva aqui a sua comunicação, parecer ou despacho..." 
                                 value={updateText}
                                 onChange={(e) => setUpdateText(e.target.value)}
-                                rows={5}
+                                rows={8}
                             />
                             <div className="flex flex-wrap gap-2">
                                 <Button onClick={handleAddUpdate} disabled={isSubmitting || !updateText.trim()}>
@@ -294,3 +318,5 @@ function AdminProjectDetailPage() {
 }
 
 export default withAuth(AdminProjectDetailPage, ['Agente Municipal', 'Administrador']);
+
+    
