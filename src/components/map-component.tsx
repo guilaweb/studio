@@ -2,8 +2,7 @@
 
 "use client";
 
-import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow } from "@vis.gl/react-google-maps";
-import { Polygon } from "@vis.gl/react-google-maps";
+import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, Polygon } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, Siren, Trash, Search, Droplet, Square } from "lucide-react";
 import React from "react";
@@ -220,5 +219,3 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
     </div>
   );
 }
-
-    
