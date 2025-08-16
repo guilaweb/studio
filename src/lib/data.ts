@@ -44,6 +44,7 @@ export const PointOfInterestSchema = z.object({
   authorDisplayName: z.string().optional(),
   updates: z.array(PointOfInterestUpdateSchema).optional(),
   // Land Plot Specific
+  area: z.number().optional(), // in square meters
   plotNumber: z.string().optional(),
   registrationCode: z.string().optional(),
   zoningInfo: z.string().optional(), // General notes

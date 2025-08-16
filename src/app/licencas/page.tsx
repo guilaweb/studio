@@ -19,6 +19,7 @@ import { PointOfInterest, statusLabelMap, PointOfInterestUsageType, AnalyzeProje
 import { analyzeProjectComplianceFlow } from "@/ai/flows/analyze-project-compliance-flow";
 import { Badge } from "@/components/ui/badge";
 import ComplianceChecklist from "@/components/licencas/compliance-checklist";
+import LandPlotSearch, { SearchFilters } from "@/components/licencas/land-plot-search";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -161,6 +162,7 @@ function LicencasPage() {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isCheckingCompliance, setIsCheckingCompliance] = React.useState(false);
     const [complianceResult, setComplianceResult] = React.useState<AnalyzeProjectComplianceOutput | null>(null);
+    const [searchFilters, setSearchFilters] = React.useState<SearchFilters>({ area: null, usageType: null, location: '' });
 
     const formRef = React.useRef<HTMLFormElement>(null);
     const formDataRef = React.useRef<Record<string, any>>({});
@@ -168,6 +170,18 @@ function LicencasPage() {
 
     const landPlots = React.useMemo(() => allData.filter(p => p.type === 'land_plot' && p.polygon), [allData]);
     const userProjects = React.useMemo(() => allData.filter(p => p.type === 'construction' && p.authorId === user?.uid), [allData, user]);
+
+    const filteredLandPlots = React.useMemo(() => {
+        return landPlots.filter(plot => {
+            const areaMatch = !searchFilters.area || (plot.area && plot.area >= searchFilters.area);
+            const usageMatch = !searchFilters.usageType || plot.usageType === searchFilters.usageType;
+            // Location match is a simple substring search for demonstration
+            const locationMatch = !searchFilters.location || 
+                                  (plot.title && plot.title.toLowerCase().includes(searchFilters.location.toLowerCase())) ||
+                                  (plot.description && plot.description.toLowerCase().includes(searchFilters.location.toLowerCase()));
+            return areaMatch && usageMatch && locationMatch;
+        });
+    }, [landPlots, searchFilters]);
 
 
     const handlePlotSelect = (plotId: string) => {
@@ -302,13 +316,16 @@ function LicencasPage() {
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-2 lg:grid-cols-3">
                     <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
                         <div className="grid gap-4 md:grid-cols-2">
-                             <Card className="md:col-span-2">
+                            <Card className="md:col-span-2">
                                 <CardHeader>
-                                    <CardTitle>Passo 1: Selecione o Lote Disponível</CardTitle>
+                                    <CardTitle>Passo 1: Encontre e Selecione o Lote</CardTitle>
                                     <CardDescription>
-                                        Clique num lote <span className="text-green-600 font-bold">Verde (Disponível)</span> no mapa para o selecionar. Lotes noutros estados não podem ser selecionados para novos projetos.
+                                        Use os filtros para encontrar um lote e clique nele no mapa para o selecionar. Apenas lotes <span className="text-green-600 font-bold">Verdes (Disponíveis)</span> podem ser selecionados.
                                     </CardDescription>
                                 </CardHeader>
+                                <CardContent>
+                                    <LandPlotSearch onSearch={setSearchFilters} initialFilters={searchFilters} />
+                                </CardContent>
                                 {selectedPlot && (
                                      <CardContent>
                                         <SelectedPlotInfo plot={selectedPlot} />
@@ -518,7 +535,7 @@ function LicencasPage() {
                             <CardHeader>
                                 <CardTitle>Mapa de Cadastro</CardTitle>
                                 <CardDescription>
-                                    Clique num lote disponível no mapa para o selecionar.
+                                    Os resultados da sua pesquisa são destacados no mapa.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="h-[500px] p-0 relative">
@@ -530,7 +547,7 @@ function LicencasPage() {
                                     styles={mapStyles}
                                 >
                                     <LandPlotPolygons 
-                                        plots={landPlots}
+                                        plots={filteredLandPlots}
                                         selectedPlotId={selectedPlot?.id || null}
                                         onPlotClick={handlePlotSelect}
                                     />
@@ -552,5 +569,3 @@ function LicencasPage() {
 }
 
 export default withAuth(LicencasPage);
-
-    
