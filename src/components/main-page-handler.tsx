@@ -575,7 +575,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       maxHeight: data.maxHeight,
       buildingRatio: data.buildingRatio,
       updates: [{
-          text: `Lote mapeado com estado: ${statusLabelMap[data.status!]}`,
+          text: "Registo inicial do lote realizado.",
           authorId: user.uid,
           authorDisplayName: profile.displayName,
           timestamp: timestamp,
