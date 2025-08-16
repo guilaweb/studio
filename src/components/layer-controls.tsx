@@ -3,7 +3,7 @@
 
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Landmark, Construction, Siren, Trash, Droplet, Square } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone } from "lucide-react";
 import type { ActiveLayers, Layer } from "@/lib/data";
 
 type LayerControlsProps = {
@@ -18,6 +18,7 @@ const layerConfig = [
   { id: "sanitation", label: "Saneamento", Icon: Trash },
   { id: "water", label: "Rede de Água", Icon: Droplet },
   { id: "land_plot", label: "Lotes de Terreno", Icon: Square },
+  { id: "announcement", label: "Anúncios", Icon: Megaphone },
 ];
 
 export default function LayerControls({ activeLayers, onLayerChange }: LayerControlsProps) {

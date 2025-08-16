@@ -10,11 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { ArrowLeft, Trash2 } from "lucide-react";
-import { withAuth } from "@/hooks/use-auth";
+import { ArrowLeft, Trash2, Send, Loader2 } from "lucide-react";
+import { withAuth, useAuth } from "@/hooks/use-auth";
+import { usePoints } from "@/hooks/use-points";
 
 // Component to handle the drawing functionality on the map
-const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon) => void}> = ({onPolygonComplete}) => {
+const DrawingManager: React.FC<{ onPolygonComplete: (polygon: google.maps.Polygon) => void, clearTrigger: boolean }> = ({ onPolygonComplete, clearTrigger }) => {
     const map = useMap();
     const drawing = useMapsLibrary('drawing');
     const [drawingManager, setDrawingManager] = React.useState<google.maps.drawing.DrawingManager | null>(null);
@@ -63,6 +64,14 @@ const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon
             }
         }
     }
+    
+    React.useEffect(() => {
+        if(clearTrigger) {
+            handleClearPolygon();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [clearTrigger])
+
 
     return (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
@@ -79,11 +88,16 @@ const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon
 
 function ComunicacoesPage() {
     const { toast } = useToast();
+    const { addPoint } = usePoints();
+    const { user, profile } = useAuth();
     const [title, setTitle] = React.useState("");
     const [message, setMessage] = React.useState("");
     const [drawnPolygon, setDrawnPolygon] = React.useState<google.maps.Polygon | null>(null);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [clearPolygonTrigger, setClearPolygonTrigger] = React.useState(false);
 
-    const handleSend = () => {
+
+    const handleSend = async () => {
         if (!title || !message) {
             toast({
                 variant: "destructive",
@@ -102,20 +116,58 @@ function ComunicacoesPage() {
             return;
         }
 
-        // In a real app, you would get the polygon path and send it to your backend
+        if (!user || !profile) {
+            toast({ variant: "destructive", title: "Erro", description: "Precisa de estar autenticado para enviar um anúncio."});
+            return;
+        }
+        
+        setIsSubmitting(true);
+
         const path = drawnPolygon.getPath().getArray().map(p => p.toJSON());
-        console.log("Sending announcement:", { title, message, area: path });
+        const centerLat = path.reduce((sum, p) => sum + p.lat, 0) / path.length;
+        const centerLng = path.reduce((sum, p) => sum + p.lng, 0) / path.length;
 
-        toast({
-            title: "Anúncio Simulado!",
-            description: "A sua comunicação foi enviada para a área selecionada.",
-        });
 
-        // Reset form
-        setTitle("");
-        setMessage("");
-        drawnPolygon.setMap(null);
-        setDrawnPolygon(null);
+        try {
+             await addPoint({
+                id: `announcement-${Date.now()}`,
+                type: 'announcement',
+                title: title,
+                description: message,
+                polygon: path,
+                position: { lat: centerLat, lng: centerLng },
+                authorId: user.uid,
+                authorDisplayName: profile.displayName,
+                lastReported: new Date().toISOString(),
+                status: 'unknown',
+                updates: [{
+                    text: message,
+                    authorId: user.uid,
+                    authorDisplayName: profile.displayName,
+                    timestamp: new Date().toISOString(),
+                }]
+            });
+
+            toast({
+                title: "Anúncio Enviado!",
+                description: "A sua comunicação foi guardada e está visível no mapa para a área selecionada.",
+            });
+
+            // Reset form
+            setTitle("");
+            setMessage("");
+            setClearPolygonTrigger(val => !val); // Trigger polygon clearing in child
+            setDrawnPolygon(null);
+
+        } catch (error) {
+             toast({
+                variant: "destructive",
+                title: "Erro ao Enviar",
+                description: "Não foi possível guardar o seu anúncio. Tente novamente.",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     
     const mapStyles: google.maps.MapTypeStyle[] = [
@@ -184,7 +236,8 @@ function ComunicacoesPage() {
                                         rows={5}
                                     />
                                 </div>
-                                <Button onClick={handleSend} className="w-full">
+                                <Button onClick={handleSend} className="w-full" disabled={isSubmitting}>
+                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                     Enviar Anúncio
                                 </Button>
                             </CardContent>
@@ -206,7 +259,7 @@ function ComunicacoesPage() {
                                     disableDefaultUI={true}
                                     styles={mapStyles}
                                 >
-                                     <DrawingManager onPolygonComplete={setDrawnPolygon} />
+                                     <DrawingManager onPolygonComplete={setDrawnPolygon} clearTrigger={clearPolygonTrigger} />
                                 </Map>
                             </CardContent>
                         </Card>

@@ -4,7 +4,7 @@
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash, Search, Droplet, Square } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 
@@ -57,6 +57,8 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
         return <Droplet className={commonClasses} />;
     case "land_plot":
         return <Square className={commonClasses} />;
+    case "announcement":
+        return <Megaphone className={commonClasses} />;
     default:
       return null;
   }
@@ -98,7 +100,7 @@ export const getPinStyle = (point: PointOfInterest) => {
                 return { background: '#a1a1aa', borderColor: '#71717a', glyphColor: '#ffffff' }; // gray
         }
     }
-    if (point.type === 'land_plot') {
+    if (point.type === 'land_plot' || point.type === 'announcement') {
         switch (point.status) {
             case 'available':
                 return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
@@ -175,11 +177,11 @@ const Polygon = (props: google.maps.PolygonOptions) => {
 const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut, zoom }: { point: PointOfInterest; onClick: (pointId: string) => void; onMouseOver: (pointId: string) => void; onMouseOut: () => void; zoom: number }) => {
   const [markerRef, marker] = useAdvancedMarkerRef();
   const pinStyle = getPinStyle(point);
-  const isLandPlot = point.type === 'land_plot';
+  const isPolygonType = (point.type === 'land_plot' || point.type === 'announcement');
 
   // For land plots, only show the polygon when zoomed in, and the marker when zoomed out.
-  const showPolygon = isLandPlot && point.polygon && zoom >= 15;
-  const showMarker = !isLandPlot || (isLandPlot && zoom < 15);
+  const showPolygon = isPolygonType && point.polygon && zoom >= 15;
+  const showMarker = !isPolygonType || (isPolygonType && zoom < 15);
 
   return (
     <>

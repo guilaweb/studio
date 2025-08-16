@@ -51,6 +51,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     sanitation: true,
     water: true,
     land_plot: true,
+    announcement: true,
   });
   const [selectedPoi, setSelectedPoi] = React.useState<PointOfInterest | null>(null);
   const [searchedPlace, setSearchedPlace] = React.useState<google.maps.places.PlaceResult | null>(null);
