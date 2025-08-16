@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { generateOfficialResponse } from "@/ai/flows/generate-official-response-flow";
+import WorkflowSuggestions from "@/components/admin/projetos/workflow-suggestions";
 
 const getStatusIcon = (status: PointOfInterest['status']) => {
     switch (status) {
@@ -175,6 +176,7 @@ function AdminProjectDetailPage() {
             </header>
             <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
                  <div className="grid auto-rows-max items-start gap-4 md:col-span-2 lg:col-span-3">
+                    <WorkflowSuggestions project={project} />
                      <Card>
                         <CardHeader>
                             <CardTitle>Linha do Tempo, Comunicações e Pareceres</CardTitle>
@@ -292,5 +294,3 @@ function AdminProjectDetailPage() {
 }
 
 export default withAuth(AdminProjectDetailPage, ['Agente Municipal', 'Administrador']);
-
-    

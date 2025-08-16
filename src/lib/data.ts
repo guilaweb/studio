@@ -192,3 +192,19 @@ export const AnalyzeProjectComplianceOutputSchema = z.object({
   analysis: z.string().describe('A brief analysis explaining the compliance check result. Mention specific points of compliance or non-compliance.'),
 });
 export type AnalyzeProjectComplianceOutput = z.infer<typeof AnalyzeProjectComplianceOutputSchema>;
+
+export const SuggestNextStepsInputSchema = z.object({
+  projectType: z.string().optional().describe("The type of project (e.g., 'Construção Nova', 'Remodelação')."),
+  projectDescription: z.string().describe("The detailed description of the project."),
+  usageType: PointOfInterestUsageTypeEnum.optional().describe("The permitted usage for the plot (e.g., 'residencial', 'industrial').")
+});
+export type SuggestNextStepsInput = z.infer<typeof SuggestNextStepsInputSchema>;
+
+export const SuggestNextStepsOutputSchema = z.object({
+  steps: z.array(z.object({
+    department: z.string().describe("The name of the department that needs to provide a review/opinion."),
+    reason: z.string().describe("A brief reason why this department's review is necessary."),
+    status: z.enum(['pending', 'completed', 'not_required']).describe("The current status of this step."),
+  })).describe("A list of suggested next steps or required reviews for the project."),
+});
+export type SuggestNextStepsOutput = z.infer<typeof SuggestNextStepsOutputSchema>;
