@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { ArrowLeft, Search, FileText, User, Calendar, Camera, Send, Loader2, Building, ScanLine } from "lucide-react";
 import { usePoints } from "@/hooks/use-points";
-import { PointOfInterest } from "@/lib/data";
+import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import Image from "next/image";
@@ -65,13 +65,15 @@ function InspectionPage() {
         
         const processSubmit = async (photoDataUri?: string) => {
             try {
-                await addUpdateToPoint(project.id, {
+                const updateData: Omit<PointOfInterestUpdate, 'id'> = {
                     text: `**AUTO DE VISTORIA**\n\n${vistoriaText}`,
                     authorId: profile.uid,
                     authorDisplayName: profile.displayName,
                     timestamp: new Date().toISOString(),
-                    photoDataUri: photoDataUri,
-                });
+                    ...(photoDataUri && { photoDataUri }),
+                };
+
+                await addUpdateToPoint(project.id, updateData);
                 
                 toast({ title: "Vistoria Submetida", description: "O seu relatório foi adicionado ao processo do projeto." });
                 // Reset form
