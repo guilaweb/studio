@@ -3,6 +3,7 @@
 "use client";
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow } from "@vis.gl/react-google-maps";
+import { Polygon } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, Siren, Trash, Search, Droplet, Square } from "lucide-react";
 import React from "react";
@@ -121,22 +122,38 @@ const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut }: { po
   const pinStyle = getPinStyle(point);
 
   return (
-    <AdvancedMarker 
-        ref={markerRef} 
-        position={point.position} 
-        title={point.title} 
-        onClick={() => onClick(point.id)}
-        onMouseOver={() => onMouseOver(point.id)}
-        onMouseOut={onMouseOut}
-    >
-        <Pin 
-            background={pinStyle.background} 
-            borderColor={pinStyle.borderColor} 
-            glyphColor={pinStyle.glyphColor}
+    <>
+        <AdvancedMarker 
+            ref={markerRef} 
+            position={point.position} 
+            title={point.title} 
+            onClick={() => onClick(point.id)}
+            onMouseOver={() => onMouseOver(point.id)}
+            onMouseOut={onMouseOut}
         >
-            <MarkerIcon type={point.type} />
-        </Pin>
-    </AdvancedMarker>
+            <Pin 
+                background={pinStyle.background} 
+                borderColor={pinStyle.borderColor} 
+                glyphColor={pinStyle.glyphColor}
+            >
+                <MarkerIcon type={point.type} />
+            </Pin>
+        </AdvancedMarker>
+        {point.polygon && (
+            <Polygon
+                paths={point.polygon}
+                strokeColor={pinStyle.background || 'hsl(var(--primary))'}
+                strokeOpacity={0.8}
+                strokeWeight={2}
+                fillColor={pinStyle.background || 'hsl(var(--primary))'}
+                fillOpacity={0.35}
+                clickable={true}
+                onClick={() => onClick(point.id)}
+                onMouseOver={() => onMouseOver(point.id)}
+                onMouseOut={onMouseOut}
+            />
+        )}
+    </>
   );
 };
 
@@ -203,3 +220,5 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
     </div>
   );
 }
+
+    

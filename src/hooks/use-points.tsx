@@ -36,6 +36,7 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         id: doc.id,
         type: data.type,
         position: data.position,
+        polygon: data.polygon,
         title: data.title,
         description: data.description,
         status: data.status,
@@ -46,6 +47,9 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         endDate: data.endDate,
         authorId: data.authorId,
         updates: sortedUpdates,
+        plotNumber: data.plotNumber,
+        registrationCode: data.registrationCode,
+        zoningInfo: data.zoningInfo,
     };
 };
 

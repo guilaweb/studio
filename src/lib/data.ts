@@ -21,11 +21,13 @@ export type PointOfInterestType = z.infer<typeof PointOfInterestTypeEnum>;
 const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
 export type PointOfInterestPriority = z.infer<typeof PointOfInterestPriorityEnum>;
 
+const PositionSchema = z.object({ lat: z.number(), lng: z.number() });
 
 export const PointOfInterestSchema = z.object({
   id: z.string(),
   type: PointOfInterestTypeEnum,
-  position: z.object({ lat: z.number(), lng: z.number() }),
+  position: PositionSchema,
+  polygon: z.array(PositionSchema).optional(), // For land plots
   title: z.string(),
   description: z.string(),
   status: PointOfInterestStatusEnum.optional(),

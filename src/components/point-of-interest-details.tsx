@@ -389,10 +389,12 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 <h3 className="font-semibold mb-2">Descrição</h3>
                 <p className="text-muted-foreground whitespace-pre-wrap">{poi.description}</p>
             </div>
-             <div>
-                <h3 className="font-semibold mb-2">Localização</h3>
-                <p className="text-muted-foreground">{`Lat: ${poi.position.lat.toFixed(6)}, Lng: ${poi.position.lng.toFixed(6)}`}</p>
-            </div>
+             {poi.type !== 'land_plot' && (
+                <div>
+                    <h3 className="font-semibold mb-2">Localização (Centroide)</h3>
+                    <p className="text-muted-foreground">{`Lat: ${poi.position.lat.toFixed(6)}, Lng: ${poi.position.lng.toFixed(6)}`}</p>
+                </div>
+             )}
             {poi.type === 'incident' && <IncidentTags description={poi.description} />}
             
             {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}

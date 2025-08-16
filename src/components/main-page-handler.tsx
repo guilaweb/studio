@@ -542,7 +542,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   };
 
   const handleAddNewLandPlot = async (
-    data: Pick<PointOfInterest, 'position' | 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo'>
+    data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon'>
   ) => {
     if (!user || !profile) {
         toast({
@@ -555,6 +555,9 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     handleSheetOpenChange(false);
     const timestamp = new Date().toISOString();
 
+    const centerLat = data.polygon!.reduce((sum, p) => sum + p.lat, 0) / data.polygon!.length;
+    const centerLng = data.polygon!.reduce((sum, p) => sum + p.lng, 0) / data.polygon!.length;
+
     const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
       id: `land_plot-${Date.now()}`,
       type: 'land_plot',
@@ -562,7 +565,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       authorId: user.uid,
       lastReported: timestamp,
       description: data.zoningInfo || "Sem informação de zoneamento.",
-      position: data.position,
+      position: { lat: centerLat, lng: centerLng },
+      polygon: data.polygon,
       status: data.status,
       plotNumber: data.plotNumber,
       registrationCode: data.registrationCode,
