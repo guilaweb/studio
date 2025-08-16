@@ -68,7 +68,7 @@ export default function LandingPage() {
                 </header>
 
                 <main className="flex-1">
-                    <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-background/80">
+                    <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
                     <div className="container px-4 md:px-6">
                         <div className="flex flex-col justify-center space-y-4 text-center">
                             <div className="space-y-4">
@@ -90,7 +90,7 @@ export default function LandingPage() {
                     </div>
                     </section>
                     
-                    <section id="for-whom" className="w-full py-12 md:py-24 lg:py-32 bg-muted/90">
+                    <section id="for-whom" className="w-full py-12 md:py-24 lg:py-32">
                         <div className="container px-4 md:px-6">
                             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
                                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Uma Ferramenta, Dois Mundos</h2>
@@ -153,59 +153,69 @@ export default function LandingPage() {
                         </div>
                     </section>
 
-                    <section id="how-it-works" className="w-full py-12 md:py-24 lg:py-32 bg-background/80">
+                    <section id="how-it-works" className="w-full py-12 md:py-24 lg:py-32">
                     <div className="container px-4 md:px-6">
-                        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-                        <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Como Funciona</div>
-                        <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Simples, Rápido e Eficaz</h2>
-                        <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                            Em três passos, você começa a transformar a sua cidade.
-                        </p>
-                        </div>
-                        <div className="relative grid gap-10 sm:grid-cols-3">
-                            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-border -translate-y-1/2 hidden sm:block"></div>
-                            <div className="relative flex flex-col items-center text-center">
-                                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center border-4 border-background z-10">
-                                    <UserCheck className="w-10 h-10 text-primary" />
+                        <Card>
+                            <CardContent className="p-10">
+                                <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+                                <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Como Funciona</div>
+                                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Simples, Rápido e Eficaz</h2>
+                                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                                    Em três passos, você começa a transformar a sua cidade.
+                                </p>
                                 </div>
-                                <h3 className="text-xl font-bold mt-4">1. Registe-se</h3>
-                                <p className="text-muted-foreground mt-2">Crie a sua conta gratuita em segundos para ter acesso a todas as funcionalidades.</p>
-                            </div>
-                            <div className="relative flex flex-col items-center text-center">
-                                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center border-4 border-background z-10">
-                                    <FileText className="w-10 h-10 text-primary" />
+                                <div className="relative grid gap-10 sm:grid-cols-3">
+                                    <div className="absolute top-1/2 left-0 w-full h-0.5 bg-border -translate-y-1/2 hidden sm:block"></div>
+                                    <div className="relative flex flex-col items-center text-center">
+                                        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center border-4 border-card z-10">
+                                            <UserCheck className="w-10 h-10 text-primary" />
+                                        </div>
+                                        <h3 className="text-xl font-bold mt-4">1. Registe-se</h3>
+                                        <p className="text-muted-foreground mt-2">Crie a sua conta gratuita em segundos para ter acesso a todas as funcionalidades.</p>
+                                    </div>
+                                    <div className="relative flex flex-col items-center text-center">
+                                        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center border-4 border-card z-10">
+                                            <FileText className="w-10 h-10 text-primary" />
+                                        </div>
+                                        <h3 className="text-xl font-bold mt-4">2. Reporte e Consulte</h3>
+                                        <p className="text-muted-foreground mt-2">Utilize o mapa interativo para reportar um incidente, mapear um problema ou iniciar um pedido de licença.</p>
+                                    </div>
+                                    <div className="relative flex flex-col items-center text-center">
+                                        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center border-4 border-card z-10">
+                                            <Building className="w-10 h-10 text-primary" />
+                                        </div>
+                                        <h3 className="text-xl font-bold mt-4">3. Acompanhe o Impacto</h3>
+                                        <p className="text-muted-foreground mt-2">Receba notificações sobre o andamento dos seus reportes e veja as melhorias a acontecer.</p>
+                                    </div>
                                 </div>
-                                <h3 className="text-xl font-bold mt-4">2. Reporte e Consulte</h3>
-                                <p className="text-muted-foreground mt-2">Utilize o mapa interativo para reportar um incidente, mapear um problema ou iniciar um pedido de licença.</p>
-                            </div>
-                            <div className="relative flex flex-col items-center text-center">
-                                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center border-4 border-background z-10">
-                                    <Building className="w-10 h-10 text-primary" />
-                                </div>
-                                <h3 className="text-xl font-bold mt-4">3. Acompanhe o Impacto</h3>
-                                <p className="text-muted-foreground mt-2">Receba notificações sobre o andamento dos seus reportes e veja as melhorias a acontecer.</p>
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
                     </div>
                     </section>
 
-                    <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/90">
-                    <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
-                        <div className="space-y-3">
-                        <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
-                            Pronto para fazer a diferença?
-                        </h2>
-                        <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                            Junte-se a milhares de cidadãos que estão a transformar a nossa cidade. O seu registo é o primeiro passo.
-                        </p>
-                        </div>
-                        <div className="mx-auto w-full max-w-sm space-y-2">
-                            <Button asChild size="lg" className="w-full">
-                                <Link href="/register" prefetch={false}>
-                                    Criar a minha conta agora
-                                </Link>
-                            </Button>
-                        </div>
+                    <section className="w-full py-12 md:py-24 lg:py-32">
+                    <div className="container px-4 md:px-6">
+                        <Card>
+                             <CardContent className="p-10">
+                                <div className="grid items-center justify-center gap-4 text-center">
+                                    <div className="space-y-3">
+                                    <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
+                                        Pronto para fazer a diferença?
+                                    </h2>
+                                    <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                                        Junte-se a milhares de cidadãos que estão a transformar a nossa cidade. O seu registo é o primeiro passo.
+                                    </p>
+                                    </div>
+                                    <div className="mx-auto w-full max-w-sm space-y-2">
+                                        <Button asChild size="lg" className="w-full">
+                                            <Link href="/register" prefetch={false}>
+                                                Criar a minha conta agora
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                     </section>
                 </main>
@@ -227,6 +237,5 @@ export default function LandingPage() {
     </APIProvider>
   )
 }
-    
 
     
