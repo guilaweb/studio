@@ -41,6 +41,24 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
 ];
 
+
+const getPlotColors = (status: PointOfInterest['status']) => {
+    switch (status) {
+        case 'available':
+            return { stroke: '#16a34a', fill: '#22c55e' }; // green
+        case 'occupied':
+        case 'reserved':
+            return { stroke: '#ea580c', fill: '#f97316' }; // orange
+        case 'in_dispute':
+            return { stroke: '#dc2626', fill: '#ef4444' }; // red
+        case 'protected':
+            return { stroke: '#155e75', fill: '#0e7490' }; // cyan
+        default:
+            return { stroke: '#a1a1aa', fill: '#71717a' }; // gray
+    }
+}
+
+
 const LandPlotPolygons: React.FC<{
     plots: PointOfInterest[];
     selectedPlotId: string | null;
@@ -57,13 +75,15 @@ const LandPlotPolygons: React.FC<{
 
         const newPolygons = plots.map(plot => {
             const isSelected = plot.id === selectedPlotId;
+            const colors = getPlotColors(plot.status);
+
             const poly = new google.maps.Polygon({
                 paths: plot.polygon,
-                strokeColor: isSelected ? 'hsl(var(--ring))' : 'hsl(var(--primary))',
+                strokeColor: isSelected ? 'hsl(var(--ring))' : colors.stroke,
                 strokeOpacity: 0.9,
                 strokeWeight: isSelected ? 3 : 2,
-                fillColor: isSelected ? 'hsl(var(--primary) / 0.4)' : 'hsl(var(--primary) / 0.2)',
-                fillOpacity: 0.35,
+                fillColor: isSelected ? colors.fill : colors.fill,
+                fillOpacity: isSelected ? 0.6 : 0.35,
                 map: map,
             });
 
