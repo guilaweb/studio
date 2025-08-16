@@ -6,24 +6,63 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { CodeBlock } from "@/components/docs/code-block";
 
+const pointOfInterestExample = `
+{
+  "id": "incident-1754013627883",
+  "type": "incident",
+  "position": { "lat": -8.8368, "lng": 13.2343 },
+  "title": "Colisão Grave",
+  "description": "Acidente entre dois veículos no cruzamento principal.",
+  "status": "unknown",
+  "priority": "high",
+  "lastReported": "2024-05-26T12:40:27.883Z",
+  "authorId": "user123",
+  "updates": [
+    {
+      "id": "update-01",
+      "text": "Acidente entre dois veículos no cruzamento principal.",
+      "authorId": "user123",
+      "timestamp": "2024-05-26T12:40:27.883Z"
+    }
+  ]
+}
+`;
 
-export default function GeodesiaPage() {
+export default function DocsPage() {
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
             <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
                 <Button size="icon" variant="outline" asChild>
-                    <Link href="/licencas">
+                    <Link href="/">
                         <ArrowLeft className="h-5 w-5" />
-                        <span className="sr-only">Voltar às Licenças</span>
+                        <span className="sr-only">Voltar ao Mapa</span>
                     </Link>
                 </Button>
                 <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                    Informação Técnica
+                    Documentação Técnica
                 </h1>
             </header>
-            <main className="flex-1 p-4 sm:px-6 sm:py-6">
+            <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-6">
                 <Card>
+                    <CardHeader>
+                        <CardTitle>Formatos de Dados</CardTitle>
+                        <CardDescription>
+                            Entenda a estrutura dos principais objetos de dados utilizados na plataforma.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <h3 className="font-semibold">Objeto: PointOfInterest</h3>
+                            <p className="text-muted-foreground text-sm mb-2">
+                                A estrutura base para todos os pontos reportados no mapa.
+                            </p>
+                            <CodeBlock code={pointOfInterestExample} />
+                        </div>
+                    </CardContent>
+                </Card>
+                 <Card>
                     <CardHeader>
                         <CardTitle>Sistema Geodésico Nacional</CardTitle>
                         <CardDescription>
@@ -63,5 +102,3 @@ export default function GeodesiaPage() {
         </div>
     );
 }
-
-    

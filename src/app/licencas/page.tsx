@@ -557,7 +557,7 @@ function LicencasPage() {
                          <Card>
                             <CardContent className="pt-6">
                                <p className="text-xs text-muted-foreground">
-                                  Necessita de trabalhar com o Sistema Geodésico Nacional? <Link href="/geodesia" className="underline font-semibold">Consulte a nossa página de informação técnica.</Link>
+                                  Necessita de trabalhar com o Sistema Geodésico Nacional? <Link href="/docs" className="underline font-semibold">Consulte a nossa documentação técnica.</Link>
                                </p>
                             </CardContent>
                         </Card>
