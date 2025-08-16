@@ -126,8 +126,14 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+      <footer className="flex flex-col gap-4 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-muted-foreground">&copy; 2024 Cidadão Online. Todos os direitos reservados.</p>
+        <div className="sm:ml-auto flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground text-center sm:text-right">
+            <div>
+                <p className="font-semibold">Dianguila Empreendimentos, (SU), Lda.</p>
+                <p>NIF: 5001706802 | Matrícula: 39110-23/231102</p>
+            </div>
+        </div>
       </footer>
     </div>
   )
