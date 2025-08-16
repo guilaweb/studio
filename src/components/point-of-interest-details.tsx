@@ -5,8 +5,8 @@
 import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet } from "lucide-react";
+import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/data";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +34,7 @@ const layerConfig = {
     incident: { label: "Incidente", Icon: Siren, variant: "destructive" as const},
     sanitation: { label: "Ponto de Saneamento", Icon: Trash, variant: "outline" as const},
     water: { label: "Rede de Água", Icon: Droplet, variant: "default" as const },
+    land_plot: { label: "Lote de Terreno", Icon: Square, variant: "secondary" as const },
 };
 
 const priorityConfig = {
@@ -299,6 +300,37 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
     )
 }
 
+const LandPlotDetails = ({ poi }: { poi: PointOfInterest }) => {
+    if (poi.type !== 'land_plot') return null;
+
+    return (
+        <div className="space-y-4">
+            <div>
+                <h3 className="font-semibold">Estado do Lote</h3>
+                <Badge variant="outline" className="mt-2">{poi.status ? statusLabelMap[poi.status] : "N/A"}</Badge>
+            </div>
+            {poi.plotNumber && (
+                <div>
+                    <h3 className="font-semibold">Nº do Lote</h3>
+                    <p className="text-muted-foreground">{poi.plotNumber}</p>
+                </div>
+            )}
+            {poi.registrationCode && (
+                <div>
+                    <h3 className="font-semibold">Código de Registo</h3>
+                    <p className="text-muted-foreground">{poi.registrationCode}</p>
+                </div>
+            )}
+            {poi.zoningInfo && (
+                <div>
+                    <h3 className="font-semibold">Informação de Zoneamento</h3>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{poi.zoningInfo}</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
 
 export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange, onAddUpdate, onEdit }: PointOfInterestDetailsProps) {
   const { user } = useAuth();
@@ -347,7 +379,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                    <span>{format(new Date(poi.startDate), "dd/MM/yy", { locale: pt })} - {format(new Date(poi.endDate), "dd/MM/yy", { locale: pt })}</span>
                 </div>
             )}
-            {poi.type !== 'construction' && incidentDate && (
+            {poi.type !== 'construction' && poi.type !== 'land_plot' && incidentDate && (
                 <div className="flex items-center text-sm text-muted-foreground">
                    <Calendar className="mr-2 h-4 w-4" />
                    <span>Ocorrido em: {format(new Date(incidentDate), "PPP", { locale: pt })}</span>
@@ -367,6 +399,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             
             {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
             
+            {poi.type === 'land_plot' && <LandPlotDetails poi={poi} />}
+
             {showTimeline && (
                 <Timeline 
                     poi={poi} 

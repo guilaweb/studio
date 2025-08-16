@@ -22,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -36,9 +36,10 @@ import PublicLightingReport from "./public-lighting-report";
 import ConstructionReport from "./construction-report";
 import AtmReport from "./atm-report";
 import WaterLeakReport from "./water-leak-report";
+import LandPlotReport from "./land-plot-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot';
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
 
@@ -49,6 +50,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     incident: true,
     sanitation: true,
     water: true,
+    land_plot: true,
   });
   const [selectedPoi, setSelectedPoi] = React.useState<PointOfInterest | null>(null);
   const [searchedPlace, setSearchedPlace] = React.useState<google.maps.places.PlaceResult | null>(null);
@@ -539,6 +541,49 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   };
 
+  const handleAddNewLandPlot = async (
+    data: Pick<PointOfInterest, 'position' | 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo'>
+  ) => {
+    if (!user || !profile) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para mapear um lote.",
+        });
+        return;
+    }
+    handleSheetOpenChange(false);
+    const timestamp = new Date().toISOString();
+
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `land_plot-${Date.now()}`,
+      type: 'land_plot',
+      title: `Lote ${data.plotNumber || 'S/N'}`,
+      authorId: user.uid,
+      lastReported: timestamp,
+      description: data.zoningInfo || "Sem informação de zoneamento.",
+      position: data.position,
+      status: data.status,
+      plotNumber: data.plotNumber,
+      registrationCode: data.registrationCode,
+      zoningInfo: data.zoningInfo,
+      updates: [{
+          text: `Lote mapeado com estado: ${statusLabelMap[data.status!]}`,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+      }]
+    };
+    
+    addPoint(pointToAdd);
+
+    toast({
+      title: "Lote de Terreno Mapeado!",
+      description: "O novo lote foi adicionado ao mapa de cadastro.",
+    });
+  }
+
+
   const handleStartReporting = (type: ActiveSheet) => {
     if (!user) {
         toast({
@@ -695,6 +740,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Landmark className="mr-2 h-4 w-4" />
                             Mapear Caixa Eletrónico
                         </DropdownMenuItem>
+                        {isManager && (
+                          <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
+                              <Square className="mr-2 h-4 w-4" />
+                              Mapear Lote de Terreno
+                          </DropdownMenuItem>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -779,6 +830,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Landmark className="mr-2 h-4 w-4" />
                             Mapear Caixa Eletrónico
                         </DropdownMenuItem>
+                         {isManager && (
+                          <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
+                              <Square className="mr-2 h-4 w-4" />
+                              Mapear Lote de Terreno
+                          </DropdownMenuItem>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -847,6 +904,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             open={activeSheet === 'water_leak'}
             onOpenChange={handleSheetOpenChange}
             onWaterLeakSubmit={handleAddNewWaterLeakReport}
+            initialCenter={mapCenter}
+        />
+        <LandPlotReport
+            open={activeSheet === 'land_plot'}
+            onOpenChange={handleSheetOpenChange}
+            onLandPlotSubmit={handleAddNewLandPlot}
             initialCenter={mapCenter}
         />
       </SidebarProvider>

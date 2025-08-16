@@ -12,10 +12,10 @@ export const PointOfInterestUpdateSchema = z.object({
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 
-const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress']);
+const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
-const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water']);
+const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot']);
 export type PointOfInterestType = z.infer<typeof PointOfInterestTypeEnum>;
 
 const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
@@ -36,12 +36,16 @@ export const PointOfInterestSchema = z.object({
   endDate: z.string().optional(),
   authorId: z.string().optional(),
   updates: z.array(PointOfInterestUpdateSchema).optional(),
+  // Land Plot Specific
+  plotNumber: z.string().optional(),
+  registrationCode: z.string().optional(),
+  zoningInfo: z.string().optional(),
 });
 
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 
 
-export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water';
+export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot';
 
 export type ActiveLayers = {
   [key in Layer]: boolean;
@@ -73,6 +77,7 @@ export const typeLabelMap: Record<PointOfInterestType, string> = {
     incident: "Incidente",
     sanitation: "Saneamento",
     water: "Rede de Água",
+    land_plot: "Lote de Terreno",
 };
 
 export const statusLabelMap: Record<PointOfInterestStatus, string> = {
@@ -83,6 +88,10 @@ export const statusLabelMap: Record<PointOfInterestStatus, string> = {
     full: "Cheio",
     damaged: "Danificado",
     in_progress: "Em Resolução",
+    occupied: "Ocupado",
+    protected: "Protegido",
+    in_dispute: "Em Litígio",
+    reserved: "Reservado",
 };
 
 export const priorityLabelMap: Record<PointOfInterestPriority, string> = {

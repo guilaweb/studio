@@ -4,7 +4,7 @@
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash, Search, Droplet } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search, Droplet, Square } from "lucide-react";
 import React from "react";
 import MapInfoWindow from "./map-infowindow";
 
@@ -55,6 +55,8 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
         return <Trash className={commonClasses} />;
     case "water":
         return <Droplet className={commonClasses} />;
+    case "land_plot":
+        return <Square className={commonClasses} />;
     default:
       return null;
   }
@@ -92,6 +94,21 @@ const getPinStyle = (point: PointOfInterest) => {
                 return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
             case 'collected':
                 return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
+            default:
+                return { background: '#a1a1aa', borderColor: '#71717a', glyphColor: '#ffffff' }; // gray
+        }
+    }
+    if (point.type === 'land_plot') {
+        switch (point.status) {
+            case 'available':
+                return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
+            case 'occupied':
+            case 'reserved':
+                return { background: '#f97316', borderColor: '#ea580c', glyphColor: '#ffffff' }; // orange
+            case 'in_dispute':
+                return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
+            case 'protected':
+                return { background: '#0e7490', borderColor: '#155e75', glyphColor: '#ffffff' }; // cyan
             default:
                 return { background: '#a1a1aa', borderColor: '#71717a', glyphColor: '#ffffff' }; // gray
         }
