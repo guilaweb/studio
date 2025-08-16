@@ -159,7 +159,7 @@ function LicencasPage() {
     
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user) return;
+        if (!user || !profile) return;
         setIsSubmitting(true);
 
         const form = e.currentTarget as HTMLFormElement;
@@ -185,6 +185,7 @@ function LicencasPage() {
             projectType: projectData.projectType as string,
             architectName: projectData.architectName as string,
             authorId: user.uid,
+            authorDisplayName: profile.displayName,
             status: 'submitted',
             landPlotId: selectedPlot.id,
             position: selectedPlot.position,

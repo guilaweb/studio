@@ -41,6 +41,7 @@ export const PointOfInterestSchema = z.object({
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   authorId: z.string().optional(),
+  authorDisplayName: z.string().optional(),
   updates: z.array(PointOfInterestUpdateSchema).optional(),
   // Land Plot Specific
   plotNumber: z.string().optional(),
