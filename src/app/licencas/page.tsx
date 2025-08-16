@@ -10,14 +10,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { ArrowLeft, Building, Upload, MapPin, Search, Loader2, FileText, CheckCircle } from "lucide-react";
+import { ArrowLeft, Building, Upload, MapPin, Loader2, FileText, Sparkles, AlertTriangle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
-import { PointOfInterest, statusLabelMap, PointOfInterestUsageType } from "@/lib/data";
+import { PointOfInterest, statusLabelMap, PointOfInterestUsageType, AnalyzeProjectComplianceOutput } from "@/lib/data";
 import { analyzeProjectComplianceFlow } from "@/ai/flows/analyze-project-compliance-flow";
 import { Badge } from "@/components/ui/badge";
+import ComplianceChecklist from "@/components/licencas/compliance-checklist";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -70,7 +71,6 @@ const LandPlotPolygons: React.FC<{
     React.useEffect(() => {
         if (!map) return;
         
-        // Clear old polygons
         polygons.forEach(p => p.setMap(null));
 
         const newPolygons = plots.map(plot => {
@@ -96,7 +96,6 @@ const LandPlotPolygons: React.FC<{
         setPolygons(newPolygons);
 
         return () => {
-            // Cleanup on component unmount
             newPolygons.forEach(p => p.setMap(null));
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -160,7 +159,12 @@ function LicencasPage() {
     const [files, setFiles] = React.useState<File[]>([]);
     const [selectedPlot, setSelectedPlot] = React.useState<PointOfInterest | null>(null);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [isCheckingCompliance, setIsCheckingCompliance] = React.useState(false);
+    const [complianceResult, setComplianceResult] = React.useState<AnalyzeProjectComplianceOutput | null>(null);
+
     const formRef = React.useRef<HTMLFormElement>(null);
+    const formDataRef = React.useRef<Record<string, any>>({});
+
 
     const landPlots = React.useMemo(() => allData.filter(p => p.type === 'land_plot' && p.polygon), [allData]);
     const userProjects = React.useMemo(() => allData.filter(p => p.type === 'construction' && p.authorId === user?.uid), [allData, user]);
@@ -168,7 +172,16 @@ function LicencasPage() {
 
     const handlePlotSelect = (plotId: string) => {
         const plot = landPlots.find(p => p.id === plotId) || null;
+        if (plot && plot.status !== 'available') {
+            toast({
+                variant: 'destructive',
+                title: 'Lote Indisponível',
+                description: `Este lote está com o estado "${statusLabelMap[plot.status!]}" e não pode ser selecionado para novos projetos.`,
+            });
+            return;
+        }
         setSelectedPlot(plot);
+        setComplianceResult(null); // Reset compliance on new plot selection
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,25 +189,65 @@ function LicencasPage() {
             setFiles(Array.from(e.target.files));
         }
     };
+
+    const handleFormChange = () => {
+        if (formRef.current) {
+            const fd = new FormData(formRef.current);
+            formDataRef.current = Object.fromEntries(fd.entries());
+        }
+        if (complianceResult) {
+            setComplianceResult(null); // Reset compliance result if form changes
+        }
+    }
     
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!user || !profile) return;
-        setIsSubmitting(true);
+    const handleCheckCompliance = async () => {
+        if (!selectedPlot || !formRef.current) return;
 
-        const form = e.currentTarget as HTMLFormElement;
-        const formData = new FormData(form);
-        const projectData = Object.fromEntries(formData.entries());
-
-        if (!selectedPlot) {
-            toast({
+        const projectData = formDataRef.current;
+        if (!projectData.projectType || !projectData.projectDescription) {
+             toast({
                 variant: "destructive",
-                title: "Lote não selecionado",
-                description: "Por favor, selecione um lote no mapa para submeter o projeto.",
+                title: "Campos em Falta",
+                description: "Por favor, preencha o tipo e a descrição do projeto para verificar a conformidade.",
             });
-            setIsSubmitting(false);
             return;
         }
+
+        setIsCheckingCompliance(true);
+        try {
+            const result = await analyzeProjectComplianceFlow({
+                projectType: projectData.projectType as string,
+                projectDescription: projectData.projectDescription as string,
+                plotZoning: {
+                    usageType: selectedPlot.usageType as PointOfInterestUsageType,
+                    maxHeight: selectedPlot.maxHeight,
+                    buildingRatio: selectedPlot.buildingRatio,
+                    zoningInfo: selectedPlot.zoningInfo,
+                }
+            });
+            setComplianceResult(result);
+            toast({
+                title: "Verificação Concluída",
+                description: "A análise de conformidade foi realizada com sucesso.",
+            });
+        } catch (error) {
+            console.error("Error checking compliance:", error);
+            toast({
+                variant: "destructive",
+                title: "Erro na Análise",
+                description: "Não foi possível realizar a verificação automática.",
+            });
+        } finally {
+            setIsCheckingCompliance(false);
+        }
+    }
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user || !profile || !selectedPlot) return;
+        
+        setIsSubmitting(true);
+        const projectData = formDataRef.current;
 
         const newProjectId = `proj-${Date.now()}`;
         const newProject: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
@@ -218,7 +271,6 @@ function LicencasPage() {
             }]
         };
 
-        // First, submit the project to the database
         await addPoint(newProject);
         
         toast({
@@ -226,47 +278,11 @@ function LicencasPage() {
             description: `O seu projeto para o lote ${selectedPlot.plotNumber || selectedPlot.id} foi submetido com sucesso.`,
         });
 
-
-        // Then, run the AI compliance check as an assistive tool
-        try {
-            const complianceResult = await analyzeProjectComplianceFlow({
-                projectType: projectData.projectType as string,
-                projectDescription: projectData.projectDescription as string,
-                plotZoning: {
-                    usageType: selectedPlot.usageType as PointOfInterestUsageType,
-                    maxHeight: selectedPlot.maxHeight,
-                    buildingRatio: selectedPlot.buildingRatio,
-                    zoningInfo: selectedPlot.zoningInfo,
-                }
-            });
-
-            if (complianceResult.isCompliant) {
-                toast({
-                    title: "Análise IA: Em Conformidade",
-                    description: complianceResult.analysis,
-                    duration: 8000,
-                });
-            } else {
-                 toast({
-                    variant: "destructive",
-                    title: "Análise IA: Potencial Inconformidade",
-                    description: `${complianceResult.analysis} O seu projeto foi submetido, mas poderá requerer revisão manual.`,
-                    duration: 10000,
-                });
-            }
-        } catch (error) {
-             console.error("Error analyzing project compliance:", error);
-            toast({
-                variant: "destructive",
-                title: "Erro na Análise de IA",
-                description: "Não foi possível realizar a verificação automática. O seu projeto será revisto manualmente.",
-            });
-        } finally {
-            setIsSubmitting(false);
-            formRef.current?.reset();
-            setFiles([]);
-            setSelectedPlot(null);
-        }
+        setIsSubmitting(false);
+        formRef.current?.reset();
+        setFiles([]);
+        setSelectedPlot(null);
+        setComplianceResult(null);
     };
 
     return (
@@ -288,18 +304,26 @@ function LicencasPage() {
                         <div className="grid gap-4 md:grid-cols-2">
                              <Card className="md:col-span-2">
                                 <CardHeader>
-                                    <CardTitle>Submeter Novo Projeto</CardTitle>
+                                    <CardTitle>Passo 1: Selecione o Lote Disponível</CardTitle>
                                     <CardDescription>
-                                        Selecione o lote no mapa e preencha o formulário para iniciar o processo de licenciamento. A nossa IA fará uma pré-análise.
+                                        Clique num lote <span className="text-green-600 font-bold">Verde (Disponível)</span> no mapa para o selecionar. Lotes noutros estados não podem ser selecionados para novos projetos.
+                                    </CardDescription>
+                                </CardHeader>
+                                {selectedPlot && (
+                                     <CardContent>
+                                        <SelectedPlotInfo plot={selectedPlot} />
+                                    </CardContent>
+                                )}
+                             </Card>
+                             <Card className="md:col-span-2">
+                                <CardHeader>
+                                    <CardTitle>Passo 2: Dados do Projeto</CardTitle>
+                                    <CardDescription>
+                                        Preencha o formulário para iniciar o processo de licenciamento.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <form ref={formRef} className="space-y-4" onSubmit={handleSubmit}>
-                                        
-                                        {selectedPlot && <SelectedPlotInfo plot={selectedPlot} />}
-                                        
-                                        <Separator />
-
+                                    <form ref={formRef} className="space-y-4" onSubmit={handleSubmit} onChange={handleFormChange}>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="plotNumber">Nº do Lote</Label>
@@ -364,35 +388,79 @@ function LicencasPage() {
 
                                         <div className="space-y-2">
                                             <Label htmlFor="projectDescription">Descrição do Projeto</Label>
-                                            <Textarea id="projectDescription" name="projectDescription" placeholder="Descreva brevemente os trabalhos a realizar." rows={4} required/>
+                                            <Textarea id="projectDescription" name="projectDescription" placeholder="Descreva brevemente os trabalhos a realizar. Seja específico sobre a altura e ocupação para a pré-validação. Ex: 'Construção de prédio de 5 andares com área de implantação de 300m2'." rows={4} required/>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="documents">Anexar Documentos</Label>
-                                            <Input 
-                                                id="documents" 
-                                                type="file" 
-                                                multiple
-                                                onChange={handleFileChange}
-                                                className="h-auto p-1"
-                                                name="documents"
-                                            />
-                                            <p className="text-xs text-muted-foreground">
-                                                Anexe plantas, memória descritiva, etc.
-                                            </p>
-                                            {files.length > 0 && (
-                                                <ul className="list-disc pl-5 text-sm text-muted-foreground">
-                                                    {files.map(file => <li key={file.name}>{file.name}</li>)}
-                                                </ul>
+                                         <Separator />
+
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>Passo 3: Verificação Automática (IA)</CardTitle>
+                                                <CardDescription>
+                                                    Clique para fazer uma pré-validação do seu projeto contra as regras do lote. Isto não substitui a análise oficial.
+                                                </CardDescription>
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                <Button type="button" onClick={handleCheckCompliance} disabled={!selectedPlot || isCheckingCompliance}>
+                                                    {isCheckingCompliance ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                                                    Verificar Conformidade
+                                                </Button>
+                                                {complianceResult && <ComplianceChecklist result={complianceResult} />}
+                                            </CardContent>
+                                        </Card>
+                                        
+                                        <Separator />
+                                        
+                                        <Card>
+                                            <CardHeader>
+                                                 <CardTitle>Passo 4: Anexar Documentos</CardTitle>
+                                                 <CardDescription>
+                                                    Anexe plantas, memória descritiva e outros documentos necessários.
+                                                </CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="documents">Ficheiros do Projeto</Label>
+                                                    <Input 
+                                                        id="documents" 
+                                                        type="file" 
+                                                        multiple
+                                                        onChange={handleFileChange}
+                                                        className="h-auto p-1"
+                                                        name="documents"
+                                                    />
+                                                    {files.length > 0 && (
+                                                        <ul className="list-disc pl-5 text-sm text-muted-foreground">
+                                                            {files.map(file => <li key={file.name}>{file.name}</li>)}
+                                                        </ul>
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        <div className="pt-4">
+                                            {complianceResult && !complianceResult.isCompliant && (
+                                                <div className="mb-4 flex items-start gap-4 rounded-lg border border-yellow-500/50 bg-yellow-50/50 p-4 text-sm text-yellow-800">
+                                                    <AlertTriangle className="h-5 w-5 mt-0.5"/>
+                                                    <div>
+                                                        <h4 className="font-bold">Aviso de Inconformidade</h4>
+                                                        <p>A verificação automática detetou potenciais inconformidades. Pode submeter o projeto para análise manual, mas recomenda-se a revisão dos pontos assinalados.</p>
+                                                    </div>
+                                                </div>
                                             )}
+                                            <Button type="submit" className="w-full" disabled={!selectedPlot || isSubmitting || !complianceResult}>
+                                                {isSubmitting ? (
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <Upload className="mr-2 h-4 w-4" />
+                                                )}
+                                                Submeter Projeto para Aprovação
+                                            </Button>
+                                             {!complianceResult && (
+                                                <p className="text-xs text-muted-foreground text-center mt-2">
+                                                    Deve primeiro correr a verificação de conformidade para poder submeter.
+                                                </p>
+                                             )}
                                         </div>
-                                        <Button type="submit" className="w-full" disabled={!selectedPlot || isSubmitting}>
-                                            {isSubmitting ? (
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <Upload className="mr-2 h-4 w-4" />
-                                            )}
-                                            Submeter para Aprovação
-                                        </Button>
                                     </form>
                                 </CardContent>
                             </Card>
