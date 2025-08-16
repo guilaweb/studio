@@ -18,8 +18,7 @@ import { ArrowLeft } from "lucide-react";
 import { DataTable } from "@/components/dashboard/data-table";
 import { columns } from "@/components/dashboard/columns";
 import { useRouter } from "next/navigation";
-import { APIProvider } from "@vis.gl/react-google-maps";
-import DashboardMap from "@/components/dashboard/dashboard-map";
+import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import IntelligentAlerts from "@/components/dashboard/intelligent-alerts";
 import { getIntelligentAlerts } from "@/services/alert-service";
 import RecentActivityFeed from "@/components/dashboard/recent-activity-feed";
@@ -28,7 +27,8 @@ import { withAuth } from "@/hooks/use-auth";
 import { formatDistanceStrict } from "date-fns";
 import { pt } from "date-fns/locale";
 import DashboardClusterer from "@/components/dashboard/dashboard-clusterer";
-import { Map } from "@vis.gl/react-google-maps";
+import HeatmapLayer from "@/components/dashboard/heatmap-layer";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 const chartConfig = {
@@ -124,6 +124,7 @@ const getKPIs = (data: PointOfInterest[]) => {
 function DashboardPage() {
   const { allData } = usePoints();
   const router = useRouter();
+  const [mapView, setMapView] = React.useState<'heatmap' | 'cluster'>('heatmap');
 
   const kpis = React.useMemo(() => getKPIs(allData), [allData]);
   
@@ -252,39 +253,35 @@ function DashboardPage() {
                 </div>
                 <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
                     <Card className="lg:col-span-2">
-                        <CardHeader>
-                            <CardTitle>Mapa Operacional (Pontos Quentes)</CardTitle>
-                            <CardDescription>
-                                Visualização da densidade de reportes na cidade.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="h-[400px] p-0">
-                            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-                            <DashboardMap data={mapData} />
-                            </APIProvider>
-                        </CardContent>
-                    </Card>
-                     <Card className="lg:col-span-2">
-                        <CardHeader>
-                            <CardTitle>Mapa de Agrupamentos (Clusters)</CardTitle>
-                            <CardDescription>
-                                Exploração interativa dos agrupamentos de reportes.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="h-[400px] p-0">
-                            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-                                 <Map
-                                    mapId={'dashboard-cluster-map'}
-                                    defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
-                                    defaultZoom={12}
-                                    gestureHandling={'greedy'}
-                                    disableDefaultUI={true}
-                                    styles={mapStyles}
-                                >
-                                    <DashboardClusterer data={mapData} />
-                                </Map>
-                            </APIProvider>
-                        </CardContent>
+                        <Tabs value={mapView} onValueChange={(value) => setMapView(value as any)} className="w-full">
+                             <CardHeader className="flex flex-row items-center justify-between">
+                                <div>
+                                    <CardTitle>Mapa Operacional</CardTitle>
+                                    <CardDescription>
+                                        Alterne entre a visualização de pontos quentes e agrupamentos.
+                                    </CardDescription>
+                                </div>
+                                 <TabsList>
+                                    <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+                                    <TabsTrigger value="cluster">Clusters</TabsTrigger>
+                                </TabsList>
+                            </CardHeader>
+                            <CardContent className="h-[500px] p-0">
+                                <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+                                    <Map
+                                        mapId={'dashboard-map'}
+                                        defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
+                                        defaultZoom={12}
+                                        gestureHandling={'greedy'}
+                                        disableDefaultUI={true}
+                                        styles={mapStyles}
+                                    >
+                                        {mapView === 'heatmap' && <HeatmapLayer data={mapData} />}
+                                        {mapView === 'cluster' && <DashboardClusterer data={mapData} />}
+                                    </Map>
+                                </APIProvider>
+                            </CardContent>
+                        </Tabs>
                     </Card>
                 </div>
             </div>
@@ -307,5 +304,3 @@ function DashboardPage() {
 }
 
 export default withAuth(DashboardPage, ['Agente Municipal', 'Administrador']);
-
-    
