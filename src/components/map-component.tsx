@@ -281,5 +281,3 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
     </div>
   );
 }
-
-    

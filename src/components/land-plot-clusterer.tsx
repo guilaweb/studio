@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
@@ -47,6 +48,7 @@ const LandPlotClusterer: React.FC<LandPlotClustererProps> = ({ landPlots, onMark
 
     setMarkers(newMarkers);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [landPlots, onMarkerClick]);
 
   // Add/remove markers from clusterer
