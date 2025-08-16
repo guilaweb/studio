@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { Map } from '@vis.gl/react-google-maps';
-import HeatmapLayer from './heatmap-layer';
+import DashboardClusterer from './dashboard-clusterer';
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -42,7 +42,7 @@ const DashboardMap: React.FC<DashboardMapProps> = ({ data }) => {
         disableDefaultUI={true}
         styles={mapStyles}
       >
-        <HeatmapLayer data={data} />
+        <DashboardClusterer data={data} />
       </Map>
     </div>
   );
