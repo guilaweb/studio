@@ -6,3 +6,5 @@ import './flows/detect-duplicate-flow';
 import './flows/calculate-incident-priority-flow';
 import './flows/analyze-project-compliance-flow';
 import './flows/suggest-next-steps-flow';
+import './flows/generate-license-flow';
+

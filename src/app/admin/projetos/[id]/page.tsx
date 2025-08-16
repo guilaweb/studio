@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { generateOfficialResponse } from "@/ai/flows/generate-official-response-flow";
 import WorkflowSuggestions from "@/components/admin/projetos/workflow-suggestions";
+import { generateLicense } from "@/ai/flows/generate-license-flow";
 
 const getStatusIcon = (status: PointOfInterest['status']) => {
     switch (status) {
@@ -80,7 +81,9 @@ function AdminProjectDetailPage() {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isGenerating, setIsGenerating] = React.useState(false);
     const {toast} = useToast();
-    const [licenseGenerated, setLicenseGenerated] = React.useState(false);
+    const [licenseDataUri, setLicenseDataUri] = React.useState<string | null>(null);
+    const [isGeneratingLicense, setIsGeneratingLicense] = React.useState(false);
+
 
     React.useEffect(() => {
         if (allData.length > 0) {
@@ -152,12 +155,35 @@ function AdminProjectDetailPage() {
         }
     };
     
-    const handleGenerateLicense = () => {
-        setLicenseGenerated(true);
-        toast({
-            title: "Licença Digital Gerada",
-            description: "A licença em PDF foi gerada com sucesso e anexada ao lote.",
-        });
+    const handleGenerateLicense = async () => {
+        if (!project || !applicant) return;
+
+        setIsGeneratingLicense(true);
+        try {
+            const result = await generateLicense({
+                projectName: project.title,
+                projectId: project.id,
+                requesterName: applicant.displayName,
+                architectName: project.architectName,
+                plotNumber: project.plotNumber,
+                plotRegistration: project.registrationCode,
+                issueDate: new Date().toLocaleDateString('pt-PT'),
+            });
+            setLicenseDataUri(result.licenseDataUri);
+            toast({
+                title: "Licença Digital Gerada",
+                description: "A licença foi gerada com sucesso e está pronta para download.",
+            });
+        } catch (error) {
+            console.error("Failed to generate license:", error);
+            toast({
+                variant: "destructive",
+                title: "Erro ao Gerar Licença",
+                description: "Não foi possível gerar a licença. Tente novamente.",
+            });
+        } finally {
+            setIsGeneratingLicense(false);
+        }
     };
     
     const setParecerTemplate = (templateType: 'favoravel' | 'condicionantes' | 'desfavoravel') => {
@@ -177,6 +203,8 @@ function AdminProjectDetailPage() {
     if (!project) {
         return <div className="flex min-h-screen items-center justify-center">Projeto não encontrado.</div>;
     }
+    
+    const licenseFileName = `Licenca_Construcao_${project.id}.txt`;
     
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -251,20 +279,22 @@ function AdminProjectDetailPage() {
                                 <CardDescription>O processo foi aprovado. Gere a licença final para o requerente.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                {!licenseGenerated ? (
-                                    <Button onClick={handleGenerateLicense}>
-                                        <FileCheck className="mr-2 h-4 w-4" />
+                                {!licenseDataUri ? (
+                                    <Button onClick={handleGenerateLicense} disabled={isGeneratingLicense}>
+                                        {isGeneratingLicense ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileCheck className="mr-2 h-4 w-4" />}
                                         Gerar e Anexar Licença
                                     </Button>
                                 ) : (
                                     <div className="flex items-center gap-4 rounded-lg border p-4 bg-green-50 text-green-800 border-green-200">
                                         <FileCheck className="h-8 w-8" />
                                         <div>
-                                            <p className="font-semibold">Licenca_Construcao_{project.id}.pdf</p>
-                                            <p className="text-sm">Gerada e anexada ao perfil público do lote.</p>
+                                            <p className="font-semibold">{licenseFileName}</p>
+                                            <p className="text-sm">Gerada e pronta para download.</p>
                                         </div>
-                                        <Button variant="outline" size="sm" className="ml-auto text-green-800 border-green-800/50 hover:bg-green-100 hover:text-green-900">
-                                            Download (Simulado)
+                                        <Button variant="outline" size="sm" className="ml-auto text-green-800 border-green-800/50 hover:bg-green-100 hover:text-green-900" asChild>
+                                            <a href={licenseDataUri} download={licenseFileName}>
+                                                Download
+                                            </a>
                                         </Button>
                                     </div>
                                 )}

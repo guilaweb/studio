@@ -208,3 +208,20 @@ export const SuggestNextStepsOutputSchema = z.object({
   })).describe("A list of suggested next steps or required reviews for the project."),
 });
 export type SuggestNextStepsOutput = z.infer<typeof SuggestNextStepsOutputSchema>;
+
+
+export const GenerateLicenseInputSchema = z.object({
+  projectName: z.string(),
+  projectId: z.string(),
+  requesterName: z.string(),
+  architectName: z.string().optional(),
+  plotNumber: z.string().optional(),
+  plotRegistration: z.string().optional(),
+  issueDate: z.string(),
+});
+export type GenerateLicenseInput = z.infer<typeof GenerateLicenseInputSchema>;
+
+export const GenerateLicenseOutputSchema = z.object({
+  licenseDataUri: z.string().describe("A data URI representing the generated license file. For this simulation, it will be a text/plain URI, but it represents a future PDF."),
+});
+export type GenerateLicenseOutput = z.infer<typeof GenerateLicenseOutputSchema>;
