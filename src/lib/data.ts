@@ -21,6 +21,10 @@ export type PointOfInterestType = z.infer<typeof PointOfInterestTypeEnum>;
 const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
 export type PointOfInterestPriority = z.infer<typeof PointOfInterestPriorityEnum>;
 
+const PointOfInterestUsageTypeEnum = z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']);
+export type PointOfInterestUsageType = z.infer<typeof PointOfInterestUsageTypeEnum>;
+
+
 const PositionSchema = z.object({ lat: z.number(), lng: z.number() });
 
 export const PointOfInterestSchema = z.object({
@@ -42,7 +46,7 @@ export const PointOfInterestSchema = z.object({
   plotNumber: z.string().optional(),
   registrationCode: z.string().optional(),
   zoningInfo: z.string().optional(), // General notes
-  usageType: z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']).optional(),
+  usageType: PointOfInterestUsageTypeEnum.optional(),
   maxHeight: z.number().optional(), // in floors
   buildingRatio: z.number().optional(), // percentage
 });
@@ -159,3 +163,22 @@ export const CalculateIncidentPriorityOutputSchema = z.object({
     priority: PointOfInterestPriorityEnum.describe('The calculated priority of the incident.'),
 });
 export type CalculateIncidentPriorityOutput = z.infer<typeof CalculateIncidentPriorityOutputSchema>;
+
+
+export const AnalyzeProjectComplianceInputSchema = z.object({
+  projectType: z.string().describe("The type of project being submitted (e.g., new build, remodel)."),
+  projectDescription: z.string().describe("The detailed description of the project."),
+  plotZoning: z.object({
+    usageType: PointOfInterestUsageTypeEnum.optional().describe("The permitted usage for the plot (e.g., residential, commercial)."),
+    maxHeight: z.number().optional().describe("The maximum allowed building height in floors."),
+    buildingRatio: z.number().optional().describe("The maximum allowed building-to-plot area ratio as a percentage."),
+    zoningInfo: z.string().optional().describe("Additional zoning notes and regulations."),
+  }).describe("The zoning regulations for the selected land plot."),
+});
+export type AnalyzeProjectComplianceInput = z.infer<typeof AnalyzeProjectComplianceInputSchema>;
+
+export const AnalyzeProjectComplianceOutputSchema = z.object({
+  isCompliant: z.boolean().describe('Whether the project seems to be compliant with the zoning regulations.'),
+  analysis: z.string().describe('A brief analysis explaining the compliance check result. Mention specific points of compliance or non-compliance.'),
+});
+export type AnalyzeProjectComplianceOutput = z.infer<typeof AnalyzeProjectComplianceOutputSchema>;

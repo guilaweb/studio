@@ -10,12 +10,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { ArrowLeft, Building, Upload, MapPin, Search } from "lucide-react";
+import { ArrowLeft, Building, Upload, MapPin, Search, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
-import { PointOfInterest, statusLabelMap } from "@/lib/data";
+import { PointOfInterest, statusLabelMap, PointOfInterestUsageType } from "@/lib/data";
+import { analyzeProjectComplianceFlow } from "@/ai/flows/analyze-project-compliance-flow";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -137,6 +138,7 @@ function LicencasPage() {
     const { allData } = usePoints();
     const [files, setFiles] = React.useState<File[]>([]);
     const [selectedPlot, setSelectedPlot] = React.useState<PointOfInterest | null>(null);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const landPlots = React.useMemo(() => allData.filter(p => p.type === 'land_plot' && p.polygon), [allData]);
 
@@ -151,8 +153,11 @@ function LicencasPage() {
         }
     };
     
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const form = e.currentTarget as HTMLFormElement;
+        const formData = new FormData(form);
+        const projectData = Object.fromEntries(formData.entries());
 
         if (!selectedPlot) {
             toast({
@@ -163,13 +168,52 @@ function LicencasPage() {
             return;
         }
 
-        // In a real app, this would submit the form data, files, and selectedPlot.id to a backend service.
-        console.log("Submitting for plot:", selectedPlot.id);
+        setIsSubmitting(true);
 
-        toast({
-            title: "Submissão em Desenvolvimento",
-            description: `O seu projeto para o lote ${selectedPlot.plotNumber || selectedPlot.id} foi simulado.`,
-        });
+        try {
+            const complianceResult = await analyzeProjectComplianceFlow({
+                projectType: projectData.projectType as string,
+                projectDescription: projectData.projectDescription as string,
+                plotZoning: {
+                    usageType: selectedPlot.usageType as PointOfInterestUsageType,
+                    maxHeight: selectedPlot.maxHeight,
+                    buildingRatio: selectedPlot.buildingRatio,
+                    zoningInfo: selectedPlot.zoningInfo,
+                }
+            });
+
+            if (complianceResult.isCompliant) {
+                toast({
+                    title: "Análise IA: Em Conformidade",
+                    description: complianceResult.analysis,
+                    duration: 8000,
+                });
+            } else {
+                 toast({
+                    variant: "destructive",
+                    title: "Análise IA: Potencial Inconformidade",
+                    description: complianceResult.analysis,
+                    duration: 10000,
+                });
+            }
+             // In a real app, this would submit the form data to a backend service.
+            console.log("Submitting for plot:", selectedPlot.id, "with data:", projectData);
+            
+        } catch (error) {
+             console.error("Error analyzing project compliance:", error);
+            toast({
+                variant: "destructive",
+                title: "Erro na Análise",
+                description: "Não foi possível analisar a conformidade do projeto. A submissão continuará sem a verificação automática.",
+            });
+        } finally {
+            setIsSubmitting(false);
+            // Simulate submission
+             toast({
+                title: "Submissão em Desenvolvimento",
+                description: `O seu projeto para o lote ${selectedPlot.plotNumber || selectedPlot.id} foi simulado.`,
+            });
+        }
     };
 
     return (
@@ -216,16 +260,16 @@ function LicencasPage() {
 
                                         <div className="space-y-2">
                                             <Label htmlFor="projectName">Nome do Projeto</Label>
-                                            <Input id="projectName" placeholder="Ex: Construção de Moradia Unifamiliar" required/>
+                                            <Input id="projectName" name="projectName" placeholder="Ex: Construção de Moradia Unifamiliar" required/>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="requesterName">Nome do Requerente</Label>
-                                            <Input id="requesterName" value={profile?.displayName || ''} readOnly disabled/>
+                                            <Input id="requesterName" name="requesterName" value={profile?.displayName || ''} readOnly disabled/>
                                         </div>
                                         
                                         <div className="space-y-2">
                                             <Label htmlFor="projectType">Tipo de Projeto</Label>
-                                            <Select required>
+                                            <Select required name="projectType">
                                                 <SelectTrigger id="projectType">
                                                     <SelectValue placeholder="Selecione o tipo de obra" />
                                                 </SelectTrigger>
@@ -245,21 +289,21 @@ function LicencasPage() {
                                             <h4 className="text-sm font-semibold">Dados do Arquiteto Responsável</h4>
                                             <div className="space-y-2">
                                                 <Label htmlFor="architectName">Nome Completo do Arquiteto</Label>
-                                                <Input id="architectName" placeholder="Insira o nome do arquiteto" required />
+                                                <Input id="architectName" name="architectName" placeholder="Insira o nome do arquiteto" required />
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
                                                     <Label htmlFor="architectLicense">Nº da Carteira Profissional</Label>
-                                                    <Input id="architectLicense" placeholder="Ex: 12345N" required />
+                                                    <Input id="architectLicense" name="architectLicense" placeholder="Ex: 12345N" required />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label htmlFor="architectIdCard">Nº do BI</Label>
-                                                    <Input id="architectIdCard" placeholder="Ex: 12345678" required />
+                                                    <Input id="architectIdCard" name="architectIdCard" placeholder="Ex: 12345678" required />
                                                 </div>
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="architectNif">NIF</Label>
-                                                <Input id="architectNif" placeholder="Ex: 123456789" required />
+                                                <Input id="architectNif" name="architectNif" placeholder="Ex: 123456789" required />
                                             </div>
                                         </div>
                                         
@@ -267,7 +311,7 @@ function LicencasPage() {
 
                                         <div className="space-y-2">
                                             <Label htmlFor="projectDescription">Descrição do Projeto</Label>
-                                            <Textarea id="projectDescription" placeholder="Descreva brevemente os trabalhos a realizar." rows={4} required/>
+                                            <Textarea id="projectDescription" name="projectDescription" placeholder="Descreva brevemente os trabalhos a realizar." rows={4} required/>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="documents">Anexar Documentos</Label>
@@ -277,6 +321,7 @@ function LicencasPage() {
                                                 multiple
                                                 onChange={handleFileChange}
                                                 className="h-auto p-1"
+                                                name="documents"
                                             />
                                             <p className="text-xs text-muted-foreground">
                                                 Anexe plantas, memória descritiva, etc.
@@ -287,8 +332,12 @@ function LicencasPage() {
                                                 </ul>
                                             )}
                                         </div>
-                                        <Button type="submit" className="w-full" disabled={!selectedPlot}>
-                                            <Upload className="mr-2 h-4 w-4" />
+                                        <Button type="submit" className="w-full" disabled={!selectedPlot || isSubmitting}>
+                                            {isSubmitting ? (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Upload className="mr-2 h-4 w-4" />
+                                            )}
                                             Submeter para Aprovação
                                         </Button>
                                     </form>
