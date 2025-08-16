@@ -19,6 +19,7 @@ import { PointOfInterest, statusLabelMap, PointOfInterestUsageType, AnalyzeProje
 import { analyzeProjectComplianceFlow } from "@/ai/flows/analyze-project-compliance-flow";
 import { Badge } from "@/components/ui/badge";
 import ComplianceChecklist from "@/components/licencas/compliance-checklist";
+import PaymentStep from "@/components/licencas/payment-step";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -271,6 +272,12 @@ function LicencasPage() {
             }]
         };
 
+        // Simulate payment toast
+        toast({
+            title: "Pagamento Confirmado!",
+            description: "As taxas foram pagas com sucesso via RUPE (simulação)."
+        })
+        
         await addPoint(newProject);
         
         toast({
@@ -436,6 +443,15 @@ function LicencasPage() {
                                                 </div>
                                             </CardContent>
                                         </Card>
+                                        
+                                        <Separator />
+
+                                        {complianceResult && complianceResult.isCompliant && (
+                                            <PaymentStep 
+                                                projectData={formDataRef.current}
+                                                isSubmitting={isSubmitting}
+                                            />
+                                        )}
 
                                         <div className="pt-4">
                                             {complianceResult && !complianceResult.isCompliant && (
@@ -447,14 +463,6 @@ function LicencasPage() {
                                                     </div>
                                                 </div>
                                             )}
-                                            <Button type="submit" className="w-full" disabled={!selectedPlot || isSubmitting || !complianceResult}>
-                                                {isSubmitting ? (
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                ) : (
-                                                    <Upload className="mr-2 h-4 w-4" />
-                                                )}
-                                                Submeter Projeto para Aprovação
-                                            </Button>
                                              {!complianceResult && (
                                                 <p className="text-xs text-muted-foreground text-center mt-2">
                                                     Deve primeiro correr a verificação de conformidade para poder submeter.
