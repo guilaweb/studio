@@ -11,7 +11,7 @@ import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/da
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck } from "lucide-react";
+import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -22,18 +22,17 @@ import { generateOfficialResponse } from "@/ai/flows/generate-official-response-
 import WorkflowSuggestions from "@/components/admin/projetos/workflow-suggestions";
 import { generateLicense } from "@/ai/flows/generate-license-flow";
 
-const getStatusIcon = (status: PointOfInterest['status']) => {
-    switch (status) {
-        case 'approved':
-            return <Check className="h-4 w-4 text-green-500" />;
-        case 'rejected':
-            return <X className="h-4 w-4 text-red-500" />;
-        case 'under_review':
-        case 'submitted':
-            return <Circle className="h-4 w-4 text-yellow-500 animate-pulse" />;
-        default:
-            return <MessageSquare className="h-4 w-4 text-muted-foreground" />;
+const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
+    if (isFirst) {
+        return <FileText className="h-4 w-4 text-muted-foreground" />;
     }
+    if (update.text.startsWith('**AUTO DE VISTORIA**')) {
+        return <ClipboardCheck className="h-4 w-4 text-blue-500" />;
+    }
+    if (update.text.startsWith('**PARECER')) {
+        return <Check className="h-4 w-4 text-green-500" />;
+    }
+    return <MessageSquare className="h-4 w-4 text-muted-foreground" />;
 }
 
 const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
@@ -41,31 +40,33 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
         return <p className="text-sm text-muted-foreground text-center py-8">Sem atualizações ou comunicações registadas.</p>
     }
     
-    // Ensure updates are sorted chronologically from oldest to newest
     const sortedUpdates = [...updates].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
     return (
         <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:h-full before:w-0.5 before:bg-border before:-translate-x-px">
-            {sortedUpdates.map((update, index) => (
-                <div key={update.id} className="relative flex items-start gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border bg-background z-10">
-                        {getStatusIcon(index === 0 ? 'submitted' : 'under_review')}
+            {sortedUpdates.map((update, index) => {
+                const isVistoria = update.text.startsWith('**AUTO DE VISTORIA**');
+                return (
+                    <div key={update.id} className="relative flex items-start gap-4">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-full border ${isVistoria ? 'bg-blue-50' : 'bg-background'} z-10`}>
+                            {getStatusIcon(update, index === 0)}
+                        </div>
+                        <div className="flex-1 pt-1">
+                            <p className="font-semibold text-sm whitespace-pre-wrap">{update.text}</p>
+                            <p className="text-xs text-muted-foreground">
+                                Por {update.authorDisplayName || 'Sistema'} • {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })}
+                            </p>
+                            {update.photoDataUri && (
+                                <div className="mt-2">
+                                    <a href={update.photoDataUri} target="_blank" rel="noopener noreferrer">
+                                        <img src={update.photoDataUri} alt="Documento ou foto anexa" className="rounded-md object-cover max-h-40 border" />
+                                    </a>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <div className="flex-1 pt-1">
-                        <p className="font-semibold text-sm">{update.text}</p>
-                        <p className="text-xs text-muted-foreground">
-                            Por {update.authorDisplayName || 'Sistema'} • {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })}
-                        </p>
-                         {update.photoDataUri && (
-                            <div className="mt-2">
-                                <a href={update.photoDataUri} target="_blank" rel="noopener noreferrer">
-                                    <img src={update.photoDataUri} alt="Documento ou foto anexa" className="rounded-md object-cover max-h-40 border" />
-                                </a>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            ))}
+                )
+            })}
         </div>
     )
 }
@@ -386,4 +387,3 @@ function AdminProjectDetailPage() {
 }
 
 export default withAuth(AdminProjectDetailPage, ['Agente Municipal', 'Administrador']);
-
