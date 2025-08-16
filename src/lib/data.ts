@@ -12,7 +12,7 @@ export const PointOfInterestUpdateSchema = z.object({
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 
-const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved']);
+const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
 const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot']);
@@ -49,6 +49,10 @@ export const PointOfInterestSchema = z.object({
   usageType: PointOfInterestUsageTypeEnum.optional(),
   maxHeight: z.number().optional(), // in floors
   buildingRatio: z.number().optional(), // percentage
+  // Project Specific
+  landPlotId: z.string().optional(),
+  projectType: z.string().optional(),
+  architectName: z.string().optional(),
 });
 
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
@@ -82,7 +86,7 @@ export type UserProfileWithStats = z.infer<typeof UserProfileWithStatsSchema>;
 // Label Mappings
 export const typeLabelMap: Record<PointOfInterestType, string> = {
     atm: "ATM",
-    construction: "Obra",
+    construction: "Obra/Projeto",
     incident: "Incidente",
     sanitation: "Saneamento",
     water: "Rede de Água",
@@ -96,11 +100,15 @@ export const statusLabelMap: Record<PointOfInterestStatus, string> = {
     collected: "Recolhido",
     full: "Cheio",
     damaged: "Danificado",
-    in_progress: "Em Resolução",
+    in_progress: "Em Progresso",
     occupied: "Ocupado",
     protected: "Protegido",
     in_dispute: "Em Litígio",
     reserved: "Reservado",
+    submitted: "Submetido",
+    under_review: "Em Análise",
+    approved: "Aprovado",
+    rejected: "Rejeitado",
 };
 
 export const priorityLabelMap: Record<PointOfInterestPriority, string> = {

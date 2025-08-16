@@ -10,13 +10,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { ArrowLeft, Building, Upload, MapPin, Search, Loader2 } from "lucide-react";
+import { ArrowLeft, Building, Upload, MapPin, Search, Loader2, FileText, CheckCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest, statusLabelMap, PointOfInterestUsageType } from "@/lib/data";
 import { analyzeProjectComplianceFlow } from "@/ai/flows/analyze-project-compliance-flow";
+import { Badge } from "@/components/ui/badge";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -134,13 +135,16 @@ const SelectedPlotInfo: React.FC<{plot: PointOfInterest}> = ({plot}) => {
 
 function LicencasPage() {
     const { toast } = useToast();
-    const { profile } = useAuth();
-    const { allData } = usePoints();
+    const { profile, user } = useAuth();
+    const { allData, addPoint } = usePoints();
     const [files, setFiles] = React.useState<File[]>([]);
     const [selectedPlot, setSelectedPlot] = React.useState<PointOfInterest | null>(null);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const formRef = React.useRef<HTMLFormElement>(null);
 
     const landPlots = React.useMemo(() => allData.filter(p => p.type === 'land_plot' && p.polygon), [allData]);
+    const userProjects = React.useMemo(() => allData.filter(p => p.type === 'construction' && p.authorId === user?.uid), [allData, user]);
+
 
     const handlePlotSelect = (plotId: string) => {
         const plot = landPlots.find(p => p.id === plotId) || null;
@@ -155,6 +159,7 @@ function LicencasPage() {
     
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user) return;
         setIsSubmitting(true);
 
         const form = e.currentTarget as HTMLFormElement;
@@ -171,12 +176,33 @@ function LicencasPage() {
             return;
         }
 
-        // Simulate the manual submission process first
-        // In a real app, this would submit the form data to a backend service.
-        console.log("Submitting for plot:", selectedPlot.id, "with data:", projectData);
+        const newProjectId = `proj-${Date.now()}`;
+        const newProject: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+            id: newProjectId,
+            type: 'construction',
+            title: projectData.projectName as string,
+            description: projectData.projectDescription as string,
+            projectType: projectData.projectType as string,
+            architectName: projectData.architectName as string,
+            authorId: user.uid,
+            status: 'submitted',
+            landPlotId: selectedPlot.id,
+            position: selectedPlot.position,
+            lastReported: new Date().toISOString(),
+            updates: [{
+                text: 'Projeto submetido para análise.',
+                authorId: user.uid,
+                authorDisplayName: profile?.displayName || "Requerente",
+                timestamp: new Date().toISOString()
+            }]
+        };
+
+        // First, submit the project to the database
+        await addPoint(newProject);
+        
         toast({
-            title: "Submissão em Processo",
-            description: `O seu projeto para o lote ${selectedPlot.plotNumber || selectedPlot.id} foi recebido e está a ser processado.`,
+            title: "Submissão Recebida",
+            description: `O seu projeto para o lote ${selectedPlot.plotNumber || selectedPlot.id} foi submetido com sucesso.`,
         });
 
 
@@ -212,11 +238,13 @@ function LicencasPage() {
             toast({
                 variant: "destructive",
                 title: "Erro na Análise de IA",
-                description: "Não foi possível realizar a verificação automática. O seu projeto foi submetido e será revisto manualmente.",
+                description: "Não foi possível realizar a verificação automática. O seu projeto será revisto manualmente.",
             });
         } finally {
             setIsSubmitting(false);
-            // Here you might clear the form or redirect the user
+            formRef.current?.reset();
+            setFiles([]);
+            setSelectedPlot(null);
         }
     };
 
@@ -245,7 +273,7 @@ function LicencasPage() {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <form className="space-y-4" onSubmit={handleSubmit}>
+                                    <form ref={formRef} className="space-y-4" onSubmit={handleSubmit}>
                                         
                                         {selectedPlot && <SelectedPlotInfo plot={selectedPlot} />}
                                         
@@ -355,13 +383,43 @@ function LicencasPage() {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg">
-                                        <Building className="h-12 w-12 text-muted-foreground mb-4" />
-                                        <h3 className="text-lg font-semibold">Ainda não submeteu projetos.</h3>
-                                        <p className="text-sm text-muted-foreground mt-1">
-                                            Quando submeter um pedido de licença, poderá acompanhar o seu estado aqui.
-                                        </p>
-                                </div>
+                                    {userProjects.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {userProjects.map(project => {
+                                                const plot = landPlots.find(p => p.id === project.landPlotId);
+                                                return (
+                                                    <Card key={project.id}>
+                                                        <CardContent className="p-4 flex items-center justify-between">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+                                                                    <FileText className="h-6 w-6 text-muted-foreground" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-semibold">{project.title}</p>
+                                                                    <p className="text-sm text-muted-foreground">Lote: {plot?.plotNumber || 'N/A'}</p>
+                                                                </div>
+                                                            </div>
+                                                            <Badge variant={project.status === 'approved' ? 'default' : 'secondary'} className={
+                                                                project.status === 'approved' ? 'bg-green-600' : 
+                                                                project.status === 'rejected' ? 'bg-red-600' :
+                                                                ''
+                                                            }>
+                                                                {project.status ? statusLabelMap[project.status] : "N/A"}
+                                                            </Badge>
+                                                        </CardContent>
+                                                    </Card>
+                                                )
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg">
+                                            <Building className="h-12 w-12 text-muted-foreground mb-4" />
+                                            <h3 className="text-lg font-semibold">Ainda não submeteu projetos.</h3>
+                                            <p className="text-sm text-muted-foreground mt-1">
+                                                Quando submeter um pedido de licença, poderá acompanhar o seu estado aqui.
+                                            </p>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </div>
@@ -406,4 +464,3 @@ function LicencasPage() {
 
 export default withAuth(LicencasPage);
 
-    
