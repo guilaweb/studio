@@ -33,17 +33,17 @@ import { Separator } from "./ui/separator";
 
 
 // Component to handle the drawing functionality on the map
-const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon) => void}> = ({onPolygonComplete}) => {
+const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon) => void, initialPolygonPath?: google.maps.LatLngLiteral[] | null}> = ({onPolygonComplete, initialPolygonPath}) => {
     const map = useMap();
     const drawing = useMapsLibrary('drawing');
     const [drawingManager, setDrawingManager] = useState<google.maps.drawing.DrawingManager | null>(null);
-    const [polygon, setPolygon] = useState<google.maps.Polygon | null>(null);
+    const [currentPolygon, setCurrentPolygon] = useState<google.maps.Polygon | null>(null);
 
     useEffect(() => {
         if (!map || !drawing) return;
 
         const manager = new drawing.DrawingManager({
-            drawingMode: drawing.OverlayType.POLYGON,
+            drawingMode: initialPolygonPath ? null : drawing.OverlayType.POLYGON,
             drawingControl: true,
             drawingControlOptions: {
                 position: google.maps.ControlPosition.TOP_CENTER,
@@ -62,21 +62,33 @@ const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon
         
         const listener = manager.addListener('polygoncomplete', (poly: google.maps.Polygon) => {
             onPolygonComplete(poly);
-            setPolygon(poly);
+            setCurrentPolygon(poly);
             manager.setDrawingMode(null); // Exit drawing mode
         });
+
+        // If there's an initial polygon, draw it.
+        if (initialPolygonPath && !currentPolygon) {
+            const poly = new drawing.Polygon({
+                paths: initialPolygonPath,
+                ...manager.get('polygonOptions'),
+            });
+            poly.setMap(map);
+            setCurrentPolygon(poly);
+            onPolygonComplete(poly); // Pass the initial polygon to the parent
+        }
         
         return () => {
             listener.remove();
             manager.setMap(null);
         };
 
-    }, [map, drawing, onPolygonComplete]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [map, drawing, onPolygonComplete, initialPolygonPath]);
 
     const handleClearPolygon = () => {
-        if (polygon) {
-            polygon.setMap(null);
-            setPolygon(null);
+        if (currentPolygon) {
+            currentPolygon.setMap(null);
+            setCurrentPolygon(null);
             if (drawingManager) {
                 drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
             }
@@ -85,10 +97,10 @@ const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon
 
     return (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
-            {polygon && (
+            {currentPolygon && (
                 <Button onClick={handleClearPolygon} variant="destructive" size="sm">
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Limpar Seleção
+                    Limpar e Redesenhar
                 </Button>
             )}
         </div>
@@ -110,7 +122,9 @@ type LandPlotReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onLandPlotSubmit: (data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'>) => void;
+  onLandPlotEdit: (id: string, data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'>) => void;
   initialCenter: google.maps.LatLngLiteral;
+  poiToEdit: PointOfInterest | null;
 };
 
 const defaultCenter = { lat: -8.8368, lng: 13.2343 };
@@ -120,11 +134,14 @@ export default function LandPlotReport({
     open, 
     onOpenChange, 
     onLandPlotSubmit,
-    initialCenter, 
+    onLandPlotEdit,
+    initialCenter,
+    poiToEdit
 }: LandPlotReportProps) {
   const [mapCenter, setMapCenter] = useState(initialCenter);
   const [mapZoom, setMapZoom] = useState(15);
   const [drawnPolygon, setDrawnPolygon] = useState<google.maps.Polygon | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const { toast } = useToast();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -155,14 +172,31 @@ export default function LandPlotReport({
 
   useEffect(() => {
     if (open) {
-        const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
-        const center = isDefaultLocation ? defaultCenter : initialCenter;
-        const zoom = isDefaultLocation ? defaultZoom : 15;
-        setMapCenter(center);
-        setMapZoom(zoom);
-        clearForm();
+        const isEditing = !!poiToEdit;
+        setIsEditMode(isEditing);
+
+        if (isEditing) {
+            form.reset({
+                status: poiToEdit.status,
+                plotNumber: poiToEdit.plotNumber,
+                registrationCode: poiToEdit.registrationCode,
+                zoningInfo: poiToEdit.zoningInfo,
+                usageType: poiToEdit.usageType,
+                maxHeight: poiToEdit.maxHeight,
+                buildingRatio: poiToEdit.buildingRatio,
+            });
+            setMapCenter(poiToEdit.position);
+            setMapZoom(16);
+        } else {
+            const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
+            const center = isDefaultLocation ? defaultCenter : initialCenter;
+            const zoom = isDefaultLocation ? defaultZoom : 15;
+            setMapCenter(center);
+            setMapZoom(zoom);
+            clearForm();
+        }
     }
-  }, [open, initialCenter, form]);
+  }, [poiToEdit, open, form, initialCenter]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     if (!drawnPolygon) {
@@ -176,12 +210,18 @@ export default function LandPlotReport({
     
     const polygonPath = drawnPolygon.getPath().getArray().map(p => p.toJSON());
 
-    onLandPlotSubmit({ 
+    const submissionData = {
         ...values,
         status: values.status as PointOfInterestStatus,
         usageType: values.usageType as PointOfInterestUsageType,
         polygon: polygonPath,
-    });
+    };
+
+    if (isEditMode && poiToEdit) {
+        onLandPlotEdit(poiToEdit.id, submissionData);
+    } else {
+        onLandPlotSubmit(submissionData);
+    }
   }
 
 
@@ -195,9 +235,9 @@ export default function LandPlotReport({
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         <SheetHeader className="p-6 pb-2">
-          <SheetTitle>Mapear Lote de Terreno</SheetTitle>
+          <SheetTitle>{isEditMode ? 'Editar Lote de Terreno' : 'Mapear Lote de Terreno'}</SheetTitle>
           <SheetDescription>
-            Desenhe os limites do lote no mapa e preencha as informações cadastrais e de zoneamento.
+            {isEditMode ? 'Altere as informações cadastrais e, se necessário, redesenhe os limites do lote.' : 'Desenhe os limites do lote no mapa e preencha as informações cadastrais e de zoneamento.'}
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -210,7 +250,10 @@ export default function LandPlotReport({
                     onZoomChanged={(e) => setMapZoom(e.detail.zoom)}
                     gestureHandling={'greedy'}
                 >
-                     <DrawingManager onPolygonComplete={setDrawnPolygon} />
+                     <DrawingManager 
+                        onPolygonComplete={setDrawnPolygon} 
+                        initialPolygonPath={isEditMode ? poiToEdit?.polygon : null}
+                    />
                 </Map>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -341,7 +384,7 @@ export default function LandPlotReport({
             </div>
             <SheetFooter className="p-6 pt-4 border-t bg-background">
                 <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                <Button type="submit">Mapear Lote</Button>
+                <Button type="submit">{isEditMode ? 'Guardar Alterações' : 'Mapear Lote'}</Button>
             </SheetFooter>
           </form>
         </Form>

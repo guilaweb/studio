@@ -303,7 +303,7 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
 const LandPlotDetails = ({ poi }: { poi: PointOfInterest }) => {
     if (poi.type !== 'land_plot') return null;
 
-    const usageTypeMap = {
+    const usageTypeMap: Record<string, string> = {
         residential: "Residencial",
         commercial: "Comercial",
         industrial: "Industrial",
@@ -365,15 +365,22 @@ const LandPlotDetails = ({ poi }: { poi: PointOfInterest }) => {
 
 
 export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange, onAddUpdate, onEdit }: PointOfInterestDetailsProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   if (!poi) return null;
 
   const config = layerConfig[poi.type];
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
-  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water'].includes(poi.type);
+  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot'].includes(poi.type);
   const isOwner = poi.authorId === user?.uid;
-  const canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm');
+  const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
+
+  let canEdit = false;
+  if (poi.type === 'incident' || poi.type === 'atm') {
+      canEdit = isOwner;
+  } else if (poi.type === 'land_plot') {
+      canEdit = isManager;
+  }
 
   const incidentDate = poi.incidentDate || poi.lastReported;
 

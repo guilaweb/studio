@@ -590,6 +590,29 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
 
+  const handleEditLandPlot = async (
+    poiId: string,
+    data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'>
+  ) => {
+    handleSheetOpenChange(false);
+
+    const centerLat = data.polygon!.reduce((sum, p) => sum + p.lat, 0) / data.polygon!.length;
+    const centerLng = data.polygon!.reduce((sum, p) => sum + p.lng, 0) / data.polygon!.length;
+
+    const updatedData = {
+        ...data,
+        title: `Lote ${data.plotNumber || 'S/N'}`,
+        position: { lat: centerLat, lng: centerLng },
+    };
+    
+    await updatePointDetails(poiId, updatedData);
+
+    toast({
+        title: "Lote de Terreno Atualizado!",
+        description: "As informações do lote foram guardadas com sucesso.",
+    });
+  }
+
 
   const handleStartReporting = (type: ActiveSheet) => {
     if (!user) {
@@ -606,23 +629,33 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
 
   const handleStartEditing = (poi: PointOfInterest) => {
-    if (user?.uid !== poi.authorId) {
-        toast({
-            variant: "destructive",
-            title: "Acesso Negado",
-            description: "Apenas o autor original pode editar este item.",
-        });
-        return;
+    const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
+    
+    if (poi.type === 'incident' || poi.type === 'atm') {
+        if (user?.uid !== poi.authorId) {
+            toast({
+                variant: "destructive",
+                title: "Acesso Negado",
+                description: "Apenas o autor original pode editar este item.",
+            });
+            return;
+        }
+    } else if (poi.type === 'land_plot') {
+        if (!isManager) {
+            toast({
+                variant: "destructive",
+                title: "Acesso Negado",
+                description: "Apenas um agente municipal ou administrador pode editar um lote.",
+            });
+            return;
+        }
+    } else {
+        return; // Other types might not be editable
     }
     
     setPoiToEdit(poi);
     setSelectedPoi(null); // Close details sheet
-    
-    if(poi.type === 'incident') {
-        setActiveSheet('incident');
-    } else if (poi.type === 'atm') {
-        setActiveSheet('atm');
-    }
+    setActiveSheet(poi.type as ActiveSheet);
   }
 
   const handleMarkerClick = (poiId: string) => {
@@ -917,7 +950,9 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             open={activeSheet === 'land_plot'}
             onOpenChange={handleSheetOpenChange}
             onLandPlotSubmit={handleAddNewLandPlot}
+            onLandPlotEdit={handleEditLandPlot}
             initialCenter={mapCenter}
+            poiToEdit={poiToEdit}
         />
       </SidebarProvider>
   );
