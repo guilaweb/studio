@@ -68,7 +68,7 @@ const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon
 
         // If there's an initial polygon, draw it.
         if (initialPolygonPath && !currentPolygon) {
-            const poly = new drawing.Polygon({
+            const poly = new google.maps.Polygon({
                 paths: initialPolygonPath,
                 ...manager.get('polygonOptions'),
             });
