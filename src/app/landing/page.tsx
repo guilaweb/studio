@@ -94,7 +94,7 @@ export default function LandingPage() {
   return (
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
         <div className="relative flex flex-col min-h-screen bg-background text-foreground">
-            <div className="fixed inset-0 z-0 opacity-40">
+            <div className="fixed inset-0 z-0 opacity-60">
                  <GoogleMap
                     defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
                     defaultZoom={13}
