@@ -11,7 +11,7 @@ import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/da
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -80,6 +80,7 @@ function AdminProjectDetailPage() {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isGenerating, setIsGenerating] = React.useState(false);
     const {toast} = useToast();
+    const [licenseGenerated, setLicenseGenerated] = React.useState(false);
 
     React.useEffect(() => {
         if (allData.length > 0) {
@@ -149,6 +150,14 @@ function AdminProjectDetailPage() {
         } finally {
             setIsGenerating(false);
         }
+    };
+    
+    const handleGenerateLicense = () => {
+        setLicenseGenerated(true);
+        toast({
+            title: "Licença Digital Gerada",
+            description: "A licença em PDF foi gerada com sucesso e anexada ao lote.",
+        });
     };
     
     const setParecerTemplate = (templateType: 'favoravel' | 'condicionantes' | 'desfavoravel') => {
@@ -235,6 +244,33 @@ function AdminProjectDetailPage() {
                             </div>
                         </CardContent>
                     </Card>
+                     {project.status === 'approved' && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Emissão de Licença Digital</CardTitle>
+                                <CardDescription>O processo foi aprovado. Gere a licença final para o requerente.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {!licenseGenerated ? (
+                                    <Button onClick={handleGenerateLicense}>
+                                        <FileCheck className="mr-2 h-4 w-4" />
+                                        Gerar e Anexar Licença
+                                    </Button>
+                                ) : (
+                                    <div className="flex items-center gap-4 rounded-lg border p-4 bg-green-50 text-green-800 border-green-200">
+                                        <FileCheck className="h-8 w-8" />
+                                        <div>
+                                            <p className="font-semibold">Licenca_Construcao_{project.id}.pdf</p>
+                                            <p className="text-sm">Gerada e anexada ao perfil público do lote.</p>
+                                        </div>
+                                        <Button variant="outline" size="sm" className="ml-auto text-green-800 border-green-800/50 hover:bg-green-100 hover:text-green-900">
+                                            Download (Simulado)
+                                        </Button>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
                      <Card>
                         <CardHeader>
                             <CardTitle>Documentos do Projeto</CardTitle>
