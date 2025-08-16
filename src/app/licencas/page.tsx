@@ -10,10 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { ArrowLeft, Building, Upload, MapPin } from "lucide-react";
+import { ArrowLeft, Building, Upload, MapPin, Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { APIProvider, Map } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
+import { usePoints } from "@/hooks/use-points";
+import { PointOfInterest } from "@/lib/data";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -37,14 +39,111 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
 ];
 
+const LandPlotPolygons: React.FC<{
+    plots: PointOfInterest[];
+    selectedPlotId: string | null;
+    onPlotClick: (plotId: string) => void;
+}> = ({ plots, selectedPlotId, onPlotClick }) => {
+    const map = useMap();
+    const [polygons, setPolygons] = React.useState<google.maps.Polygon[]>([]);
+
+    React.useEffect(() => {
+        if (!map) return;
+        
+        // Clear old polygons
+        polygons.forEach(p => p.setMap(null));
+
+        const newPolygons = plots.map(plot => {
+            const isSelected = plot.id === selectedPlotId;
+            const poly = new google.maps.Polygon({
+                paths: plot.polygon,
+                strokeColor: isSelected ? 'hsl(var(--ring))' : 'hsl(var(--primary))',
+                strokeOpacity: 0.9,
+                strokeWeight: isSelected ? 3 : 2,
+                fillColor: isSelected ? 'hsl(var(--primary) / 0.4)' : 'hsl(var(--primary) / 0.2)',
+                fillOpacity: 0.35,
+                map: map,
+            });
+
+            poly.addListener('click', () => {
+                onPlotClick(plot.id);
+            });
+            return poly;
+        });
+
+        setPolygons(newPolygons);
+
+        return () => {
+            // Cleanup on component unmount
+            newPolygons.forEach(p => p.setMap(null));
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [map, plots, selectedPlotId]);
+
+
+    return null;
+}
+
+const SelectedPlotInfo: React.FC<{plot: PointOfInterest}> = ({plot}) => {
+     const usageTypeMap: Record<string, string> = {
+        residential: "Residencial",
+        commercial: "Comercial",
+        industrial: "Industrial",
+        mixed: "Misto",
+        other: "Outro",
+    }
+    
+    return (
+        <div className="space-y-4 rounded-md border p-4 bg-muted/50">
+            <h4 className="text-sm font-semibold">Informação do Lote Selecionado</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+                 <div>
+                    <p className="text-muted-foreground">Estado</p>
+                    <p className="font-medium">{plot.status ? plot.status : "N/A"}</p>
+                </div>
+                 {plot.usageType && (
+                    <div>
+                        <p className="text-muted-foreground">Uso Permitido</p>
+                        <p className="font-medium">{usageTypeMap[plot.usageType]}</p>
+                    </div>
+                )}
+                 {plot.maxHeight !== undefined && (
+                    <div>
+                        <p className="text-muted-foreground">Altura Máx. (Pisos)</p>
+                        <p className="font-medium">{plot.maxHeight}</p>
+                    </div>
+                )}
+                {plot.buildingRatio !== undefined && (
+                     <div>
+                        <p className="text-muted-foreground">Índice Construção</p>
+                        <p className="font-medium">{plot.buildingRatio}%</p>
+                    </div>
+                )}
+            </div>
+            {plot.zoningInfo && (
+                <div className="mt-2">
+                    <p className="text-muted-foreground text-sm">Notas de Zoneamento</p>
+                    <p className="text-sm font-medium whitespace-pre-wrap">{plot.zoningInfo}</p>
+                </div>
+            )}
+        </div>
+    )
+}
+
 
 function LicencasPage() {
     const { toast } = useToast();
     const { profile } = useAuth();
+    const { allData } = usePoints();
     const [files, setFiles] = React.useState<File[]>([]);
-    const [mapCenter, setMapCenter] = React.useState({ lat: -8.8368, lng: 13.2343 });
-    const [mapZoom, setMapZoom] = React.useState(12);
+    const [selectedPlot, setSelectedPlot] = React.useState<PointOfInterest | null>(null);
 
+    const landPlots = React.useMemo(() => allData.filter(p => p.type === 'land_plot' && p.polygon), [allData]);
+
+    const handlePlotSelect = (plotId: string) => {
+        const plot = landPlots.find(p => p.id === plotId) || null;
+        setSelectedPlot(plot);
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -54,11 +153,22 @@ function LicencasPage() {
     
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // In a real app, this would submit the form data to a backend service.
-        console.log("Submitting with location:", mapCenter);
+
+        if (!selectedPlot) {
+            toast({
+                variant: "destructive",
+                title: "Lote não selecionado",
+                description: "Por favor, selecione um lote no mapa para submeter o projeto.",
+            });
+            return;
+        }
+
+        // In a real app, this would submit the form data, files, and selectedPlot.id to a backend service.
+        console.log("Submitting for plot:", selectedPlot.id);
+
         toast({
             title: "Submissão em Desenvolvimento",
-            description: "A sua submissão de licença foi simulada. A funcionalidade completa será implementada brevemente.",
+            description: `O seu projeto para o lote ${selectedPlot.plotNumber || selectedPlot.id} foi simulado.`,
         });
     };
 
@@ -83,11 +193,27 @@ function LicencasPage() {
                                 <CardHeader>
                                     <CardTitle>Submeter Novo Projeto</CardTitle>
                                     <CardDescription>
-                                        Preencha o formulário para iniciar o processo de licenciamento da sua obra.
+                                        Selecione o lote no mapa e preencha o formulário para iniciar o processo de licenciamento.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <form className="space-y-4" onSubmit={handleSubmit}>
+                                        
+                                        {selectedPlot && <SelectedPlotInfo plot={selectedPlot} />}
+                                        
+                                        <Separator />
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="plotNumber">Nº do Lote</Label>
+                                                <Input id="plotNumber" value={selectedPlot?.plotNumber || ''} readOnly disabled placeholder="Selecione um lote no mapa" />
+                                            </div>
+                                             <div className="space-y-2">
+                                                <Label htmlFor="plotRegistry">Registo Predial</Label>
+                                                <Input id="plotRegistry" value={selectedPlot?.registrationCode || ''} readOnly disabled placeholder="Selecione um lote no mapa" />
+                                            </div>
+                                        </div>
+
                                         <div className="space-y-2">
                                             <Label htmlFor="projectName">Nome do Projeto</Label>
                                             <Input id="projectName" placeholder="Ex: Construção de Moradia Unifamiliar" required/>
@@ -96,10 +222,7 @@ function LicencasPage() {
                                             <Label htmlFor="requesterName">Nome do Requerente</Label>
                                             <Input id="requesterName" value={profile?.displayName || ''} readOnly disabled/>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="projectAddress">Morada da Obra</Label>
-                                            <Input id="projectAddress" placeholder="Rua, número, código postal e localidade" required/>
-                                        </div>
+                                        
                                         <div className="space-y-2">
                                             <Label htmlFor="projectType">Tipo de Projeto</Label>
                                             <Select required>
@@ -164,7 +287,7 @@ function LicencasPage() {
                                                 </ul>
                                             )}
                                         </div>
-                                        <Button type="submit" className="w-full">
+                                        <Button type="submit" className="w-full" disabled={!selectedPlot}>
                                             <Upload className="mr-2 h-4 w-4" />
                                             Submeter para Aprovação
                                         </Button>
@@ -193,24 +316,24 @@ function LicencasPage() {
                     <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Localização do Projeto</CardTitle>
+                                <CardTitle>Mapa de Cadastro</CardTitle>
                                 <CardDescription>
-                                    Arraste o mapa para posicionar o pino no local exato da obra.
+                                    Clique num lote disponível no mapa para o selecionar.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="h-[500px] p-0 relative">
                                 <Map
-                                    center={mapCenter}
-                                    zoom={mapZoom}
-                                    onCenterChanged={(e) => setMapCenter(e.detail.center)}
-                                    onZoomChanged={(e) => setMapZoom(e.detail.zoom)}
+                                    defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
+                                    defaultZoom={13}
                                     gestureHandling={'greedy'}
                                     disableDefaultUI={true}
                                     styles={mapStyles}
                                 >
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                                        <MapPin className="text-primary h-10 w-10" />
-                                    </div>
+                                    <LandPlotPolygons 
+                                        plots={landPlots}
+                                        selectedPlotId={selectedPlot?.id || null}
+                                        onPlotClick={handlePlotSelect}
+                                    />
                                 </Map>
                             </CardContent>
                         </Card>
