@@ -1,7 +1,7 @@
 
 'use server';
 
-import { CalculateIncidentPriorityInput, PointOfInterestPriority } from "@/lib/data";
+import { CalculateIncidentPriorityInput, CalculateIncidentPriorityOutput } from "@/lib/data";
 import { calculateIncidentPriorityFlow } from "@/ai/flows/calculate-incident-priority-flow";
 
 /**
@@ -9,7 +9,7 @@ import { calculateIncidentPriorityFlow } from "@/ai/flows/calculate-incident-pri
  * @param input The incident title and description.
  * @returns The calculated priority ('low', 'medium', 'high').
  */
-export async function calculateIncidentPriority(input: CalculateIncidentPriorityInput): Promise<PointOfInterestPriority> {
+export async function calculateIncidentPriority(input: CalculateIncidentPriorityInput): Promise<CalculateIncidentPriorityOutput> {
     const result = await calculateIncidentPriorityFlow(input);
-    return result.priority;
+    return result;
 }

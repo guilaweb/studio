@@ -28,7 +28,7 @@ import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
 import MapSearchBox from "@/components/map-search-box";
 import { detectDuplicate } from "@/ai/flows/detect-duplicate-flow";
-import { calculateIncidentPriority } from "@/services/incident-priority-service";
+import { calculateIncidentPriorityFlow } from "@/ai/flows/calculate-incident-priority-flow";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import TrafficLightReport from "./traffic-light-report";
 import PotholeReport from "./pothole-report";
@@ -268,7 +268,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     let priority: PointOfInterest['priority'] | undefined = undefined;
     
     try {
-        const result = await calculateIncidentPriority({
+        const result = await calculateIncidentPriorityFlow({
             title: incidentDetails.title,
             description: incidentDetails.description,
         });
@@ -370,7 +370,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
     let priority: PointOfInterest['priority'] | undefined;
     try {
-        const result = await calculateIncidentPriority({
+        const result = await calculateIncidentPriorityFlow({
             title: incidentTitle,
             description: newPointData.description,
         });
@@ -679,12 +679,22 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
   const handleStartEditing = (poi: PointOfInterest) => {
     if (!user) return;
-    
+
+    const isOwner = poi.authorId === user.uid;
     let canEdit = false;
-    if ((poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction') && user.uid === poi.authorId) {
-        canEdit = true;
-    } else if ((poi.type === 'land_plot' || poi.type === 'announcement') && isManager) {
-        canEdit = true;
+    
+    switch (poi.type) {
+        case 'construction':
+        case 'incident':
+        case 'atm':
+            canEdit = isOwner || isManager;
+            break;
+        case 'land_plot':
+        case 'announcement':
+            canEdit = isManager;
+            break;
+        default:
+            canEdit = false;
     }
 
     if (!canEdit) {

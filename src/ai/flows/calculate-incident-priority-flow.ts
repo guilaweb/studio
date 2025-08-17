@@ -7,7 +7,19 @@
  */
 
 import {ai} from '@/ai/genkit';
-import { CalculateIncidentPriorityInput, CalculateIncidentPriorityInputSchema, CalculateIncidentPriorityOutput, CalculateIncidentPriorityOutputSchema } from '@/lib/data';
+import { CalculateIncidentPriorityInputSchema, CalculateIncidentPriorityOutputSchema } from '@/lib/data';
+
+export const calculateIncidentPriorityFlow = ai.defineFlow(
+    {
+        name: 'calculateIncidentPriorityFlow',
+        inputSchema: CalculateIncidentPriorityInputSchema,
+        outputSchema: CalculateIncidentPriorityOutputSchema,
+    },
+    async (input) => {
+        const { output } = await prompt(input);
+        return output!;
+    }
+);
 
 const prompt = ai.definePrompt({
     name: 'calculateIncidentPriorityPrompt',
@@ -27,15 +39,3 @@ const prompt = ai.definePrompt({
         Incident Description: {{{description}}}
     `,
 });
-
-export const calculateIncidentPriorityFlow = ai.defineFlow(
-    {
-        name: 'calculateIncidentPriorityFlow',
-        inputSchema: CalculateIncidentPriorityInputSchema,
-        outputSchema: CalculateIncidentPriorityOutputSchema,
-    },
-    async (input) => {
-        const { output } = await prompt(input);
-        return output!;
-    }
-);
