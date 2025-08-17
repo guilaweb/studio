@@ -374,24 +374,20 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const config = layerConfig[poi.type];
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
   const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement'].includes(poi.type);
-  const isOwner = poi.authorId === user?.uid;
   const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
 
   let canEdit = false;
-  switch (poi.type) {
-    case 'construction':
-    case 'land_plot':
-    case 'atm':
-        canEdit = isOwner || isManager;
-        break;
-    case 'incident':
-        canEdit = isOwner;
-        break;
-    case 'announcement':
-        canEdit = isManager;
-        break;
-    default:
-        canEdit = false;
+  // Allow editing for owners or managers, with specific restrictions
+  if (user && profile) {
+      const isOwner = poi.authorId === user.uid;
+
+      if (isManager) {
+        // Managers can edit anything except incidents they don't own
+        canEdit = poi.type !== 'incident' || isOwner;
+      } else {
+        // Regular users can only edit what they own, and only specific types
+        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction');
+      }
   }
 
 

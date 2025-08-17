@@ -117,9 +117,9 @@ const formSchema = z.object({
   registrationCode: z.string().optional(),
   zoningInfo: z.string().optional(),
   status: z.enum(['available', 'occupied', 'protected', 'in_dispute', 'reserved']),
-  usageType: z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']).optional(),
-  maxHeight: z.coerce.number().optional(),
-  buildingRatio: z.coerce.number().optional(),
+  usageType: z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']),
+  maxHeight: z.coerce.number(),
+  buildingRatio: z.coerce.number(),
 });
 
 type LandPlotReportProps = {
@@ -149,26 +149,17 @@ export default function LandPlotReport({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const { toast } = useToast();
-  const { profile } = useAuth();
-  
-  const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       status: "available",
-      plotNumber: "",
-      registrationCode: "",
-      zoningInfo: "",
-      usageType: undefined,
-      maxHeight: undefined,
-      buildingRatio: undefined,
     },
   });
   
   const clearForm = () => {
     form.reset({
-      status: isManager ? "available" : "occupied",
+      status: "available",
       plotNumber: "",
       registrationCode: "",
       zoningInfo: "",
@@ -305,38 +296,36 @@ export default function LandPlotReport({
                 </Map>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {isManager && (
-                    <FormField
-                        control={form.control}
-                        name="status"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Estado do Lote</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o estado atual do lote" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="available">Disponível</SelectItem>
-                                    <SelectItem value="occupied">Ocupado</SelectItem>
-                                    <SelectItem value="reserved">Reservado</SelectItem>
-                                    <SelectItem value="in_dispute">Em Litígio</SelectItem>
-                                    <SelectItem value="protected">Protegido</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                )}
+                <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Estado do Lote</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecione o estado atual do lote" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="available">Disponível</SelectItem>
+                                <SelectItem value="occupied">Ocupado</SelectItem>
+                                <SelectItem value="reserved">Reservado</SelectItem>
+                                <SelectItem value="in_dispute">Em Litígio</SelectItem>
+                                <SelectItem value="protected">Protegido</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <FormField
                     control={form.control}
                     name="plotNumber"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Nº do Lote ou Morada (Opcional)</FormLabel>
+                        <FormLabel>Nº do Lote ou Morada</FormLabel>
                         <FormControl>
                             <Input placeholder="Ex: Lote 24-A, Rua das Flores" {...field} value={field.value ?? ''}/>
                         </FormControl>
@@ -349,7 +338,7 @@ export default function LandPlotReport({
                     name="registrationCode"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Nº do Registo Predial (Opcional)</FormLabel>
+                        <FormLabel>Nº do Registo Predial</FormLabel>
                         <FormControl>
                             <Input placeholder="Ex: 12345/IGCA/2024" {...field} value={field.value ?? ''}/>
                         </FormControl>
@@ -358,7 +347,7 @@ export default function LandPlotReport({
                     )}
                  />
                 <Separator />
-                <h4 className="text-sm font-semibold text-foreground">Informação de Zoneamento (Opcional)</h4>
+                <h4 className="text-sm font-semibold text-foreground">Informação de Zoneamento</h4>
 
                  <FormField
                     control={form.control}
@@ -369,7 +358,7 @@ export default function LandPlotReport({
                         <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
-                                <SelectValue placeholder="Selecione o uso (se souber)" />
+                                <SelectValue placeholder="Selecione o uso" />
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -420,7 +409,7 @@ export default function LandPlotReport({
                     name="zoningInfo"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Outras Notas (Opcional)</FormLabel>
+                        <FormLabel>Outras Notas</FormLabel>
                         <FormControl>
                             <Textarea
                                 placeholder="Descreva outras restrições ou observações relevantes..."

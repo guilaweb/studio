@@ -693,22 +693,14 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     const isOwner = poi.authorId === user.uid;
     const isManager = profile.role === 'Agente Municipal' || profile.role === 'Administrador';
 
+    // Allow editing only for owners or managers, depending on the type
     let canEdit = false;
-    switch (poi.type) {
-        case 'construction':
-        case 'land_plot':
-        case 'atm':
-            canEdit = isOwner || isManager;
-            break;
-        case 'incident':
-            canEdit = isOwner;
-            break;
-        case 'announcement':
-            canEdit = isManager;
-            break;
-        default:
-            canEdit = false;
+    if (poi.type === 'incident' || poi.type === 'atm') {
+        canEdit = isOwner;
+    } else if (poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement') {
+        canEdit = isOwner || isManager;
     }
+
 
     if (!canEdit) {
         toast({
@@ -844,15 +836,17 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Landmark className="mr-2 h-4 w-4" />
                             Mapear Caixa Eletrónico
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
-                            <Square className="mr-2 h-4 w-4" />
-                            Mapear Lote de Terreno
-                        </DropdownMenuItem>
                         {isManager && (
-                          <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
-                            <Megaphone className="mr-2 h-4 w-4" />
-                            Criar Anúncio
-                          </DropdownMenuItem>
+                          <>
+                            <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
+                                <Square className="mr-2 h-4 w-4" />
+                                Mapear Lote de Terreno
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
+                              <Megaphone className="mr-2 h-4 w-4" />
+                              Criar Anúncio
+                            </DropdownMenuItem>
+                          </>
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -938,15 +932,17 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Landmark className="mr-2 h-4 w-4" />
                             Mapear Caixa Eletrónico
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
-                            <Square className="mr-2 h-4 w-4" />
-                            Mapear Lote de Terreno
-                        </DropdownMenuItem>
-                         {isManager && (
-                           <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
-                              <Megaphone className="mr-2 h-4 w-4" />
-                              Criar Anúncio
-                          </DropdownMenuItem>
+                        {isManager && (
+                            <>
+                                <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
+                                    <Square className="mr-2 h-4 w-4" />
+                                    Mapear Lote de Terreno
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
+                                <Megaphone className="mr-2 h-4 w-4" />
+                                Criar Anúncio
+                                </DropdownMenuItem>
+                            </>
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
