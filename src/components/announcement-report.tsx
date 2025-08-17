@@ -35,7 +35,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { addDays, format } from "date-fns";
 import { pt } from "date-fns/locale";
-import { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 
 // Component to handle the drawing functionality on the map
@@ -124,7 +123,6 @@ const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon
 
 
 const formSchema = z.object({
-  title: z.string().min(5, "O título deve ter pelo menos 5 caracteres."),
   message: z.string().min(10, "A mensagem deve ter pelo menos 10 caracteres."),
   category: AnnouncementCategoryEnum,
   dates: z.object({
@@ -164,7 +162,6 @@ export default function AnnouncementReport({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
       message: "",
       category: undefined,
       dates: {
@@ -176,7 +173,6 @@ export default function AnnouncementReport({
   
   const clearForm = () => {
     form.reset({
-      title: "",
       message: "",
       category: undefined,
       dates: {
@@ -195,7 +191,6 @@ export default function AnnouncementReport({
 
         if (isEditing && poiToEdit.startDate && poiToEdit.endDate) {
             form.reset({
-                title: poiToEdit.title,
                 message: poiToEdit.description,
                 category: poiToEdit.announcementCategory,
                 dates: {
@@ -236,9 +231,11 @@ export default function AnnouncementReport({
     const centerLat = polygonPath.reduce((sum, p) => sum + p.lat, 0) / polygonPath.length;
     const centerLng = polygonPath.reduce((sum, p) => sum + p.lng, 0) / polygonPath.length;
 
+    const title = announcementCategoryMap[values.category];
+
     if (isEditMode && poiToEdit) {
          const editedData = {
-            title: values.title,
+            title: title,
             description: values.message,
             announcementCategory: values.category,
             startDate: values.dates.from.toISOString(),
@@ -251,7 +248,7 @@ export default function AnnouncementReport({
         const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
             id: `announcement-${Date.now()}`,
             type: 'announcement',
-            title: values.title,
+            title: title,
             description: values.message,
             announcementCategory: values.category,
             startDate: values.dates.from.toISOString(),
@@ -308,21 +305,6 @@ export default function AnnouncementReport({
                 </Map>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                 <div className="space-y-2">
-                    <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Título do Anúncio</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Ex: Corte de água programado" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
                  <div className="space-y-2">
                     <FormField
                         control={form.control}
@@ -430,7 +412,3 @@ export default function AnnouncementReport({
     </Sheet>
   );
 }
-
-    
-
-    

@@ -42,7 +42,7 @@ export const PointOfInterestSchema = z.object({
   type: PointOfInterestTypeEnum,
   position: PositionSchema,
   polygon: z.array(PositionSchema).optional(), // For land plots
-  title: z.string(),
+  title: z.string().optional(),
   description: z.string(),
   status: PointOfInterestStatusEnum.optional(),
   priority: PointOfInterestPriorityEnum.optional(),
