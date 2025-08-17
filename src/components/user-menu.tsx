@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -59,17 +59,23 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                     </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuLabel>Área do Cidadão</DropdownMenuLabel>
                  <DropdownMenuItem asChild>
                     <Link href="/perfil">
                         <UserIcon className="mr-2 h-4 w-4" />
                         <span>Meu Perfil</span>
                     </Link>
                 </DropdownMenuItem>
-
+                 <DropdownMenuItem asChild>
+                    <Link href="/meus-imoveis">
+                        <Home className="mr-2 h-4 w-4" />
+                        <span>Meus Imóveis</span>
+                    </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <Link href="/licencas">
                         <FileText className="mr-2 h-4 w-4" />
-                        <span>Licenças de Construção</span>
+                        <span>Minhas Licenças</span>
                     </Link>
                 </DropdownMenuItem>
                 
