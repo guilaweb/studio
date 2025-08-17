@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/icons';
-import { CheckCircle, ArrowRight, BarChart3, Users, Building, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Map, Users, Edit, LayoutDashboard, Briefcase, UserCheck, ShieldCheck, MessageCircle, BarChart3, Building } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APIProvider, Map as GoogleMap } from '@vis.gl/react-google-maps';
 
@@ -29,30 +29,53 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] },
 ];
 
-const features = [
+const citizenFeatures = [
     {
-        icon: BarChart3,
-        title: "Visão Centralizada e Inteligente",
-        description: "Acesse um painel de controlo com mapas de calor, clusters de incidentes e dashboards analíticos para uma visão 360º das operações municipais."
+        icon: Map,
+        title: "Mapa Interativo Central",
+        description: "O coração da MUNITU. Visualize todas as camadas de informação da cidade, desde incidentes a obras e anúncios, num único mapa dinâmico e fácil de navegar."
     },
     {
-        icon: Users,
-        title: "Comunicação Direta com o Cidadão",
-        description: "Receba reportes georreferenciados, responda a contribuições e envie comunicados oficiais para áreas específicas da cidade."
+        icon: Edit,
+        title: "Contribuição e Fiscalização Cívica",
+        description: "Reporte incidentes, problemas de infraestrutura (buracos, iluminação, saneamento), mapeie pontos de interesse e acompanhe o progresso de obras públicas e privadas."
     },
     {
         icon: Building,
-        title: "Otimização de Processos Urbanos",
-        description: "Digitalize e acelere a gestão de saneamento, a fiscalização de obras e o licenciamento de projetos, reduzindo a burocracia."
+        title: "Marketplace Imobiliário",
+        description: "Encontre terrenos e imóveis com um nível de transparência sem precedentes, graças ao 'Painel de Confiança MUNITU' que verifica o estado legal e fiscal de cada propriedade."
     },
     {
-        icon: ShieldCheck,
-        title: "Tomada de Decisão Baseada em Dados",
-        description: "Utilize a nossa IA para detetar tendências, prever problemas e alocar recursos de forma mais eficiente e proativa."
+        icon: Briefcase,
+        title: "Gestão de Ativos Pessoais",
+        description: "Registe os seus imóveis, submeta-os ao processo de verificação da MUNITU, acompanhe o estado e gira os seus anúncios no marketplace, tudo num só lugar."
     }
 ];
 
-export default function GovernmentSolutionsPage() {
+const adminFeatures = [
+    {
+        icon: LayoutDashboard,
+        title: "Painel de Gestão Inteligente",
+        description: "Uma visão 360º das operações da cidade com dashboards, KPIs em tempo real, mapas de calor, e sumários executivos gerados por IA para apoiar a tomada de decisão."
+    },
+    {
+        icon: ShieldCheck,
+        title: "Gestão de Processos e Verificações",
+        description: "Analise, aprove ou rejeite processos de licenciamento de construção e pedidos de verificação de imóveis, com o apoio de ferramentas de IA para análise de conformidade."
+    },
+    {
+        icon: Users,
+        title: "Gestão de Utilizadores e Permissões",
+        description: "Administre todos os utilizadores da plataforma, atribuindo diferentes níveis de permissão (Cidadão, Agente Municipal, Administrador) de forma centralizada."
+    },
+    {
+        icon: MessageCircle,
+        title: "Comunicação e Fiscalização",
+        description: "Envie anúncios georreferenciados para áreas específicas da cidade e capacite as equipas de campo com ferramentas para fiscalização de obras e gestão de incidentes."
+    }
+];
+
+export default function FeaturesPage() {
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
             <div className="relative flex flex-col min-h-screen bg-background text-foreground">
@@ -63,22 +86,21 @@ export default function GovernmentSolutionsPage() {
                         gestureHandling={'none'}
                         disableDefaultUI={true}
                         styles={mapStyles}
-                        mapId={'govt-solutions-map'}
+                        mapId={'features-map'}
                     />
                 </div>
                 <div className="relative z-10 flex flex-col flex-1">
                      <header className="px-4 lg:px-6 h-16 flex items-center border-b sticky top-0 bg-background/80 backdrop-blur-sm z-20">
-                        <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
+                        <Button asChild variant="outline" size="icon">
+                            <Link href="/">
+                                <ArrowLeft className="h-5 w-5" />
+                                <span className="sr-only">Voltar</span>
+                            </Link>
+                        </Button>
+                        <Link href="/" className="flex items-center justify-center gap-2 ml-4" prefetch={false}>
                             <Logo className="h-6 w-6 text-primary" />
-                            <span className="font-semibold text-lg">MUNITU</span>
+                            <span className="font-semibold text-lg">MUNITU - Funcionalidades</span>
                         </Link>
-                        <nav className="ml-auto flex gap-4 sm:gap-6">
-                           <Button asChild>
-                               <Link href="/governo/solicitar" prefetch={false}>
-                                    Solicitar Acesso Institucional
-                               </Link>
-                           </Button>
-                        </nav>
                     </header>
 
                     <main className="flex-1">
@@ -87,18 +109,11 @@ export default function GovernmentSolutionsPage() {
                                 <Card className="bg-card/80 backdrop-blur-sm">
                                     <CardContent className="p-10 flex flex-col items-center justify-center space-y-4 text-center">
                                         <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
-                                            Transforme a Gestão da sua Cidade com a MUNITU
+                                            Uma Plataforma, Múltiplas Soluções
                                         </h1>
                                         <p className="max-w-[700px] mx-auto text-muted-foreground md:text-xl">
-                                            Capacite a sua administração com ferramentas de ponta para uma governação mais eficiente, transparente e colaborativa.
+                                            Explore os módulos que transformam a MUNITU num ecossistema completo para a governação urbana e participação cívica.
                                         </p>
-                                        <div className="mt-6">
-                                            <Button size="lg" asChild>
-                                                <Link href="/governo/solicitar">
-                                                    Solicitar Acesso Institucional <ArrowRight className="ml-2 h-5 w-5" />
-                                                </Link>
-                                            </Button>
-                                        </div>
                                     </CardContent>
                                 </Card>
                             </div>
@@ -109,22 +124,20 @@ export default function GovernmentSolutionsPage() {
                                 <Card className="bg-card/80 backdrop-blur-sm">
                                     <CardContent className="p-10">
                                         <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-                                            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Funcionalidades</div>
-                                            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">O Painel Municipal Inteligente</h2>
+                                            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Para o Cidadão</div>
+                                            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Capacitando a Participação Cívica</h2>
                                             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                                                Tudo o que a sua entidade precisa para responder às necessidades da cidade e planear o futuro.
+                                                Ferramentas que dão voz ao cidadão e simplificam a sua interação com a cidade.
                                             </p>
                                         </div>
-                                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                                            {features.map((feature, index) => (
+                                        <div className="grid gap-6 md:grid-cols-2">
+                                            {citizenFeatures.map((feature, index) => (
                                                 <Card key={index} className="bg-card/90">
-                                                    <CardHeader>
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="bg-primary/10 p-3 rounded-full">
-                                                                <feature.icon className="w-6 h-6 text-primary" />
-                                                            </div>
-                                                            <CardTitle>{feature.title}</CardTitle>
+                                                    <CardHeader className="flex flex-row items-center gap-4">
+                                                        <div className="bg-primary/10 p-3 rounded-full">
+                                                            <feature.icon className="w-6 h-6 text-primary" />
                                                         </div>
+                                                        <CardTitle>{feature.title}</CardTitle>
                                                     </CardHeader>
                                                     <CardContent>
                                                         <p className="text-muted-foreground">{feature.description}</p>
@@ -137,30 +150,31 @@ export default function GovernmentSolutionsPage() {
                             </div>
                         </section>
 
-                        <section className="w-full py-12 md:py-24">
-                             <div className="container px-4 md:px-6">
+                         <section className="w-full py-12 md:py-24">
+                            <div className="container px-4 md:px-6">
                                 <Card className="bg-card/80 backdrop-blur-sm">
-                                     <CardContent className="p-10">
-                                        <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12">
-                                            <div className="space-y-4">
-                                                <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Planos e Preços</div>
-                                                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Soluções à Medida da sua Entidade</h2>
-                                                <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                                                    Oferecemos planos flexíveis para municípios, governos provinciais e empresas públicas. Contacte-nos para uma proposta personalizada.
-                                                </p>
-                                            </div>
-                                            <div className="flex flex-col gap-2 min-[400px]:flex-row lg:justify-end">
-                                                <Button size="lg" asChild>
-                                                    <Link href="/governo/solicitar">
-                                                        Solicitar Proposta
-                                                    </Link>
-                                                </Button>
-                                                <Button size="lg" variant="outline" asChild>
-                                                    <Link href="/contactos">
-                                                        Falar com um Especialista
-                                                    </Link>
-                                                </Button>
-                                            </div>
+                                    <CardContent className="p-10">
+                                        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+                                            <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Para o Gestor Municipal</div>
+                                            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Ferramentas para uma Gestão Eficiente</h2>
+                                             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                                                Módulos desenhados para otimizar operações, aumentar a transparência e responder às necessidades da cidade.
+                                            </p>
+                                        </div>
+                                        <div className="grid gap-6 md:grid-cols-2">
+                                            {adminFeatures.map((feature, index) => (
+                                                <Card key={index} className="bg-card/90">
+                                                    <CardHeader className="flex flex-row items-center gap-4">
+                                                        <div className="bg-primary/10 p-3 rounded-full">
+                                                            <feature.icon className="w-6 h-6 text-primary" />
+                                                        </div>
+                                                        <CardTitle>{feature.title}</CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent>
+                                                        <p className="text-muted-foreground">{feature.description}</p>
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -172,7 +186,6 @@ export default function GovernmentSolutionsPage() {
                         <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-muted-foreground">
                             <p>&copy; 2024 MUNITU. Todos os direitos reservados.</p>
                             <Link href="/docs" className="underline hover:text-primary">Documentação Técnica</Link>
-                            <Link href="/funcionalidades" className="underline hover:text-primary">Funcionalidades</Link>
                             <Link href="/exemplos-de-uso" className="underline hover:text-primary">Exemplos de Uso</Link>
                             <Link href="/help" className="underline hover:text-primary">Ajuda</Link>
                         </div>
