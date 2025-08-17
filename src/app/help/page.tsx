@@ -1,10 +1,11 @@
+
 "use client";
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Lightbulb, MapPin, Search, CheckCircle, Briefcase, FileCheck, RefreshCw } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 export default function HelpPage() {
@@ -68,6 +69,62 @@ export default function HelpPage() {
                                 </AccordionContent>
                             </AccordionItem>
                         </Accordion>
+                    </CardContent>
+                </Card>
+
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Exemplo de Uso: A Jornada com a MUNITU</CardTitle>
+                        <CardDescription>
+                            Veja como um simples reporte pode desencadear um ciclo de melhoria e investimento na cidade.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="flex items-start gap-4">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+                                <Lightbulb className="h-6 w-6 text-red-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold">O Problema</h3>
+                                <p className="text-muted-foreground">O Sr. Mateus, um cidadão, vê que a rua principal do seu bairro está perigosamente escura. Ele pega no telemóvel e abre a app MUNITU. Com alguns cliques no módulo de Iluminação Pública, ele reporta os candeeiros avariados.</p>
+                            </div>
+                        </div>
+                         <div className="flex items-start gap-4">
+                             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
+                                <CheckCircle className="h-6 w-6 text-blue-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold">A Ação e a Resolução</h3>
+                                <p className="text-muted-foreground">No Painel Municipal da MUNITU, a chefe do departamento de manutenção vê os novos reportes e atribui uma ordem de serviço. A equipa repara os candeeiros e marca a tarefa como "Resolvida". O Sr. Mateus recebe uma notificação: "MUNITU informa: O problema de iluminação que reportou foi resolvido. Obrigado por fazer a sua parte!"</p>
+                            </div>
+                        </div>
+                         <div className="flex items-start gap-4">
+                             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
+                                <Briefcase className="h-6 w-6 text-green-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold">O Investimento</h3>
+                                <p className="text-muted-foreground">Uma construtora, ao analisar os dados do MUNITU, percebe que o bairro está a melhorar. Eles usam o módulo de licenciamento para encontrar um lote disponível para construir um novo edifício.</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/20">
+                                <FileCheck className="h-6 w-6 text-purple-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold">O Licenciamento</h3>
+                                <p className="text-muted-foreground">O arquiteto submete todo o projeto através da MUNITU. Ele acompanha cada passo do processo, comunica com os técnicos e paga as taxas diretamente na plataforma.</p>
+                            </div>
+                        </div>
+                         <div className="flex items-start gap-4">
+                             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
+                                <RefreshCw className="h-6 w-6 text-orange-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold">O Ciclo Completo</h3>
+                                <p className="text-muted-foreground">A licença é emitida digitalmente. A nova obra aparece no mapa público, e os vizinhos podem verificar a sua legalidade e acompanhar o seu progresso, tudo dentro do ecossistema MUNITU.</p>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </main>
