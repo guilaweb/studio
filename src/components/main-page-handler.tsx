@@ -239,7 +239,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                 authorId: user.uid,
                 authorDisplayName: profile.displayName,
                 timestamp: new Date().toISOString(),
-                ...(photoDataUri && { photoDataUri }),
+                photoDataUri: photoDataUri,
             };
             await addUpdateToPoint(originalIncidentId, newUpdate);
             toast({
@@ -262,7 +262,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         authorId: user.uid,
         authorDisplayName: profile.displayName,
         timestamp: timestamp,
-        ...(photoDataUri && { photoDataUri }),
+        photoDataUri: photoDataUri,
     };
     
     let priority: PointOfInterest['priority'] | undefined = undefined;
@@ -284,11 +284,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       id: `incident-${Date.now()}`,
       type: 'incident',
       authorId: user.uid,
+      authorDisplayName: profile.displayName,
       lastReported: timestamp,
       incidentDate: incidentDetails.incidentDate,
       status: 'unknown',
       updates: [initialUpdate],
-      ...(priority && { priority }),
+      priority: priority,
     };
     
     addPoint(incidentToAdd);
@@ -332,6 +333,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       type: 'sanitation',
       title: 'Contentor de Lixo',
       authorId: user.uid,
+      authorDisplayName: profile.displayName,
       lastReported: timestamp,
       status: 'unknown',
       description: newPointData.description,
@@ -385,6 +387,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       type: 'incident',
       title: incidentTitle,
       authorId: user.uid,
+      authorDisplayName: profile.displayName,
       lastReported: timestamp,
       incidentDate: newPointData.incidentDate,
       description: newPointData.description,
@@ -427,6 +430,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       type: 'water',
       title: 'Fuga de Água',
       authorId: user.uid,
+      authorDisplayName: profile.displayName,
       lastReported: timestamp,
       status: 'unknown',
       description: data.description,
@@ -481,6 +485,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       type: 'construction',
       title: newPointData.title,
       authorId: user.uid,
+      authorDisplayName: profile.displayName,
       lastReported: timestamp,
       status: 'in_progress',
       description: newPointData.description,
@@ -535,6 +540,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       type: 'atm',
       title: newPointData.title,
       authorId: user.uid,
+      authorDisplayName: profile.displayName,
       lastReported: timestamp,
       status: 'unknown',
       description: newPointData.description,
@@ -590,6 +596,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       type: 'land_plot',
       title: `Lote ${data.plotNumber || 'S/N'}`,
       authorId: user.uid,
+      authorDisplayName: profile.displayName,
       lastReported: timestamp,
       description: data.zoningInfo || "Sem informação de zoneamento.",
       position: { lat: centerLat, lng: centerLng },
@@ -678,7 +685,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
 
   const handleStartEditing = (poi: PointOfInterest) => {
-    if (!user || !profile) return;
+    if (!user || !profile) {
+      toast({ variant: "destructive", title: "Acesso Negado", description: "Utilizador não autenticado." });
+      return;
+    }
 
     const isOwner = poi.authorId === user.uid;
     const isManager = profile.role === 'Agente Municipal' || profile.role === 'Administrador';
@@ -686,13 +696,13 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     let canEdit = false;
     switch (poi.type) {
         case 'construction':
+        case 'land_plot':
+        case 'atm':
             canEdit = isOwner || isManager;
             break;
         case 'incident':
-        case 'atm':
-             canEdit = isOwner;
+            canEdit = isOwner;
             break;
-        case 'land_plot':
         case 'announcement':
             canEdit = isManager;
             break;
@@ -756,11 +766,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         authorId: user.uid,
         authorDisplayName: profile.displayName || user.displayName || "Utilizador Anónimo",
         timestamp: new Date().toISOString(),
+        photoDataUri: photoDataUri,
     };
-    
-    if (photoDataUri) {
-        newUpdate.photoDataUri = photoDataUri;
-    }
     
     addUpdateToPoint(poiId, newUpdate);
     
@@ -837,17 +844,15 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Landmark className="mr-2 h-4 w-4" />
                             Mapear Caixa Eletrónico
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
+                            <Square className="mr-2 h-4 w-4" />
+                            Mapear Lote de Terreno
+                        </DropdownMenuItem>
                         {isManager && (
-                          <>
-                          <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
-                              <Square className="mr-2 h-4 w-4" />
-                              Mapear Lote de Terreno
+                          <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
+                            <Megaphone className="mr-2 h-4 w-4" />
+                            Criar Anúncio
                           </DropdownMenuItem>
-                           <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
-                              <Megaphone className="mr-2 h-4 w-4" />
-                              Criar Anúncio
-                          </DropdownMenuItem>
-                          </>
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -933,17 +938,15 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Landmark className="mr-2 h-4 w-4" />
                             Mapear Caixa Eletrónico
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
+                            <Square className="mr-2 h-4 w-4" />
+                            Mapear Lote de Terreno
+                        </DropdownMenuItem>
                          {isManager && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
-                                <Square className="mr-2 h-4 w-4" />
-                                Mapear Lote de Terreno
-                            </DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
-                                <Megaphone className="mr-2 h-4 w-4" />
-                                Criar Anúncio
-                            </DropdownMenuItem>
-                          </>
+                           <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
+                              <Megaphone className="mr-2 h-4 w-4" />
+                              Criar Anúncio
+                          </DropdownMenuItem>
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>

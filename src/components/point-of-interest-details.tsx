@@ -378,17 +378,20 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
 
   let canEdit = false;
-  if (isOwner) {
-    // Owners can edit their own incidents, construction projects and atms
-    if (['incident', 'construction', 'atm'].includes(poi.type)) {
-        canEdit = true;
-    }
-  } 
-  if (isManager) {
-    // Managers can edit everything except other user's incidents/atms
-    if (!['incident', 'atm'].includes(poi.type) || isOwner) {
-        canEdit = true;
-    }
+  switch (poi.type) {
+    case 'construction':
+    case 'land_plot':
+    case 'atm':
+        canEdit = isOwner || isManager;
+        break;
+    case 'incident':
+        canEdit = isOwner;
+        break;
+    case 'announcement':
+        canEdit = isManager;
+        break;
+    default:
+        canEdit = false;
   }
 
 

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -32,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Separator } from "./ui/separator";
 import Image from "next/image";
 import { Label } from "./ui/label";
+import { useAuth } from "@/hooks/use-auth";
 
 
 // Component to handle the drawing functionality on the map
@@ -147,6 +149,9 @@ export default function LandPlotReport({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const { toast } = useToast();
+  const { profile } = useAuth();
+  
+  const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -163,7 +168,7 @@ export default function LandPlotReport({
   
   const clearForm = () => {
     form.reset({
-      status: "available",
+      status: isManager ? "available" : "occupied",
       plotNumber: "",
       registrationCode: "",
       zoningInfo: "",
@@ -212,6 +217,7 @@ export default function LandPlotReport({
             clearForm();
         }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poiToEdit, open, form, initialCenter]);
   
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -279,7 +285,7 @@ export default function LandPlotReport({
         <SheetHeader className="p-6 pb-2">
           <SheetTitle>{isEditMode ? 'Editar Lote de Terreno' : 'Mapear Lote de Terreno'}</SheetTitle>
           <SheetDescription>
-            {isEditMode ? 'Altere as informações cadastrais e, se necessário, redesenhe os limites do lote.' : 'Desenhe os limites do lote no mapa e preencha as informações cadastrais e de zoneamento.'}
+            {isEditMode ? 'Altere as informações cadastrais e, se necessário, redesenhe os limites do lote.' : 'Desenhe os limites do seu lote no mapa e preencha as informações que tiver.'}
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -299,38 +305,40 @@ export default function LandPlotReport({
                 </Map>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                 <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Estado do Lote</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecione o estado atual do lote" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="available">Disponível</SelectItem>
-                                <SelectItem value="occupied">Ocupado</SelectItem>
-                                <SelectItem value="reserved">Reservado</SelectItem>
-                                <SelectItem value="in_dispute">Em Litígio</SelectItem>
-                                <SelectItem value="protected">Protegido</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {isManager && (
+                    <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Estado do Lote</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o estado atual do lote" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="available">Disponível</SelectItem>
+                                    <SelectItem value="occupied">Ocupado</SelectItem>
+                                    <SelectItem value="reserved">Reservado</SelectItem>
+                                    <SelectItem value="in_dispute">Em Litígio</SelectItem>
+                                    <SelectItem value="protected">Protegido</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
                 <FormField
                     control={form.control}
                     name="plotNumber"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Nº do Lote (Opcional)</FormLabel>
+                        <FormLabel>Nº do Lote ou Morada (Opcional)</FormLabel>
                         <FormControl>
-                            <Input placeholder="Ex: Lote 24-A" {...field} value={field.value ?? ''}/>
+                            <Input placeholder="Ex: Lote 24-A, Rua das Flores" {...field} value={field.value ?? ''}/>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -341,7 +349,7 @@ export default function LandPlotReport({
                     name="registrationCode"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Código de Registo Predial (Opcional)</FormLabel>
+                        <FormLabel>Nº do Registo Predial (Opcional)</FormLabel>
                         <FormControl>
                             <Input placeholder="Ex: 12345/IGCA/2024" {...field} value={field.value ?? ''}/>
                         </FormControl>
@@ -350,7 +358,7 @@ export default function LandPlotReport({
                     )}
                  />
                 <Separator />
-                <h4 className="text-sm font-semibold text-foreground">Informação de Zoneamento</h4>
+                <h4 className="text-sm font-semibold text-foreground">Informação de Zoneamento (Opcional)</h4>
 
                  <FormField
                     control={form.control}
@@ -361,7 +369,7 @@ export default function LandPlotReport({
                         <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
-                                <SelectValue placeholder="Selecione o uso permitido" />
+                                <SelectValue placeholder="Selecione o uso (se souber)" />
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -412,7 +420,7 @@ export default function LandPlotReport({
                     name="zoningInfo"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Notas de Zoneamento (Opcional)</FormLabel>
+                        <FormLabel>Outras Notas (Opcional)</FormLabel>
                         <FormControl>
                             <Textarea
                                 placeholder="Descreva outras restrições ou observações relevantes..."
@@ -431,12 +439,12 @@ export default function LandPlotReport({
                     <Label htmlFor="land-plot-photo" className="text-sm font-medium">
                         <div className="flex items-center gap-2 cursor-pointer">
                             <Camera className="h-4 w-4" />
-                            Fotografia do Lote (Opcional)
+                            Anexar Documento ou Foto (Opcional)
                         </div>
                     </Label>
-                    <Input id="land-plot-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-2 h-auto p-1"/>
+                    <Input id="land-plot-photo" type="file" accept="image/*,.pdf" onChange={handlePhotoChange} className="mt-2 h-auto p-1"/>
                 </div>
-                {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={100} height={100} className="rounded-md object-cover" />}
+                {photoPreview && <Image src={photoPreview} alt="Pré-visualização do documento" width={100} height={100} className="rounded-md object-cover" />}
             </div>
             <SheetFooter className="p-6 pt-4 border-t bg-background">
                 <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
@@ -448,5 +456,3 @@ export default function LandPlotReport({
     </Sheet>
   );
 }
-
-    
