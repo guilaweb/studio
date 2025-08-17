@@ -46,8 +46,13 @@ export default function PropertyRegistrationWizard() {
     };
 
     const handleSubmit = () => {
-        console.log("Final form data:", formData);
         // Here you would typically call a service to submit the data
+        // For now we just log it and show a toast
+        const submissionData = {
+            ...formData,
+            status: 'em_verificacao', // Set initial status
+        };
+        console.log("Final form data:", submissionData);
         toast({
             title: "Submissão Enviada!",
             description: "O seu imóvel foi submetido para verificação. Será notificado sobre o progresso.",

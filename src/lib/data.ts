@@ -12,7 +12,7 @@ export const PointOfInterestUpdateSchema = z.object({
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 
-export const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired']);
+export const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired', 'em_verificacao', 'verificado_ouro', 'verificado_prata', 'informacao_insuficiente']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
 export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement']);
@@ -129,6 +129,10 @@ export const statusLabelMap: Record<PointOfInterestStatus, string> = {
     rejected: "Rejeitado",
     active: "Ativo",
     expired: "Expirado",
+    em_verificacao: "Em Verificação",
+    verificado_ouro: "Verificado (Ouro)",
+    verificado_prata: "Verificado (Prata)",
+    informacao_insuficiente: "Informação Insuficiente",
 };
 
 export const priorityLabelMap: Record<PointOfInterestPriority, string> = {
