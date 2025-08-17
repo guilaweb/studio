@@ -78,6 +78,7 @@ export const UserProfileSchema = z.object({
     photoURL: z.string().optional(),
     role: z.enum(['Cidadao', 'Agente Municipal', 'Administrador']),
     createdAt: z.string().optional(),
+    onboardingCompleted: z.boolean().optional(),
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 

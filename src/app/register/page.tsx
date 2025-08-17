@@ -143,6 +143,7 @@ export default function RegisterPage() {
             email: user.email,
             role: isFirstUser ? "Administrador" : "Cidadao",
             createdAt: new Date().toISOString(),
+            onboardingCompleted: false,
         });
       });
 
@@ -183,6 +184,7 @@ export default function RegisterPage() {
                 photoURL: user.photoURL,
                 role: isFirstUser ? "Administrador" : "Cidadao",
                 createdAt: new Date().toISOString(),
+                onboardingCompleted: false,
             });
         });
       }

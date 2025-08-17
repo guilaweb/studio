@@ -8,6 +8,7 @@ import MainPageHandler from "@/components/main-page-handler";
 import { UserMenu } from "@/components/user-menu";
 import LandingPage from "./landing/page";
 import { APIProvider } from "@vis.gl/react-google-maps";
+import OnboardingWizard from "@/components/admin/onboarding-wizard";
 
 export default function Home() {
   const { user, loading, logout, profile } = useAuth();
@@ -26,6 +27,7 @@ export default function Home() {
             <MainPageHandler 
                 userMenu={<UserMenu user={user} loading={loading} logout={logout} profile={profile} />} 
             />
+            <OnboardingWizard />
         </Suspense>
     </APIProvider>
   );
