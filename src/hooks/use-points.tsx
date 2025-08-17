@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase';
 import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData, query, orderBy, writeBatch, getDocs, where } from 'firebase/firestore';
 import { PointOfInterest, PointOfInterestUpdate } from '@/lib/data';
 import { useToast } from './use-toast';
+import { useAuth } from './use-auth';
 
 interface PointsContextType {
   allData: PointOfInterest[];
@@ -50,15 +51,19 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         authorDisplayName: data.authorDisplayName,
         updates: sortedUpdates,
         files: data.files,
+        // Land Plot Specific
+        area: data.area, // in square meters
         plotNumber: data.plotNumber,
         registrationCode: data.registrationCode,
-        zoningInfo: data.zoningInfo,
+        zoningInfo: data.zoningInfo, // General notes
         usageType: data.usageType,
-        maxHeight: data.maxHeight,
-        buildingRatio: data.buildingRatio,
+        maxHeight: data.maxHeight, // in floors
+        buildingRatio: data.buildingRatio, // percentage
+        // Project Specific
         landPlotId: data.landPlotId,
         projectType: data.projectType,
         architectName: data.architectName,
+        // Announcement Specific
         announcementCategory: data.announcementCategory,
     };
 };
@@ -68,6 +73,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
   const [allData, setAllData] = useState<PointOfInterest[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user, profile } = useAuth();
 
   useEffect(() => {
     const pointsCollectionRef = collection(db, 'pointsOfInterest');
@@ -164,18 +170,28 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updatePointDetails = async (pointId: string, updates: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>) => {
+    if (!user || !profile) {
+        toast({ variant: "destructive", title: "Erro de Permissão", description: "Utilizador não autenticado." });
+        return;
+    }
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         
         const { photoDataUri, ...otherUpdates } = updates as any;
 
-        const dataToUpdate: Partial<PointOfInterest> & { updates?: PointOfInterestUpdate[], status?: PointOfInterest['status'] } = {
-            ...otherUpdates,
+        // Add a new update to the timeline to log the edit
+        const editUpdate: PointOfInterestUpdate = {
+            id: `upd-${pointId}-${Date.now()}-${Math.random()}`,
+            text: `Detalhes do ${otherUpdates.type === 'construction' ? 'projeto' : 'item'} atualizados por ${profile.displayName}.`,
+            authorId: user.uid,
+            authorDisplayName: profile.displayName,
+            timestamp: new Date().toISOString(),
         };
 
-        if ('status' in updates) {
-            dataToUpdate.status = updates.status;
-        }
+        const dataToUpdate: Partial<PointOfInterest> & { updates: any } = {
+            ...otherUpdates,
+            updates: arrayUnion(editUpdate)
+        };
 
         // Handle photo update specifically for incident/atm types
         if (photoDataUri) {
@@ -187,7 +203,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
                 // Update the photo on the original update
                 newUpdates[0] = { ...newUpdates[0], photoDataUri: photoDataUri };
                 
-                // Sort back to newest first for Firestore
+                // Overwrite the updates array instead of using arrayUnion
                 dataToUpdate.updates = newUpdates.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); 
             }
         }

@@ -678,16 +678,19 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
 
   const handleStartEditing = (poi: PointOfInterest) => {
-    if (!user) return;
+    if (!user || !profile) return;
 
     const isOwner = poi.authorId === user.uid;
+    const isManager = profile.role === 'Agente Municipal' || profile.role === 'Administrador';
+
     let canEdit = false;
-    
     switch (poi.type) {
         case 'construction':
+            canEdit = isOwner || isManager;
+            break;
         case 'incident':
         case 'atm':
-            canEdit = isOwner || isManager;
+             canEdit = isOwner;
             break;
         case 'land_plot':
         case 'announcement':
