@@ -323,12 +323,6 @@ function AdminProjectDetailPage() {
                                                     <p className="text-sm text-muted-foreground">Submetido em {new Date(project.lastReported!).toLocaleDateString('pt-PT')}</p>
                                                 </div>
                                             </div>
-                                            <Button variant="outline" size="sm" asChild>
-                                                <a href={file.url} target="_blank" rel="noopener noreferrer">
-                                                    <Download className="mr-2 h-4 w-4" />
-                                                    Download
-                                                </a>
-                                            </Button>
                                         </div>
                                     ))}
                                 </div>
@@ -402,3 +396,5 @@ function AdminProjectDetailPage() {
 }
 
 export default withAuth(AdminProjectDetailPage, ['Agente Municipal', 'Administrador']);
+
+    
