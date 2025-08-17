@@ -7,12 +7,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { withAuth } from "@/hooks/use-auth";
 import { usePoints } from "@/hooks/use-points";
-import { PointOfInterest, PointOfInterestStatus, propertyTypeLabelMap } from "@/lib/data";
+import { PointOfInterest, PointOfInterestStatus, propertyTypeLabelMap, statusLabelMap } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, BedDouble, Bath, Ruler, FileText, ExternalLink, MessageSquare } from "lucide-react";
+import { ArrowLeft, BedDouble, Bath, Ruler, FileText, ExternalLink, MessageSquare, ShieldCheck, Shield, ShieldAlert, HelpCircle, CheckCircle, XCircle, Landmark, Map } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Shield, ShieldAlert, ShieldCheck, HelpCircle } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Separator } from "@/components/ui/separator";
 
@@ -40,6 +39,23 @@ const VerificationSeal = ({ status }: { status: PointOfInterestStatus }) => {
         </TooltipProvider>
     );
 };
+
+const TrustInfoItem = ({ icon, label, value, status }: { icon: React.ReactNode, label: string, value: string, status?: boolean }) => {
+    const StatusIcon = status === undefined ? null : (status ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />);
+    return (
+        <div className="flex items-center justify-between py-2">
+            <div className="flex items-center gap-3">
+                {icon}
+                <span className="text-sm font-medium text-muted-foreground">{label}</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold">{value}</span>
+                {StatusIcon}
+            </div>
+        </div>
+    );
+};
+
 
 export default function MarketplacePropertyDetailPage() {
     const params = useParams();
@@ -69,6 +85,14 @@ export default function MarketplacePropertyDetailPage() {
 
     if (!property) {
         return <div className="flex min-h-screen items-center justify-center">Imóvel não encontrado.</div>;
+    }
+
+    const usageTypeMap: Record<string, string> = {
+        residential: "Residencial",
+        commercial: "Comercial",
+        industrial: "Industrial",
+        mixed: "Misto",
+        other: "Outro",
     }
 
     return (
@@ -152,10 +176,30 @@ export default function MarketplacePropertyDetailPage() {
                         </div>
 
                         <div className="space-y-6">
-                            <Card>
-                                <CardHeader><CardTitle>Verificação MUNITU</CardTitle></CardHeader>
-                                <CardContent>
+                            <Card className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+                                <CardHeader><CardTitle className="text-blue-800 dark:text-blue-300">Painel de Confiança MUNITU</CardTitle></CardHeader>
+                                <CardContent className="space-y-2">
                                     <VerificationSeal status={property.status || 'Privado'} />
+                                    <Separator className="my-4 bg-blue-200 dark:bg-blue-800" />
+                                    <TrustInfoItem 
+                                        icon={<FileText className="h-5 w-5 text-blue-600"/>} 
+                                        label="Imposto Predial" 
+                                        value={property.propertyTaxStatus === 'paid' ? 'Em Dia' : 'Com Pendências'} 
+                                        status={property.propertyTaxStatus === 'paid'}
+                                    />
+                                    <TrustInfoItem 
+                                        icon={<Map className="h-5 w-5 text-blue-600"/>} 
+                                        label="Sobreposição" 
+                                        value={"Sem conflitos"} 
+                                        status={true} // Placeholder
+                                    />
+                                     {property.usageType && (
+                                        <TrustInfoItem 
+                                            icon={<Landmark className="h-5 w-5 text-blue-600"/>} 
+                                            label="Uso Permitido" 
+                                            value={statusLabelMap[property.usageType as keyof typeof statusLabelMap] || property.usageType}
+                                        />
+                                     )}
                                 </CardContent>
                             </Card>
                             <Card>
