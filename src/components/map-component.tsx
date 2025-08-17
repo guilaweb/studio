@@ -183,6 +183,11 @@ const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut, zoom }
   // For land plots or announcements, only show the polygon when zoomed in, and the marker when zoomed out.
   const showPolygon = isPolygonType && point.polygon && zoom >= 15;
   const showMarker = !isPolygonType || (isPolygonType && zoom < 15);
+  
+  // Hide expired announcements
+  if (point.type === 'announcement' && point.status === 'expired') {
+    return null;
+  }
 
   return (
     <>
@@ -286,7 +291,3 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
     </div>
   );
 }
-
-    
-
-    

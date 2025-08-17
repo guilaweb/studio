@@ -12,7 +12,7 @@ export const PointOfInterestUpdateSchema = z.object({
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 
-const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active']);
+const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
 const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement']);
@@ -23,6 +23,9 @@ export type PointOfInterestPriority = z.infer<typeof PointOfInterestPriorityEnum
 
 const PointOfInterestUsageTypeEnum = z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']);
 export type PointOfInterestUsageType = z.infer<typeof PointOfInterestUsageTypeEnum>;
+
+const AnnouncementCategoryEnum = z.enum(['general', 'traffic', 'event', 'public_works', 'security', 'other']);
+export type AnnouncementCategory = z.infer<typeof AnnouncementCategoryEnum>;
 
 
 const PositionSchema = z.object({ lat: z.number(), lng: z.number() });
@@ -55,6 +58,8 @@ export const PointOfInterestSchema = z.object({
   landPlotId: z.string().optional(),
   projectType: z.string().optional(),
   architectName: z.string().optional(),
+  // Announcement Specific
+  announcementCategory: AnnouncementCategoryEnum.optional(),
 });
 
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
@@ -113,6 +118,7 @@ export const statusLabelMap: Record<PointOfInterestStatus, string> = {
     approved: "Aprovado",
     rejected: "Rejeitado",
     active: "Ativo",
+    expired: "Expirado",
 };
 
 export const priorityLabelMap: Record<PointOfInterestPriority, string> = {
@@ -227,5 +233,3 @@ export const GenerateLicenseOutputSchema = z.object({
   licenseHtml: z.string().describe("The full HTML content of the generated license."),
 });
 export type GenerateLicenseOutput = z.infer<typeof GenerateLicenseOutputSchema>;
-
-    

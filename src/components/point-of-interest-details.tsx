@@ -1,12 +1,11 @@
 
-
 "use client";
 
 import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,6 +42,15 @@ const priorityConfig = {
     medium: { icon: ArrowRight, color: "text-yellow-500 bg-yellow-100/50", label: "Média Prioridade" },
     low: { icon: ArrowDown, color: "text-green-500 bg-green-100/50", label: "Baixa Prioridade" },
 }
+
+const announcementCategoryMap = {
+    general: 'Aviso Geral',
+    traffic: 'Trânsito',
+    event: 'Evento',
+    public_works: 'Obras Públicas',
+    security: 'Segurança',
+    other: 'Outro',
+};
 
 
 const getLastReportedTime = (lastReported?: string) => {
@@ -226,12 +234,12 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
         <div className="mt-4">
             <Separator />
             <div className="py-4">
-                <h3 className="font-semibold mb-4">Linha do Tempo e Fiscalização</h3>
+                <h3 className="font-semibold mb-4">Linha do Tempo e Comentários</h3>
                 
                  { canAddUpdate && (
                     <form onSubmit={handleSubmit} className="mb-6 space-y-4">
                         <Textarea 
-                            placeholder={isManager ? "Escreva uma resposta oficial ou adicione uma atualização sobre o progresso..." : "Viu algum progresso ou problema? Descreva o que viu..."}
+                            placeholder={isManager ? "Escreva uma resposta oficial ou adicione uma atualização sobre o progresso..." : "Tem alguma dúvida? Deixe aqui o seu comentário..."}
                             value={updateText}
                             onChange={(e) => setUpdateText(e.target.value)}
                         />
@@ -249,7 +257,7 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
                         <div className="flex flex-wrap gap-2">
                             <Button type="submit" size="sm" disabled={!updateText.trim()}>
                                 <MessageSquarePlus className="mr-2 h-4 w-4" />
-                                Adicionar Atualização
+                                Adicionar Comentário
                             </Button>
                              {canGenerateAiResponse && (
                                 <Button type="button" size="sm" variant="outline" onClick={handleGenerateResponse} disabled={isGenerating}>
@@ -269,11 +277,11 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
                                 <div key={update.id} className="p-3 rounded-lg bg-muted/50 text-sm">
                                    {isOriginalReport ? (
                                         <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                                           Reportado por {update.authorDisplayName || 'um cidadão'}
+                                           {poi.type === 'announcement' ? 'Anúncio original' : `Reportado por ${update.authorDisplayName || 'um cidadão'}`}
                                         </p>
                                    ) : (
                                         <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                                            Atualização de {update.authorDisplayName || 'um gestor'}
+                                            Comentário de {update.authorDisplayName || 'um utilizador'}
                                         </p>
                                    )}
                                    <p className="whitespace-pre-wrap">{update.text}</p>
@@ -292,7 +300,7 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
                         })
                     ) : (
                         <p className="text-sm text-muted-foreground text-center py-4">
-                           Ainda não há fiscalizações ou atualizações.
+                           Ainda não há comentários ou atualizações.
                         </p>
                     )}
                 </div>
@@ -372,7 +380,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
 
   const config = layerConfig[poi.type];
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
-  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot'].includes(poi.type);
+  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement'].includes(poi.type);
   const isOwner = poi.authorId === user?.uid;
   const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
 
@@ -413,10 +421,16 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
           </div>
         </SheetHeader>
         <div className="space-y-4">
-            {poi.type === 'construction' && poi.startDate && poi.endDate && (
+            {(poi.type === 'construction' || poi.type === 'announcement') && poi.startDate && poi.endDate && (
                  <div className="flex items-center text-sm text-muted-foreground">
                    <Calendar className="mr-2 h-4 w-4" />
                    <span>{format(new Date(poi.startDate), "dd/MM/yy", { locale: pt })} - {format(new Date(poi.endDate), "dd/MM/yy", { locale: pt })}</span>
+                </div>
+            )}
+             {poi.type === 'announcement' && poi.announcementCategory && (
+                <div className="flex items-center text-sm text-muted-foreground">
+                    <Tags className="mr-2 h-4 w-4" />
+                    <span>Categoria: {announcementCategoryMap[poi.announcementCategory]}</span>
                 </div>
             )}
             {poi.type !== 'construction' && poi.type !== 'land_plot' && poi.type !== 'announcement' && incidentDate && (
@@ -445,7 +459,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             
             {poi.type === 'land_plot' && <LandPlotDetails poi={poi} />}
 
-            {showTimeline && poi.type !== 'announcement' && (
+            {showTimeline && (
                 <Timeline 
                     poi={poi} 
                     onAddUpdate={onAddUpdate}
@@ -456,5 +470,3 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </Sheet>
   );
 }
-
-    

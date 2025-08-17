@@ -10,9 +10,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { ArrowLeft, Trash2, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, Trash2, Send, Loader2, Calendar as CalendarIcon } from "lucide-react";
 import { withAuth, useAuth } from "@/hooks/use-auth";
 import { usePoints } from "@/hooks/use-points";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AnnouncementCategory } from "@/lib/data";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { addDays, format } from "date-fns";
+import { pt } from "date-fns/locale";
+import { DateRange } from "react-day-picker";
+import { Calendar } from "@/components/ui/calendar";
 
 // Component to handle the drawing functionality on the map
 const DrawingManager: React.FC<{ onPolygonComplete: (polygon: google.maps.Polygon) => void, clearTrigger: boolean }> = ({ onPolygonComplete, clearTrigger }) => {
@@ -92,17 +100,22 @@ function ComunicacoesPage() {
     const { user, profile } = useAuth();
     const [title, setTitle] = React.useState("");
     const [message, setMessage] = React.useState("");
+    const [category, setCategory] = React.useState<AnnouncementCategory | null>(null);
+    const [dates, setDates] = React.useState<DateRange | undefined>({
+        from: new Date(),
+        to: addDays(new Date(), 7),
+    });
     const [drawnPolygon, setDrawnPolygon] = React.useState<google.maps.Polygon | null>(null);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [clearPolygonTrigger, setClearPolygonTrigger] = React.useState(false);
 
 
     const handleSend = async () => {
-        if (!title || !message) {
+        if (!title || !message || !category || !dates?.from || !dates?.to) {
             toast({
                 variant: "destructive",
                 title: "Campos em falta",
-                description: "Por favor, preencha o título e a mensagem do anúncio.",
+                description: "Por favor, preencha todos os campos do anúncio.",
             });
             return;
         }
@@ -134,6 +147,9 @@ function ComunicacoesPage() {
                 type: 'announcement',
                 title: title,
                 description: message,
+                announcementCategory: category,
+                startDate: dates.from.toISOString(),
+                endDate: dates.to.toISOString(),
                 polygon: path,
                 position: { lat: centerLat, lng: centerLng },
                 authorId: user.uid,
@@ -156,6 +172,8 @@ function ComunicacoesPage() {
             // Reset form
             setTitle("");
             setMessage("");
+            setCategory(null);
+            setDates({ from: new Date(), to: addDays(new Date(), 7) });
             setClearPolygonTrigger(val => !val); // Trigger polygon clearing in child
             setDrawnPolygon(null);
 
@@ -227,6 +245,61 @@ function ComunicacoesPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
+                                    <Label htmlFor="category">Categoria</Label>
+                                    <Select onValueChange={(value) => setCategory(value as AnnouncementCategory)} value={category || undefined}>
+                                        <SelectTrigger id="category">
+                                            <SelectValue placeholder="Selecione uma categoria" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="traffic">Trânsito</SelectItem>
+                                            <SelectItem value="event">Eventos</SelectItem>
+                                            <SelectItem value="public_works">Obras Públicas</SelectItem>
+                                            <SelectItem value="security">Segurança</SelectItem>
+                                            <SelectItem value="general">Aviso Geral</SelectItem>
+                                            <SelectItem value="other">Outro</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label>Período de Validade</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-full justify-start text-left font-normal",
+                                                !dates && "text-muted-foreground"
+                                            )}
+                                            >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {dates?.from ? (
+                                                dates.to ? (
+                                                <>
+                                                    {format(dates.from, "LLL dd, y", {locale: pt})} -{" "}
+                                                    {format(dates.to, "LLL dd, y", {locale: pt})}
+                                                </>
+                                                ) : (
+                                                    format(dates.from, "LLL dd, y", {locale: pt})
+                                                )
+                                            ) : (
+                                                <span>Selecione as datas</span>
+                                            )}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                initialFocus
+                                                mode="range"
+                                                defaultMonth={dates?.from}
+                                                selected={dates}
+                                                onSelect={setDates}
+                                                numberOfMonths={1}
+                                                locale={pt}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <div className="space-y-2">
                                     <Label htmlFor="message">Mensagem</Label>
                                     <Textarea 
                                         id="message"
@@ -271,5 +344,3 @@ function ComunicacoesPage() {
 }
 
 export default withAuth(ComunicacoesPage, ['Agente Municipal', 'Administrador']);
-
-    
