@@ -11,7 +11,7 @@ import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/da
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck, Download } from "lucide-react";
+import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck, Download, ExternalLink } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -323,6 +323,12 @@ function AdminProjectDetailPage() {
                                                     <p className="text-sm text-muted-foreground">Submetido em {new Date(project.lastReported!).toLocaleDateString('pt-PT')}</p>
                                                 </div>
                                             </div>
+                                            <Button variant="outline" size="sm" asChild>
+                                                <a href={file.url} target="_blank" rel="noopener noreferrer">
+                                                   Ver Documento
+                                                   <ExternalLink className="ml-2 h-4 w-4" />
+                                                </a>
+                                            </Button>
                                         </div>
                                     ))}
                                 </div>
