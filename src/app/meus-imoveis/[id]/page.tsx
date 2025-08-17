@@ -132,6 +132,7 @@ export default function ManagePropertyPage() {
                         <CardContent className="flex flex-col gap-2">
                              <Button><Tag className="mr-2 h-4 w-4" /> Colocar à Venda</Button>
                              <Button variant="outline"><Pencil className="mr-2 h-4 w-4" /> Editar Informações</Button>
+                             <Button variant="outline" disabled><Star className="mr-2 h-4 w-4 text-yellow-500" /> Destacar Anúncio</Button>
                         </CardContent>
                     </Card>
                     <Card>
@@ -174,4 +175,3 @@ export default function ManagePropertyPage() {
 
 ManagePropertyPage.displayName = 'ManagePropertyPage';
 export default withAuth(ManagePropertyPage);
-
