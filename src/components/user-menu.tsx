@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { User } from "firebase/auth";
@@ -7,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -73,9 +74,9 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                    <Link href="/licencas">
-                        <FileText className="mr-2 h-4 w-4" />
-                        <span>Minhas Licenças</span>
+                    <Link href="/marketplace">
+                        <Building className="mr-2 h-4 w-4" />
+                        <span>Marketplace</span>
                     </Link>
                 </DropdownMenuItem>
                 
