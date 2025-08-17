@@ -295,6 +295,21 @@ export default function UseCasesPage() {
                             </Card>
                         ))}
                     </main>
+                     <footer className="flex flex-col gap-4 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t bg-background/80 backdrop-blur-sm">
+                        <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-muted-foreground">
+                            <p>&copy; 2024 MUNITU. Todos os direitos reservados.</p>
+                            <Link href="/docs" className="underline hover:text-primary">Documentação Técnica</Link>
+                            <Link href="/exemplos-de-uso" className="underline hover:text-primary">Exemplos de Uso</Link>
+                            <Link href="/help" className="underline hover:text-primary">Ajuda</Link>
+                        </div>
+                        <div className="sm:ml-auto flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground text-center sm:text-right">
+                            <div>
+                                <p className="font-semibold">Dianguila Empreendimentos, (SU), Lda.</p>
+                                <p>NIF: 5001706802 | Matrícula: 39110-23/231102</p>
+                                <p>Acto de Constituição: Insc.1 Ap.419/231102</p>
+                            </div>
+                        </div>
+                    </footer>
                 </div>
             </div>
         </APIProvider>
