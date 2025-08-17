@@ -162,31 +162,34 @@ const PropertyCard = ({ property }: { property: PointOfInterest }) => {
     const placeholderImage = "https://placehold.co/600x400.png";
 
     return (
-        <Card className="overflow-hidden flex flex-col h-full">
-            <div className="relative h-40 w-full">
-                <Image
-                    src={mainPhoto || placeholderImage}
-                    alt={`Imagem de ${property.title}`}
-                    fill={true}
-                    style={{objectFit: 'cover'}}
-                    data-ai-hint="house exterior"
-                />
-            </div>
-            <CardHeader>
-                <CardTitle className="text-lg">{property.title}</CardTitle>
-                <CardDescription>
-                    {property.propertyType ? propertyTypeLabelMap[property.propertyType] : 'Imóvel'}
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow flex flex-col justify-end">
-                <div className="flex justify-between items-center">
-                    <div className="text-lg font-bold text-primary">
-                        {property.price ? `AOA ${property.price.toLocaleString()}` : "A Negociar"}
-                    </div>
-                    <VerificationSeal status={property.status || 'Privado'} />
+        <Link href={`/marketplace/${property.id}`} className="group">
+            <Card className="overflow-hidden flex flex-col h-full group-hover:shadow-lg transition-shadow duration-200">
+                <div className="relative h-40 w-full">
+                    <Image
+                        src={mainPhoto || placeholderImage}
+                        alt={`Imagem de ${property.title}`}
+                        fill={true}
+                        style={{objectFit: 'cover'}}
+                        data-ai-hint="house exterior"
+                        className="group-hover:scale-105 transition-transform duration-300"
+                    />
                 </div>
-            </CardContent>
-        </Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">{property.title}</CardTitle>
+                    <CardDescription>
+                        {property.propertyType ? propertyTypeLabelMap[property.propertyType] : 'Imóvel'}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow flex flex-col justify-end">
+                    <div className="flex justify-between items-center">
+                        <div className="text-lg font-bold text-primary">
+                            {property.price ? `AOA ${property.price.toLocaleString()}` : "A Negociar"}
+                        </div>
+                        <VerificationSeal status={property.status || 'Privado'} />
+                    </div>
+                </CardContent>
+            </Card>
+        </Link>
     );
 }
 
