@@ -10,9 +10,11 @@ import Link from "next/link";
 import { ArrowLeft, Award } from "lucide-react";
 import { useUserProfile } from "@/services/user-service";
 import { medals } from "@/lib/medals";
+import { useParams } from "next/navigation";
 
-function PublicProfilePage({ params }: { params: { userId: string } }) {
-    const userId = params.userId;
+function PublicProfilePage() {
+    const params = useParams();
+    const userId = params.userId as string;
     const { allData } = usePoints();
     const { user, loading } = useUserProfile(userId);
 
