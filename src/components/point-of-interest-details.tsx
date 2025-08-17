@@ -177,17 +177,19 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
         e.preventDefault();
         if (!updateText.trim()) return;
 
+        const processSubmit = (photoDataUri?: string) => {
+            onAddUpdate(poi.id, updateText, photoDataUri);
+            clearForm();
+        }
+
         if (updatePhoto) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                const photoDataUri = reader.result as string;
-                onAddUpdate(poi.id, updateText, photoDataUri);
-                clearForm();
+                processSubmit(reader.result as string);
             };
             reader.readAsDataURL(updatePhoto);
         } else {
-            onAddUpdate(poi.id, updateText);
-            clearForm();
+            processSubmit();
         }
     }
 
@@ -386,8 +388,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
 
   let canEdit = false;
-  if (poi.type === 'incident' || poi.type === 'atm') {
-      canEdit = isOwner;
+  if ((poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction') && isOwner) {
+      canEdit = true;
   } else if (poi.type === 'land_plot' || poi.type === 'announcement') {
       canEdit = isManager;
   }

@@ -171,8 +171,11 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 
         const dataToUpdate: Partial<PointOfInterest> & { updates?: PointOfInterestUpdate[], status?: PointOfInterest['status'] } = {
             ...otherUpdates,
-            status: (updates as any).status, // Ensure status is explicitly included
         };
+
+        if ('status' in updates) {
+            dataToUpdate.status = updates.status;
+        }
 
         // Handle photo update specifically for incident/atm types
         if (photoDataUri) {
@@ -200,6 +203,11 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 
     } catch (error) {
         console.error("Error updating point details: ", error);
+        toast({
+            variant: "destructive",
+            title: "Erro ao Atualizar",
+            description: "Não foi possível guardar as alterações.",
+        });
     }
   };
 

@@ -39,9 +39,10 @@ import WaterLeakReport from "./water-leak-report";
 import LandPlotReport from "./land-plot-report";
 import { usePublicLayerSettings } from "@/services/settings-service";
 import AnnouncementReport from "./announcement-report";
+import ConstructionEdit from "./construction-edit";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit';
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
 
@@ -502,6 +503,18 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: "Obrigado por ajudar a manter o mapa de obras da cidade atualizado.",
     });
   }
+  
+    const handleEditConstructionProject = async (
+        poiId: string,
+        data: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>
+    ) => {
+        handleSheetOpenChange(false);
+        await updatePointDetails(poiId, data);
+        toast({
+            title: "Projeto Atualizado!",
+            description: "As suas alterações foram guardadas com sucesso.",
+        });
+    };
 
   const handleAddNewAtmPoint = async (
     newPointData: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }
@@ -665,32 +678,27 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
 
   const handleStartEditing = (poi: PointOfInterest) => {
+    if (!user) return;
     
-    if (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'announcement') {
-        if (user?.uid !== poi.authorId) {
-            toast({
-                variant: "destructive",
-                title: "Acesso Negado",
-                description: "Apenas o autor original pode editar este item.",
-            });
-            return;
-        }
-    } else if (poi.type === 'land_plot') {
-        if (!isManager) {
-            toast({
-                variant: "destructive",
-                title: "Acesso Negado",
-                description: "Apenas um agente municipal ou administrador pode editar um lote.",
-            });
-            return;
-        }
-    } else {
-        return; // Other types might not be editable
+    let canEdit = false;
+    if ((poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction') && user.uid === poi.authorId) {
+        canEdit = true;
+    } else if ((poi.type === 'land_plot' || poi.type === 'announcement') && isManager) {
+        canEdit = true;
+    }
+
+    if (!canEdit) {
+        toast({
+            variant: "destructive",
+            title: "Acesso Negado",
+            description: "Não tem permissão para editar este item.",
+        });
+        return;
     }
     
     setPoiToEdit(poi);
     setSelectedPoi(null); // Close details sheet
-    setActiveSheet(poi.type as ActiveSheet);
+    setActiveSheet(poi.type === 'construction' ? 'construction_edit' : (poi.type as ActiveSheet));
   }
 
   const handleMarkerClick = (poiId: string) => {
@@ -735,8 +743,11 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         authorId: user.uid,
         authorDisplayName: profile.displayName || user.displayName || "Utilizador Anónimo",
         timestamp: new Date().toISOString(),
-        ...(photoDataUri && { photoDataUri }),
     };
+    
+    if (photoDataUri) {
+        newUpdate.photoDataUri = photoDataUri;
+    }
     
     addUpdateToPoint(poiId, newUpdate);
     
@@ -1005,6 +1016,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             onAnnouncementSubmit={addPoint}
             onAnnouncementEdit={handleEditAnnouncement}
             initialCenter={mapCenter}
+            poiToEdit={poiToEdit}
+        />
+        <ConstructionEdit
+            open={activeSheet === 'construction_edit'}
+            onOpenChange={handleSheetOpenChange}
+            onConstructionEdit={handleEditConstructionProject}
             poiToEdit={poiToEdit}
         />
       </SidebarProvider>
