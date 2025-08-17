@@ -78,7 +78,7 @@ function MeusImoveisPage() {
                 </h1>
                 <div className="ml-auto">
                      <Button asChild>
-                        <Link href="/#report-land_plot">
+                        <Link href="/meus-imoveis/novo">
                             <Plus className="mr-2 h-4 w-4" />
                             Registar Novo Imóvel
                         </Link>
@@ -99,7 +99,7 @@ function MeusImoveisPage() {
                             <h3 className="text-2xl font-bold tracking-tight">Ainda não tem imóveis registados</h3>
                             <p className="text-muted-foreground">Comece por registar o seu primeiro terreno, casa ou quinta.</p>
                             <Button className="mt-4" asChild>
-                                <Link href="/#report-land_plot">
+                                <Link href="/meus-imoveis/novo">
                                     <Plus className="mr-2 h-4 w-4" />
                                     Registar Imóvel
                                 </Link>

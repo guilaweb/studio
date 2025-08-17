@@ -27,6 +27,9 @@ export type PointOfInterestUsageType = z.infer<typeof PointOfInterestUsageTypeEn
 export const AnnouncementCategoryEnum = z.enum(['general', 'traffic', 'event', 'public_works', 'security', 'other']);
 export type AnnouncementCategory = z.infer<typeof AnnouncementCategoryEnum>;
 
+export const PropertyTypeEnum = z.enum(['land', 'house', 'apartment', 'villa', 'farm', 'commercial']);
+export type PropertyType = z.infer<typeof PropertyTypeEnum>;
+
 
 const PositionSchema = z.object({ lat: z.number(), lng: z.number() });
 const FileSchema = z.object({ name: z.string(), url: z.string() });
@@ -48,8 +51,12 @@ export const PointOfInterestSchema = z.object({
   authorDisplayName: z.string().optional(),
   updates: z.array(PointOfInterestUpdateSchema).optional(),
   files: z.array(FileSchema).optional(),
-  // Land Plot Specific
+  // Land Plot & Property Specific
+  propertyType: PropertyTypeEnum.optional(),
   area: z.number().optional(), // in square meters
+  builtArea: z.number().optional(), // in square meters
+  bedrooms: z.number().optional(),
+  bathrooms: z.number().optional(),
   plotNumber: z.string().optional(),
   registrationCode: z.string().optional(),
   zoningInfo: z.string().optional(), // General notes
@@ -223,7 +230,7 @@ export type SuggestNextStepsInput = z.infer<typeof SuggestNextStepsInputSchema>;
 export const SuggestNextStepsOutputSchema = z.object({
   steps: z.array(z.object({
     department: z.string().describe("The name of the department that needs to provide a review/opinion."),
-    reason: z.string().describe("A brief reason why this department's review is necessary."),
+    reason: z.string().describe("A brief reason why this department's review is necessary, in Portuguese (Portugal)."),
     status: z.enum(['pending', 'completed', 'not_required']).describe("The current status of this step."),
   })).describe("A list of suggested next steps or required reviews for the project."),
 });
