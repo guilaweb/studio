@@ -478,6 +478,7 @@ export default function LandingPage() {
                     <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-muted-foreground">
                         <p>&copy; 2024 MUNITU. Todos os direitos reservados.</p>
                         <Link href="/docs" className="underline hover:text-primary">Documentação Técnica</Link>
+                        <Link href="/exemplos-de-uso" className="underline hover:text-primary">Exemplos de Uso</Link>
                         <Link href="/help" className="underline hover:text-primary">Ajuda</Link>
                     </div>
                     <div className="sm:ml-auto flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground text-center sm:text-right">
