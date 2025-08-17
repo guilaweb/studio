@@ -46,6 +46,8 @@ export const PointOfInterestSchema = z.object({
   description: z.string(),
   status: PointOfInterestStatusEnum.optional(),
   priority: PointOfInterestPriorityEnum.optional(),
+  price: z.number().optional(),
+  propertyTaxStatus: PropertyTaxStatusEnum.optional(),
   lastReported: z.string().optional(),
   incidentDate: z.string().optional(),
   startDate: z.string().optional(),
@@ -55,8 +57,6 @@ export const PointOfInterestSchema = z.object({
   updates: z.array(PointOfInterestUpdateSchema).optional(),
   files: z.array(FileSchema).optional(),
   // Land Plot & Property Specific
-  price: z.number().optional(),
-  propertyTaxStatus: PropertyTaxStatusEnum.optional(),
   propertyType: PropertyTypeEnum.optional(),
   area: z.number().optional(), // in square meters
   builtArea: z.number().optional(), // in square meters
@@ -273,4 +273,27 @@ export const GenerateLicenseOutputSchema = z.object({
 });
 export type GenerateLicenseOutput = z.infer<typeof GenerateLicenseOutputSchema>;
 
-    
+
+// Schemas for Chat / Inbox
+export const MessageSchema = z.object({
+  id: z.string(),
+  senderId: z.string(),
+  senderDisplayName: z.string(),
+  text: z.string(),
+  timestamp: z.string(),
+  read: z.boolean().default(false),
+});
+export type Message = z.infer<typeof MessageSchema>;
+
+export const ConversationSchema = z.object({
+  id: z.string(), // e.g., `${propertyId}-${buyerId}`
+  propertyId: z.string(),
+  propertyTitle: z.string(),
+  sellerId: z.string(),
+  buyerId: z.string(),
+  participants: z.array(z.string()), // [sellerId, buyerId]
+  lastMessage: MessageSchema.optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type Conversation = z.infer<typeof ConversationSchema>;
