@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/icons';
-import { Building, FileText, ArrowRight, UserCheck, BarChart3, Users, CheckCircle, Map, Layers, Siren, Briefcase, FileCheck, LayoutDashboard } from 'lucide-react';
+import { Building, FileText, ArrowRight, UserCheck, BarChart3, Users, CheckCircle, Map, Layers, Siren, Briefcase, FileCheck, LayoutDashboard, Eye, Zap, Handshake, Users2, Group } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APIProvider, Map as GoogleMap } from '@vis.gl/react-google-maps';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -235,6 +235,61 @@ export default function LandingPage() {
                         </div>
                     </section>
 
+                    <section id="values" className="w-full py-12 md:py-24 lg:py-32">
+                        <div className="container px-4 md:px-6 space-y-8">
+                            <Card>
+                                <CardContent className="p-10">
+                                    <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                                        <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Valores</div>
+                                        <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Valores Fundamentais da Marca</h2>
+                                        <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                                            Os nossos princípios orientadores.
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center gap-4">
+                                        <div className="bg-primary/10 p-3 rounded-full"><Users2 className="w-6 h-6 text-primary" /></div>
+                                        <CardTitle>Participação</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">Acreditamos que as melhores cidades são construídas em conjunto. O "Tu" em MUNITU é o nosso valor central.</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center gap-4">
+                                        <div className="bg-primary/10 p-3 rounded-full"><Eye className="w-6 h-6 text-primary" /></div>
+                                        <CardTitle>Transparência</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">Iluminamos os processos e os dados para que todos possam ver, entender e confiar.</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center gap-4">
+                                        <div className="bg-primary/10 p-3 rounded-full"><Zap className="w-6 h-6 text-primary" /></div>
+                                        <CardTitle>Eficiência</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">Usamos a tecnologia para simplificar a burocracia, poupar tempo e otimizar os recursos públicos.</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center gap-4">
+                                        <div className="bg-primary/10 p-3 rounded-full"><Group className="w-6 h-6 text-primary" /></div>
+                                        <CardTitle>Colaboração</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">Somos a ponte. Facilitamos o diálogo construtivo entre cidadãos, empresas e o governo.</p>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
+                    </section>
+
+
                     <section id="features" className="w-full py-12 md:py-24 lg:py-32">
                         <div className="container px-4 md:px-6 space-y-8">
                             <Card>
@@ -437,5 +492,3 @@ export default function LandingPage() {
     </APIProvider>
   )
 }
-
-    
