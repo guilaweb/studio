@@ -106,7 +106,7 @@ export const getPinStyle = (point: PointOfInterest) => {
                 return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
             case 'occupied':
             case 'reserved':
-            case 'unknown': // for announcements
+            case 'active': // for announcements
                 return { background: '#f97316', borderColor: '#ea580c', glyphColor: '#ffffff' }; // orange
             case 'in_dispute':
                 return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
@@ -286,5 +286,7 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
     </div>
   );
 }
+
+    
 
     

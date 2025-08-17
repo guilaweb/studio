@@ -12,7 +12,7 @@ export const PointOfInterestUpdateSchema = z.object({
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 
-const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected']);
+const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
 const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement']);
@@ -112,6 +112,7 @@ export const statusLabelMap: Record<PointOfInterestStatus, string> = {
     under_review: "Em Análise",
     approved: "Aprovado",
     rejected: "Rejeitado",
+    active: "Ativo",
 };
 
 export const priorityLabelMap: Record<PointOfInterestPriority, string> = {
@@ -226,3 +227,5 @@ export const GenerateLicenseOutputSchema = z.object({
   licenseHtml: z.string().describe("The full HTML content of the generated license."),
 });
 export type GenerateLicenseOutput = z.infer<typeof GenerateLicenseOutputSchema>;
+
+    

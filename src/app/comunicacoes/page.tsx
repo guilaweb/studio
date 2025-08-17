@@ -139,7 +139,7 @@ function ComunicacoesPage() {
                 authorId: user.uid,
                 authorDisplayName: profile.displayName,
                 lastReported: new Date().toISOString(),
-                status: 'unknown',
+                status: 'active',
                 updates: [{
                     text: message,
                     authorId: user.uid,
@@ -271,3 +271,5 @@ function ComunicacoesPage() {
 }
 
 export default withAuth(ComunicacoesPage, ['Agente Municipal', 'Administrador']);
+
+    
