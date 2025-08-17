@@ -24,8 +24,8 @@ const PropertyCard = ({ property }: { property: PointOfInterest }) => {
                     <Image
                         src={mainPhoto || placeholderImage}
                         alt={`Imagem de ${property.title}`}
-                        layout="fill"
-                        objectFit="cover"
+                        fill={true}
+                        style={{objectFit: 'cover'}}
                         data-ai-hint="house exterior"
                     />
                 </div>
@@ -55,6 +55,8 @@ function MeusImoveisPage() {
 
     const userProperties = React.useMemo(() => {
         if (!user) return [];
+        // This logic will be expanded to include properties owned by the user, not just authored.
+        // For now, authorId is a good proxy.
         return allData.filter(p => p.type === 'land_plot' && p.authorId === user.uid);
     }, [allData, user]);
 

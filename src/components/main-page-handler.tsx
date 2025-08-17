@@ -143,6 +143,15 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         setZoom(16);
       }
     }
+    
+    // Handle opening report sheets from URL hash
+    const hash = window.location.hash;
+    if (hash.startsWith('#report-')) {
+        const type = hash.substring(8);
+        handleStartReporting(type as ActiveSheet);
+        window.location.hash = ''; // Clear hash
+    }
+    
   }, [searchParams, allData]);
 
   const handlePlaceSelect = (place: google.maps.places.PlaceResult | null) => {
@@ -692,13 +701,13 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
     const isOwner = poi.authorId === user.uid;
     const isManager = profile.role === 'Agente Municipal' || profile.role === 'Administrador';
-
-    // Allow editing only for owners or managers, depending on the type
     let canEdit = false;
-    if (poi.type === 'incident' || poi.type === 'atm') {
-        canEdit = isOwner;
-    } else if (poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement') {
+
+    // Define edit permissions based on PoI type
+    if (poi.type === 'construction' || poi.type === 'announcement' || poi.type === 'land_plot') {
         canEdit = isOwner || isManager;
+    } else if (poi.type === 'incident' || poi.type === 'atm') {
+        canEdit = isOwner;
     }
 
 
@@ -836,17 +845,15 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Landmark className="mr-2 h-4 w-4" />
                             Mapear Caixa Eletrónico
                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
+                            <Square className="mr-2 h-4 w-4" />
+                            Mapear Lote de Terreno
+                        </DropdownMenuItem>
                         {isManager && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
-                                <Square className="mr-2 h-4 w-4" />
-                                Mapear Lote de Terreno
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
-                              <Megaphone className="mr-2 h-4 w-4" />
-                              Criar Anúncio
-                            </DropdownMenuItem>
-                          </>
+                          <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
+                            <Megaphone className="mr-2 h-4 w-4" />
+                            Criar Anúncio
+                          </DropdownMenuItem>
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -932,17 +939,15 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Landmark className="mr-2 h-4 w-4" />
                             Mapear Caixa Eletrónico
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
+                            <Square className="mr-2 h-4 w-4" />
+                            Mapear Lote de Terreno
+                        </DropdownMenuItem>
                         {isManager && (
-                            <>
-                                <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
-                                    <Square className="mr-2 h-4 w-4" />
-                                    Mapear Lote de Terreno
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
-                                <Megaphone className="mr-2 h-4 w-4" />
-                                Criar Anúncio
-                                </DropdownMenuItem>
-                            </>
+                            <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
+                            <Megaphone className="mr-2 h-4 w-4" />
+                            Criar Anúncio
+                            </DropdownMenuItem>
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
