@@ -179,10 +179,9 @@ const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut, zoom }
   const [markerRef, marker] = useAdvancedMarkerRef();
   const pinStyle = getPinStyle(point);
   const isPolygonType = (point.type === 'land_plot' || point.type === 'announcement');
-
-  // For land plots or announcements, only show the polygon when zoomed in, and the marker when zoomed out.
-  const showPolygon = isPolygonType && point.polygon && zoom >= 15;
-  const showMarker = !isPolygonType || (isPolygonType && zoom < 15);
+  
+  const showPolygon = isPolygonType && point.polygon;
+  const showMarker = true; // Always show marker
   
   // Hide expired announcements
   if (point.type === 'announcement' && point.status === 'expired') {
