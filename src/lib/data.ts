@@ -12,16 +12,16 @@ export const PointOfInterestUpdateSchema = z.object({
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 
-const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired']);
+export const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
-const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement']);
+export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement']);
 export type PointOfInterestType = z.infer<typeof PointOfInterestTypeEnum>;
 
-const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
+export const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
 export type PointOfInterestPriority = z.infer<typeof PointOfInterestPriorityEnum>;
 
-const PointOfInterestUsageTypeEnum = z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']);
+export const PointOfInterestUsageTypeEnum = z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']);
 export type PointOfInterestUsageType = z.infer<typeof PointOfInterestUsageTypeEnum>;
 
 export const AnnouncementCategoryEnum = z.enum(['general', 'traffic', 'event', 'public_works', 'security', 'other']);
