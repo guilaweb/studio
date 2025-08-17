@@ -12,7 +12,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
-import { PointOfInterest, PointOfInterestUpdate, UserProfile, statusLabelMap } from "@/lib/data";
+import { PointOfInterest, PointOfInterestUpdate, UserProfile, statusLabelMap, ActiveLayers } from "@/lib/data";
 import { Logo } from "@/components/icons";
 import AppHeader from "@/components/app-header";
 import MapComponent from "@/components/map-component";
@@ -22,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -37,6 +37,7 @@ import ConstructionReport from "./construction-report";
 import AtmReport from "./atm-report";
 import WaterLeakReport from "./water-leak-report";
 import LandPlotReport from "./land-plot-report";
+import { usePublicLayerSettings } from "@/services/settings-service";
 
 
 type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot';
@@ -44,7 +45,15 @@ type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
-  const [activeLayers, setActiveLayers] = React.useState({
+  const { allData, addPoint, updatePointStatus, addUpdateToPoint, updatePointDetails } = usePoints();
+  const searchParams = useSearchParams();
+  const prevDataRef = React.useRef<PointOfInterest[]>([]);
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
+  const { publicLayers, loading: loadingLayers } = usePublicLayerSettings();
+
+
+  const [activeLayers, setActiveLayers] = React.useState<ActiveLayers>({
     atm: true,
     construction: true,
     incident: true,
@@ -61,17 +70,22 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     lng: 13.2343,
   });
   const [zoom, setZoom] = React.useState(12);
-  const { allData, addPoint, updatePointStatus, addUpdateToPoint, updatePointDetails } = usePoints();
-  const searchParams = useSearchParams();
-  const prevDataRef = React.useRef<PointOfInterest[]>([]);
+  
 
   const [activeSheet, setActiveSheet] = React.useState<ActiveSheet>(null);
   const [poiToEdit, setPoiToEdit] = React.useState<PointOfInterest | null>(null);
-
-
-  const { toast } = useToast();
-  const { user, profile } = useAuth();
   
+  const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
+
+
+  // Effect to synchronize active layers with public settings for citizens
+  React.useEffect(() => {
+      if (!isManager && !loadingLayers) {
+          setActiveLayers(publicLayers);
+      }
+  }, [publicLayers, isManager, loadingLayers]);
+  
+
   // Real-time notifications effect
   React.useEffect(() => {
     const prevData = prevDataRef.current;
@@ -80,8 +94,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         return;
     }
     
-    const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
-
     // Agent/Admin Notifications for high-priority incidents
     if (isManager) {
         const prevIds = new Set(prevData.map(p => p.id));
@@ -116,7 +128,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
     prevDataRef.current = allData;
 
-  }, [allData, user, profile, toast]);
+  }, [allData, user, profile, toast, isManager]);
 
 
   React.useEffect(() => {
@@ -631,7 +643,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
 
   const handleStartEditing = (poi: PointOfInterest) => {
-    const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
     
     if (poi.type === 'incident' || poi.type === 'atm') {
         if (user?.uid !== poi.authorId) {
@@ -723,8 +734,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
 
-  const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
-
   return (
       <SidebarProvider>
         <div className="flex h-screen w-full">
@@ -803,6 +812,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Link href="/comunicacoes">
                                 <Megaphone className="mr-2 h-4 w-4" />
                                 Comunicações
+                            </Link>
+                        </Button>
+                         <Button variant="outline" asChild className="w-full">
+                            <Link href="/admin/definicoes">
+                                <Settings className="mr-2 h-4 w-4" />
+                                Definições
                             </Link>
                         </Button>
                     </>
