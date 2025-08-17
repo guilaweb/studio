@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
-import { PointOfInterest, PointOfInterestUpdate, AnnouncementCategory, announcementCategoryMap, AnnouncementCategoryEnum } from "@/lib/data";
+import { PointOfInterest, PointOfInterestUpdate, announcementCategoryMap, AnnouncementCategoryEnum } from "@/lib/data";
 import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Trash2, Calendar as CalendarIcon, Send } from "lucide-react";
 import { Input } from "./ui/input";
@@ -192,14 +192,14 @@ export default function AnnouncementReport({
         const isEditing = !!poiToEdit && poiToEdit.type === 'announcement';
         setIsEditMode(isEditing);
 
-        if (isEditing) {
+        if (isEditing && poiToEdit.startDate && poiToEdit.endDate) {
             form.reset({
                 title: poiToEdit.title,
                 message: poiToEdit.description,
                 category: poiToEdit.announcementCategory,
                 dates: {
-                    from: new Date(poiToEdit.startDate!),
-                    to: new Date(poiToEdit.endDate!),
+                    from: new Date(poiToEdit.startDate),
+                    to: new Date(poiToEdit.endDate),
                 },
             });
             setMapCenter(poiToEdit.position);
@@ -359,7 +359,7 @@ export default function AnnouncementReport({
                                             variant={"outline"}
                                             className={cn(
                                                 "w-full pl-3 text-left font-normal",
-                                                !field.value && "text-muted-foreground"
+                                                !field.value.from && "text-muted-foreground"
                                             )}
                                             >
                                             {field.value?.from ? (
