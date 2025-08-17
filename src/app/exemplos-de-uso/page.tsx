@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { ArrowLeft, Briefcase, Droplets, ShoppingBasket, School, Zap } from "lucide-react";
+import { APIProvider, Map as GoogleMap } from '@vis.gl/react-google-maps';
 
 const examples = [
     {
@@ -147,64 +148,155 @@ const examples = [
     }
 ];
 
+const mapStyles: google.maps.MapTypeStyle[] = [
+    { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+    {
+      featureType: "administrative.locality",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }],
+    },
+    {
+      featureType: "poi",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }],
+    },
+    {
+      featureType: "poi.park",
+      elementType: "geometry",
+      stylers: [{ color: "#263c3f" }],
+    },
+    {
+      featureType: "poi.park",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#6b9a76" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [{ color: "#38414e" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#212a37" }],
+    },
+    {
+      featureType: "road",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#9ca5b3" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry",
+      stylers: [{ color: "#746855" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#1f2835" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#f3d19c" }],
+    },
+    {
+      featureType: "transit",
+      elementType: "geometry",
+      stylers: [{ color: "#2f3948" }],
+    },
+    {
+      featureType: "transit.station",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }],
+    },
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: "#17263c" }],
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#515c6d" }],
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.stroke",
+      stylers: [{ color: "#17263c" }],
+    },
+];
+
 export default function UseCasesPage() {
     return (
-        <div className="flex min-h-screen w-full flex-col bg-muted/40">
-            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-                <Button size="icon" variant="outline" asChild>
-                    <Link href="/">
-                        <ArrowLeft className="h-5 w-5" />
-                        <span className="sr-only">Voltar</span>
-                    </Link>
-                </Button>
-                <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                    Exemplos de Uso
-                </h1>
-            </header>
-            <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-6">
-                {examples.map((example, index) => (
-                    <Card key={index}>
-                        <CardHeader>
-                            <div className="flex items-start gap-4">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 flex-shrink-0">
-                                    <example.icon className="h-6 w-6 text-primary" />
-                                </div>
-                                <div>
-                                    <CardTitle>{example.title}</CardTitle>
-                                    <CardDescription>
-                                        <strong>Utilizador(es):</strong> {example.user}
-                                    </CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div>
-                                <h3 className="font-semibold text-lg mb-2">O Desafio Antigo</h3>
-                                <p className="text-muted-foreground">{example.challenge}</p>
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-lg mb-2">A Solução com a MUNITU</h3>
-                                <div className="space-y-4">
-                                    {example.solution.map((item, idx) => (
-                                        <div key={idx} className="pl-4 border-l-2 border-primary">
-                                            <h4 className="font-semibold">{item.step}</h4>
-                                            <p className="text-muted-foreground">{item.description}</p>
+        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+            <div className="relative flex flex-col min-h-screen bg-background text-foreground">
+                <div className="fixed inset-0 z-0 opacity-20">
+                    <GoogleMap
+                        defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
+                        defaultZoom={13}
+                        gestureHandling={'none'}
+                        disableDefaultUI={true}
+                        styles={mapStyles}
+                        mapId={'use-cases-map'}
+                    />
+                </div>
+                 <div className="relative z-10 flex flex-1 flex-col bg-transparent">
+                    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+                        <Button size="icon" variant="outline" asChild>
+                            <Link href="/">
+                                <ArrowLeft className="h-5 w-5" />
+                                <span className="sr-only">Voltar</span>
+                            </Link>
+                        </Button>
+                        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+                            Exemplos de Uso
+                        </h1>
+                    </header>
+                    <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-6">
+                        {examples.map((example, index) => (
+                            <Card key={index}>
+                                <CardHeader>
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 flex-shrink-0">
+                                            <example.icon className="h-6 w-6 text-primary" />
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                                <h3 className="font-semibold text-lg text-green-800 dark:text-green-300 mb-2">Resultado</h3>
-                                <p className="text-green-700 dark:text-green-400">{example.result}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </main>
-        </div>
+                                        <div>
+                                            <CardTitle>{example.title}</CardTitle>
+                                            <CardDescription>
+                                                <strong>Utilizador(es):</strong> {example.user}
+                                            </CardDescription>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    <div>
+                                        <h3 className="font-semibold text-lg mb-2">O Desafio Antigo</h3>
+                                        <p className="text-muted-foreground">{example.challenge}</p>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-lg mb-2">A Solução com a MUNITU</h3>
+                                        <div className="space-y-4">
+                                            {example.solution.map((item, idx) => (
+                                                <div key={idx} className="pl-4 border-l-2 border-primary">
+                                                    <h4 className="font-semibold">{item.step}</h4>
+                                                    <p className="text-muted-foreground">{item.description}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                                        <h3 className="font-semibold text-lg text-green-800 dark:text-green-300 mb-2">Resultado</h3>
+                                        <p className="text-green-700 dark:text-green-400">{example.result}</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </main>
+                </div>
+            </div>
+        </APIProvider>
     );
 }
-
-    
-
-    
