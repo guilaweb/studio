@@ -8,12 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { ArrowLeft, Building, FileText } from "lucide-react";
+import { ArrowLeft, Building, FileText, Home, Shield, ShieldAlert, ShieldCheck, HelpCircle } from "lucide-react";
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
-import { PointOfInterest, statusLabelMap } from "@/lib/data";
+import { PointOfInterest, PointOfInterestStatus, propertyTypeLabelMap, statusLabelMap } from "@/lib/data";
 import PropertySearch, { SearchFilters } from "@/components/marketplace/property-search";
 import { useRouter } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Image from "next/image";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 
 const mapStyles: google.maps.MapTypeStyle[] = [
@@ -101,6 +104,93 @@ const LandPlotPolygons: React.FC<{
     return null;
 }
 
+const VerificationSeal = ({ status }: { status: PointOfInterestStatus }) => {
+    const sealConfig = {
+        verificado_ouro: {
+            Icon: ShieldCheck,
+            label: "Verificado (Ouro)",
+            description: "Propriedade validada com documentos oficiais e sem conflitos geo-espaciais.",
+            className: "bg-yellow-400 text-yellow-900 border-yellow-500",
+        },
+        verificado_prata: {
+            Icon: Shield,
+            label: "Verificado (Prata)",
+            description: "Posse confirmada com base em documentos históricos e/ou validação comunitária.",
+             className: "bg-slate-400 text-slate-900 border-slate-500",
+        },
+        em_verificacao: {
+            Icon: ShieldAlert,
+            label: "Em Verificação",
+            description: "Este imóvel está a ser analisado pelos nossos técnicos.",
+            className: "bg-blue-400 text-blue-900 border-blue-500",
+        },
+        informacao_insuficiente: {
+            Icon: HelpCircle,
+            label: "Informação Insuficiente",
+            description: "A verificação falhou. Por favor, verifique as comunicações e forneça os dados pedidos.",
+             className: "bg-red-400 text-red-900 border-red-500",
+        },
+        default: {
+            Icon: HelpCircle,
+            label: statusLabelMap[status] || "Privado",
+            description: "O estado atual deste imóvel é privado ou não verificado.",
+            className: "bg-gray-400 text-gray-900 border-gray-500",
+        }
+    };
+
+    const config = sealConfig[status as keyof typeof sealConfig] || sealConfig.default;
+
+    return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                     <div className={`inline-flex items-center gap-1.5 font-semibold text-xs px-2 py-1 rounded-full ${config.className}`}>
+                        <config.Icon className="h-3.5 w-3.5" />
+                        {config.label}
+                    </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>{config.description}</p>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
+};
+
+const PropertyCard = ({ property }: { property: PointOfInterest }) => {
+    const mainPhoto = property.updates?.find(u => u.photoDataUri)?.photoDataUri;
+    const placeholderImage = "https://placehold.co/600x400.png";
+
+    return (
+        <Card className="overflow-hidden flex flex-col h-full">
+            <div className="relative h-40 w-full">
+                <Image
+                    src={mainPhoto || placeholderImage}
+                    alt={`Imagem de ${property.title}`}
+                    fill={true}
+                    style={{objectFit: 'cover'}}
+                    data-ai-hint="house exterior"
+                />
+            </div>
+            <CardHeader>
+                <CardTitle className="text-lg">{property.title}</CardTitle>
+                <CardDescription>
+                    {property.propertyType ? propertyTypeLabelMap[property.propertyType] : 'Imóvel'}
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="flex-grow flex flex-col justify-end">
+                <div className="flex justify-between items-center">
+                    <div className="text-lg font-bold text-primary">
+                        {/* Placeholder for price */}
+                        A Negociar
+                    </div>
+                    <VerificationSeal status={property.status || 'Privado'} />
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 function MarketplacePage() {
     const { allData } = usePoints();
     const [selectedPlot, setSelectedPlot] = React.useState<PointOfInterest | null>(null);
@@ -138,7 +228,7 @@ function MarketplacePage() {
                         </Link>
                     </Button>
                     <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                        Marketplace de Imóveis
+                        Marketplace Imobiliário
                     </h1>
                 </header>
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-2 lg:grid-cols-3">
@@ -154,27 +244,51 @@ function MarketplacePage() {
                     </div>
                     <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Mapa de Imóveis</CardTitle>
-                                <CardDescription>
-                                    Os resultados da sua pesquisa são destacados no mapa.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="h-[70vh] p-0 relative">
-                                <Map
-                                    defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
-                                    defaultZoom={13}
-                                    gestureHandling={'greedy'}
-                                    disableDefaultUI={true}
-                                    styles={mapStyles}
-                                >
-                                    <LandPlotPolygons 
-                                        plots={filteredLandPlots}
-                                        selectedPlotId={selectedPlot?.id || null}
-                                        onPlotClick={handlePlotSelect}
-                                    />
-                                </Map>
-                            </CardContent>
+                            <Tabs defaultValue="map">
+                                 <CardHeader className="flex-row items-center justify-between">
+                                    <div>
+                                        <CardTitle>Resultados da Pesquisa</CardTitle>
+                                        <CardDescription>
+                                            {filteredLandPlots.length} imóveis encontrados.
+                                        </CardDescription>
+                                    </div>
+                                    <TabsList>
+                                        <TabsTrigger value="map">Mapa</TabsTrigger>
+                                        <TabsTrigger value="list">Lista</TabsTrigger>
+                                    </TabsList>
+                                </CardHeader>
+                                <TabsContent value="map">
+                                    <CardContent className="h-[70vh] p-0 relative">
+                                        <Map
+                                            defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
+                                            defaultZoom={13}
+                                            gestureHandling={'greedy'}
+                                            disableDefaultUI={true}
+                                            styles={mapStyles}
+                                        >
+                                            <LandPlotPolygons 
+                                                plots={filteredLandPlots}
+                                                selectedPlotId={selectedPlot?.id || null}
+                                                onPlotClick={handlePlotSelect}
+                                            />
+                                        </Map>
+                                    </CardContent>
+                                </TabsContent>
+                                <TabsContent value="list">
+                                    <CardContent>
+                                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                        {filteredLandPlots.map(plot => (
+                                            <PropertyCard key={plot.id} property={plot} />
+                                        ))}
+                                        </div>
+                                         {filteredLandPlots.length === 0 && (
+                                            <div className="text-center text-muted-foreground py-16">
+                                                <p>Nenhum imóvel encontrado com os filtros atuais.</p>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </TabsContent>
+                            </Tabs>
                         </Card>
                     </div>
                 </main>

@@ -111,6 +111,16 @@ export const typeLabelMap: Record<PointOfInterestType, string> = {
     announcement: "Anúncio",
 };
 
+export const propertyTypeLabelMap: Record<PropertyType, string> = {
+    land: "Terreno Vazio",
+    house: "Casa Térrea",
+    apartment: "Apartamento",
+    villa: "Vivenda",
+    farm: "Fazenda",
+    commercial: "Espaço Comercial"
+};
+
+
 export const statusLabelMap: Record<PointOfInterestStatus, string> = {
     available: "Disponível",
     unavailable: "Indisponível",
