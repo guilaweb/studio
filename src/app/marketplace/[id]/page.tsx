@@ -228,7 +228,9 @@ export default function MarketplacePropertyDetailPage() {
                                     </CardContent>
                                 </Card>
                                 <Card>
-                                    <CardHeader><CardTitle>Informações do Vendedor</CardTitle></CardHeader>
+                                    <CardHeader>
+                                        <CardTitle>Contactar Vendedor</CardTitle>
+                                    </CardHeader>
                                     <CardContent className="space-y-4">
                                         <p className="text-sm text-muted-foreground">Contacte o proprietário para mais informações ou para agendar uma visita.</p>
                                         <Button className="w-full">
