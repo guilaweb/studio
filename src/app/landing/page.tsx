@@ -51,7 +51,7 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     {
       featureType: "road.highway",
       elementType: "geometry",
-      stylers: [{ color: "#746855" }],
+      stylers: [{ color: "#746855" }] ,
     },
     {
       featureType: "road.highway",
@@ -477,6 +477,7 @@ export default function LandingPage() {
                 <footer className="flex flex-col gap-4 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t bg-background">
                     <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-muted-foreground">
                         <p>&copy; 2024 MUNITU. Todos os direitos reservados.</p>
+                        <Link href="/governo" className="underline hover:text-primary">Soluções para Governo</Link>
                         <Link href="/docs" className="underline hover:text-primary">Documentação Técnica</Link>
                         <Link href="/exemplos-de-uso" className="underline hover:text-primary">Exemplos de Uso</Link>
                         <Link href="/help" className="underline hover:text-primary">Ajuda</Link>
