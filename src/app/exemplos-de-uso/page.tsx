@@ -5,9 +5,38 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Briefcase, Droplets, ShoppingBasket, School } from "lucide-react";
+import { ArrowLeft, Briefcase, Droplets, ShoppingBasket, School, Zap } from "lucide-react";
 
 const examples = [
+    {
+        title: "A Jornada do Utilizador com a MUNITU",
+        user: "Sr. Mateus (Cidadão), Chefe de Manutenção, Construtora, Arquiteto",
+        icon: Zap,
+        challenge: "A rua principal de um bairro está perigosamente escura, mas o processo para resolver o problema e capitalizar na melhoria é fragmentado e lento.",
+        solution: [
+            {
+                step: "O Problema",
+                description: "O Sr. Mateus, um cidadão, vê que a rua principal do seu bairro está escura. Ele abre a app MUNITU e, com alguns cliques, reporta os candeeiros avariados no módulo de Iluminação Pública."
+            },
+            {
+                step: "A Ação",
+                description: "No Painel Municipal, a chefe do departamento de manutenção vê os novos reportes e atribui uma ordem de serviço à equipa de eletricistas."
+            },
+            {
+                step: "A Resolução",
+                description: "A equipa repara os candeeiros e marca a tarefa como 'Resolvida' na sua app de campo. O Sr. Mateus recebe uma notificação: 'MUNITU informa: O problema de iluminação que reportou foi resolvido. Obrigado por fazer a sua parte!'"
+            },
+            {
+                step: "O Investimento",
+                description: "Uma construtora, ao analisar os dados da MUNITU, percebe que o bairro está a melhorar e a valorizar. Usam o módulo PGUL para encontrar um lote disponível para um novo edifício."
+            },
+            {
+                step: "O Licenciamento",
+                description: "O arquiteto submete todo o projeto através da MUNITU. Ele acompanha cada passo do processo, comunica com os técnicos e paga as taxas diretamente na plataforma."
+            }
+        ],
+        result: "A licença é emitida digitalmente. A nova obra aparece no mapa público, e os vizinhos podem verificar a sua legalidade e acompanhar o seu progresso, tudo dentro do ecossistema MUNITU, completando o ciclo de melhoria e desenvolvimento urbano."
+    },
     {
         title: "Exemplo 1: A Empreendedora e a Burocracia Zero",
         user: "Sofia, uma jovem empreendedora que quer abrir o seu primeiro café no bairro Maculusso.",
@@ -143,7 +172,7 @@ export default function UseCasesPage() {
                                 <div>
                                     <CardTitle>{example.title}</CardTitle>
                                     <CardDescription>
-                                        <strong>Utilizador(a):</strong> {example.user}
+                                        <strong>Utilizador(es):</strong> {example.user}
                                     </CardDescription>
                                 </div>
                             </div>
@@ -175,3 +204,5 @@ export default function UseCasesPage() {
         </div>
     );
 }
+
+    
