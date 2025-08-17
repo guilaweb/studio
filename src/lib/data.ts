@@ -30,6 +30,9 @@ export type AnnouncementCategory = z.infer<typeof AnnouncementCategoryEnum>;
 export const PropertyTypeEnum = z.enum(['land', 'house', 'apartment', 'villa', 'farm', 'commercial']);
 export type PropertyType = z.infer<typeof PropertyTypeEnum>;
 
+export const PropertyTaxStatusEnum = z.enum(['paid', 'due']);
+export type PropertyTaxStatus = z.infer<typeof PropertyTaxStatusEnum>;
+
 
 const PositionSchema = z.object({ lat: z.number(), lng: z.number() });
 const FileSchema = z.object({ name: z.string(), url: z.string() });
@@ -52,6 +55,8 @@ export const PointOfInterestSchema = z.object({
   updates: z.array(PointOfInterestUpdateSchema).optional(),
   files: z.array(FileSchema).optional(),
   // Land Plot & Property Specific
+  price: z.number().optional(),
+  propertyTaxStatus: PropertyTaxStatusEnum.optional(),
   propertyType: PropertyTypeEnum.optional(),
   area: z.number().optional(), // in square meters
   builtArea: z.number().optional(), // in square meters
@@ -267,3 +272,5 @@ export const GenerateLicenseOutputSchema = z.object({
   licenseHtml: z.string().describe("The full HTML content of the generated license."),
 });
 export type GenerateLicenseOutput = z.infer<typeof GenerateLicenseOutputSchema>;
+
+    

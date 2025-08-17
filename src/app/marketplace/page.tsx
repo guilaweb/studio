@@ -181,8 +181,7 @@ const PropertyCard = ({ property }: { property: PointOfInterest }) => {
             <CardContent className="flex-grow flex flex-col justify-end">
                 <div className="flex justify-between items-center">
                     <div className="text-lg font-bold text-primary">
-                        {/* Placeholder for price */}
-                        A Negociar
+                        {property.price ? `AOA ${property.price.toLocaleString()}` : "A Negociar"}
                     </div>
                     <VerificationSeal status={property.status || 'Privado'} />
                 </div>
@@ -194,19 +193,37 @@ const PropertyCard = ({ property }: { property: PointOfInterest }) => {
 function MarketplacePage() {
     const { allData } = usePoints();
     const [selectedPlot, setSelectedPlot] = React.useState<PointOfInterest | null>(null);
-    const [searchFilters, setSearchFilters] = React.useState<SearchFilters>({ area: null, usageType: null, location: '' });
+    const [searchFilters, setSearchFilters] = React.useState<SearchFilters>({
+        location: '',
+        area: null,
+        usageType: null,
+        minPrice: null,
+        maxPrice: null,
+        bedrooms: null,
+        bathrooms: null,
+        verification: [],
+        taxStatus: false,
+    });
     const router = useRouter();
 
     const landPlots = React.useMemo(() => allData.filter(p => p.type === 'land_plot' && p.polygon), [allData]);
     
     const filteredLandPlots = React.useMemo(() => {
         return landPlots.filter(plot => {
-            const areaMatch = !searchFilters.area || (plot.area && plot.area >= searchFilters.area);
-            const usageMatch = !searchFilters.usageType || plot.usageType === searchFilters.usageType;
-            const locationMatch = !searchFilters.location || 
-                                  (plot.title && plot.title.toLowerCase().includes(searchFilters.location.toLowerCase())) ||
-                                  (plot.description && plot.description.toLowerCase().includes(searchFilters.location.toLowerCase()));
-            return areaMatch && usageMatch && locationMatch;
+            const { location, area, usageType, minPrice, maxPrice, bedrooms, bathrooms, verification, taxStatus } = searchFilters;
+            const locationMatch = !location || 
+                                  (plot.title && plot.title.toLowerCase().includes(location.toLowerCase())) ||
+                                  (plot.description && plot.description.toLowerCase().includes(location.toLowerCase()));
+            const areaMatch = !area || (plot.area && plot.area >= area);
+            const usageMatch = !usageType || plot.usageType === usageType;
+            const minPriceMatch = !minPrice || (plot.price && plot.price >= minPrice);
+            const maxPriceMatch = !maxPrice || (plot.price && plot.price <= maxPrice);
+            const bedroomMatch = !bedrooms || (plot.bedrooms && plot.bedrooms >= bedrooms);
+            const bathroomMatch = !bathrooms || (plot.bathrooms && plot.bathrooms >= bathrooms);
+            const verificationMatch = verification.length === 0 || (plot.status && verification.includes(plot.status));
+            const taxStatusMatch = !taxStatus || plot.propertyTaxStatus === 'paid';
+
+            return locationMatch && areaMatch && usageMatch && minPriceMatch && maxPriceMatch && bedroomMatch && bathroomMatch && verificationMatch && taxStatusMatch;
         });
     }, [landPlots, searchFilters]);
 
@@ -214,7 +231,6 @@ function MarketplacePage() {
     const handlePlotSelect = (plotId: string) => {
         const plot = landPlots.find(p => p.id === plotId) || null;
         setSelectedPlot(plot);
-        // Maybe in the future this will open a details panel
     };
     
     return (
@@ -298,3 +314,5 @@ function MarketplacePage() {
 }
 
 export default withAuth(MarketplacePage);
+
+    
