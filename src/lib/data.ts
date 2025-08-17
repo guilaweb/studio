@@ -24,7 +24,7 @@ export type PointOfInterestPriority = z.infer<typeof PointOfInterestPriorityEnum
 const PointOfInterestUsageTypeEnum = z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']);
 export type PointOfInterestUsageType = z.infer<typeof PointOfInterestUsageTypeEnum>;
 
-const AnnouncementCategoryEnum = z.enum(['general', 'traffic', 'event', 'public_works', 'security', 'other']);
+export const AnnouncementCategoryEnum = z.enum(['general', 'traffic', 'event', 'public_works', 'security', 'other']);
 export type AnnouncementCategory = z.infer<typeof AnnouncementCategoryEnum>;
 
 
@@ -125,6 +125,15 @@ export const priorityLabelMap: Record<PointOfInterestPriority, string> = {
     high: "Alta",
     medium: "Média",
     low: "Baixa",
+};
+
+export const announcementCategoryMap: Record<AnnouncementCategory, string> = {
+    general: 'Aviso Geral',
+    traffic: 'Trânsito',
+    event: 'Evento',
+    public_works: 'Obras Públicas',
+    security: 'Segurança',
+    other: 'Outro',
 };
 
 

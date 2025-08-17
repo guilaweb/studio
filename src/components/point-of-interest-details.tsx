@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React from "react";
@@ -277,7 +278,7 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
                                 <div key={update.id} className="p-3 rounded-lg bg-muted/50 text-sm">
                                    {isOriginalReport ? (
                                         <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                                           {poi.type === 'announcement' ? 'Anúncio original' : `Reportado por ${update.authorDisplayName || 'um cidadão'}`}
+                                           {`Reportado por ${update.authorDisplayName || 'um cidadão'}`}
                                         </p>
                                    ) : (
                                         <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
@@ -387,7 +388,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   let canEdit = false;
   if (poi.type === 'incident' || poi.type === 'atm') {
       canEdit = isOwner;
-  } else if (poi.type === 'land_plot') {
+  } else if (poi.type === 'land_plot' || poi.type === 'announcement') {
       canEdit = isManager;
   }
 

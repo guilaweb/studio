@@ -38,9 +38,10 @@ import AtmReport from "./atm-report";
 import WaterLeakReport from "./water-leak-report";
 import LandPlotReport from "./land-plot-report";
 import { usePublicLayerSettings } from "@/services/settings-service";
+import AnnouncementReport from "./announcement-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement';
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
 
@@ -627,6 +628,27 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
 
+  const handleEditAnnouncement = async (
+    poiId: string,
+    data: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>
+  ) => {
+    handleSheetOpenChange(false);
+    
+    const centerLat = data.polygon!.reduce((sum, p) => sum + p.lat, 0) / data.polygon!.length;
+    const centerLng = data.polygon!.reduce((sum, p) => sum + p.lng, 0) / data.polygon!.length;
+
+    const updatedData = {
+        ...data,
+        position: { lat: centerLat, lng: centerLng },
+    };
+
+    await updatePointDetails(poiId, updatedData);
+    toast({
+        title: "Anúncio Atualizado!",
+        description: "O anúncio foi modificado com sucesso.",
+    });
+  }
+
 
   const handleStartReporting = (type: ActiveSheet) => {
     if (!user) {
@@ -644,7 +666,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
   const handleStartEditing = (poi: PointOfInterest) => {
     
-    if (poi.type === 'incident' || poi.type === 'atm') {
+    if (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'announcement') {
         if (user?.uid !== poi.authorId) {
             toast({
                 variant: "destructive",
@@ -792,10 +814,16 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             Mapear Caixa Eletrónico
                         </DropdownMenuItem>
                         {isManager && (
+                          <>
                           <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
                               <Square className="mr-2 h-4 w-4" />
                               Mapear Lote de Terreno
                           </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
+                              <Megaphone className="mr-2 h-4 w-4" />
+                              Criar Anúncio
+                          </DropdownMenuItem>
+                          </>
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -806,12 +834,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Link href="/dashboard">
                                 <LayoutDashboard className="mr-2 h-4 w-4" />
                                 Painel Municipal
-                            </Link>
-                        </Button>
-                        <Button variant="outline" asChild className="w-full">
-                            <Link href="/comunicacoes">
-                                <Megaphone className="mr-2 h-4 w-4" />
-                                Comunicações
                             </Link>
                         </Button>
                          <Button variant="outline" asChild className="w-full">
@@ -888,10 +910,16 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             Mapear Caixa Eletrónico
                         </DropdownMenuItem>
                          {isManager && (
-                          <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
-                              <Square className="mr-2 h-4 w-4" />
-                              Mapear Lote de Terreno
-                          </DropdownMenuItem>
+                          <>
+                            <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
+                                <Square className="mr-2 h-4 w-4" />
+                                Mapear Lote de Terreno
+                            </DropdownMenuItem>
+                             <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
+                                <Megaphone className="mr-2 h-4 w-4" />
+                                Criar Anúncio
+                            </DropdownMenuItem>
+                          </>
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -971,8 +999,14 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
         />
+        <AnnouncementReport
+            open={activeSheet === 'announcement'}
+            onOpenChange={handleSheetOpenChange}
+            onAnnouncementSubmit={addPoint}
+            onAnnouncementEdit={handleEditAnnouncement}
+            initialCenter={mapCenter}
+            poiToEdit={poiToEdit}
+        />
       </SidebarProvider>
   );
 }
-
-    
