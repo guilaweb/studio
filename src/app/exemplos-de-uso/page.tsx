@@ -38,7 +38,7 @@ const examples = [
         result: "A licença é emitida digitalmente. A nova obra aparece no mapa público, e os vizinhos podem verificar a sua legalidade e acompanhar o seu progresso, tudo dentro do ecossistema MUNITU, completando o ciclo de melhoria e desenvolvimento urbano."
     },
     {
-        title: "Exemplo 1: A Empreendedora e a Burocracia Zero",
+        title: "Exemplo de Uso 1: A Empreendedora e a Burocracia Zero",
         user: "Sofia, uma jovem empreendedora que quer abrir o seu primeiro café no bairro Maculusso.",
         icon: Briefcase,
         challenge: "Sofia teria de passar semanas ou meses a visitar diferentes repartições (Administração Municipal, Bombeiros, Comércio) para perceber quais os documentos necessários, submeter papéis que se poderiam perder e esperar indefinidamente por aprovações.",
@@ -63,7 +63,7 @@ const examples = [
         result: "Em vez de meses de incerteza, Sofia obtém a sua licença de funcionamento em poucas semanas, emitida digitalmente pela MUNITU. Ela pode focar-se no que realmente importa: preparar o melhor café da cidade."
     },
     {
-        title: "Exemplo 2: A Crise da Fuga de Água e a Resposta Rápida",
+        title: "Exemplo de Uso 2: A Crise da Fuga de Água e a Resposta Rápida",
         user: "Moradores do bairro Prenda e a equipa da EPAL.",
         icon: Droplets,
         challenge: "Uma grande conduta de água rebenta durante a noite, inundando uma rua. Os moradores não sabem a quem ligar. A EPAL só fica a saber horas depois, quando dezenas de chamadas sobrecarregam a sua linha telefónica, e não sabem a localização exata do problema.",
@@ -92,7 +92,7 @@ const examples = [
         result: "A resposta é imediata, o desperdício de água é minimizado e os cidadãos são informados em vez de ficarem frustrados e sem saber o que se passa."
     },
     {
-        title: "Exemplo 3: A Feira Semanal e a Formalização",
+        title: "Exemplo de Uso 3: A Feira Semanal e a Formalização",
         user: "Dona Kial, vendedora de frutas e vegetais (zungueira) numa feira em Viana.",
         icon: ShoppingBasket,
         challenge: "Dona Kial vende numa zona 'cinzenta'. Às vezes, os fiscais aparecem e criam problemas por falta de uma licença clara, gerando instabilidade no seu negócio.",
@@ -117,7 +117,7 @@ const examples = [
         result: "Dona Kial ganha segurança e dignidade no seu trabalho. A Administração Municipal organiza o comércio, reduz a corrupção na fiscalização e aumenta a sua base de receita de forma transparente."
     },
     {
-        title: "Exemplo 4: O Acidente e o Planeamento Urbano",
+        title: "Exemplo de Uso 4: O Acidente e o Planeamento Urbano",
         user: "Estudantes de uma escola e um urbanista da Administração Municipal.",
         icon: School,
         challenge: "Os pais estão preocupados com a velocidade dos carros perto da escola dos seus filhos, mas as suas queixas individuais não têm força para gerar uma ação.",
@@ -204,5 +204,7 @@ export default function UseCasesPage() {
         </div>
     );
 }
+
+    
 
     
