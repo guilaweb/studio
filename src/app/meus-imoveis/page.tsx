@@ -6,11 +6,67 @@ import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Home, Plus } from "lucide-react";
+import { ArrowLeft, Home, Plus, ShieldCheck, Shield, ShieldAlert, HelpCircle } from "lucide-react";
 import { usePoints } from "@/hooks/use-points";
-import { PointOfInterest, statusLabelMap } from "@/lib/data";
+import { PointOfInterest, PointOfInterestStatus, statusLabelMap } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+
+
+const VerificationSeal = ({ status }: { status: PointOfInterestStatus }) => {
+    const sealConfig = {
+        verificado_ouro: {
+            Icon: ShieldCheck,
+            label: "Verificado (Ouro)",
+            description: "Propriedade validada com documentos oficiais e sem conflitos geo-espaciais.",
+            className: "bg-yellow-400 text-yellow-900 border-yellow-500",
+        },
+        verificado_prata: {
+            Icon: Shield,
+            label: "Verificado (Prata)",
+            description: "Posse confirmada com base em documentos históricos e/ou validação comunitária.",
+             className: "bg-slate-400 text-slate-900 border-slate-500",
+        },
+        em_verificacao: {
+            Icon: ShieldAlert,
+            label: "Em Verificação",
+            description: "Este imóvel está a ser analisado pelos nossos técnicos.",
+            className: "bg-blue-400 text-blue-900 border-blue-500",
+        },
+        informacao_insuficiente: {
+            Icon: HelpCircle,
+            label: "Informação Insuficiente",
+            description: "A verificação falhou. Por favor, verifique as comunicações e forneça os dados pedidos.",
+             className: "bg-red-400 text-red-900 border-red-500",
+        },
+        default: {
+            Icon: HelpCircle,
+            label: statusLabelMap[status] || "Privado",
+            description: "O estado atual deste imóvel é privado ou não verificado.",
+            className: "bg-gray-400 text-gray-900 border-gray-500",
+        }
+    };
+
+    const config = sealConfig[status as keyof typeof sealConfig] || sealConfig.default;
+
+    return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                     <Badge variant="outline" className={`gap-1.5 font-semibold ${config.className}`}>
+                        <config.Icon className="h-3.5 w-3.5" />
+                        {config.label}
+                    </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>{config.description}</p>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
+};
+
 
 const PropertyCard = ({ property }: { property: PointOfInterest }) => {
     // A foto principal seria a primeira foto nas 'updates', se existir
@@ -36,9 +92,7 @@ const PropertyCard = ({ property }: { property: PointOfInterest }) => {
                     Registo: {property.registrationCode || "Não especificado"}
                 </CardDescription>
                 <div className="mt-4 flex justify-between items-center">
-                    <Badge variant={property.status === 'occupied' ? 'default' : 'secondary'}>
-                        {statusLabelMap[property.status!] || "Privado"}
-                    </Badge>
+                    <VerificationSeal status={property.status || 'Privado'} />
                      <Button variant="outline" size="sm" asChild>
                         <Link href={`/meus-imoveis/${property.id}`}>Gerir</Link>
                     </Button>
