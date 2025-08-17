@@ -113,12 +113,11 @@ export default function MarketplacePropertyDetailPage() {
                                 <CardHeader>
                                     <CardTitle className="text-3xl">{property.title}</CardTitle>
                                     <CardDescription>{property.propertyType ? propertyTypeLabelMap[property.propertyType] : 'Imóvel'}</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                     <div className="text-4xl font-bold text-primary mb-4">
+                                    <div className="text-4xl font-bold text-primary pt-2">
                                         {property.price ? `AOA ${property.price.toLocaleString()}` : "Preço a Negociar"}
                                     </div>
-                                    <Separator className="my-4" />
+                                </CardHeader>
+                                <CardContent>
                                     <h3 className="font-semibold text-lg mb-2">Sobre este imóvel</h3>
                                     <p className="text-muted-foreground">{property.description}</p>
                                 </CardContent>
