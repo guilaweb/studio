@@ -49,6 +49,7 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         authorId: data.authorId,
         authorDisplayName: data.authorDisplayName,
         updates: sortedUpdates,
+        files: data.files,
         plotNumber: data.plotNumber,
         registrationCode: data.registrationCode,
         zoningInfo: data.zoningInfo,
@@ -58,6 +59,7 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         landPlotId: data.landPlotId,
         projectType: data.projectType,
         architectName: data.architectName,
+        announcementCategory: data.announcementCategory,
     };
 };
 

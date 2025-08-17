@@ -157,7 +157,7 @@ function LicencasPage() {
     const { toast } = useToast();
     const { profile, user } = useAuth();
     const { allData, addPoint } = usePoints();
-    const [files, setFiles] = React.useState<File[]>([]);
+    const [files, setFiles] = React.useState<FileList | null>(null);
     const [selectedPlot, setSelectedPlot] = React.useState<PointOfInterest | null>(null);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isCheckingCompliance, setIsCheckingCompliance] = React.useState(false);
@@ -200,7 +200,7 @@ function LicencasPage() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            setFiles(Array.from(e.target.files));
+            setFiles(e.target.files);
         }
     };
 
@@ -262,6 +262,12 @@ function LicencasPage() {
         
         setIsSubmitting(true);
         const projectData = formDataRef.current;
+        
+        // This is a placeholder. In a real app, you'd upload to Firebase Storage and get a URL.
+        const uploadedFiles = files ? Array.from(files).map(file => ({
+            name: file.name,
+            url: `https://storage.googleapis.com/your-bucket/${file.name}` // Placeholder URL
+        })) : [];
 
         const newProjectId = `proj-${Date.now()}`;
         const newProject: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
@@ -277,6 +283,7 @@ function LicencasPage() {
             landPlotId: selectedPlot.id,
             position: selectedPlot.position,
             lastReported: new Date().toISOString(),
+            files: uploadedFiles,
             updates: [{
                 text: 'Projeto submetido para análise.',
                 authorId: user.uid,
@@ -294,7 +301,7 @@ function LicencasPage() {
 
         setIsSubmitting(false);
         formRef.current?.reset();
-        setFiles([]);
+        setFiles(null);
         setSelectedPlot(null);
         setComplianceResult(null);
     };
@@ -445,9 +452,9 @@ function LicencasPage() {
                                                         className="h-auto p-1"
                                                         name="documents"
                                                     />
-                                                    {files.length > 0 && (
+                                                    {files && files.length > 0 && (
                                                         <ul className="list-disc pl-5 text-sm text-muted-foreground">
-                                                            {files.map(file => <li key={file.name}>{file.name}</li>)}
+                                                            {Array.from(files).map(file => <li key={file.name}>{file.name}</li>)}
                                                         </ul>
                                                     )}
                                                 </div>

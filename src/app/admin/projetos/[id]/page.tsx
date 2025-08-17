@@ -11,7 +11,7 @@ import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/da
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck } from "lucide-react";
+import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck, Download } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -304,24 +304,39 @@ function AdminProjectDetailPage() {
                             </CardContent>
                         </Card>
                     )}
-                     <Card>
+                    <Card>
                         <CardHeader>
                             <CardTitle>Documentos do Projeto</CardTitle>
-                             <CardDescription>
+                            <CardDescription>
                                 Ficheiros submetidos pelo requerente.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex items-center gap-4 rounded-lg border p-4">
-                                <FileText className="h-8 w-8 text-muted-foreground" />
-                                <div>
-                                    <p className="font-semibold">Plantas_e_Memoria.pdf</p>
-                                    <p className="text-sm text-muted-foreground">Submetido em {new Date(project.lastReported!).toLocaleDateString('pt-PT')}</p>
+                            {project.files && project.files.length > 0 ? (
+                                <div className="space-y-3">
+                                    {project.files.map((file, index) => (
+                                        <div key={index} className="flex items-center justify-between gap-4 rounded-lg border p-4">
+                                            <div className="flex items-center gap-4">
+                                                <FileText className="h-8 w-8 text-muted-foreground" />
+                                                <div>
+                                                    <p className="font-semibold">{file.name}</p>
+                                                    <p className="text-sm text-muted-foreground">Submetido em {new Date(project.lastReported!).toLocaleDateString('pt-PT')}</p>
+                                                </div>
+                                            </div>
+                                            <Button variant="outline" size="sm" asChild>
+                                                <a href={file.url} target="_blank" rel="noopener noreferrer">
+                                                    <Download className="mr-2 h-4 w-4" />
+                                                    Download
+                                                </a>
+                                            </Button>
+                                        </div>
+                                    ))}
                                 </div>
-                                <Button variant="outline" size="sm" className="ml-auto">
-                                    Download
-                                </Button>
-                            </div>
+                            ) : (
+                                <div className="text-center text-sm text-muted-foreground p-4 border-2 border-dashed rounded-lg">
+                                    Nenhum documento foi submetido para este projeto.
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                  </div>

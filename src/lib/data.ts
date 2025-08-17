@@ -29,6 +29,7 @@ export type AnnouncementCategory = z.infer<typeof AnnouncementCategoryEnum>;
 
 
 const PositionSchema = z.object({ lat: z.number(), lng: z.number() });
+const FileSchema = z.object({ name: z.string(), url: z.string() });
 
 export const PointOfInterestSchema = z.object({
   id: z.string(),
@@ -46,6 +47,7 @@ export const PointOfInterestSchema = z.object({
   authorId: z.string().optional(),
   authorDisplayName: z.string().optional(),
   updates: z.array(PointOfInterestUpdateSchema).optional(),
+  files: z.array(FileSchema).optional(),
   // Land Plot Specific
   area: z.number().optional(), // in square meters
   plotNumber: z.string().optional(),
