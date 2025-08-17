@@ -24,6 +24,8 @@ const prompt = ai.definePrompt({
         Analyze the project details provided. Based on the rules below, create a list of required steps.
         For each step, specify the department, the reason for the review, and set the initial status to "pending".
 
+        **Crucially, the 'reason' for each step must be in Portuguese (Portugal).**
+
         Workflow Rules:
         1.  **Bombeiros (Fire Department):** Required for any project that is 'commercial' or 'industrial', or if the description mentions "público", "multidão", "hotel", "hospital", "escola", "inflamável" or "risco de incêndio".
         2.  **Ambiente (Environmental Department):** Required for any 'industrial' project. Also required if the description mentions "impacto ambiental", "área protegida", "desmatamento", "recursos hídricos", or "poluição".
