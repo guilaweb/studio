@@ -147,9 +147,14 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             ...update,
             id: `upd-${pointId}-${Date.now()}-${Math.random()}`
         };
+
+        // Remove undefined fields before sending to Firestore
+        const cleanedUpdate = Object.fromEntries(
+            Object.entries(newUpdateWithId).filter(([, value]) => value !== undefined)
+        );
         
         await updateDoc(pointRef, {
-            updates: arrayUnion(newUpdateWithId),
+            updates: arrayUnion(cleanedUpdate),
             lastReported: new Date().toISOString(), // Also update the main lastReported field
         });
 

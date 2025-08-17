@@ -238,7 +238,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                 authorId: user.uid,
                 authorDisplayName: profile.displayName,
                 timestamp: new Date().toISOString(),
-                photoDataUri: photoDataUri,
+                ...(photoDataUri && { photoDataUri }),
             };
             await addUpdateToPoint(originalIncidentId, newUpdate);
             toast({
@@ -261,7 +261,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         authorId: user.uid,
         authorDisplayName: profile.displayName,
         timestamp: timestamp,
-        photoDataUri: photoDataUri,
+        ...(photoDataUri && { photoDataUri }),
     };
     
     let priority: PointOfInterest['priority'] | undefined = undefined;
@@ -735,7 +735,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         authorId: user.uid,
         authorDisplayName: profile.displayName || user.displayName || "Utilizador Anónimo",
         timestamp: new Date().toISOString(),
-        photoDataUri: photoDataUri,
+        ...(photoDataUri && { photoDataUri }),
     };
     
     addUpdateToPoint(poiId, newUpdate);
