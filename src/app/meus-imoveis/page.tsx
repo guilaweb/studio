@@ -40,7 +40,7 @@ const PropertyCard = ({ property }: { property: PointOfInterest }) => {
                         {statusLabelMap[property.status!] || "Privado"}
                     </Badge>
                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`#`}>Gerir</Link>
+                        <Link href={`/meus-imoveis/${property.id}`}>Gerir</Link>
                     </Button>
                 </div>
             </CardContent>
