@@ -106,6 +106,7 @@ export default function LocationStep({ onNext, initialPolygon }: LocationStepPro
         <div className="space-y-4">
             <div className="relative h-[50vh] w-full bg-muted rounded-md overflow-hidden">
                 <Map
+                    mapId="location-step-map"
                     defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
                     defaultZoom={13}
                     gestureHandling="greedy"
@@ -125,3 +126,5 @@ export default function LocationStep({ onNext, initialPolygon }: LocationStepPro
         </div>
     );
 }
+
+    

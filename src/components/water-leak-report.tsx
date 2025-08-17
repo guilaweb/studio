@@ -155,6 +155,7 @@ export default function WaterLeakReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[35vh] bg-muted">
                 <Map
+                    mapId="water-leak-report-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
@@ -267,3 +268,5 @@ export default function WaterLeakReport({
     </Sheet>
   );
 }
+
+    

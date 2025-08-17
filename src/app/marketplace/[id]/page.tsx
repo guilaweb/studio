@@ -164,6 +164,7 @@ export default function MarketplacePropertyDetailPage() {
                                     <CardHeader><CardTitle>Localização e Vizinhança</CardTitle></CardHeader>
                                     <CardContent className="h-[400px] p-0">
                                          <Map
+                                            mapId="property-detail-map"
                                             defaultCenter={property.position}
                                             defaultZoom={15}
                                             gestureHandling={'greedy'}
@@ -247,3 +248,5 @@ export default function MarketplacePropertyDetailPage() {
         </APIProvider>
     );
 }
+
+    

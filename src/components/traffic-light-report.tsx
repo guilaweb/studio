@@ -150,6 +150,7 @@ export default function TrafficLightReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[45vh] bg-muted">
                 <Map
+                    mapId="traffic-light-report-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
@@ -240,3 +241,5 @@ export default function TrafficLightReport({
     </Sheet>
   );
 }
+
+    

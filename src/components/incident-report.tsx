@@ -192,6 +192,7 @@ export default function IncidentReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[35vh] bg-muted">
                 <Map
+                    mapId="incident-report-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
@@ -307,3 +308,5 @@ export default function IncidentReport({
     </Sheet>
   );
 }
+
+    

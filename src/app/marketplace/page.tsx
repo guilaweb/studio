@@ -279,6 +279,7 @@ function MarketplacePage() {
                                 <TabsContent value="map">
                                     <CardContent className="h-[70vh] p-0 relative">
                                         <Map
+                                            mapId="marketplace-map"
                                             defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
                                             defaultZoom={13}
                                             gestureHandling={'greedy'}
@@ -317,5 +318,7 @@ function MarketplacePage() {
 }
 
 export default withAuth(MarketplacePage);
+
+    
 
     

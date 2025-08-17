@@ -150,6 +150,7 @@ export default function PotholeReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[35vh] bg-muted">
                 <Map
+                    mapId="pothole-report-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
@@ -240,3 +241,5 @@ export default function PotholeReport({
     </Sheet>
   );
 }
+
+    

@@ -164,6 +164,7 @@ export default function AtmReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[40vh] bg-muted">
                 <Map
+                    mapId="atm-report-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
@@ -226,3 +227,5 @@ export default function AtmReport({
     </Sheet>
   );
 }
+
+    
