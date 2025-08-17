@@ -144,122 +144,124 @@ export default function ConstructionEdit({
                 <div className="flex-1 overflow-y-auto pr-6 pl-1 py-4">
                     <Form {...form}>
                         <form id="edit-construction-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                             <div className="space-y-2">
-                                <Label>Nº do Processo</Label>
-                                <Input value={poiToEdit?.id || ''} readOnly disabled />
-                            </div>
-                             <div className="space-y-2">
-                                <Label>Requerente</Label>
-                                <Input value={profile?.displayName || ''} readOnly disabled />
-                            </div>
-                            <FormField
-                                control={form.control}
-                                name="projectName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Nome do Projeto</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Ex: Construção de Moradia Unifamiliar" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="projectType"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Tipo de Projeto</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Selecione o tipo de obra" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="new-build">Construção Nova</SelectItem>
-                                                <SelectItem value="remodel">Remodelação</SelectItem>
-                                                <SelectItem value="expansion">Ampliação</SelectItem>
-                                                <SelectItem value="demolition">Demolição</SelectItem>
-                                                <SelectItem value="other">Outro</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <Separator />
-                            
-                            <h4 className="text-sm font-semibold">Dados do Arquiteto Responsável</h4>
-                            <FormField
-                                control={form.control}
-                                name="architectName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Nome Completo do Arquiteto</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Insira o nome do arquiteto" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <Separator />
-
-                            <FormField
-                                control={form.control}
-                                name="projectDescription"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Descrição do Projeto</FormLabel>
-                                        <FormControl>
-                                            <Textarea placeholder="Descreva brevemente os trabalhos a realizar." rows={4} {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <Separator />
-
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-medium">Documentos do Projeto</h3>
-                                <div className="space-y-3">
-                                    {files.map((file, index) => (
-                                        <div key={index} className="flex items-center justify-between gap-4 rounded-lg border p-3">
-                                            <div className="flex items-center gap-3">
-                                                <FileText className="h-6 w-6 text-muted-foreground" />
-                                                <p className="text-sm font-medium truncate">{file.name}</p>
-                                            </div>
-                                            <Button variant="ghost" size="icon" onClick={() => removeFile(file.name)}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </div>
-                                    ))}
-                                    {files.length === 0 && (
-                                         <p className="text-sm text-muted-foreground text-center py-4">Nenhum ficheiro anexado.</p>
-                                    )}
+                             <fieldset disabled={!poiToEdit} className="space-y-6">
+                                <div className="space-y-2">
+                                    <Label>Nº do Processo</Label>
+                                    <Input value={poiToEdit?.id || ''} readOnly disabled />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="documents-upload">Adicionar mais documentos</Label>
-                                    <Input 
-                                        id="documents-upload" 
-                                        type="file" 
-                                        multiple
-                                        onChange={handleFileChange}
-                                        className="h-auto p-1"
-                                    />
+                                    <Label>Requerente</Label>
+                                    <Input value={profile?.displayName || ''} readOnly disabled />
                                 </div>
-                            </div>
+                                <FormField
+                                    control={form.control}
+                                    name="projectName"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Nome do Projeto</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Ex: Construção de Moradia Unifamiliar" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="projectType"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Tipo de Projeto</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Selecione o tipo de obra" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="new-build">Construção Nova</SelectItem>
+                                                    <SelectItem value="remodel">Remodelação</SelectItem>
+                                                    <SelectItem value="expansion">Ampliação</SelectItem>
+                                                    <SelectItem value="demolition">Demolição</SelectItem>
+                                                    <SelectItem value="other">Outro</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <Separator />
+                                
+                                <h4 className="text-sm font-semibold">Dados do Arquiteto Responsável</h4>
+                                <FormField
+                                    control={form.control}
+                                    name="architectName"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Nome Completo do Arquiteto</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Insira o nome do arquiteto" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <Separator />
+
+                                <FormField
+                                    control={form.control}
+                                    name="projectDescription"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Descrição do Projeto</FormLabel>
+                                            <FormControl>
+                                                <Textarea placeholder="Descreva brevemente os trabalhos a realizar." rows={4} {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <Separator />
+
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-medium">Documentos do Projeto</h3>
+                                    <div className="space-y-3">
+                                        {files.map((file, index) => (
+                                            <div key={index} className="flex items-center justify-between gap-4 rounded-lg border p-3">
+                                                <div className="flex items-center gap-3">
+                                                    <FileText className="h-6 w-6 text-muted-foreground" />
+                                                    <p className="text-sm font-medium truncate">{file.name}</p>
+                                                </div>
+                                                <Button variant="ghost" size="icon" onClick={() => removeFile(file.name)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                        {files.length === 0 && (
+                                            <p className="text-sm text-muted-foreground text-center py-4">Nenhum ficheiro anexado.</p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="documents-upload">Adicionar mais documentos</Label>
+                                        <Input 
+                                            id="documents-upload" 
+                                            type="file" 
+                                            multiple
+                                            onChange={handleFileChange}
+                                            className="h-auto p-1"
+                                        />
+                                    </div>
+                                </div>
+                            </fieldset>
                         </form>
                     </Form>
                 </div>
                 <SheetFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                    <Button type="submit" form="edit-construction-form" disabled={isSubmitting}>
+                    <Button type="submit" form="edit-construction-form" disabled={isSubmitting || !poiToEdit}>
                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                         Guardar Alterações
                     </Button>

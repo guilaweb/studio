@@ -5,7 +5,7 @@
 import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/data";
+import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap } from "@/lib/data";
 import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,16 +43,6 @@ const priorityConfig = {
     medium: { icon: ArrowRight, color: "text-yellow-500 bg-yellow-100/50", label: "Média Prioridade" },
     low: { icon: ArrowDown, color: "text-green-500 bg-green-100/50", label: "Baixa Prioridade" },
 }
-
-const announcementCategoryMap = {
-    general: 'Aviso Geral',
-    traffic: 'Trânsito',
-    event: 'Evento',
-    public_works: 'Obras Públicas',
-    security: 'Segurança',
-    other: 'Outro',
-};
-
 
 const getLastReportedTime = (lastReported?: string) => {
     if (!lastReported) return null;
@@ -388,8 +378,10 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
 
   let canEdit = false;
-  if ((poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction') && isOwner) {
-      canEdit = true;
+  if (poi.type === 'construction') {
+      canEdit = isOwner;
+  } else if (poi.type === 'incident' || poi.type === 'atm') {
+      canEdit = isOwner || isManager;
   } else if (poi.type === 'land_plot' || poi.type === 'announcement') {
       canEdit = isManager;
   }
