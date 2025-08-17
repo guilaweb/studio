@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PointOfInterest, propertyTypeLabelMap } from "@/lib/data";
 import { VerificationSeal } from "./verification-seal";
+import { BedDouble, Bath, Ruler } from "lucide-react";
 
 
 export const PropertyCard = ({ property }: { property: PointOfInterest }) => {
@@ -25,14 +26,21 @@ export const PropertyCard = ({ property }: { property: PointOfInterest }) => {
                         className="group-hover:scale-105 transition-transform duration-300"
                     />
                 </div>
-                <CardHeader>
-                    <CardTitle className="text-lg">{property.title}</CardTitle>
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">{property.title}</CardTitle>
                     <CardDescription>
                         {property.propertyType ? propertyTypeLabelMap[property.propertyType] : 'Imóvel'}
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="flex-grow flex flex-col justify-end">
-                    <div className="flex justify-between items-center">
+                <CardContent className="flex-grow flex flex-col justify-between pt-2">
+                    <div className="text-sm text-muted-foreground space-y-2 mb-4">
+                        <div className="flex items-center gap-4">
+                            {property.bedrooms && <div className="flex items-center gap-1.5"><BedDouble className="h-4 w-4" /><span>{property.bedrooms}</span></div>}
+                            {property.bathrooms && <div className="flex items-center gap-1.5"><Bath className="h-4 w-4" /><span>{property.bathrooms}</span></div>}
+                        </div>
+                         {property.area && <div className="flex items-center gap-1.5"><Ruler className="h-4 w-4" /><span>{property.area} m²</span></div>}
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t">
                         <div className="text-lg font-bold text-primary">
                             {property.price ? `AOA ${property.price.toLocaleString()}` : "A Negociar"}
                         </div>

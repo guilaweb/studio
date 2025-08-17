@@ -126,7 +126,7 @@ export const propertyTypeLabelMap: Record<PropertyType, string> = {
 };
 
 
-export const statusLabelMap: Record<PointOfInterestStatus, string> = {
+export const statusLabelMap: Partial<Record<PointOfInterestStatus, string>> = {
     available: "Disponível",
     unavailable: "Indisponível",
     unknown: "Desconhecido",
@@ -149,6 +149,7 @@ export const statusLabelMap: Record<PointOfInterestStatus, string> = {
     verificado_prata: "Verificado (Prata)",
     informacao_insuficiente: "Informação Insuficiente",
     Privado: "Privado",
+    ...propertyTypeLabelMap
 };
 
 export const priorityLabelMap: Record<PointOfInterestPriority, string> = {
