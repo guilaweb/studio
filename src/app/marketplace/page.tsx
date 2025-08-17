@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { ArrowLeft, Building, FileText, Home, Shield, ShieldAlert, ShieldCheck, HelpCircle } from "lucide-react";
-import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, useMap, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest, PointOfInterestStatus, propertyTypeLabelMap, statusLabelMap } from "@/lib/data";
 import PropertySearch, { SearchFilters } from "@/components/marketplace/property-search";
@@ -20,24 +20,21 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 
 const mapStyles: google.maps.MapTypeStyle[] = [
-    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+    { elementType: "geometry", stylers: [{ color: "#e8e8e8" }] },
     { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
     { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] },
+    { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#c9c9c9" }] },
     { featureType: "administrative.land_parcel", stylers: [{ visibility: "off" }] },
-    { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
-    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
-    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-    { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#e5e5e5" }] },
-    { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+    { featureType: "administrative.land_parcel", elementType: "labels", stylers: [{ visibility: "off" }] },
+    { featureType: "poi", stylers: [{ visibility: "off" }] },
     { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-    { featureType: "road.arterial", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#dadada" }] },
-    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-    { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
-    { featureType: "transit.line", elementType: "geometry", stylers: [{ color: "#e5e5e5" }] },
-    { featureType: "transit.station", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
+    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
+    { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#fdfdfd" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#f8f8f8" }] },
+    { featureType: "road.local", stylers: [{ visibility: "off" }] },
+    { featureType: "transit", stylers: [{ visibility: "off" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#d4d4d4" }] },
     { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
 ];
 
@@ -84,6 +81,7 @@ const LandPlotPolygons: React.FC<{
                 fillColor: isSelected ? colors.fill : colors.fill,
                 fillOpacity: isSelected ? 0.6 : 0.35,
                 map: map,
+                zIndex: isSelected ? 10 : 1,
             });
 
             poly.addListener('click', () => {
@@ -234,6 +232,9 @@ function MarketplacePage() {
     const handlePlotSelect = (plotId: string) => {
         const plot = landPlots.find(p => p.id === plotId) || null;
         setSelectedPlot(plot);
+        if (plot) {
+             router.push(`/marketplace/${plot.id}`)
+        }
     };
     
     return (
@@ -318,7 +319,3 @@ function MarketplacePage() {
 }
 
 export default withAuth(MarketplacePage);
-
-    
-
-    
