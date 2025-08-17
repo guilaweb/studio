@@ -218,6 +218,23 @@ export default function LandingPage() {
                         </div>
                     </section>
 
+                    <section id="mission" className="w-full py-12 md:py-24 lg:py-32">
+                        <div className="container px-4 md:px-6">
+                            <Card>
+                                <CardContent className="p-10 flex flex-col items-center justify-center space-y-4 text-center">
+                                    <div className="space-y-4">
+                                        <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-primary">
+                                            A Nossa Missão
+                                        </h2>
+                                        <p className="max-w-[800px] mx-auto text-muted-foreground md:text-xl/relaxed">
+                                            A missão da MUNITU é ser a plataforma de governação digital que conecta cada cidadão ao seu município, transformando a participação cívica numa experiência simples, transparente e eficiente. Através da nossa tecnologia, capacitamos os cidadãos a serem os protagonistas na construção de cidades mais inteligentes, justas e sustentáveis.
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </section>
+
                     <section id="features" className="w-full py-12 md:py-24 lg:py-32">
                         <div className="container px-4 md:px-6 space-y-8">
                             <Card>
@@ -420,3 +437,5 @@ export default function LandingPage() {
     </APIProvider>
   )
 }
+
+    
