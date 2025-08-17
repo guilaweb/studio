@@ -9,9 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { PointOfInterestStatus, PointOfInterestUsageType } from '@/lib/data';
-import { Search, X } from 'lucide-react';
+import { Search, X, Bookmark } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '../ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
 export interface SearchFilters {
     location: string;
@@ -32,6 +33,7 @@ interface PropertySearchProps {
 
 const PropertySearch: React.FC<PropertySearchProps> = ({ onSearch, initialFilters }) => {
     const [filters, setFilters] = React.useState<SearchFilters>(initialFilters);
+    const { toast } = useToast();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -76,6 +78,13 @@ const PropertySearch: React.FC<PropertySearchProps> = ({ onSearch, initialFilter
         setFilters(clearedFilters);
         onSearch(clearedFilters);
     };
+
+    const handleSaveSearch = () => {
+        toast({
+            title: "Funcionalidade em Breve",
+            description: "A capacidade de guardar pesquisas e receber alertas será adicionada em breve!",
+        });
+    }
 
     return (
         <Card>
@@ -164,6 +173,10 @@ const PropertySearch: React.FC<PropertySearchProps> = ({ onSearch, initialFilter
                         <Search className="mr-2 h-4 w-4" />
                         Aplicar Filtros
                     </Button>
+                    <Button onClick={handleSaveSearch} variant="outline">
+                        <Bookmark className="mr-2 h-4 w-4" />
+                        Guardar
+                    </Button>
                      <Button onClick={handleClear} variant="outline" size="icon">
                         <X className="h-4 w-4" />
                          <span className="sr-only">Limpar Filtros</span>
@@ -175,5 +188,3 @@ const PropertySearch: React.FC<PropertySearchProps> = ({ onSearch, initialFilter
 };
 
 export default PropertySearch;
-
-    
