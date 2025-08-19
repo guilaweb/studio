@@ -6,7 +6,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 
 type PointOfInterestDetailsProps = {
   poi: PointOfInterest | null;
@@ -392,6 +393,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
 
 
   const incidentDate = poi.incidentDate || poi.lastReported;
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${poi.position.lat},${poi.position.lng}`;
 
 
   return (
@@ -411,12 +413,20 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             </div>
             <div className="flex flex-col items-end gap-2">
                 <config.Icon className="h-10 w-10 text-muted-foreground" />
-                {canEdit && (
-                    <Button variant="outline" size="sm" onClick={() => onEdit(poi)}>
-                        <Pencil className="mr-2 h-3 w-3"/>
-                        Editar
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                        <Link href={directionsUrl} target="_blank" rel="noopener noreferrer">
+                            <Compass className="mr-2 h-3 w-3"/>
+                            Obter Direções
+                        </Link>
                     </Button>
-                )}
+                    {canEdit && (
+                        <Button variant="outline" size="sm" onClick={() => onEdit(poi)}>
+                            <Pencil className="mr-2 h-3 w-3"/>
+                            Editar
+                        </Button>
+                    )}
+                </div>
             </div>
           </div>
         </SheetHeader>
