@@ -1,186 +1,106 @@
 
-
 "use client";
 
 import * as React from "react";
-import { withAuth, useAuth } from "@/hooks/use-auth";
+import { withAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { ArrowLeft, Building, FileText } from "lucide-react";
-import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
+import { ArrowLeft, Plus, FileText } from "lucide-react";
 import { usePoints } from "@/hooks/use-points";
-import { PointOfInterest, statusLabelMap } from "@/lib/data";
-import PropertySearch, { SearchFilters } from "@/components/marketplace/property-search";
-import { useRouter } from "next/navigation";
+import { PointOfInterest } from "@/lib/data";
+import { Badge } from "@/components/ui/badge";
+import { statusLabelMap } from "@/lib/data";
 
-
-const mapStyles: google.maps.MapTypeStyle[] = [
-    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
-    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
-    { featureType: "administrative.land_parcel", stylers: [{ visibility: "off" }] },
-    { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
-    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
-    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-    { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#e5e5e5" }] },
-    { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-    { featureType: "road.arterial", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#dadada" }] },
-    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-    { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
-    { featureType: "transit.line", elementType: "geometry", stylers: [{ color: "#e5e5e5" }] },
-    { featureType: "transit.station", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
-    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
-];
-
-
-const getPlotColors = (status: PointOfInterest['status']) => {
-    switch (status) {
-        case 'available':
-            return { stroke: '#16a34a', fill: '#22c55e' }; // green
-        case 'occupied':
-        case 'reserved':
-            return { stroke: '#ea580c', fill: '#f97316' }; // orange
-        case 'in_dispute':
-            return { stroke: '#dc2626', fill: '#ef4444' }; // red
-        case 'protected':
-            return { stroke: '#155e75', fill: '#0e7490' }; // cyan
-        default:
-            return { stroke: '#a1a1aa', fill: '#71717a' }; // gray
-    }
-}
-
-
-const LandPlotPolygons: React.FC<{
-    plots: PointOfInterest[];
-    selectedPlotId: string | null;
-    onPlotClick: (plotId: string) => void;
-}> = ({ plots, selectedPlotId, onPlotClick }) => {
-    const map = useMap();
-    const [polygons, setPolygons] = React.useState<google.maps.Polygon[]>([]);
-
-    React.useEffect(() => {
-        if (!map) return;
-        
-        polygons.forEach(p => p.setMap(null));
-
-        const newPolygons = plots.map(plot => {
-            const isSelected = plot.id === selectedPlotId;
-            const colors = getPlotColors(plot.status);
-
-            const poly = new google.maps.Polygon({
-                paths: plot.polygon,
-                strokeColor: isSelected ? 'hsl(var(--ring))' : colors.stroke,
-                strokeOpacity: 0.9,
-                strokeWeight: isSelected ? 3 : 2,
-                fillColor: isSelected ? colors.fill : colors.fill,
-                fillOpacity: isSelected ? 0.6 : 0.35,
-                map: map,
-            });
-
-            poly.addListener('click', () => {
-                onPlotClick(plot.id);
-            });
-            return poly;
-        });
-
-        setPolygons(newPolygons);
-
-        return () => {
-            newPolygons.forEach(p => p.setMap(null));
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [map, plots, selectedPlotId]);
-
-
-    return null;
-}
-
-function MarketplacePage() {
-    const { allData } = usePoints();
-    const [selectedPlot, setSelectedPlot] = React.useState<PointOfInterest | null>(null);
-    const [searchFilters, setSearchFilters] = React.useState<SearchFilters>({ area: null, usageType: null, location: '' });
-    const router = useRouter();
-
-    const landPlots = React.useMemo(() => allData.filter(p => p.type === 'land_plot' && p.polygon), [allData]);
-    
-    const filteredLandPlots = React.useMemo(() => {
-        return landPlots.filter(plot => {
-            const areaMatch = !searchFilters.area || (plot.area && plot.area >= searchFilters.area);
-            const usageMatch = !searchFilters.usageType || plot.usageType === searchFilters.usageType;
-            const locationMatch = !searchFilters.location || 
-                                  (plot.title && plot.title.toLowerCase().includes(searchFilters.location.toLowerCase())) ||
-                                  (plot.description && plot.description.toLowerCase().includes(searchFilters.location.toLowerCase()));
-            return areaMatch && usageMatch && locationMatch;
-        });
-    }, [landPlots, searchFilters]);
-
-
-    const handlePlotSelect = (plotId: string) => {
-        const plot = landPlots.find(p => p.id === plotId) || null;
-        setSelectedPlot(plot);
-        // Maybe in the future this will open a details panel
-    };
-    
+const LicenseRequestCard = ({ project }: { project: PointOfInterest }) => {
     return (
-        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-            <div className="flex min-h-screen w-full flex-col bg-muted/40">
-                <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-                    <Button size="icon" variant="outline" asChild>
-                        <Link href="/">
-                            <ArrowLeft className="h-5 w-5" />
-                            <span className="sr-only">Voltar ao Mapa</span>
+        <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <FileText className="h-8 w-8 text-muted-foreground" />
+                    <div>
+                        <p className="font-semibold">{project.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                            Submetido em: {new Date(project.lastReported!).toLocaleDateString('pt-PT')}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                    <Badge variant={project.status === 'approved' ? 'default' : 'secondary'} className={project.status === 'approved' ? 'bg-green-600' : ''}>
+                        {project.status ? statusLabelMap[project.status] : "N/A"}
+                    </Badge>
+                     <Button variant="outline" size="sm" asChild>
+                        <Link href={`/admin/projetos/${project.id}`}>Ver Processo</Link>
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+
+function LicencasPage() {
+    const { allData, loading } = usePoints();
+    const { user } = useAuth();
+
+    const userProjects = React.useMemo(() => {
+        if (!user) return [];
+        return allData.filter(p => p.type === 'construction' && p.authorId === user.uid);
+    }, [allData, user]);
+
+    return (
+        <div className="flex min-h-screen w-full flex-col bg-muted/40">
+            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+                <Button size="icon" variant="outline" asChild>
+                    <Link href="/">
+                        <ArrowLeft className="h-5 w-5" />
+                        <span className="sr-only">Voltar ao Mapa</span>
+                    </Link>
+                </Button>
+                <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+                    Licenciamento de Obras
+                </h1>
+                 <div className="ml-auto">
+                     <Button asChild>
+                        <Link href="/licencas/novo">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Novo Pedido de Licença
                         </Link>
                     </Button>
-                    <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                        Marketplace de Imóveis
-                    </h1>
-                </header>
-                <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-2 lg:grid-cols-3">
-                    <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
-                        <PropertySearch onSearch={setSearchFilters} initialFilters={searchFilters} />
-                         <Card>
-                            <CardContent className="pt-6">
-                               <p className="text-xs text-muted-foreground">
-                                  Necessita de trabalhar com o Sistema Geodésico Nacional? <Link href="/docs" className="underline font-semibold">Consulte a nossa documentação técnica.</Link>
-                               </p>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
+                </div>
+            </header>
+            <main className="flex-1 p-4 sm:px-6 sm:py-6">
+                {userProjects.length > 0 ? (
+                     <div className="space-y-4">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Mapa de Imóveis</CardTitle>
-                                <CardDescription>
-                                    Os resultados da sua pesquisa são destacados no mapa.
-                                </CardDescription>
+                                <CardTitle>Os Meus Pedidos de Licença</CardTitle>
+                                <CardDescription>Acompanhe o estado de todos os seus processos de licenciamento.</CardDescription>
                             </CardHeader>
-                            <CardContent className="h-[70vh] p-0 relative">
-                                <Map
-                                    defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
-                                    defaultZoom={13}
-                                    gestureHandling={'greedy'}
-                                    disableDefaultUI={true}
-                                    styles={mapStyles}
-                                >
-                                    <LandPlotPolygons 
-                                        plots={filteredLandPlots}
-                                        selectedPlotId={selectedPlot?.id || null}
-                                        onPlotClick={handlePlotSelect}
-                                    />
-                                </Map>
+                            <CardContent className="space-y-4">
+                                {userProjects.map(p => <LicenseRequestCard key={p.id} project={p} />)}
                             </CardContent>
                         </Card>
                     </div>
-                </main>
-            </div>
-        </APIProvider>
+                ) : (
+                    <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8 text-center">
+                        <div className="flex flex-col items-center gap-2">
+                            <FileText className="h-12 w-12 text-muted-foreground" />
+                            <h3 className="text-2xl font-bold tracking-tight">Ainda não solicitou nenhuma licença</h3>
+                            <p className="text-muted-foreground">Inicie um novo processo para licenciar a sua obra ou projeto.</p>
+                            <Button className="mt-4" asChild>
+                                <Link href="/licencas/novo">
+                                     <Plus className="mr-2 h-4 w-4" />
+                                     Iniciar Novo Pedido
+                                </Link>
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </main>
+        </div>
     );
 }
 
-export default withAuth(MarketplacePage);
+export default withAuth(LicencasPage);
+        

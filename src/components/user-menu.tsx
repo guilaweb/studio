@@ -80,6 +80,12 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                     </Link>
                 </DropdownMenuItem>
                  <DropdownMenuItem asChild>
+                    <Link href="/licencas">
+                        <FileText className="mr-2 h-4 w-4" />
+                        <span>Minhas Licenças</span>
+                    </Link>
+                </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
                     <Link href="/inbox">
                         <Inbox className="mr-2 h-4 w-4" />
                         <span>Caixa de Entrada</span>
@@ -148,3 +154,4 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
         </DropdownMenu>
     )
   }
+        
