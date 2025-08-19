@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Award } from "lucide-react";
+import { ArrowLeft, Award, Building, FileText, Home, Inbox, User as UserIcon } from "lucide-react";
 import { medals } from "@/lib/medals";
 
 function PerfilPage() {
@@ -44,26 +44,8 @@ function PerfilPage() {
                     Meu Perfil MUNITU
                 </h1>
             </header>
-            <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:gap-8">
-                <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Informações da Conta</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center gap-4">
-                                <Avatar className="h-20 w-20">
-                                    <AvatarImage src={user.photoURL || undefined} alt={profile.displayName || user.email || "User"} />
-                                    <AvatarFallback>{(profile.displayName || user.email || "U").charAt(0).toUpperCase()}</AvatarFallback>
-                                </Avatar>
-                                <div className="grid gap-1">
-                                    <p className="text-lg font-semibold">{profile.displayName}</p>
-                                    <p className="text-sm text-muted-foreground">{profile.email}</p>
-                                    <p className="text-xs text-muted-foreground">Membro desde: {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('pt-PT') : 'N/A'}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+            <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 md:gap-8">
+                <div className="md:col-span-2 grid auto-rows-max items-start gap-4 md:gap-8">
                      <Card>
                         <CardHeader>
                             <CardTitle>As Minhas Estatísticas</CardTitle>
@@ -106,6 +88,44 @@ function PerfilPage() {
                         </CardContent>
                     </Card>
                 </div>
+                 <div className="grid auto-rows-max items-start gap-4 md:gap-8">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center gap-4">
+                             <Avatar className="h-16 w-16">
+                                <AvatarImage src={user.photoURL || undefined} alt={profile.displayName || user.email || "User"} />
+                                <AvatarFallback>{(profile.displayName || user.email || "U").charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <div className="grid gap-1">
+                                <CardTitle className="text-xl">{profile.displayName}</CardTitle>
+                                <CardDescription>{profile.email}</CardDescription>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                             <p className="text-xs text-muted-foreground">Membro desde: {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('pt-PT') : 'N/A'}</p>
+                             <Button variant="outline" size="sm" className="mt-4 w-full">Editar Perfil</Button>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Atalhos Rápidos</CardTitle>
+                            <CardDescription>Aceda aos seus principais módulos.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-2">
+                            <Button variant="ghost" className="justify-start gap-2" asChild>
+                                <Link href="/meus-imoveis"><Home /> Meus Imóveis</Link>
+                            </Button>
+                             <Button variant="ghost" className="justify-start gap-2" asChild>
+                                <Link href="/licencas"><FileText /> Minhas Licenças</Link>
+                            </Button>
+                             <Button variant="ghost" className="justify-start gap-2" asChild>
+                                <Link href="/marketplace"><Building /> Marketplace</Link>
+                            </Button>
+                             <Button variant="ghost" className="justify-start gap-2" asChild>
+                                <Link href="/inbox"><Inbox /> Caixa de Entrada</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                 </div>
             </main>
         </div>
     );
