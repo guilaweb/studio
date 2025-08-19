@@ -402,3 +402,5 @@ function AdminProjectDetailPage() {
 }
 
 export default withAuth(AdminProjectDetailPage, ['Agente Municipal', 'Administrador']);
+
+    

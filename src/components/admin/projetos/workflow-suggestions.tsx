@@ -97,3 +97,5 @@ const WorkflowSuggestions: React.FC<WorkflowSuggestionsProps> = ({ project }) =>
 };
 
 export default WorkflowSuggestions;
+
+    
