@@ -159,7 +159,7 @@ export default function FeaturesPage() {
                                             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Ferramentas para uma Gestão Eficiente</h2>
                                              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                                                 Módulos desenhados para otimizar operações, aumentar a transparência e responder às necessidades da cidade.
-                                            </p>
+                                             </p>
                                         </div>
                                         <div className="grid gap-6 md:grid-cols-2">
                                             {adminFeatures.map((feature, index) => (
@@ -188,6 +188,7 @@ export default function FeaturesPage() {
                             <Link href="/docs" className="underline hover:text-primary">Documentação Técnica</Link>
                             <Link href="/exemplos-de-uso" className="underline hover:text-primary">Exemplos de Uso</Link>
                             <Link href="/termos-e-condicoes" className="underline hover:text-primary">Termos e Condições</Link>
+                            <Link href="/politica-de-privacidade" className="underline hover:text-primary">Política de Privacidade</Link>
                             <Link href="/help" className="underline hover:text-primary">Ajuda</Link>
                         </div>
                         <div className="sm:ml-auto flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground text-center sm:text-right">

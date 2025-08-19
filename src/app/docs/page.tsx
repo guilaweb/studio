@@ -201,6 +201,7 @@ export default function DocsPage() {
                             <Link href="/funcionalidades" className="underline hover:text-primary">Funcionalidades</Link>
                             <Link href="/exemplos-de-uso" className="underline hover:text-primary">Exemplos de Uso</Link>
                             <Link href="/termos-e-condicoes" className="underline hover:text-primary">Termos e Condições</Link>
+                             <Link href="/politica-de-privacidade" className="underline hover:text-primary">Política de Privacidade</Link>
                             <Link href="/help" className="underline hover:text-primary">Ajuda</Link>
                         </div>
                         <div className="sm:ml-auto flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground text-center sm:text-right">

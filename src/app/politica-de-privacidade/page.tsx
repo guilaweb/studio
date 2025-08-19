@@ -29,7 +29,7 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] },
 ];
 
-export default function TermsAndConditionsPage() {
+export default function PrivacyPolicyPage() {
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
             <div className="relative flex flex-col min-h-screen bg-background text-foreground">
@@ -40,7 +40,7 @@ export default function TermsAndConditionsPage() {
                         gestureHandling={'none'}
                         disableDefaultUI={true}
                         styles={mapStyles}
-                        mapId={'terms-map'}
+                        mapId={'privacy-map'}
                     />
                 </div>
                 <div className="relative z-10 flex flex-1 flex-col bg-transparent">
@@ -52,73 +52,69 @@ export default function TermsAndConditionsPage() {
                             </Link>
                         </Button>
                         <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                            Termos e Condições de Uso
+                            Política de Privacidade
                         </h1>
                     </header>
                     <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-6">
                         <Card className="prose prose-sm md:prose-base dark:prose-invert max-w-full">
                             <CardHeader>
-                                <CardTitle>Termos e Condições de Utilização da Plataforma MUNITU</CardTitle>
-                                <CardDescription>Última atualização: 29 de Julho de 2024</CardDescription>
+                                <CardTitle>Política de Privacidade da Plataforma MUNITU</CardTitle>
+                                <CardDescription>Última atualização: 30 de Julho de 2024</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <section>
-                                    <h2 className="font-semibold text-lg">1. Aceitação dos Termos</h2>
-                                    <p>Ao aceder e utilizar a plataforma MUNITU ("Plataforma"), propriedade da Dianguila Empreendimentos, (SU), Lda., o utilizador ("Utilizador") concorda em cumprir e ficar vinculado aos presentes Termos e Condições de Utilização ("Termos"). Se não concordar com estes Termos, não deverá aceder ou utilizar a Plataforma.</p>
+                                    <h2 className="font-semibold text-lg">1. Introdução</h2>
+                                    <p>A sua privacidade é de extrema importância para a MUNITU. Esta Política de Privacidade descreve como a Dianguila Empreendimentos, (SU), Lda. ("nós", "nosso") recolhe, utiliza, partilha e protege as informações pessoais dos utilizadores ("Utilizador", "seu") da nossa plataforma. Este documento foi elaborado em conformidade com a Lei n.º 22/11, de 17 de Junho (Lei da Proteção de Dados Pessoais de Angola).</p>
                                 </section>
 
                                 <section>
-                                    <h2 className="font-semibold text-lg">2. Descrição dos Serviços</h2>
-                                    <p>A MUNITU é uma plataforma de governação digital que visa conectar cidadãos, empresas e entidades governamentais para melhorar a gestão urbana. Os serviços incluem, mas não se limitam a, reporte de incidentes, mapeamento de infraestruturas, processos de licenciamento digital e um marketplace imobiliário.</p>
+                                    <h2 className="font-semibold text-lg">2. Informação que Recolhemos</h2>
+                                    <p>Recolhemos diferentes tipos de informação para fornecer e melhorar os nossos serviços:</p>
+                                    <ul className="list-disc pl-6 space-y-1">
+                                        <li><strong>Informação Fornecida pelo Utilizador:</strong> Inclui dados de registo como nome, endereço de e-mail e senha. Também inclui informações fornecidas ao preencher perfis, submeter pedidos de licença ou ao comunicar connosco.</li>
+                                        <li><strong>Conteúdo Gerado pelo Utilizador:</strong> Todas as informações que submete ativamente na plataforma, como reportes de incidentes, comentários em obras, fotos, documentos de prova e desenhos de polígonos de terrenos.</li>
+                                        <li><strong>Dados de Localização:</strong> Quando reporta um incidente ou utiliza funcionalidades baseadas em mapa, recolhemos dados de geolocalização precisos para contextualizar a sua contribuição.</li>
+                                        <li><strong>Dados de Utilização:</strong> Recolhemos informações sobre como interage com a plataforma, como as funcionalidades que utiliza e a frequência de acesso, para nos ajudar a melhorar a experiência do utilizador.</li>
+                                    </ul>
                                 </section>
 
                                 <section>
-                                    <h2 className="font-semibold text-lg">3. Contas de Utilizador</h2>
-                                    <p>Para aceder a certas funcionalidades, o Utilizador deve criar uma conta, fornecendo informações verdadeiras, precisas e completas. O Utilizador é responsável por manter a confidencialidade da sua senha e por todas as atividades que ocorram na sua conta. A MUNITU não se responsabiliza por qualquer perda ou dano resultante do incumprimento desta obrigação de segurança.</p>
+                                    <h2 className="font-semibold text-lg">3. Como Utilizamos a Sua Informação</h2>
+                                    <p>Utilizamos a sua informação para os seguintes fins:</p>
+                                    <ul className="list-disc pl-6 space-y-1">
+                                        <li>Para operar e manter a Plataforma, incluindo a gestão da sua conta.</li>
+                                        <li>Para processar as suas contribuições e encaminhá-las para as entidades municipais competentes para análise e resolução.</li>
+                                        <li>Para comunicar consigo sobre o estado dos seus reportes, licenças ou outras interações.</li>
+                                        <li>Para personalizar a sua experiência e, no futuro, fornecer notificações contextuais relevantes.</li>
+                                        <li>Para fins de análise interna, visando melhorar a segurança, a funcionalidade e a eficácia da plataforma.</li>
+                                    </ul>
                                 </section>
 
                                 <section>
-                                    <h2 className="font-semibold text-lg">4. Conteúdo Gerado pelo Utilizador</h2>
-                                    <p>O Utilizador é o único responsável por todo o conteúdo que submete, publica ou exibe na Plataforma, incluindo textos, imagens, ficheiros e dados de localização ("Conteúdo do Utilizador"). Ao submeter Conteúdo do Utilizador, concede à MUNITU uma licença mundial, não exclusiva, isenta de royalties, para usar, reproduzir, modificar e distribuir esse conteúdo no âmbito da prestação dos serviços da Plataforma.</p>
-                                    <p>O Utilizador garante que detém todos os direitos necessários para conceder esta licença e que o seu Conteúdo do Utilizador não viola os direitos de terceiros nem qualquer lei aplicável.</p>
+                                    <h2 className="font-semibold text-lg">4. Partilha e Divulgação de Informação</h2>
+                                    <p>A sua informação é partilhada de forma limitada e com propósitos específicos:</p>
+                                    <ul className="list-disc pl-6 space-y-1">
+                                        <li><strong>Com Entidades Governamentais:</strong> O conteúdo das suas contribuições (ex: a descrição de um buraco na via e a sua localização) é partilhado com as administrações municipais e outros órgãos competentes para que possam atuar.</li>
+                                        <li><strong>Informação Pública:</strong> Certas informações, como a localização de um incidente reportado ou os dados de uma obra licenciada, são tornadas públicas no mapa para garantir a transparência do processo. O seu nome de utilizador pode ser associado a estas contribuições públicas.</li>
+                                        <li><strong>Prestadores de Serviços:</strong> Podemos utilizar serviços de terceiros (ex: serviços de alojamento em nuvem) que processam dados em nosso nome. Estes prestadores estão contratualmente obrigados a proteger a sua informação.</li>
+                                        <li><strong>Obrigações Legais:</strong> Podemos divulgar a sua informação se formos obrigados por lei ou se acreditarmos de boa-fé que tal é necessário para proteger os nossos direitos, a sua segurança ou a segurança de outros.</li>
+                                    </ul>
+                                    <p>Nunca venderemos as suas informações pessoais a terceiros para fins de marketing.</p>
+                                </section>
+
+                                <section>
+                                    <h2 className="font-semibold text-lg">5. Segurança dos Dados</h2>
+                                    <p>Implementamos medidas de segurança técnicas e organizacionais para proteger as suas informações contra acesso não autorizado, alteração, divulgação ou destruição. No entanto, nenhum sistema é 100% seguro, e não podemos garantir a segurança absoluta da sua informação.</p>
+                                </section>
+
+                                <section>
+                                    <h2 className="font-semibold text-lg">6. Os Seus Direitos</h2>
+                                    <p>De acordo com a Lei da Proteção de Dados Pessoais, o Utilizador tem o direito de aceder, retificar ou apagar as suas informações pessoais. Pode exercer estes direitos através das configurações do seu perfil na plataforma ou contactando-nos diretamente. Note que a eliminação de certas informações pode impedir a prestação de alguns serviços.</p>
                                 </section>
                                 
                                 <section>
-                                    <h2 className="font-semibold text-lg">5. Uso Aceitável da Plataforma</h2>
-                                    <p>O Utilizador concorda em não utilizar a Plataforma para:</p>
-                                    <ul className="list-disc pl-6 space-y-1">
-                                        <li>Publicar conteúdo falso, enganador, difamatório ou ilegal.</li>
-                                        <li>Violar os direitos de propriedade intelectual de terceiros.</li>
-                                        <li>Tentar obter acesso não autorizado aos sistemas ou redes da Plataforma.</li>
-                                        <li>Interferir com a utilização e fruição da Plataforma por parte de outros utilizadores.</li>
-                                    </ul>
-                                    <p>A MUNITU reserva-se o direito de remover qualquer conteúdo e suspender ou cancelar contas que violem estes Termos.</p>
-                                </section>
-
-                                <section>
-                                    <h2 className="font-semibold text-lg">6. Privacidade e Proteção de Dados</h2>
-                                    <p>A nossa Política de Privacidade, que está em conformidade com a Lei n.º 22/11, de 17 de Junho (Lei da Proteção de Dados Pessoais de Angola), descreve como recolhemos, usamos e protegemos os seus dados pessoais. Ao utilizar a Plataforma, o Utilizador concorda com as práticas descritas na nossa Política de Privacidade.</p>
-                                </section>
-
-                                <section>
-                                    <h2 className="font-semibold text-lg">7. Limitação de Responsabilidade</h2>
-                                    <p>A Plataforma é fornecida "como está" e "conforme disponível". A MUNITU não garante que a Plataforma seja isenta de erros ou interrupções. A informação disponibilizada na Plataforma, incluindo a gerada por inteligência artificial ou por outros utilizadores, tem um caráter informativo e não substitui a análise técnica qualificada ou a verificação oficial por parte das entidades competentes.</p>
-                                    <p>Em nenhuma circunstância a MUNITU será responsável por quaisquer danos diretos, indiretos, incidentais ou consequenciais resultantes da utilização ou incapacidade de utilização da Plataforma.</p>
-                                </section>
-
-                                <section>
-                                    <h2 className="font-semibold text-lg">8. Propriedade Intelectual</h2>
-                                    <p>Todos os conteúdos da Plataforma, incluindo o software, design, texto, gráficos e logótipos, são propriedade exclusiva da Dianguila Empreendimentos, (SU), Lda. ou dos seus licenciadores e estão protegidos por leis de propriedade intelectual.</p>
-                                </section>
-
-                                <section>
-                                    <h2 className="font-semibold text-lg">9. Alterações aos Termos</h2>
-                                    <p>A MUNITU reserva-se o direito de modificar estes Termos a qualquer momento. As alterações entrarão em vigor após a sua publicação na Plataforma. O uso continuado da Plataforma após a publicação das alterações constitui a aceitação dos novos Termos.</p>
-                                </section>
-
-                                <section>
-                                    <h2 className="font-semibold text-lg">10. Legislação Aplicável e Foro</h2>
-                                    <p>Estes Termos serão regidos e interpretados de acordo com as leis da República de Angola. Para a resolução de qualquer litígio emergente da interpretação ou execução dos presentes Termos, as partes elegem o foro da Comarca de Luanda, com expressa renúncia a qualquer outro.</p>
+                                    <h2 className="font-semibold text-lg">7. Contacto</h2>
+                                    <p>Se tiver alguma questão sobre esta Política de Privacidade, por favor contacte-nos através dos canais disponibilizados na plataforma.</p>
                                 </section>
                             </CardContent>
                         </Card>
