@@ -13,10 +13,11 @@ interface ComplianceChecklistProps {
 const ComplianceChecklist: React.FC<ComplianceChecklistProps> = ({ result }) => {
     const Icon = result.isCompliant ? CheckCircle : AlertCircle;
     const colorClass = result.isCompliant ? 'text-green-600' : 'text-yellow-600';
-    const bgClass = result.isCompliant ? 'bg-green-50' : 'bg-yellow-50';
+    const bgClass = result.isCompliant ? 'bg-green-50 dark:bg-green-900/20' : 'bg-yellow-50 dark:bg-yellow-900/20';
+    const borderClass = result.isCompliant ? 'border-green-200 dark:border-green-700' : 'border-yellow-200 dark:border-yellow-700';
 
     return (
-        <Card className={`${bgClass} border-none`}>
+        <Card className={`${bgClass} ${borderClass}`}>
             <CardContent className="p-4">
                 <div className="flex items-start gap-4">
                     <Icon className={`h-6 w-6 mt-1 flex-shrink-0 ${colorClass}`} />
@@ -33,5 +34,3 @@ const ComplianceChecklist: React.FC<ComplianceChecklistProps> = ({ result }) => 
 };
 
 export default ComplianceChecklist;
-
-    

@@ -26,7 +26,7 @@ const LicenseRequestCard = ({ project }: { project: PointOfInterest }) => {
                     </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                    <Badge variant={project.status === 'approved' ? 'default' : 'secondary'} className={project.status === 'approved' ? 'bg-green-600' : ''}>
+                    <Badge variant={project.status === 'approved' ? 'default' : (project.status === 'rejected' ? 'destructive' : 'secondary')} className={project.status === 'approved' ? 'bg-green-600' : ''}>
                         {project.status ? statusLabelMap[project.status] : "N/A"}
                     </Badge>
                      <Button variant="outline" size="sm" asChild>
@@ -70,7 +70,9 @@ function LicencasPage() {
                 </div>
             </header>
             <main className="flex-1 p-4 sm:px-6 sm:py-6">
-                {userProjects.length > 0 ? (
+                {loading ? (
+                    <p>A carregar os seus pedidos...</p>
+                ) : userProjects.length > 0 ? (
                      <div className="space-y-4">
                         <Card>
                             <CardHeader>
@@ -103,4 +105,3 @@ function LicencasPage() {
 }
 
 export default withAuth(LicencasPage);
-        

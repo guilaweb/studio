@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -51,14 +50,20 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         authorDisplayName: data.authorDisplayName,
         updates: sortedUpdates,
         files: data.files,
-        // Land Plot Specific
+        // Land Plot & Property Specific
+        price: data.price,
+        propertyType: data.propertyType,
         area: data.area, // in square meters
+        builtArea: data.builtArea, // in square meters
+        bedrooms: data.bedrooms,
+        bathrooms: data.bathrooms,
         plotNumber: data.plotNumber,
         registrationCode: data.registrationCode,
         zoningInfo: data.zoningInfo, // General notes
         usageType: data.usageType,
         maxHeight: data.maxHeight, // in floors
         buildingRatio: data.buildingRatio, // percentage
+        propertyTaxStatus: data.propertyTaxStatus,
         // Project Specific
         landPlotId: data.landPlotId,
         projectType: data.projectType,
