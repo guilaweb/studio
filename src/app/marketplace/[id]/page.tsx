@@ -254,9 +254,11 @@ export default function MarketplacePropertyDetailPage() {
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <p className="text-sm text-muted-foreground">Contacte o proprietário para mais informações ou para agendar uma visita.</p>
-                                        <Button className="w-full">
-                                            <MessageSquare className="mr-2 h-4 w-4" />
-                                            Enviar Mensagem
+                                        <Button className="w-full" asChild>
+                                            <Link href={`/inbox/new?propertyId=${property.id}&sellerId=${property.authorId}`}>
+                                                <MessageSquare className="mr-2 h-4 w-4" />
+                                                Enviar Mensagem
+                                            </Link>
                                         </Button>
                                     </CardContent>
                                 </Card>
@@ -268,3 +270,4 @@ export default function MarketplacePropertyDetailPage() {
         </APIProvider>
     );
 }
+
