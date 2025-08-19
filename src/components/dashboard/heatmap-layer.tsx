@@ -39,5 +39,3 @@ const HeatmapLayer: React.FC<HeatmapLayerProps> = ({ data }) => {
 };
 
 export default HeatmapLayer;
-
-    

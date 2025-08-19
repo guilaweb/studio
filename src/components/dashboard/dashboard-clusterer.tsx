@@ -64,5 +64,3 @@ const DashboardClusterer: React.FC<DashboardClustererProps> = ({ points }) => {
 };
 
 export default DashboardClusterer;
-
-    
