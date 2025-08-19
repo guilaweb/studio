@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { withAuth } from "@/hooks/use-auth";
+import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
