@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowLeft, MessageSquare, Check, Eye, Star, Pencil, Tag, PauseCircle, Archive } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
-import { VerificationSeal } from "@/components/meus-imoveis/page"; // Re-using the seal from the list page
+import { VerificationSeal } from "@/app/meus-imoveis/page"; // Re-using the seal from the list page
 import { Separator } from "@/components/ui/separator";
 
 const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
@@ -173,5 +173,4 @@ function ManagePropertyPage() {
     );
 }
 
-ManagePropertyPage.displayName = 'ManagePropertyPage';
 export default withAuth(ManagePropertyPage);
