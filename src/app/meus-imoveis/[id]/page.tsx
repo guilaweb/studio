@@ -53,7 +53,7 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
 }
 
 
-export default function ManagePropertyPage() {
+function ManagePropertyPage() {
     const params = useParams();
     const propertyId = params.id as string;
     const { allData, loading } = usePoints();
