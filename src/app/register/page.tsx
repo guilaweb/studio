@@ -122,29 +122,32 @@ export default function RegisterPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      // We will create the user in a transaction to ensure atomicity with profile creation.
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
       
       await updateProfile(user, {
         displayName: values.displayName,
       });
-
+      
+      const userDocRef = doc(db, "users", user.uid);
+      
       await runTransaction(db, async (transaction) => {
         const usersCollectionRef = collection(db, "users");
+        // We get the docs within the transaction to ensure atomicity
         const usersSnapshot = await getDocs(usersCollectionRef);
-        const isFirstUser = usersSnapshot.empty;
-        
-        const userDocRef = doc(db, "users", user.uid);
+        const isFirstUser = usersSnapshot.docs.length === 0;
+
         transaction.set(userDocRef, {
             uid: user.uid,
             displayName: values.displayName,
             email: user.email,
+            photoURL: user.photoURL || null,
             role: isFirstUser ? "Administrador" : "Cidadao",
             createdAt: new Date().toISOString(),
             onboardingCompleted: false,
         });
       });
-
 
       toast({
         title: "Conta criada com sucesso!",
@@ -157,6 +160,7 @@ export default function RegisterPage() {
         title: "Erro no registo",
         description: "Não foi possível criar a conta. O e-mail pode já estar em uso.",
       });
+      console.error("Registration error:", error);
     }
   };
 
