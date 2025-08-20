@@ -5,7 +5,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,6 +67,7 @@ const IncidentTags = ({ description }: { description: string }) => {
 }
 
 const ATMStatus = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], canUpdate: boolean}) => {
+    const { toast } = useToast();
     if (poi.type !== 'atm') return null;
 
     const getStatusBadge = () => {
@@ -74,6 +75,13 @@ const ATMStatus = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, o
         if (poi.status === 'unavailable') return <Badge variant="destructive">Sem Dinheiro</Badge>
         return <Badge variant="secondary">Não Reportado</Badge>
     }
+
+    const handleNotifyClick = () => {
+        toast({
+            title: "Notificação Ativada!",
+            description: "Iremos notificá-lo assim que a comunidade reportar que este ATM tem dinheiro.",
+        });
+    };
 
     return (
         <div className="mt-4 p-4 rounded-lg bg-muted/50">
@@ -83,11 +91,17 @@ const ATMStatus = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, o
                 {getLastReportedTime(poi.lastReported)}
             </div>
              <div className="grid grid-cols-1 gap-2">
-                <Button variant="outline" className="w-full" asChild>
-                    <Link href={`/atm/${poi.id}`}>
-                        <Clock className="mr-2 h-4 w-4" /> Ver Histórico de Atividade
-                    </Link>
-                </Button>
+                {poi.status === 'unavailable' ? (
+                    <Button variant="outline" className="w-full" onClick={handleNotifyClick}>
+                        <BellRing className="mr-2 h-4 w-4" /> Avise-me Quando Tiver Dinheiro
+                    </Button>
+                ) : (
+                    <Button variant="outline" className="w-full" asChild>
+                        <Link href={`/atm/${poi.id}`}>
+                            <Clock className="mr-2 h-4 w-4" /> Ver Histórico de Atividade
+                        </Link>
+                    </Button>
+                )}
                 {canUpdate && (
                     <div className="grid grid-cols-2 gap-2">
                         <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => onPoiStatusChange(poi.id, 'available')}>
