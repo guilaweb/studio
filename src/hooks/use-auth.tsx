@@ -6,7 +6,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { UserProfile } from '@/lib/data';
 import { useToast } from './use-toast';
 
@@ -49,14 +49,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (doc.exists()) {
                 setProfile(doc.data() as UserProfile);
             } else {
-                // This could happen for users who existed before the profiles collection was created
-                // Or for a brief moment after a new Google Sign-In
-                setProfile({
+                console.warn(`User profile for ${user.uid} not found. Creating default profile.`);
+                const newProfile: UserProfile = {
                     uid: user.uid,
                     displayName: user.displayName || 'Utilizador Anónimo',
                     email: user.email || '',
-                    role: 'Cidadao', // Default role
-                    createdAt: user.metadata.creationTime || new Date().toISOString()
+                    role: 'Cidadao',
+                    createdAt: user.metadata.creationTime || new Date().toISOString(),
+                    photoURL: user.photoURL || undefined,
+                    onboardingCompleted: false,
+                };
+                setDoc(userDocRef, newProfile).then(() => {
+                    setProfile(newProfile);
+                }).catch(err => {
+                    console.error("Failed to create default user profile:", err);
+                    setProfile(null); // Fail gracefully
                 });
             }
             setLoading(false);
@@ -95,7 +102,7 @@ export const withAuth = <P extends object>(
     const { toast } = useToast();
 
     useEffect(() => {
-      if (loading) return; // Wait for loading to complete
+      if (loading) return; 
 
       if (!user) {
         router.push('/login');
@@ -103,7 +110,6 @@ export const withAuth = <P extends object>(
       }
       
       if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
-        // If roles are specified and the user's role is not one of them, redirect
         toast({
             variant: "destructive",
             title: "Acesso Negado",
@@ -115,7 +121,7 @@ export const withAuth = <P extends object>(
     }, [user, profile, loading, router, toast]);
 
     if (loading || !user || (allowedRoles && (!profile || !allowedRoles.includes(profile.role)))) {
-      return <div>A carregar...</div>; // Or a proper loader
+      return <div>A carregar...</div>; 
     }
 
     return <Component {...props} />;

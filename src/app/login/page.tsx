@@ -5,8 +5,8 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, getAdditionalUserInfo } from "firebase/auth";
+import { auth, db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -18,6 +18,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
+import { doc, getDoc, runTransaction, collection, getDocs, setDoc } from "firebase/firestore";
 
 const formSchema = z.object({
   email: z.string().email("Por favor, insira um email válido."),
@@ -126,18 +127,44 @@ export default function LoginPage() {
       });
       router.push("/");
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro no login",
-        description: error.message,
-      });
+       toast({
+            variant: "destructive",
+            title: "Erro no login",
+            description: "As suas credenciais são inválidas. Por favor, tente novamente.",
+        });
     }
   };
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        // If the user document does not exist, it's a new user via Google.
+        // We run a transaction to check if they are the very first user to assign admin role.
+        await runTransaction(db, async (transaction) => {
+            const usersCollectionRef = collection(db, "users");
+            // We get the docs within the transaction to ensure atomicity
+            const usersSnapshot = await getDocs(usersCollectionRef);
+            const isFirstUser = usersSnapshot.empty;
+
+            transaction.set(userDocRef, {
+                uid: user.uid,
+                displayName: user.displayName,
+                email: user.email,
+                photoURL: user.photoURL,
+                role: isFirstUser ? "Administrador" : "Cidadao",
+                createdAt: new Date().toISOString(),
+                onboardingCompleted: false,
+            });
+        });
+      }
+      
       toast({
         title: "Login com Google bem-sucedido!",
         description: "Bem-vindo.",
@@ -147,7 +174,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Erro no login com Google",
-        description: error.message,
+        description: "Não foi possível fazer login com o Google. Tente novamente.",
       });
     }
   };
@@ -231,3 +258,4 @@ export default function LoginPage() {
     </APIProvider>
   );
 }
+

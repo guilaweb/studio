@@ -5,12 +5,12 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, getAdditionalUserInfo } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { doc, setDoc, collection, getDocs, runTransaction } from "firebase/firestore";
+import { doc, setDoc, collection, getDocs, runTransaction, getDoc } from "firebase/firestore";
 import { APIProvider, Map as GoogleMap } from "@vis.gl/react-google-maps";
 
 import { Button } from "@/components/ui/button";
@@ -125,12 +125,10 @@ export default function RegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
       
-      // Update Firebase Auth profile
       await updateProfile(user, {
         displayName: values.displayName,
       });
 
-      // Create user profile in Firestore, making the first user an admin
       await runTransaction(db, async (transaction) => {
         const usersCollectionRef = collection(db, "users");
         const usersSnapshot = await getDocs(usersCollectionRef);
@@ -157,7 +155,7 @@ export default function RegisterPage() {
       toast({
         variant: "destructive",
         title: "Erro no registo",
-        description: error.message,
+        description: "Não foi possível criar a conta. O e-mail pode já estar em uso.",
       });
     }
   };
@@ -167,16 +165,16 @@ export default function RegisterPage() {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      const additionalInfo = getAdditionalUserInfo(result);
+      
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
 
-      if (additionalInfo?.isNewUser) {
+      if (!userDoc.exists()) {
         await runTransaction(db, async (transaction) => {
             const usersCollectionRef = collection(db, "users");
-            const usersSnapshot = await transaction.get(usersCollectionRef);
-            // We check against 0 because this transaction will be atomic
-            const isFirstUser = usersSnapshot.size === 0;
+            const usersSnapshot = await getDocs(usersCollectionRef);
+            const isFirstUser = usersSnapshot.empty;
 
-            const userDocRef = doc(db, "users", user.uid);
             transaction.set(userDocRef, {
                 uid: user.uid,
                 displayName: user.displayName,
@@ -198,7 +196,7 @@ export default function RegisterPage() {
       toast({
         variant: "destructive",
         title: "Erro no login com Google",
-        description: error.message,
+        description: "Não foi possível fazer login com o Google. Tente novamente.",
       });
     }
   };
