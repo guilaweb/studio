@@ -1,11 +1,12 @@
 
+
 "use client";
 
 import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -112,7 +113,7 @@ const ATMStatus = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, o
                         </Button>
                     </div>
                  )}
-            </div>
+             </div>
         </div>
     )
 }
@@ -333,6 +334,10 @@ const LandPlotDetails = ({ poi }: { poi: PointOfInterest }) => {
         mixed: "Misto",
         other: "Outro",
     }
+    
+    const hasZoningInfo = poi.usageType || poi.maxHeight !== undefined || poi.buildingRatio !== undefined;
+    const hasLoteamentoInfo = poi.minLotArea !== undefined || poi.roadCession !== undefined || poi.greenSpaceCession !== undefined;
+
 
     return (
         <div className="space-y-4">
@@ -356,32 +361,80 @@ const LandPlotDetails = ({ poi }: { poi: PointOfInterest }) => {
                             <p className="font-medium">{poi.registrationCode}</p>
                         </div>
                     )}
-                    {poi.usageType && (
-                        <div>
-                            <p className="text-muted-foreground">Uso Permitido</p>
-                            <p className="font-medium">{usageTypeMap[poi.usageType]}</p>
-                        </div>
-                    )}
-                    {poi.maxHeight !== undefined && (
-                        <div>
-                            <p className="text-muted-foreground">Altura Máx. (Pisos)</p>
-                            <p className="font-medium">{poi.maxHeight}</p>
-                        </div>
-                    )}
-                    {poi.buildingRatio !== undefined && (
-                         <div>
-                            <p className="text-muted-foreground">Índice Construção</p>
-                            <p className="font-medium">{poi.buildingRatio}%</p>
-                        </div>
-                    )}
                 </div>
                 {poi.zoningInfo && (
                     <div className="mt-4">
-                        <p className="text-muted-foreground text-sm">Notas de Zoneamento</p>
+                        <p className="text-muted-foreground text-sm">Notas Gerais</p>
                         <p className="text-sm font-medium whitespace-pre-wrap">{poi.zoningInfo}</p>
                     </div>
                 )}
             </div>
+
+            {hasZoningInfo && (
+                 <>
+                    <Separator />
+                    <div className="py-4">
+                        <h3 className="font-semibold mb-2">Informação de Zoneamento</h3>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                             {poi.usageType && (
+                                <div>
+                                    <p className="text-muted-foreground">Uso Permitido</p>
+                                    <p className="font-medium">{usageTypeMap[poi.usageType]}</p>
+                                </div>
+                            )}
+                            {poi.maxHeight !== undefined && (
+                                <div>
+                                    <p className="text-muted-foreground">Altura Máx. (Pisos)</p>
+                                    <p className="font-medium">{poi.maxHeight}</p>
+                                </div>
+                            )}
+                            {poi.buildingRatio !== undefined && (
+                                 <div>
+                                    <p className="text-muted-foreground">Índice Construção</p>
+                                    <p className="font-medium">{poi.buildingRatio}%</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                 </>
+            )}
+             {hasLoteamentoInfo && (
+                 <>
+                    <Separator />
+                    <div className="py-4">
+                        <h3 className="font-semibold mb-2">Regras de Loteamento</h3>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                             {poi.minLotArea !== undefined && (
+                                <div className="flex items-center gap-2">
+                                    <Fence className="h-4 w-4 text-muted-foreground"/>
+                                    <div>
+                                        <p className="text-muted-foreground">Área Mín. Lote</p>
+                                        <p className="font-medium">{poi.minLotArea} m²</p>
+                                    </div>
+                                </div>
+                            )}
+                            {poi.roadCession !== undefined && (
+                                <div className="flex items-center gap-2">
+                                    <Waypoints className="h-4 w-4 text-muted-foreground"/>
+                                    <div>
+                                        <p className="text-muted-foreground">Cedência para Vias</p>
+                                        <p className="font-medium">{poi.roadCession}%</p>
+                                    </div>
+                                </div>
+                            )}
+                            {poi.greenSpaceCession !== undefined && (
+                                 <div className="flex items-center gap-2">
+                                    <Trees className="h-4 w-4 text-muted-foreground"/>
+                                    <div>
+                                        <p className="text-muted-foreground">Cedência p/ Esp. Verdes</p>
+                                        <p className="font-medium">{poi.greenSpaceCession}%</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                 </>
+            )}
         </div>
     );
 };

@@ -73,6 +73,9 @@ export const PointOfInterestSchema = z.object({
   usageType: PointOfInterestUsageTypeEnum.optional(),
   maxHeight: z.number().optional(), // in floors
   buildingRatio: z.number().optional(), // percentage
+  minLotArea: z.number().optional(), // Loteamento
+  roadCession: z.number().optional(), // Loteamento
+  greenSpaceCession: z.number().optional(), // Loteamento
   // Project Specific
   landPlotId: z.string().optional(),
   projectType: z.string().optional(),

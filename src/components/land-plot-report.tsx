@@ -118,15 +118,18 @@ const formSchema = z.object({
   zoningInfo: z.string().optional(),
   status: z.enum(['available', 'occupied', 'protected', 'in_dispute', 'reserved']),
   usageType: z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']),
-  maxHeight: z.coerce.number(),
-  buildingRatio: z.coerce.number(),
+  maxHeight: z.coerce.number().optional(),
+  buildingRatio: z.coerce.number().optional(),
+  minLotArea: z.coerce.number().optional(),
+  roadCession: z.coerce.number().optional(),
+  greenSpaceCession: z.coerce.number().optional(),
 });
 
 type LandPlotReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onLandPlotSubmit: (data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'> & { photoDataUri?: string }) => void;
-  onLandPlotEdit: (id: string, data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'> & { photoDataUri?: string }) => void;
+  onLandPlotSubmit: (data: Partial<PointOfInterest> & { polygon: google.maps.LatLngLiteral[] } & { photoDataUri?: string }) => void;
+  onLandPlotEdit: (id: string, data: Partial<PointOfInterest> & { polygon: google.maps.LatLngLiteral[] } & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
   poiToEdit: PointOfInterest | null;
 };
@@ -166,6 +169,9 @@ export default function LandPlotReport({
       usageType: undefined,
       maxHeight: undefined,
       buildingRatio: undefined,
+      minLotArea: undefined,
+      roadCession: undefined,
+      greenSpaceCession: undefined,
     });
     if (drawnPolygon) {
         drawnPolygon.setMap(null);
@@ -189,6 +195,9 @@ export default function LandPlotReport({
                 usageType: poiToEdit.usageType,
                 maxHeight: poiToEdit.maxHeight ?? undefined,
                 buildingRatio: poiToEdit.buildingRatio ?? undefined,
+                minLotArea: poiToEdit.minLotArea ?? undefined,
+                roadCession: poiToEdit.roadCession ?? undefined,
+                greenSpaceCession: poiToEdit.greenSpaceCession ?? undefined,
             });
             setMapCenter(poiToEdit.position);
             setMapZoom(16);
@@ -404,6 +413,50 @@ export default function LandPlotReport({
                     />
                 </div>
 
+                <Separator />
+                <h4 className="text-sm font-semibold text-foreground">Regras de Loteamento (Opcional)</h4>
+                <div className="grid grid-cols-2 gap-4">
+                     <FormField
+                        control={form.control}
+                        name="minLotArea"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Área Mín. Lote (m²)</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="Ex: 300" {...field} value={field.value ?? ''} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="roadCession"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Cedência Vias (%)</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="Ex: 20" {...field} value={field.value ?? ''}/>
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="greenSpaceCession"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Cedência Verdes (%)</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="Ex: 10" {...field} value={field.value ?? ''}/>
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
 
                 <FormField
                     control={form.control}
@@ -446,5 +499,3 @@ export default function LandPlotReport({
     </Sheet>
   );
 }
-
-    
