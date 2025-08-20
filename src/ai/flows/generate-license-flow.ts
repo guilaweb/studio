@@ -47,6 +47,12 @@ const generateLicenseFlow = ai.defineFlow(
     async (input) => {
         const { text } = await prompt(input);
         
+        // In a real scenario, you'd generate a QR code pointing to a verification URL and replace the placeholder.
+        // For this simulation, we'll just return the HTML with the placeholder.
+        // const verificationUrl = `https://your-app-url/verify/license/${input.projectId}`;
+        // const qrCodeDataUrl = await generateQrCode(verificationUrl);
+        // const finalHtml = text.replace('<!-- QR_CODE_PLACEHOLDER -->', `<img src="${qrCodeDataUrl}" alt="QR Code de Verificação" style="width:120px; height:120px;">`);
+
         return {
             licenseHtml: text,
         };

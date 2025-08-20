@@ -186,8 +186,8 @@ function AdminProjectDetailPage() {
                 projectId: project.id,
                 requesterName: applicant.displayName,
                 architectName: project.architectName,
-                plotNumber: project.plotNumber,
-                plotRegistration: project.registrationCode,
+                plotNumber: landPlot?.plotNumber,
+                plotRegistration: landPlot?.registrationCode,
                 issueDate: new Date().toLocaleDateString('pt-PT'),
             });
             setLicenseHtml(result.licenseHtml);
