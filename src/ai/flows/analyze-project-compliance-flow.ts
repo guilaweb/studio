@@ -14,7 +14,7 @@ const prompt = ai.definePrompt({
     input: { schema: AnalyzeProjectComplianceInputSchema },
     output: { schema: AnalyzeProjectComplianceOutputSchema },
     prompt: `
-        You are an expert urban planning and zoning analyst for a municipality in Angola. 
+        You are an expert urban planning and zoning analyst for a municipality. 
         Your task is to perform a preliminary compliance check for a new construction project based on the provided project details and the zoning regulations for the specific land plot.
 
         Analyze the project information and compare it against the zoning data. Your goal is to identify any clear or potential conflicts with the established regulations.

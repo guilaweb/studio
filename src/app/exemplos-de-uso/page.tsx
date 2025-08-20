@@ -40,7 +40,7 @@ const examples = [
     },
     {
         title: "Exemplo de Uso 1: A Empreendedora e a Burocracia Zero",
-        user: "Sofia, uma jovem empreendedora que quer abrir o seu primeiro café no bairro Maculusso.",
+        user: "Sofia, uma jovem empreendedora que quer abrir o seu primeiro café no Bairro Central.",
         icon: Briefcase,
         challenge: "Sofia teria de passar semanas ou meses a visitar diferentes repartições (Administração Municipal, Bombeiros, Comércio) para perceber quais os documentos necessários, submeter papéis que se poderiam perder e esperar indefinidamente por aprovações.",
         solution: [
@@ -65,9 +65,9 @@ const examples = [
     },
     {
         title: "Exemplo de Uso 2: A Crise da Fuga de Água e a Resposta Rápida",
-        user: "Moradores do bairro Prenda e a equipa da EPAL.",
+        user: "Moradores de um bairro residencial e a equipa da empresa de águas local.",
         icon: Droplets,
-        challenge: "Uma grande conduta de água rebenta durante a noite, inundando uma rua. Os moradores não sabem a quem ligar. A EPAL só fica a saber horas depois, quando dezenas de chamadas sobrecarregam a sua linha telefónica, e não sabem a localização exata do problema.",
+        challenge: "Uma grande conduta de água rebenta durante a noite, inundando uma rua. Os moradores não sabem a quem ligar. A empresa de águas só fica a saber horas depois, quando dezenas de chamadas sobrecarregam a sua linha telefónica, e não sabem a localização exata do problema.",
         solution: [
             {
                 step: "Alerta Cidadão (Módulo de Água)",
@@ -79,7 +79,7 @@ const examples = [
             },
             {
                 step: "Alerta Automático (Painel Municipal)",
-                description: "O sistema da MUNITU deteta múltiplos reportes na mesma localização e eleva o incidente para o nível 'Crítico'. Um alerta automático é enviado para o telemóvel do supervisor de piquete da EPAL."
+                description: "O sistema da MUNITU deteta múltiplos reportes na mesma localização e eleva o incidente para o nível 'Crítico'. Um alerta automático é enviado para o telemóvel do supervisor de piquete da empresa de águas."
             },
             {
                 step: "Ação Imediata",
@@ -94,7 +94,7 @@ const examples = [
     },
     {
         title: "Exemplo de Uso 3: A Feira Semanal e a Formalização",
-        user: "Dona Kial, vendedora de frutas e vegetais (zungueira) numa feira em Viana.",
+        user: "Dona Kial, vendedora de frutas e vegetais numa feira local.",
         icon: ShoppingBasket,
         challenge: "Dona Kial vende numa zona 'cinzenta'. Às vezes, os fiscais aparecem e criam problemas por falta de uma licença clara, gerando instabilidade no seu negócio.",
         solution: [

@@ -64,7 +64,7 @@ export default function PrivacyPolicyPage() {
                             <CardContent className="space-y-6">
                                 <section>
                                     <h2 className="font-semibold text-lg">1. Introdução</h2>
-                                    <p>A sua privacidade é de extrema importância para a MUNITU. Esta Política de Privacidade descreve como a Dianguila Empreendimentos, (SU), Lda. ("nós", "nosso") recolhe, utiliza, partilha e protege as informações pessoais dos utilizadores ("Utilizador", "seu") da nossa plataforma. Este documento foi elaborado em conformidade com a Lei n.º 22/11, de 17 de Junho (Lei da Proteção de Dados Pessoais de Angola).</p>
+                                    <p>A sua privacidade é de extrema importância para a MUNITU. Esta Política de Privacidade descreve como a Dianguila Empreendimentos, (SU), Lda. ("nós", "nosso") recolhe, utiliza, partilha e protege as informações pessoais dos utilizadores ("Utilizador", "seu") da nossa plataforma. Este documento foi elaborado em conformidade com as melhores práticas internacionais de proteção de dados.</p>
                                 </section>
 
                                 <section>
@@ -109,7 +109,7 @@ export default function PrivacyPolicyPage() {
 
                                 <section>
                                     <h2 className="font-semibold text-lg">6. Os Seus Direitos</h2>
-                                    <p>De acordo com a Lei da Proteção de Dados Pessoais, o Utilizador tem o direito de aceder, retificar ou apagar as suas informações pessoais. Pode exercer estes direitos através das configurações do seu perfil na plataforma ou contactando-nos diretamente. Note que a eliminação de certas informações pode impedir a prestação de alguns serviços.</p>
+                                    <p>De acordo com a legislação de proteção de dados aplicável na sua jurisdição, o Utilizador tem o direito de aceder, retificar ou apagar as suas informações pessoais. Pode exercer estes direitos através das configurações do seu perfil na plataforma ou contactando-nos diretamente. Note que a eliminação de certas informações pode impedir a prestação de alguns serviços.</p>
                                 </section>
                                 
                                 <section>

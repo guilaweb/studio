@@ -18,7 +18,7 @@ const prompt = ai.definePrompt({
     input: { schema: SuggestNextStepsInputSchema },
     output: { schema: SuggestNextStepsOutputSchema },
     prompt: `
-        You are a workflow engine for a municipal administration in Angola. 
+        You are a workflow engine for a municipal administration. 
         Your task is to analyze a construction project and determine which departments need to provide a review (parecer) before the project can be approved.
 
         Analyze the project details provided. Based on the rules below, create a list of required steps.

@@ -134,7 +134,7 @@ export default function InstitutionalRequestPage() {
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>Nome Oficial da Entidade</FormLabel>
-                                                        <FormControl><Input placeholder="Ex: Administração Municipal de Luanda" {...field} /></FormControl>
+                                                        <FormControl><Input placeholder="Ex: Administração Municipal de..." {...field} /></FormControl>
                                                         <FormMessage />
                                                     </FormItem>
                                                 )}
@@ -187,8 +187,8 @@ export default function InstitutionalRequestPage() {
                                                     name="province"
                                                     render={({ field }) => (
                                                         <FormItem>
-                                                        <FormLabel>Província</FormLabel>
-                                                        <FormControl><Input placeholder="Ex: Luanda" {...field} /></FormControl>
+                                                        <FormLabel>Província/Estado</FormLabel>
+                                                        <FormControl><Input placeholder="Ex: Província X" {...field} /></FormControl>
                                                         <FormMessage />
                                                         </FormItem>
                                                     )}
@@ -198,8 +198,8 @@ export default function InstitutionalRequestPage() {
                                                     name="municipality"
                                                     render={({ field }) => (
                                                         <FormItem>
-                                                            <FormLabel>Município</FormLabel>
-                                                            <FormControl><Input placeholder="Ex: Viana" {...field} /></FormControl>
+                                                            <FormLabel>Município/Cidade</FormLabel>
+                                                            <FormControl><Input placeholder="Ex: Município Y" {...field} /></FormControl>
                                                             <FormMessage />
                                                         </FormItem>
                                                     )}

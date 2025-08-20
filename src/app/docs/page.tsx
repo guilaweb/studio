@@ -159,7 +159,7 @@ export default function DocsPage() {
                         </Card>
                         <Card>
                             <CardHeader>
-                                <CardTitle>Sistema Geodésico Nacional</CardTitle>
+                                <CardTitle>Sistema Geodésico de Referência</CardTitle>
                                 <CardDescription>
                                     Informações sobre o sistema de referência e projeção a ser utilizado em projetos de engenharia e arquitetura.
                                 </CardDescription>
@@ -168,27 +168,22 @@ export default function DocsPage() {
                                 <div className="space-y-2">
                                     <h3 className="font-semibold">Datum de Referência</h3>
                                     <p className="text-muted-foreground">
-                                        O datum geodésico de referência para Angola é o **WGS 84 (World Geodetic System 1984)**. Todos os levantamentos e projetos devem utilizar este sistema para garantir a compatibilidade e precisão dos dados geográficos a nível nacional e internacional.
+                                        O datum geodésico de referência para a maioria das aplicações globais é o **WGS 84 (World Geodetic System 1984)**. Recomenda-se que todos os levantamentos e projetos utilizem este sistema para garantir a compatibilidade e precisão dos dados geográficos a nível internacional.
                                     </p>
                                 </div>
                                 <div className="space-y-2">
                                     <h3 className="font-semibold">Sistema de Projeção</h3>
                                     <p className="text-muted-foreground">
-                                        O sistema de projeção cartográfica adotado é a **Projeção Universal Transversa de Mercator (UTM)**. O território de Angola abrange as seguintes zonas UTM:
+                                        O sistema de projeção cartográfica mais comum para aplicações de engenharia e mapeamento em grande escala é a **Projeção Universal Transversa de Mercator (UTM)**. O globo é dividido em 60 zonas de 6 graus.
                                     </p>
-                                    <ul className="list-disc pl-6 text-muted-foreground space-y-1">
-                                        <li><strong>Zona 32 Sul:</strong> Para a província de Cabinda.</li>
-                                        <li><strong>Zona 33 Sul:</strong> Para a maior parte do território continental, a oeste do meridiano 18°E.</li>
-                                        <li><strong>Zona 34 Sul:</strong> Para a faixa oriental do país, a leste do meridiano 18°E.</li>
-                                    </ul>
                                     <p className="text-sm text-muted-foreground pt-2">
-                                        É da responsabilidade do técnico responsável pelo projeto selecionar a zona UTM correta com base na localização geográfica da obra para garantir a máxima precisão cartográfica.
+                                        É da responsabilidade do técnico responsável pelo projeto selecionar a zona UTM correta com base na localização geográfica da obra para garantir a máxima precisão cartográfica. Verifique sempre as normas e regulamentos do instituto geográfico ou cadastral local.
                                     </p>
                                 </div>
                                 <div className="space-y-2">
                                     <h3 className="font-semibold">Notas Adicionais</h3>
                                     <p className="text-muted-foreground">
-                                        A precisão na georreferenciação de projetos é fundamental para o planeamento urbano, gestão de infraestruturas e segurança jurídica. A conformidade com estas normas é obrigatória para a aprovação de processos de licenciamento. Para mais detalhes técnicos, consulte a documentação oficial do Instituto Geográfico e Cadastral de Angola (IGCA).
+                                        A precisão na georreferenciação de projetos é fundamental para o planeamento urbano, gestão de infraestruturas e segurança jurídica. A conformidade com as normas locais é obrigatória para a aprovação de processos de licenciamento.
                                     </p>
                                 </div>
                             </CardContent>

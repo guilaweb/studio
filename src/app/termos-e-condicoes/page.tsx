@@ -59,7 +59,7 @@ export default function TermsAndConditionsPage() {
                         <Card className="prose prose-sm md:prose-base dark:prose-invert max-w-full">
                             <CardHeader>
                                 <CardTitle>Termos e Condições de Utilização da Plataforma MUNITU</CardTitle>
-                                <CardDescription>Última atualização: 29 de Julho de 2024</CardDescription>
+                                <CardDescription>Última atualização: 30 de Julho de 2024</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <section>
@@ -97,7 +97,7 @@ export default function TermsAndConditionsPage() {
 
                                 <section>
                                     <h2 className="font-semibold text-lg">6. Privacidade e Proteção de Dados</h2>
-                                    <p>A nossa Política de Privacidade, que está em conformidade com a Lei n.º 22/11, de 17 de Junho (Lei da Proteção de Dados Pessoais de Angola), descreve como recolhemos, usamos e protegemos os seus dados pessoais. Ao utilizar a Plataforma, o Utilizador concorda com as práticas descritas na nossa Política de Privacidade.</p>
+                                    <p>A nossa Política de Privacidade, que está em conformidade com as melhores práticas de proteção de dados, descreve como recolhemos, usamos e protegemos os seus dados pessoais. Ao utilizar a Plataforma, o Utilizador concorda com as práticas descritas na nossa Política de Privacidade.</p>
                                 </section>
 
                                 <section>
@@ -118,7 +118,7 @@ export default function TermsAndConditionsPage() {
 
                                 <section>
                                     <h2 className="font-semibold text-lg">10. Legislação Aplicável e Foro</h2>
-                                    <p>Estes Termos serão regidos e interpretados de acordo com as leis da República de Angola. Para a resolução de qualquer litígio emergente da interpretação ou execução dos presentes Termos, as partes elegem o foro da Comarca de Luanda, com expressa renúncia a qualquer outro.</p>
+                                    <p>Estes Termos serão regidos e interpretados de acordo com as leis da jurisdição em que a entidade governamental principal parceira da MUNITU opera. Na ausência de tal entidade, serão aplicadas as leis onde a Dianguila Empreendimentos, (SU), Lda. está sediada. As partes concordam em submeter qualquer litígio ao foro competente nessa jurisdição.</p>
                                 </section>
                             </CardContent>
                         </Card>
