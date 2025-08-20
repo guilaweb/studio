@@ -242,3 +242,5 @@ function AtmHistoryPage() {
 }
 
 export default withAuth(AtmHistoryPage);
+
+    
