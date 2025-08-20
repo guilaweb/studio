@@ -1,8 +1,7 @@
 
-
 "use client";
 
-import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
+import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -119,110 +118,61 @@ export const getPinStyle = (point: PointOfInterest) => {
     return {};
 }
 
-// Custom Polygon component since it's not exported directly
-const Polygon = (props: google.maps.PolygonOptions) => {
-    const map = useMap();
-    const [polygon, setPolygon] = useState<google.maps.Polygon | null>(null);
-
-    useEffect(() => {
-        if (!map) return;
-
-        if (!polygon) {
-            const newPolygon = new google.maps.Polygon(props);
-            newPolygon.setMap(map);
-            setPolygon(newPolygon);
-        } else {
-            polygon.setOptions(props);
-        }
-
-        return () => {
-            if (polygon) {
-                polygon.setMap(null);
-            }
-        };
-    }, [map, polygon, props]);
-
-    useEffect(() => {
-        if (!polygon) return;
-        const clickListener = polygon.addListener('click', (e: google.maps.MapMouseEvent) => {
-            if (props.onClick) {
-                props.onClick(e);
-            }
-        });
-
-         const mouseOverListener = polygon.addListener('mouseover', (e: google.maps.MapMouseEvent) => {
-            if (props.onMouseOver) {
-                props.onMouseOver(e);
-            }
-        });
-
-         const mouseOutListener = polygon.addListener('mouseout', (e: google.maps.MapMouseEvent) => {
-            if (props.onMouseOut) {
-                props.onMouseOut(e);
-            }
-        });
-
-
-        return () => {
-            clickListener.remove();
-            mouseOverListener.remove();
-            mouseOutListener.remove();
-        }
-    }, [polygon, props]);
-
-
-    return null;
-};
-
-
 const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut, zoom }: { point: PointOfInterest; onClick: (pointId: string) => void; onMouseOver: (pointId: string) => void; onMouseOut: () => void; zoom: number }) => {
   const [markerRef, marker] = useAdvancedMarkerRef();
+  const [polygon, setPolygon] = useState<google.maps.Polygon | null>(null);
   const pinStyle = getPinStyle(point);
   const isPolygonType = (point.type === 'land_plot' || point.type === 'announcement');
-  
   const showPolygon = isPolygonType && point.polygon;
-  const showMarker = true; // Always show marker
-  
-  // Hide expired announcements
+
+  useEffect(() => {
+    if (marker && showPolygon && !polygon) {
+      const poly = new google.maps.Polygon({
+        paths: point.polygon,
+        strokeColor: pinStyle.background || 'hsl(var(--primary))',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: pinStyle.background || 'hsl(var(--primary))',
+        fillOpacity: 0.35,
+        clickable: true,
+      });
+
+      poly.setMap(marker.map);
+      poly.addListener('click', () => onClick(point.id));
+      poly.addListener('mouseover', () => onMouseOver(point.id));
+      poly.addListener('mouseout', onMouseOut);
+      setPolygon(poly);
+    }
+
+    return () => {
+      if (polygon) {
+        polygon.setMap(null);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marker, showPolygon, polygon]); // Dependencies are carefully chosen to avoid re-renders
+
   if (point.type === 'announcement' && point.status === 'expired') {
     return null;
   }
 
   return (
-    <>
-        {showMarker && (
-            <AdvancedMarker 
-                ref={markerRef} 
-                position={point.position} 
-                title={point.title} 
-                onClick={() => onClick(point.id)}
-                onMouseOver={() => onMouseOver(point.id)}
-                onMouseOut={onMouseOut}
-            >
-                <Pin 
-                    background={pinStyle.background} 
-                    borderColor={pinStyle.borderColor} 
-                    glyphColor={pinStyle.glyphColor}
-                >
-                    <MarkerIcon type={point.type} />
-                </Pin>
-            </AdvancedMarker>
-        )}
-        {showPolygon && (
-            <Polygon
-                paths={point.polygon}
-                strokeColor={pinStyle.background || 'hsl(var(--primary))'}
-                strokeOpacity={0.8}
-                strokeWeight={2}
-                fillColor={pinStyle.background || 'hsl(var(--primary))'}
-                fillOpacity={0.35}
-                clickable={true}
-                onClick={() => onClick(point.id)}
-                onMouseOver={() => onMouseOver(point.id)}
-                onMouseOut={onMouseOut}
-            />
-        )}
-    </>
+    <AdvancedMarker 
+        ref={markerRef} 
+        position={point.position} 
+        title={point.title} 
+        onClick={() => onClick(point.id)}
+        onMouseOver={() => onMouseOver(point.id)}
+        onMouseOut={onMouseOut}
+    >
+        <Pin 
+            background={pinStyle.background} 
+            borderColor={pinStyle.borderColor} 
+            glyphColor={pinStyle.glyphColor}
+        >
+            <MarkerIcon type={point.type} />
+        </Pin>
+    </AdvancedMarker>
   );
 };
 
