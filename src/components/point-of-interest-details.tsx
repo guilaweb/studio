@@ -245,7 +245,7 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
                             </Label>
                             <Input id="update-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-2 h-auto p-1"/>
                         </div>
-                        {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={100} height={100} className="rounded-md object-cover" />}
+                        {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={100} height={150} className="rounded-md object-cover" />}
 
                         <div className="flex flex-wrap gap-2">
                             <Button type="submit" size="sm" disabled={!updateText.trim()}>

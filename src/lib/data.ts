@@ -5,7 +5,7 @@ export const PointOfInterestUpdateSchema = z.object({
   id: z.string(),
   text: z.string(),
   authorId: z.string(),
-  authorDisplayName: z.string().optional(),
+  authorDisplayName: z.string(),
   timestamp: z.string(),
   photoDataUri: z.string().optional(),
 });

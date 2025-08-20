@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 console.warn(`User profile for ${user.uid} not found. Creating default profile.`);
                 const newProfile: UserProfile = {
                     uid: user.uid,
-                    displayName: user.displayName || 'Utilizador Anónimo',
+                    displayName: user.displayName || user.email || 'Utilizador Anónimo',
                     email: user.email || '',
                     role: 'Cidadao',
                     createdAt: user.metadata.creationTime || new Date().toISOString(),
