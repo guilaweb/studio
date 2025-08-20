@@ -123,9 +123,12 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         const pointToAdd: PointOfInterest = {...point, updates: completeUpdates};
         
         // Remove undefined fields before sending to Firestore
-        const cleanedPoint = Object.fromEntries(
-            Object.entries(pointToAdd).filter(([, value]) => value !== undefined)
-        );
+        const cleanedPoint: { [key: string]: any } = {};
+        for (const [key, value] of Object.entries(pointToAdd)) {
+            if (value !== undefined) {
+                cleanedPoint[key] = value;
+            }
+        }
 
         await setDoc(pointRef, cleanedPoint);
     } catch (error) {
