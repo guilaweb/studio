@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -243,5 +242,3 @@ function AtmHistoryPage() {
 }
 
 export default withAuth(AtmHistoryPage);
-
-    
