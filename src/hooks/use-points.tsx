@@ -64,6 +64,9 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         usageType: data.usageType,
         maxHeight: data.maxHeight, // in floors
         buildingRatio: data.buildingRatio, // percentage
+        minLotArea: data.minLotArea, // Loteamento
+        roadCession: data.roadCession, // Loteamento
+        greenSpaceCession: data.greenSpaceCession, // Loteamento
         propertyTaxStatus: data.propertyTaxStatus,
         // Project Specific
         landPlotId: data.landPlotId,
@@ -224,28 +227,11 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         };
 
         const editUpdateWithId = {...editUpdate, id: `upd-${pointId}-${Date.now()}-${Math.random()}`};
-
-        const dataToUpdate: Partial<PointOfInterest> & { updates: any } = {
+        
+        const cleanedData = removeUndefinedFields({
             ...otherUpdates,
             updates: arrayUnion(removeUndefinedFields(editUpdateWithId))
-        };
-
-        // Handle photo update specifically for incident/atm types
-        if (photoDataUri) {
-            const pointToUpdate = allData.find(p => p.id === pointId);
-            if (pointToUpdate?.updates && pointToUpdate.updates.length > 0) {
-                // Create a mutable copy of updates and sort chronologically
-                const newUpdates = [...pointToUpdate.updates].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-                
-                // Update the photo on the original update
-                newUpdates[0] = { ...newUpdates[0], photoDataUri: photoDataUri };
-                
-                // Overwrite the updates array instead of using arrayUnion
-                dataToUpdate.updates = newUpdates.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); 
-            }
-        }
-        
-        const cleanedData = removeUndefinedFields(dataToUpdate);
+        });
 
         if (Object.keys(cleanedData).length > 0) {
              await updateDoc(pointRef, cleanedData);
@@ -258,6 +244,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             title: "Erro ao Atualizar",
             description: "Não foi possível guardar as alterações.",
         });
+        throw error;
     }
   };
 

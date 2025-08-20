@@ -23,15 +23,24 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
+import { PointOfInterest } from "@/lib/data";
 import { Input } from "./ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Separator } from "./ui/separator";
-import { FileText, Loader2, Send, Trash2, Upload } from "lucide-react";
-import { usePoints } from "@/hooks/use-points";
+import { FileText, Loader2, Send, Trash2, CheckCircle2, Circle } from "lucide-react";
 import { Label } from "@/components/ui/label";
+
+const requiredLoteamentoDocs = [
+    { key: 'levantamento', name: 'Levantamento Topográfico' },
+    { key: 'loteamento', name: 'Plano Geral de Loteamento' },
+    { key: 'memoria', name: 'Memória Descritiva' },
+    { key: 'agua', name: 'Projeto de Rede de Água' },
+    { key: 'saneamento', name: 'Projeto de Rede de Saneamento' },
+    { key: 'eletricidade', name: 'Projeto de Rede de Eletricidade' },
+    { key: 'estradas', name: 'Projeto de Estradas e Passeios' },
+];
 
 
 const formSchema = z.object({
@@ -91,17 +100,20 @@ export default function ConstructionEdit({
         setFiles(prev => prev.filter(f => f.name !== fileName));
     };
 
+    const checkFileExists = (key: string) => {
+        return files.some(file => file.name.toLowerCase().includes(key));
+    }
+
     async function onSubmit(values: z.infer<typeof formSchema>) {
         if (!poiToEdit || !profile) return;
 
         setIsSubmitting(true);
 
-        // This is a placeholder for real file upload logic.
-        // In a real app, you'd upload new files to Firebase Storage, get URLs,
-        // and combine them with existing file URLs.
         const uploadedFiles = files.map(file => {
             if (file instanceof File) {
-                return { name: file.name, url: `https://storage.googleapis.com/your-bucket/${file.name}` };
+                // In a real app, this would be an upload to a storage bucket
+                // For now, we simulate a URL. The key is to store the name.
+                return { name: file.name, url: `https://storage.placeholder.com/${poiToEdit.id}/${file.name}` };
             }
             return file;
         });
@@ -149,10 +161,7 @@ export default function ConstructionEdit({
                                     <Label>Nº do Processo</Label>
                                     <Input value={poiToEdit?.id || ''} readOnly disabled />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Requerente</Label>
-                                    <Input value={profile?.displayName || ''} readOnly disabled />
-                                </div>
+                                
                                 <FormField
                                     control={form.control}
                                     name="projectName"
@@ -178,11 +187,13 @@ export default function ConstructionEdit({
                                                         <SelectValue placeholder="Selecione o tipo de obra" />
                                                     </SelectTrigger>
                                                 </FormControl>
-                                                <SelectContent>
+                                                 <SelectContent>
                                                     <SelectItem value="new-build">Construção Nova</SelectItem>
                                                     <SelectItem value="remodel">Remodelação</SelectItem>
                                                     <SelectItem value="expansion">Ampliação</SelectItem>
                                                     <SelectItem value="demolition">Demolição</SelectItem>
+                                                    <SelectItem value="loteamento">Loteamento (Urbanização)</SelectItem>
+                                                    <SelectItem value="pip">Pedido de Informação Prévia (PIP)</SelectItem>
                                                     <SelectItem value="other">Outro</SelectItem>
                                                 </SelectContent>
                                             </Select>
@@ -190,25 +201,19 @@ export default function ConstructionEdit({
                                         </FormItem>
                                     )}
                                 />
-
-                                <Separator />
-                                
-                                <h4 className="text-sm font-semibold">Dados do Arquiteto Responsável</h4>
-                                <FormField
+                                 <FormField
                                     control={form.control}
                                     name="architectName"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Nome Completo do Arquiteto</FormLabel>
+                                            <FormLabel>Nome do Arquiteto/Urbanista</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Insira o nome do arquiteto" {...field} />
+                                                <Input placeholder="Insira o nome do técnico responsável" {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
-
-                                <Separator />
 
                                 <FormField
                                     control={form.control}
@@ -226,8 +231,22 @@ export default function ConstructionEdit({
 
                                 <Separator />
 
-                                <div className="space-y-4">
-                                    <h3 className="text-lg font-medium">Documentos do Projeto</h3>
+                                 <div className="space-y-4">
+                                     <h3 className="text-lg font-medium">Documentos do Projeto</h3>
+
+                                     {form.getValues('projectType') === 'loteamento' && (
+                                        <div className="p-4 border rounded-lg bg-muted/50 space-y-3">
+                                             <h4 className="text-sm font-semibold">Checklist de Documentos para Loteamento</h4>
+                                             {requiredLoteamentoDocs.map(doc => (
+                                                <div key={doc.key} className="flex items-center gap-2">
+                                                    {checkFileExists(doc.key) ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
+                                                    <span className="text-sm">{doc.name}</span>
+                                                </div>
+                                             ))}
+                                        </div>
+                                     )}
+
+
                                     <div className="space-y-3">
                                         {files.map((file, index) => (
                                             <div key={index} className="flex items-center justify-between gap-4 rounded-lg border p-3">

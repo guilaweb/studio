@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -23,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
     projectName: z.string().min(5, "O nome do projeto é obrigatório."),
@@ -58,6 +60,7 @@ function NewLicensePage() {
     const { allData, addPoint } = usePoints();
     const { user, profile } = useAuth();
     const { toast } = useToast();
+    const router = useRouter();
     const [step, setStep] = React.useState(1);
     const [searchFilters, setSearchFilters] = React.useState<SearchFilters>({ location: '', area: null, usageType: null });
     const [selectedPlot, setSelectedPlot] = React.useState<PointOfInterest | null>(null);
@@ -115,8 +118,9 @@ function NewLicensePage() {
         
         setIsSubmitting(true);
         const projectData = form.getValues();
+        const newProjectId = `construction-${Date.now()}`;
         const pointToAdd = {
-            id: `construction-${Date.now()}`,
+            id: newProjectId,
             type: 'construction' as const,
             landPlotId: selectedPlot.id,
             title: projectData.projectName,
@@ -139,11 +143,22 @@ function NewLicensePage() {
 
         try {
             await addPoint(pointToAdd);
-            toast({ title: "Pedido Submetido!", description: "O seu pedido de licença foi enviado para análise."});
-            // Here you would typically redirect the user to the list of their licenses
-            setStep(1);
-            setSelectedPlot(null);
-            form.reset();
+            toast({ 
+                title: "Pedido Submetido!", 
+                description: "O seu pedido foi enviado. Agora adicione os documentos necessários.",
+                action: (
+                    <Button asChild variant="secondary" onClick={() => {
+                        // This logic is a bit of a workaround to trigger the sheet.
+                        // A more robust solution might use a global state manager (e.g., Zustand, Redux).
+                        const newPoi = {...pointToAdd, updates: []}; // we don't need full updates object.
+                        sessionStorage.setItem('poiToEditAfterRedirect', JSON.stringify(newPoi));
+                        router.push('/licencas');
+                    }}>
+                        Anexar Documentos
+                    </Button>
+                )
+            });
+            router.push('/licencas');
         } catch (error) {
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível submeter o pedido." });
         } finally {
@@ -173,7 +188,7 @@ function NewLicensePage() {
                             <Progress value={progress} className="mb-4" />
                             <CardTitle>Passo {step}: {step === 1 ? 'Selecionar o Lote' : step === 2 ? 'Detalhes do Projeto' : 'Análise e Submissão'}</CardTitle>
                             <CardDescription>
-                                {step === 1 ? 'Encontre e selecione o lote onde pretende construir.' : step === 2 ? 'Preencha os detalhes do seu projeto de construção.' : 'Reveja a análise de conformidade e submeta o seu pedido.'}
+                                {step === 1 ? 'Encontre e selecione o lote onde pretende construir ou desenvolver.' : step === 2 ? 'Preencha os detalhes do seu projeto.' : 'Reveja a análise de conformidade e submeta o seu pedido.'}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -222,17 +237,19 @@ function NewLicensePage() {
                                                             <SelectItem value="remodel">Remodelação</SelectItem>
                                                             <SelectItem value="expansion">Ampliação</SelectItem>
                                                             <SelectItem value="demolition">Demolição</SelectItem>
+                                                            <SelectItem value="loteamento">Loteamento (Urbanização)</SelectItem>
+                                                            <SelectItem value="pip">Pedido de Informação Prévia (PIP)</SelectItem>
                                                             <SelectItem value="other">Outro</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 <FormMessage /></FormItem>
                                             )} />
                                              <FormField control={form.control} name="architectName" render={({ field }) => (
-                                                <FormItem><FormLabel>Nome do Arquiteto</FormLabel><FormControl><Input placeholder="Insira o nome do arquiteto" {...field} /></FormControl><FormMessage /></FormItem>
+                                                <FormItem><FormLabel>Nome do Arquiteto/Urbanista</FormLabel><FormControl><Input placeholder="Insira o nome do técnico responsável" {...field} /></FormControl><FormMessage /></FormItem>
                                             )} />
                                         </div>
                                         <FormField control={form.control} name="projectDescription" render={({ field }) => (
-                                            <FormItem><FormLabel>Descrição do Projeto</FormLabel><FormControl><Textarea placeholder="Descreva brevemente os trabalhos a realizar." rows={4} {...field} /></FormControl><FormMessage /></FormItem>
+                                            <FormItem><FormLabel>Descrição do Projeto</FormLabel><FormControl><Textarea placeholder="Descreva brevemente os trabalhos a realizar. Se for um PIP, descreva a intenção." rows={4} {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
                                         <div className="flex justify-between">
                                             <Button type="button" variant="outline" onClick={() => setStep(1)}>Voltar</Button>
@@ -251,12 +268,12 @@ function NewLicensePage() {
                                     <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-md">
                                         <p><strong>Atenção:</strong> Esta é uma análise preliminar e automática gerada por IA. Não substitui a análise técnica completa por um funcionário municipal. Serve como um guia para ajudar a identificar potenciais problemas antes da submissão formal.</p>
                                     </div>
-                                    <p className="text-sm">O próximo passo é carregar os documentos do projeto (plantas, memória descritiva, etc). Esta funcionalidade será adicionada em breve. Por agora, pode submeter o pedido para registo inicial.</p>
+                                    <p className="text-sm">O próximo passo é submeter este pedido inicial. Após a submissão, poderá anexar todos os documentos necessários ao processo (plantas, memória descritiva, etc.) na sua área de licenças.</p>
                                     <div className="flex justify-between">
                                         <Button type="button" variant="outline" onClick={() => setStep(2)}>Voltar</Button>
                                         <Button onClick={handleSubmit} disabled={isSubmitting}>
                                             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                            Submeter Pedido de Licença
+                                            Submeter Pedido
                                         </Button>
                                     </div>
                                 </div>

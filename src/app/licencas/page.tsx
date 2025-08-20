@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -6,13 +7,15 @@ import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Plus, FileText } from "lucide-react";
+import { ArrowLeft, Plus, FileText, Edit } from "lucide-react";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { statusLabelMap } from "@/lib/data";
+import ConstructionEdit from "@/components/construction-edit";
+import { useRouter } from 'next/navigation'
 
-const LicenseRequestCard = ({ project }: { project: PointOfInterest }) => {
+const LicenseRequestCard = ({ project, onEditClick }: { project: PointOfInterest, onEditClick: (project: PointOfInterest) => void }) => {
     return (
         <Card>
             <CardContent className="p-4 flex items-center justify-between">
@@ -29,9 +32,14 @@ const LicenseRequestCard = ({ project }: { project: PointOfInterest }) => {
                     <Badge variant={project.status === 'approved' ? 'default' : (project.status === 'rejected' ? 'destructive' : 'secondary')} className={project.status === 'approved' ? 'bg-green-600' : ''}>
                         {project.status ? statusLabelMap[project.status] : "N/A"}
                     </Badge>
-                     <Button variant="outline" size="sm" asChild>
-                        <Link href={`/admin/projetos/${project.id}`}>Ver Processo</Link>
-                    </Button>
+                     <div className="flex gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={`/admin/projetos/${project.id}`}>Ver Processo</Link>
+                        </Button>
+                         <Button variant="outline" size="sm" onClick={() => onEditClick(project)}>
+                             <Edit className="mr-2 h-3 w-3" /> Anexar
+                        </Button>
+                    </div>
                 </div>
             </CardContent>
         </Card>
@@ -40,13 +48,35 @@ const LicenseRequestCard = ({ project }: { project: PointOfInterest }) => {
 
 
 function LicencasPage() {
-    const { allData, loading } = usePoints();
+    const { allData, loading, updatePointDetails } = usePoints();
     const { user } = useAuth();
+    const [poiToEdit, setPoiToEdit] = React.useState<PointOfInterest | null>(null);
+    const router = useRouter();
 
+
+    React.useEffect(() => {
+        const poiToEditJson = sessionStorage.getItem('poiToEditAfterRedirect');
+        if (poiToEditJson) {
+            const poi: PointOfInterest = JSON.parse(poiToEditJson);
+            // Find the full POI from allData to ensure it's up-to-date
+            const fullPoi = allData.find(p => p.id === poi.id);
+            setPoiToEdit(fullPoi || poi);
+            sessionStorage.removeItem('poiToEditAfterRedirect');
+        }
+    }, [allData]);
+    
     const userProjects = React.useMemo(() => {
         if (!user) return [];
         return allData.filter(p => p.type === 'construction' && p.authorId === user.uid);
     }, [allData, user]);
+
+    const handleEditClick = (project: PointOfInterest) => {
+        setPoiToEdit(project);
+    }
+    
+    const handleSheetClose = () => {
+        setPoiToEdit(null);
+    }
 
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -80,7 +110,7 @@ function LicencasPage() {
                                 <CardDescription>Acompanhe o estado de todos os seus processos de licenciamento.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {userProjects.map(p => <LicenseRequestCard key={p.id} project={p} />)}
+                                {userProjects.map(p => <LicenseRequestCard key={p.id} project={p} onEditClick={handleEditClick} />)}
                             </CardContent>
                         </Card>
                     </div>
@@ -100,6 +130,12 @@ function LicencasPage() {
                     </div>
                 )}
             </main>
+            <ConstructionEdit 
+                open={!!poiToEdit}
+                onOpenChange={(isOpen) => !isOpen && handleSheetClose()}
+                onConstructionEdit={updatePointDetails}
+                poiToEdit={poiToEdit}
+            />
         </div>
     );
 }
