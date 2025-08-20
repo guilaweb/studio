@@ -5,14 +5,14 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData, query, orderBy, writeBatch, getDocs, where } from 'firebase/firestore';
-import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from '@/lib/data';
+import { PointOfInterest, PointOfInterestUpdate, QueueTime, statusLabelMap } from '@/lib/data';
 import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
 
 interface PointsContextType {
   allData: PointOfInterest[];
   addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => Promise<void>;
-  updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText: string, availableNotes?: number[]) => Promise<void>;
+  updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText: string, availableNotes?: number[], queueTime?: QueueTime) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
   updatePointDetails: (pointId: string, updates: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>) => Promise<void>;
   loading: boolean;
@@ -152,7 +152,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updatePointStatus = async (pointId: string, status: PointOfInterest['status'], updateText: string, availableNotes?: number[]) => {
+  const updatePointStatus = async (pointId: string, status: PointOfInterest['status'], updateText: string, availableNotes?: number[], queueTime?: QueueTime) => {
     if (!user || !profile) {
       toast({ variant: "destructive", title: "Erro de Permissão", description: "Utilizador não autenticado." });
       return;
@@ -166,6 +166,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             authorDisplayName: profile.displayName || "Utilizador Anónimo",
             timestamp: new Date().toISOString(),
             availableNotes: availableNotes,
+            queueTime: queueTime,
         };
 
         const updateWithId = {
@@ -269,3 +270,5 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const usePoints = () => useContext(PointsContext);
+
+    

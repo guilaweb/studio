@@ -1,6 +1,9 @@
 
 import { z } from 'zod';
 
+export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
+export type QueueTime = z.infer<typeof QueueTimeEnum>;
+
 export const PointOfInterestUpdateSchema = z.object({
   id: z.string(),
   text: z.string(),
@@ -9,6 +12,7 @@ export const PointOfInterestUpdateSchema = z.object({
   timestamp: z.string(),
   photoDataUri: z.string().optional(),
   availableNotes: z.array(z.number()).optional(),
+  queueTime: QueueTimeEnum.optional(),
 });
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
@@ -75,7 +79,7 @@ export const PointOfInterestSchema = z.object({
   architectName: z.string().optional(),
   // Announcement Specific
   announcementCategory: AnnouncementCategoryEnum.optional(),
-  // Duplicate Detection
+  // Duplicate detection
   potentialDuplicateOfId: z.string().optional(),
 });
 
@@ -168,6 +172,13 @@ export const announcementCategoryMap: Record<AnnouncementCategory, string> = {
     public_works: 'Obras Públicas',
     security: 'Segurança',
     other: 'Outro',
+};
+
+export const queueTimeLabelMap: Record<QueueTime, string> = {
+    none: 'Sem fila',
+    short: 'Curta (até 5 pessoas)',
+    medium: 'Média (5-10 pessoas)',
+    long: 'Longa (+10 pessoas)',
 };
 
 
@@ -302,3 +313,5 @@ export const ConversationSchema = z.object({
 });
 export type Conversation = z.infer<typeof ConversationSchema>;
 
+
+    

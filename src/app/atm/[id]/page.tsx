@@ -6,10 +6,10 @@ import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { withAuth } from "@/hooks/use-auth";
 import { usePoints } from "@/hooks/use-points";
-import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/data";
+import { PointOfInterest, PointOfInterestUpdate, QueueTime, queueTimeLabelMap, statusLabelMap } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle, Clock, ThumbsDown, ThumbsUp, User, Wand2, XCircle, Banknote, HelpCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, Clock, ThumbsDown, ThumbsUp, User, Wand2, XCircle, Banknote, HelpCircle, Users } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -17,22 +17,37 @@ import AtmNoteReport from "@/components/atm-note-report";
 
 const NoteAnalysis = ({ poi }: { poi: PointOfInterest }) => {
     const lastNoteUpdate = poi.updates?.find(u => u.availableNotes && u.availableNotes.length > 0);
+    const lastQueueUpdate = poi.updates?.find(u => u.queueTime);
     
-    let content;
+    let noteContent;
+    let queueContent;
 
     if (lastNoteUpdate && lastNoteUpdate.availableNotes) {
         const sortedNotes = [...lastNoteUpdate.availableNotes].sort((a,b) => a - b);
         const noteString = sortedNotes.map(n => `${n} Kz`).join(', ');
-        content = (
+        noteContent = (
              <p className="text-sm text-blue-700 dark:text-blue-400">
                 Últimos reportes indicam disponibilidade de notas de: <span className="font-semibold">{noteString}</span>. (Reportado há {formatDistanceToNow(new Date(lastNoteUpdate.timestamp), { locale: pt })})
              </p>
         );
     } else {
-        content = (
+        noteContent = (
              <p className="text-sm text-blue-700 dark:text-blue-400">Ainda não há informação sobre as notas disponíveis. Seja o primeiro a contribuir!</p>
         );
     }
+
+    if(lastQueueUpdate && lastQueueUpdate.queueTime) {
+        queueContent = (
+            <p className="text-sm text-blue-700 dark:text-blue-400">
+                Nível da Fila: <span className="font-semibold">{queueTimeLabelMap[lastQueueUpdate.queueTime]}</span>. (Reportado há {formatDistanceToNow(new Date(lastQueueUpdate.timestamp), { locale: pt })})
+            </p>
+        )
+    } else {
+        queueContent = (
+             <p className="text-sm text-blue-700 dark:text-blue-400">Ainda não há informação sobre o tempo de fila. Contribua!</p>
+        );
+    }
+
 
     return (
         <Card className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
@@ -47,7 +62,14 @@ const NoteAnalysis = ({ poi }: { poi: PointOfInterest }) => {
                     <Banknote className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0"/>
                     <div>
                         <h4 className="font-semibold text-blue-800 dark:text-blue-300">Notas Disponíveis (Estimativa)</h4>
-                        {content}
+                        {noteContent}
+                    </div>
+                </div>
+                 <div className="flex items-start gap-3">
+                    <Users className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0"/>
+                    <div>
+                        <h4 className="font-semibold text-blue-800 dark:text-blue-300">Movimento Atual (Estimativa)</h4>
+                        {queueContent}
                     </div>
                 </div>
                  <div className="flex items-start gap-3">
@@ -62,7 +84,7 @@ const NoteAnalysis = ({ poi }: { poi: PointOfInterest }) => {
     );
 }
 
-const StatusHeader = ({ poi, onStatusChange }: { poi: PointOfInterest, onStatusChange: (status: 'available' | 'unavailable', notes?: number[]) => void }) => {
+const StatusHeader = ({ poi, onStatusChange }: { poi: PointOfInterest, onStatusChange: (status: 'available' | 'unavailable', notes?: number[], queueTime?: QueueTime) => void }) => {
     const isAvailable = poi.status === 'available';
     const lastUpdate = poi.updates && poi.updates.length > 0 ? poi.updates[0] : null;
     const [noteReportOpen, setNoteReportOpen] = React.useState(false);
@@ -71,8 +93,8 @@ const StatusHeader = ({ poi, onStatusChange }: { poi: PointOfInterest, onStatusC
         setNoteReportOpen(true);
     };
     
-    const handleNoteConfirm = (notes: number[]) => {
-        onStatusChange('available', notes);
+    const handleNoteConfirm = (notes: number[], queueTime?: QueueTime) => {
+        onStatusChange('available', notes, queueTime);
     };
 
     return (
@@ -133,6 +155,11 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
                                     Notas reportadas: {update.availableNotes.join(', ')} Kz
                                 </p>
                              )}
+                             {update.queueTime && (
+                                <p className="text-xs text-muted-foreground">
+                                    Fila: {queueTimeLabelMap[update.queueTime]}
+                                </p>
+                             )}
                             <p className="text-xs text-muted-foreground">
                                 Reportado por {update.authorDisplayName} • {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })}
                             </p>
@@ -161,10 +188,10 @@ function AtmHistoryPage() {
         }
     }, [allData, atmId]);
 
-    const handleStatusChange = (status: 'available' | 'unavailable', notes?: number[]) => {
+    const handleStatusChange = (status: 'available' | 'unavailable', notes?: number[], queueTime?: QueueTime) => {
         if (!atm) return;
         const updateText = `Estado atualizado para: ${status === 'available' ? 'Com Dinheiro' : 'Sem Dinheiro'}`;
-        updatePointStatus(atm.id, status, updateText, notes);
+        updatePointStatus(atm.id, status, updateText, notes, queueTime);
         toast({
             title: "Obrigado pela sua contribuição!",
             description: `O estado do ATM foi atualizado para "${status === 'available' ? 'Com Dinheiro' : 'Sem Dinheiro'}".`
@@ -216,3 +243,5 @@ function AtmHistoryPage() {
 }
 
 export default withAuth(AtmHistoryPage);
+
+    
