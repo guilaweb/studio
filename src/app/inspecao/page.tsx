@@ -218,3 +218,5 @@ function InspectionPage() {
 }
 
 export default withAuth(InspectionPage, ['Agente Municipal', 'Administrador']);
+
+    
