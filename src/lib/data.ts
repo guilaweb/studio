@@ -1,11 +1,12 @@
 
+
 import { z } from 'zod';
 
 export const PointOfInterestUpdateSchema = z.object({
   id: z.string(),
   text: z.string(),
   authorId: z.string(),
-  authorDisplayName: z.string(),
+  authorDisplayName: z.string().default('Cidadão Anónimo'),
   timestamp: z.string(),
   photoDataUri: z.string().optional(),
 });
@@ -74,6 +75,8 @@ export const PointOfInterestSchema = z.object({
   architectName: z.string().optional(),
   // Announcement Specific
   announcementCategory: AnnouncementCategoryEnum.optional(),
+  // Duplicate Detection
+  potentialDuplicateOfId: z.string().optional(),
 });
 
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
@@ -207,7 +210,7 @@ export type DetectDuplicateInput = z.infer<typeof DetectDuplicateInputSchema>;
 
 export const DetectDuplicateOutputSchema = z.object({
     isDuplicate: z.boolean().describe('Whether the new incident is a duplicate of an existing one.'),
-    duplicateOfId: z.string().optional().describe('The ID of the existing incident it is a duplicate of, if any.'),
+    duplicateOfId: z.string().nullable().describe('The ID of the most likely existing incident it could be a duplicate of. If no duplicate is found, this should be null.'),
 });
 export type DetectDuplicateOutput = z.infer<typeof DetectDuplicateOutputSchema>;
 
@@ -298,3 +301,4 @@ export const ConversationSchema = z.object({
   updatedAt: z.string(),
 });
 export type Conversation = z.infer<typeof ConversationSchema>;
+

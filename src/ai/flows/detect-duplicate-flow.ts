@@ -12,7 +12,7 @@ import { DetectDuplicateInput, DetectDuplicateInputSchema, DetectDuplicateOutput
 
 export async function detectDuplicate(input: DetectDuplicateInput): Promise<DetectDuplicateOutput> {
     if (input.existingIncidents.length === 0) {
-        return { isDuplicate: false };
+        return { isDuplicate: false, duplicateOfId: null };
     }
     return detectDuplicateFlow(input);
 }
@@ -34,7 +34,7 @@ const prompt = ai.definePrompt({
 
         If you find a clear duplicate based on location and description, set "isDuplicate" to true and provide the "id" of the *most likely* original incident in "duplicateOfId".
         
-        If the new incident seems unique or if you are uncertain, set "isDuplicate" to false.
+        If the new incident seems unique or if you are uncertain, set "isDuplicate" to false and "duplicateOfId" to null.
 
         New Incident Data:
         "{{{json newIncident}}}"
@@ -55,3 +55,4 @@ const detectDuplicateFlow = ai.defineFlow(
         return output!;
     }
 );
+

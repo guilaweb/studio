@@ -229,6 +229,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         p.lastReported && 
         (now - new Date(p.lastReported).getTime() < timeThreshold)
     );
+    
+    let potentialDuplicateOfId: string | undefined = undefined;
 
     try {
         const duplicateResult = await detectDuplicate({
@@ -242,20 +244,11 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         });
 
         if (duplicateResult.isDuplicate && duplicateResult.duplicateOfId) {
-            const originalIncidentId = duplicateResult.duplicateOfId;
-            const newUpdate: Omit<PointOfInterestUpdate, 'id'> = {
-                text: `(Reporte duplicado) ${incidentDetails.description}`,
-                authorId: user.uid,
-                authorDisplayName: profile.displayName,
-                timestamp: new Date().toISOString(),
-                photoDataUri: photoDataUri,
-            };
-            await addUpdateToPoint(originalIncidentId, newUpdate);
+            potentialDuplicateOfId = duplicateResult.duplicateOfId;
             toast({
-                title: "Reporte Agregado!",
-                description: "Detectámos que este incidente já tinha sido reportado. A sua contribuição foi adicionada ao reporte original. Obrigado!",
+                title: "Potencial Duplicado",
+                description: "Este incidente parece ser um duplicado. Foi registado para revisão por um agente.",
             });
-            return;
         }
 
     } catch(error) {
@@ -299,6 +292,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       status: 'unknown',
       updates: [initialUpdate],
       priority: priority,
+      potentialDuplicateOfId: potentialDuplicateOfId,
     };
     
     addPoint(incidentToAdd);
@@ -1048,3 +1042,4 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       </SidebarProvider>
   );
 }
+
