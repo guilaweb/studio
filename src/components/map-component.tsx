@@ -118,7 +118,7 @@ export const getPinStyle = (point: PointOfInterest) => {
     return {};
 }
 
-const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut, zoom }: { point: PointOfInterest; onClick: (pointId: string) => void; onMouseOver: (pointId: string) => void; onMouseOut: () => void; zoom: number }) => {
+export const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut }: { point: PointOfInterest; onClick: (pointId: string) => void; onMouseOver: (pointId: string) => void; onMouseOut: () => void; }) => {
   const [markerRef, marker] = useAdvancedMarkerRef();
   const [polygon, setPolygon] = useState<google.maps.Polygon | null>(null);
   const pinStyle = getPinStyle(point);
@@ -144,18 +144,20 @@ const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut, zoom }
       setPolygon(poly);
     }
 
+    // Cleanup function to remove polygon from map
     return () => {
       if (polygon) {
         polygon.setMap(null);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [marker, showPolygon, polygon]); // Dependencies are carefully chosen to avoid re-renders
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marker]); // dependency on marker ensures this runs when the marker is ready
 
   if (point.type === 'announcement' && point.status === 'expired') {
     return null;
   }
 
+  // Always render the marker
   return (
     <AdvancedMarker 
         ref={markerRef} 
@@ -207,7 +209,6 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                 onClick={onMarkerClick}
                 onMouseOver={() => setHoveredPoiId(point.id)}
                 onMouseOut={() => setHoveredPoiId(null)}
-                zoom={zoom}
              />
           ))}
           

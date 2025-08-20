@@ -22,7 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 import { generateOfficialResponse } from "@/ai/flows/generate-official-response-flow";
 import WorkflowSuggestions from "@/components/admin/projetos/workflow-suggestions";
 import { generateLicense } from "@/ai/flows/generate-license-flow";
-import { APIProvider, Map, Polygon } from "@vis.gl/react-google-maps";
+import { APIProvider, Map } from "@vis.gl/react-google-maps";
+import { PointOfInterestMarker } from "@/components/map-component";
 
 const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
     if (isFirst) {
@@ -392,7 +393,12 @@ function AdminProjectDetailPage() {
                                         disableDefaultUI={true}
                                         styles={mapStyles}
                                     >
-                                        {landPlot.polygon && <Polygon paths={landPlot.polygon} strokeColor="#0000FF" strokeOpacity={0.8} strokeWeight={2} fillColor="#0000FF" fillOpacity={0.35} />}
+                                        <PointOfInterestMarker
+                                            point={landPlot}
+                                            onClick={() => {}}
+                                            onMouseOut={() => {}}
+                                            onMouseOver={() => {}}
+                                        />
                                     </Map>
                                 </CardContent>
                             </Card>

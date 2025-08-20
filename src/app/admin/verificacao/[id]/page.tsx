@@ -13,10 +13,11 @@ import { Separator } from "@/components/ui/separator";
 import { useUserProfile } from "@/services/user-service";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { APIProvider, Map, Polygon } from "@vis.gl/react-google-maps";
+import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { PointOfInterestMarker } from "@/components/map-component";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -181,7 +182,12 @@ function AdminVerificationDetailPage() {
                                     disableDefaultUI={true}
                                     styles={mapStyles}
                                 >
-                                    {property.polygon && <Polygon paths={property.polygon} strokeColor="#0000FF" strokeOpacity={0.8} strokeWeight={2} fillColor="#0000FF" fillOpacity={0.35} />}
+                                    <PointOfInterestMarker
+                                        point={property}
+                                        onClick={() => {}}
+                                        onMouseOut={() => {}}
+                                        onMouseOver={() => {}}
+                                    />
                                 </Map>
                             </CardContent>
                         </Card>
