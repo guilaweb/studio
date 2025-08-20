@@ -145,12 +145,10 @@ function NewLicensePage() {
             await addPoint(pointToAdd);
             toast({ 
                 title: "Pedido Submetido!", 
-                description: "O seu pedido foi enviado. Agora adicione os documentos necessários.",
+                description: "O seu pedido foi enviado e o lote associado foi marcado como 'Em Análise'.",
                 action: (
                     <Button asChild variant="secondary" onClick={() => {
-                        // This logic is a bit of a workaround to trigger the sheet.
-                        // A more robust solution might use a global state manager (e.g., Zustand, Redux).
-                        const newPoi = {...pointToAdd, updates: []}; // we don't need full updates object.
+                        const newPoi = {...pointToAdd, updates: []}; 
                         sessionStorage.setItem('poiToEditAfterRedirect', JSON.stringify(newPoi));
                         router.push('/licencas');
                     }}>

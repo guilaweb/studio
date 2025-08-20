@@ -116,7 +116,9 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 
   const addPoint = async (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => {
     try {
-        // Anti-conflict validator for construction projects
+        const batch = writeBatch(db);
+
+        // If it's a construction project linked to a land plot, lock the plot.
         if (point.type === 'construction' && point.landPlotId) {
             const projectsQuery = query(
                 collection(db, 'pointsOfInterest'),
@@ -132,10 +134,12 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
                 });
                 return; // Block submission
             }
+            
+            const landPlotRef = doc(db, "pointsOfInterest", point.landPlotId);
+            batch.update(landPlotRef, { status: 'under_review' });
         }
 
         const pointRef = doc(db, 'pointsOfInterest', point.id);
-        
         const completeUpdates = point.updates.map(u => {
             const cleanedUpdate = removeUndefinedFields(u);
             return {...cleanedUpdate, id: `upd-${point.id}-${Date.now()}-${Math.random()}`};
@@ -144,7 +148,10 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         const pointWithCleanUpdates = {...point, updates: completeUpdates};
         const cleanedPoint = removeUndefinedFields(pointWithCleanUpdates);
 
-        await setDoc(pointRef, cleanedPoint);
+        batch.set(pointRef, cleanedPoint);
+
+        await batch.commit();
+
     } catch (error) {
         console.error("Error adding point: ", error);
         toast({
@@ -259,3 +266,4 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 export const usePoints = () => useContext(PointsContext);
 
     
+
