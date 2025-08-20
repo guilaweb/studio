@@ -73,6 +73,16 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
     };
 };
 
+const removeUndefinedFields = (obj: any): any => {
+    const newObj: { [key: string]: any } = {};
+    for (const [key, value] of Object.entries(obj)) {
+        if (value !== undefined) {
+            newObj[key] = value;
+        }
+    }
+    return newObj;
+};
+
 
 export const PointsProvider = ({ children }: { children: ReactNode }) => {
   const [allData, setAllData] = useState<PointOfInterest[]>([]);
@@ -119,16 +129,15 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         }
 
         const pointRef = doc(db, 'pointsOfInterest', point.id);
-        const completeUpdates = point.updates.map(u => ({...u, id: `upd-${point.id}-${Date.now()}-${Math.random()}`}));
+        
+        const completeUpdates = point.updates.map(u => {
+            const cleanedUpdate = removeUndefinedFields(u);
+            return {...cleanedUpdate, id: `upd-${point.id}-${Date.now()}-${Math.random()}`};
+        });
+
         const pointToAdd: PointOfInterest = {...point, updates: completeUpdates};
         
-        // Remove undefined fields before sending to Firestore
-        const cleanedPoint: { [key: string]: any } = {};
-        for (const [key, value] of Object.entries(pointToAdd)) {
-            if (value !== undefined) {
-                cleanedPoint[key] = value;
-            }
-        }
+        const cleanedPoint = removeUndefinedFields(pointToAdd);
 
         await setDoc(pointRef, cleanedPoint);
     } catch (error) {
@@ -162,10 +171,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             id: `upd-${pointId}-${Date.now()}-${Math.random()}`
         };
 
-        // Remove undefined fields before sending to Firestore
-        const cleanedUpdate = Object.fromEntries(
-            Object.entries(newUpdateWithId).filter(([, value]) => value !== undefined)
-        );
+        const cleanedUpdate = removeUndefinedFields(newUpdateWithId);
         
         await updateDoc(pointRef, {
             updates: arrayUnion(cleanedUpdate),
@@ -198,7 +204,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 
         const dataToUpdate: Partial<PointOfInterest> & { updates: any } = {
             ...otherUpdates,
-            updates: arrayUnion(editUpdate)
+            updates: arrayUnion(removeUndefinedFields(editUpdate))
         };
 
         // Handle photo update specifically for incident/atm types
@@ -216,10 +222,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             }
         }
         
-        // Remove undefined fields before sending to Firestore
-        const cleanedData = Object.fromEntries(
-            Object.entries(dataToUpdate).filter(([, value]) => value !== undefined)
-        );
+        const cleanedData = removeUndefinedFields(dataToUpdate);
 
         if (Object.keys(cleanedData).length > 0) {
              await updateDoc(pointRef, cleanedData);
