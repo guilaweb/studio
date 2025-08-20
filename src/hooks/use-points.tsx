@@ -12,7 +12,7 @@ import { useAuth } from './use-auth';
 interface PointsContextType {
   allData: PointOfInterest[];
   addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => Promise<void>;
-  updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText: string) => Promise<void>;
+  updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText: string, availableNotes?: number[]) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
   updatePointDetails: (pointId: string, updates: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>) => Promise<void>;
   loading: boolean;
@@ -137,10 +137,9 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             const cleanedUpdate = removeUndefinedFields(u);
             return {...cleanedUpdate, id: `upd-${point.id}-${Date.now()}-${Math.random()}`};
         });
-
-        const pointToAdd: PointOfInterest = {...point, updates: completeUpdates.map(u => removeUndefinedFields(u))};
         
-        const cleanedPoint = removeUndefinedFields(pointToAdd);
+        const pointWithCleanUpdates = {...point, updates: completeUpdates};
+        const cleanedPoint = removeUndefinedFields(pointWithCleanUpdates);
 
         await setDoc(pointRef, cleanedPoint);
     } catch (error) {
@@ -153,7 +152,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updatePointStatus = async (pointId: string, status: PointOfInterest['status'], updateText: string) => {
+  const updatePointStatus = async (pointId: string, status: PointOfInterest['status'], updateText: string, availableNotes?: number[]) => {
     if (!user || !profile) {
       toast({ variant: "destructive", title: "Erro de Permissão", description: "Utilizador não autenticado." });
       return;
@@ -161,18 +160,23 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         
-        const statusUpdate: PointOfInterestUpdate = {
-            id: `upd-${pointId}-${Date.now()}-${Math.random()}`,
+        const statusUpdate: Omit<PointOfInterestUpdate, 'id'> = {
             text: updateText,
             authorId: user.uid,
-            authorDisplayName: profile.displayName,
+            authorDisplayName: profile.displayName || "Utilizador Anónimo",
             timestamp: new Date().toISOString(),
+            availableNotes: availableNotes,
         };
+
+        const updateWithId = {
+            ...statusUpdate,
+            id: `upd-${pointId}-${Date.now()}-${Math.random()}`
+        }
 
         await updateDoc(pointRef, {
             status: status,
             lastReported: new Date().toISOString(),
-            updates: arrayUnion(statusUpdate)
+            updates: arrayUnion(removeUndefinedFields(updateWithId))
         });
     } catch (error) {
         console.error("Error updating point status: ", error);
@@ -211,17 +215,18 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         const { photoDataUri, ...otherUpdates } = updates as any;
 
         // Add a new update to the timeline to log the edit
-        const editUpdate: PointOfInterestUpdate = {
-            id: `upd-${pointId}-${Date.now()}-${Math.random()}`,
+        const editUpdate: Omit<PointOfInterestUpdate, 'id'> = {
             text: `Detalhes do item atualizados por ${profile.displayName}.`,
             authorId: user.uid,
             authorDisplayName: profile.displayName,
             timestamp: new Date().toISOString(),
         };
 
+        const editUpdateWithId = {...editUpdate, id: `upd-${pointId}-${Date.now()}-${Math.random()}`};
+
         const dataToUpdate: Partial<PointOfInterest> & { updates: any } = {
             ...otherUpdates,
-            updates: arrayUnion(removeUndefinedFields(editUpdate))
+            updates: arrayUnion(removeUndefinedFields(editUpdateWithId))
         };
 
         // Handle photo update specifically for incident/atm types

@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const PointOfInterestUpdateSchema = z.object({
@@ -9,6 +8,7 @@ export const PointOfInterestUpdateSchema = z.object({
   authorDisplayName: z.string().default('Cidadão Anónimo'),
   timestamp: z.string(),
   photoDataUri: z.string().optional(),
+  availableNotes: z.array(z.number()).optional(),
 });
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;

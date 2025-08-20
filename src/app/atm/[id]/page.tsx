@@ -1,44 +1,106 @@
 
+
 "use client";
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { withAuth, useAuth } from "@/hooks/use-auth";
+import { withAuth } from "@/hooks/use-auth";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle, Clock, ThumbsDown, ThumbsUp, User, Wand2, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, Clock, ThumbsDown, ThumbsUp, User, Wand2, XCircle, Banknote, HelpCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import AtmNoteReport from "@/components/atm-note-report";
 
+const NoteAnalysis = ({ poi }: { poi: PointOfInterest }) => {
+    const lastNoteUpdate = poi.updates?.find(u => u.availableNotes && u.availableNotes.length > 0);
+    
+    let content;
 
-const StatusHeader = ({ poi, onStatusChange }: { poi: PointOfInterest, onStatusChange: (status: 'available' | 'unavailable') => void }) => {
-    const isAvailable = poi.status === 'available';
-    const lastUpdate = poi.updates && poi.updates.length > 0 ? poi.updates[0] : null;
+    if (lastNoteUpdate && lastNoteUpdate.availableNotes) {
+        const sortedNotes = [...lastNoteUpdate.availableNotes].sort((a,b) => a - b);
+        const noteString = sortedNotes.map(n => `${n} Kz`).join(', ');
+        content = (
+             <p className="text-sm text-blue-700 dark:text-blue-400">
+                Últimos reportes indicam disponibilidade de notas de: <span className="font-semibold">{noteString}</span>. (Reportado há {formatDistanceToNow(new Date(lastNoteUpdate.timestamp), { locale: pt })})
+             </p>
+        );
+    } else {
+        content = (
+             <p className="text-sm text-blue-700 dark:text-blue-400">Ainda não há informação sobre as notas disponíveis. Seja o primeiro a contribuir!</p>
+        );
+    }
 
     return (
-        <Card className={isAvailable ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700" : "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-700"}>
+        <Card className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
             <CardHeader>
-                <CardTitle className={isAvailable ? "text-green-800 dark:text-green-200" : "text-red-800 dark:text-red-200"}>
-                    {isAvailable ? "Provavelmente Tem Dinheiro" : "Provavelmente Não Tem Dinheiro"}
-                </CardTitle>
-                <CardDescription className={isAvailable ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}>
-                    {lastUpdate ? `Última confirmação há ${formatDistanceToNow(new Date(lastUpdate.timestamp), { locale: pt })} por ${lastUpdate.authorDisplayName}` : 'Sem reportes recentes.'}
-                </CardDescription>
+                    <div className="flex items-center gap-3">
+                    <Wand2 className="h-6 w-6 text-blue-600" />
+                    <CardTitle className="text-blue-800 dark:text-blue-300">Análise MUNITU</CardTitle>
+                    </div>
             </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row gap-2">
-                 <Button className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => onStatusChange('available')}>
-                    <ThumbsUp className="mr-2 h-4 w-4"/> Confirmar que TEM
-                 </Button>
-                 <Button className="flex-1 bg-red-600 hover:bg-red-700" onClick={() => onStatusChange('unavailable')}>
-                    <ThumbsDown className="mr-2 h-4 w-4" /> Confirmar que NÃO TEM
-                 </Button>
+            <CardContent className="space-y-4">
+                 <div className="flex items-start gap-3">
+                    <Banknote className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0"/>
+                    <div>
+                        <h4 className="font-semibold text-blue-800 dark:text-blue-300">Notas Disponíveis (Estimativa)</h4>
+                        {content}
+                    </div>
+                </div>
+                 <div className="flex items-start gap-3">
+                    <HelpCircle className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0"/>
+                    <div>
+                        <h4 className="font-semibold text-blue-800 dark:text-blue-300">Padrão de Abastecimento</h4>
+                        <p className="text-sm text-blue-700 dark:text-blue-400">Funcionalidade de análise preditiva em desenvolvimento. Volte em breve!</p>
+                    </div>
+                </div>
             </CardContent>
         </Card>
+    );
+}
+
+const StatusHeader = ({ poi, onStatusChange }: { poi: PointOfInterest, onStatusChange: (status: 'available' | 'unavailable', notes?: number[]) => void }) => {
+    const isAvailable = poi.status === 'available';
+    const lastUpdate = poi.updates && poi.updates.length > 0 ? poi.updates[0] : null;
+    const [noteReportOpen, setNoteReportOpen] = React.useState(false);
+
+    const handleAvailableClick = () => {
+        setNoteReportOpen(true);
+    };
+    
+    const handleNoteConfirm = (notes: number[]) => {
+        onStatusChange('available', notes);
+    };
+
+    return (
+        <>
+            <Card className={isAvailable ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700" : "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-700"}>
+                <CardHeader>
+                    <CardTitle className={isAvailable ? "text-green-800 dark:text-green-200" : "text-red-800 dark:text-red-200"}>
+                        {isAvailable ? "Provavelmente Tem Dinheiro" : "Provavelmente Não Tem Dinheiro"}
+                    </CardTitle>
+                    <CardDescription className={isAvailable ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}>
+                        {lastUpdate ? `Última confirmação há ${formatDistanceToNow(new Date(lastUpdate.timestamp), { locale: pt })} por ${lastUpdate.authorDisplayName}` : 'Sem reportes recentes.'}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col sm:flex-row gap-2">
+                    <Button className="flex-1 bg-green-600 hover:bg-green-700" onClick={handleAvailableClick}>
+                        <ThumbsUp className="mr-2 h-4 w-4"/> Confirmar que TEM
+                    </Button>
+                    <Button className="flex-1 bg-red-600 hover:bg-red-700" onClick={() => onStatusChange('unavailable')}>
+                        <ThumbsDown className="mr-2 h-4 w-4" /> Confirmar que NÃO TEM
+                    </Button>
+                </CardContent>
+            </Card>
+            <AtmNoteReport
+                open={noteReportOpen}
+                onOpenChange={setNoteReportOpen}
+                onConfirm={handleNoteConfirm}
+            />
+        </>
     );
 };
 
@@ -66,6 +128,11 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
                             <p className="font-semibold text-sm md:text-base">
                                {isAvailable ? "Com Dinheiro" : "Sem Dinheiro"}
                             </p>
+                             {isAvailable && update.availableNotes && update.availableNotes.length > 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                    Notas reportadas: {update.availableNotes.join(', ')} Kz
+                                </p>
+                             )}
                             <p className="text-xs text-muted-foreground">
                                 Reportado por {update.authorDisplayName} • {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })}
                             </p>
@@ -80,7 +147,7 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
 function AtmHistoryPage() {
     const params = useParams();
     const atmId = params.id as string;
-    const { allData, loading, updatePointStatus } = usePoints();
+    const { allData, loading, addUpdateToPoint, updatePointStatus } = usePoints();
     const [atm, setAtm] = React.useState<PointOfInterest | null>(null);
     const { toast } = useToast();
     const router = useRouter();
@@ -94,10 +161,10 @@ function AtmHistoryPage() {
         }
     }, [allData, atmId]);
 
-    const handleStatusChange = (status: 'available' | 'unavailable') => {
+    const handleStatusChange = (status: 'available' | 'unavailable', notes?: number[]) => {
         if (!atm) return;
         const updateText = `Estado atualizado para: ${status === 'available' ? 'Com Dinheiro' : 'Sem Dinheiro'}`;
-        updatePointStatus(atm.id, status, updateText);
+        updatePointStatus(atm.id, status, updateText, notes);
         toast({
             title: "Obrigado pela sua contribuição!",
             description: `O estado do ATM foi atualizado para "${status === 'available' ? 'Com Dinheiro' : 'Sem Dinheiro'}".`
@@ -141,17 +208,7 @@ function AtmHistoryPage() {
                     </Card>
                  </div>
                  <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
-                    <Card className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
-                        <CardHeader>
-                             <div className="flex items-center gap-3">
-                                <Wand2 className="h-6 w-6 text-blue-600" />
-                                <CardTitle className="text-blue-800 dark:text-blue-300">Análise MUNITU</CardTitle>
-                             </div>
-                        </CardHeader>
-                        <CardContent>
-                           <p className="text-sm text-blue-700 dark:text-blue-400">Funcionalidade de análise preditiva e padrões de abastecimento em desenvolvimento. Volte em breve!</p>
-                        </CardContent>
-                    </Card>
+                    <NoteAnalysis poi={atm} />
                  </div>
             </main>
         </div>
