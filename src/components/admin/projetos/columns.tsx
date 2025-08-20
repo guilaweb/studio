@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
@@ -83,7 +84,7 @@ export const columns: ColumnDef<PointOfInterest>[] = [
       return (
         <div className="grid pl-4">
             <span className="font-medium">{project.title}</span>
-            <span className="text-xs text-muted-foreground">Lote: {project.landPlotId ? project.landPlotId.substring(0, 10) + '...' : 'N/A'}</span>
+            <span className="text-xs text-muted-foreground" title={project.landPlotId}>Lote: {project.landPlotId ? `${project.landPlotId.substring(0, 15)}...` : 'N/A'}</span>
         </div>
       );
     },

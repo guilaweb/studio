@@ -6,7 +6,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -440,6 +440,39 @@ const LandPlotDetails = ({ poi }: { poi: PointOfInterest }) => {
 };
 
 
+const DocumentList = ({poi} : {poi: PointOfInterest}) => {
+    if (poi.type !== 'construction' || !poi.files || poi.files.length === 0) {
+        return null;
+    }
+    
+    return (
+         <>
+            <Separator />
+            <div className="py-4">
+                <h3 className="font-semibold mb-2">Documentos do Projeto</h3>
+                 <div className="space-y-2">
+                    {poi.files.map((file, index) => (
+                        <a 
+                            key={index}
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-muted/50 hover:bg-muted"
+                        >
+                            <div className="flex items-center gap-3">
+                                <FileText className="h-5 w-5 text-muted-foreground" />
+                                <span className="text-sm font-medium">{file.name}</span>
+                            </div>
+                            <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                        </a>
+                    ))}
+                </div>
+            </div>
+        </>
+    )
+}
+
+
 export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange, onAddUpdate, onEdit }: PointOfInterestDetailsProps) {
   const { user, profile } = useAuth();
   
@@ -460,7 +493,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
         canEdit = poi.type !== 'incident' || isOwner;
       } else {
         // Regular users can only edit what they own, and only specific types
-        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot');
+        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement');
       }
   }
 
@@ -541,6 +574,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
             
             {poi.type === 'land_plot' && <LandPlotDetails poi={poi} />}
+            
+            {poi.type === 'construction' && <DocumentList poi={poi} />}
 
             {showTimeline && (
                 <Timeline 
