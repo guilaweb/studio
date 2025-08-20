@@ -245,10 +245,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
         if (duplicateResult.isDuplicate && duplicateResult.duplicateOfId) {
             potentialDuplicateOfId = duplicateResult.duplicateOfId;
-            toast({
-                title: "Potencial Duplicado",
-                description: "Este incidente parece ser um duplicado. Foi registado para revisão por um agente.",
-            });
         }
 
     } catch(error) {
@@ -298,8 +294,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     addPoint(incidentToAdd);
 
     toast({
-      title: "Incidência reportada!",
-      description: "Obrigado pela sua contribuição para uma cidade melhor.",
+      title: potentialDuplicateOfId ? "Potencial Duplicado" : "Incidência reportada!",
+      description: potentialDuplicateOfId ? "Este incidente parece ser um duplicado. Foi registado para revisão." : "Obrigado pela sua contribuição para uma cidade melhor.",
     });
   };
   
@@ -698,11 +694,11 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     
     let canEdit = false;
     if (isManager) {
-        // Managers can edit most things, but not incidents/atms they don't own to preserve citizen authorship
-        canEdit = poi.type !== 'incident' && poi.type !== 'atm';
+        // Managers can edit anything except incidents they don't own to preserve citizen authorship
+        canEdit = poi.type !== 'incident' || isOwner;
     } else {
-        // Citizens can only edit what they own, and only specific types
-        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot');
+        // Regular users can only edit what they own, and only specific types
+        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement');
     }
 
     if (!canEdit) {
@@ -738,7 +734,11 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         });
         return;
     }
-    updatePointStatus(poiId, status);
+
+    const statusLabel = status ? statusLabelMap[status] : 'desconhecido';
+    const updateText = `Estado atualizado para: ${statusLabel}`;
+
+    updatePointStatus(poiId, status, updateText);
     setSelectedPoi(prevPoi => prevPoi ? { ...prevPoi, status, lastReported: new Date().toISOString() } : null);
     toast({
         title: "Estado atualizado!",
@@ -1042,4 +1042,3 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       </SidebarProvider>
   );
 }
-

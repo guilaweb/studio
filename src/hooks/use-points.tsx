@@ -1,17 +1,18 @@
 
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData, query, orderBy, writeBatch, getDocs, where } from 'firebase/firestore';
-import { PointOfInterest, PointOfInterestUpdate } from '@/lib/data';
+import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from '@/lib/data';
 import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
 
 interface PointsContextType {
   allData: PointOfInterest[];
   addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => Promise<void>;
-  updatePointStatus: (pointId: string, status: PointOfInterest['status']) => Promise<void>;
+  updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText: string) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
   updatePointDetails: (pointId: string, updates: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>) => Promise<void>;
   loading: boolean;
@@ -70,6 +71,8 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         architectName: data.architectName,
         // Announcement Specific
         announcementCategory: data.announcementCategory,
+        // Duplicate detection
+        potentialDuplicateOfId: data.potentialDuplicateOfId,
     };
 };
 
@@ -135,7 +138,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             return {...cleanedUpdate, id: `upd-${point.id}-${Date.now()}-${Math.random()}`};
         });
 
-        const pointToAdd: PointOfInterest = {...point, updates: completeUpdates};
+        const pointToAdd: PointOfInterest = {...point, updates: completeUpdates.map(u => removeUndefinedFields(u))};
         
         const cleanedPoint = removeUndefinedFields(pointToAdd);
 
@@ -150,12 +153,26 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updatePointStatus = async (pointId: string, status: PointOfInterest['status']) => {
+  const updatePointStatus = async (pointId: string, status: PointOfInterest['status'], updateText: string) => {
+    if (!user || !profile) {
+      toast({ variant: "destructive", title: "Erro de Permissão", description: "Utilizador não autenticado." });
+      return;
+    }
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
+        
+        const statusUpdate: PointOfInterestUpdate = {
+            id: `upd-${pointId}-${Date.now()}-${Math.random()}`,
+            text: updateText,
+            authorId: user.uid,
+            authorDisplayName: profile.displayName,
+            timestamp: new Date().toISOString(),
+        };
+
         await updateDoc(pointRef, {
             status: status,
-            lastReported: new Date().toISOString()
+            lastReported: new Date().toISOString(),
+            updates: arrayUnion(statusUpdate)
         });
     } catch (error) {
         console.error("Error updating point status: ", error);
@@ -196,7 +213,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         // Add a new update to the timeline to log the edit
         const editUpdate: PointOfInterestUpdate = {
             id: `upd-${pointId}-${Date.now()}-${Math.random()}`,
-            text: `Detalhes do ${otherUpdates.type === 'construction' ? 'projeto' : 'item'} atualizados por ${profile.displayName}.`,
+            text: `Detalhes do item atualizados por ${profile.displayName}.`,
             authorId: user.uid,
             authorDisplayName: profile.displayName,
             timestamp: new Date().toISOString(),
