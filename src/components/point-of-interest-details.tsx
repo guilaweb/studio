@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from "react";
@@ -387,7 +386,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
         canEdit = poi.type !== 'incident' || isOwner;
       } else {
         // Regular users can only edit what they own, and only specific types
-        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction');
+        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot');
       }
   }
 

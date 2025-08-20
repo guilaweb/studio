@@ -11,9 +11,18 @@ interface MapInfoWindowProps {
 }
 
 const MapInfoWindow: React.FC<MapInfoWindowProps> = ({ poi }) => {
-  // The original photo is in the first update (sorted chronologically)
-  const originalUpdate = poi.updates?.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())[0];
-  const photoUrl = originalUpdate?.photoDataUri;
+  let photoUrl: string | undefined;
+
+  // Find a photo from updates or files
+  if (poi.updates && poi.updates.length > 0) {
+      const sortedUpdates = poi.updates.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      photoUrl = sortedUpdates[0]?.photoDataUri;
+  }
+  
+  if (!photoUrl && poi.files && poi.files.length > 0) {
+      photoUrl = poi.files.find(f => f.url.match(/\.(jpeg|jpg|gif|png)$/))?.url;
+  }
+
 
   return (
     <div className="p-1">
@@ -23,7 +32,7 @@ const MapInfoWindow: React.FC<MapInfoWindowProps> = ({ poi }) => {
                 <div className="relative h-24 w-full">
                     <Image
                     src={photoUrl}
-                    alt={poi.title}
+                    alt={poi.title || "Imagem do Ponto de Interesse"}
                     layout="fill"
                     objectFit="cover"
                     className="rounded-t-md"
