@@ -5,7 +5,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -82,16 +82,23 @@ const ATMStatus = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, o
                 {getStatusBadge()}
                 {getLastReportedTime(poi.lastReported)}
             </div>
-            {canUpdate && (
-                <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => onPoiStatusChange(poi.id, 'available')}>
-                        <ThumbsUp className="mr-2"/> TEM DINHEiro
-                    </Button>
-                    <Button variant="outline" className="bg-red-100 border-red-500 text-red-700 hover:bg-red-200" onClick={() => onPoiStatusChange(poi.id, 'unavailable')}>
-                        <ThumbsDown className="mr-2"/> NÃO TEM DINHEIRO
-                    </Button>
-                </div>
-            )}
+             <div className="grid grid-cols-1 gap-2">
+                <Button variant="outline" className="w-full" asChild>
+                    <Link href={`/atm/${poi.id}`}>
+                        <Clock className="mr-2 h-4 w-4" /> Ver Histórico de Atividade
+                    </Link>
+                </Button>
+                {canUpdate && (
+                    <div className="grid grid-cols-2 gap-2">
+                        <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => onPoiStatusChange(poi.id, 'available')}>
+                            <ThumbsUp className="mr-2"/> TEM
+                        </Button>
+                        <Button variant="outline" className="bg-red-100 border-red-500 text-red-700 hover:bg-red-200" onClick={() => onPoiStatusChange(poi.id, 'unavailable')}>
+                            <ThumbsDown className="mr-2"/> NÃO TEM
+                        </Button>
+                    </div>
+                 )}
+            </div>
         </div>
     )
 }
