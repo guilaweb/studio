@@ -37,20 +37,27 @@ import { Camera, MapPin, Calendar as CalendarIcon } from "lucide-react";
 import { Input } from "./ui/input";
 import Image from "next/image";
 import { Label } from "./ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { pt } from "date-fns/locale";
-import { Calendar } from "./ui/calendar";
 
+const currentYear = new Date().getFullYear();
 
 const formSchema = z.object({
   title: z.string().min(1, "O tipo de incidente é obrigatório."),
   description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres."),
-  incidentDate: z.date({
-      required_error: "A data do incidente é obrigatória.",
-  }),
+  day: z.coerce.number().min(1, "Dia inválido").max(31, "Dia inválido"),
+  month: z.coerce.number().min(1, "Mês inválido").max(12, "Mês inválido"),
+  year: z.coerce.number().min(1900, "Ano inválido").max(currentYear, `O ano não pode ser superior a ${currentYear}`),
+}).refine(data => {
+    try {
+        const date = new Date(data.year, data.month - 1, data.day);
+        return date.getFullYear() === data.year && date.getMonth() === data.month - 1 && date.getDate() === data.day;
+    } catch {
+        return false;
+    }
+}, {
+    message: "A data introduzida é inválida.",
+    path: ["day"], // Show error on the day field
 });
+
 
 type IncidentReportProps = {
   open: boolean;
@@ -78,21 +85,26 @@ export default function IncidentReport({
   const [mapCenter, setMapCenter] = useState(initialCenter);
   const [mapZoom, setMapZoom] = useState(15);
   
-
+  const now = new Date();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
-      incidentDate: new Date(),
+      day: now.getDate(),
+      month: now.getMonth() + 1,
+      year: now.getFullYear(),
     },
   });
   
   const clearForm = () => {
+    const now = new Date();
     form.reset({
         title: "",
         description: "",
-        incidentDate: new Date(),
+        day: now.getDate(),
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -104,9 +116,15 @@ export default function IncidentReport({
         setIsEditMode(isEditing);
 
         if (isEditing) {
-            form.setValue("title", incidentToEdit.title);
-            form.setValue("description", incidentToEdit.description);
-            form.setValue("incidentDate", incidentToEdit.incidentDate ? new Date(incidentToEdit.incidentDate) : new Date(incidentToEdit.lastReported || Date.now()));
+            const incidentDate = incidentToEdit.incidentDate ? new Date(incidentToEdit.incidentDate) : new Date(incidentToEdit.lastReported || Date.now());
+            form.reset({
+                title: incidentToEdit.title,
+                description: incidentToEdit.description,
+                day: incidentDate.getDate(),
+                month: incidentDate.getMonth() + 1,
+                year: incidentDate.getFullYear(),
+            });
+            
             setMapCenter(incidentToEdit.position);
             setMapZoom(16);
 
@@ -123,7 +141,6 @@ export default function IncidentReport({
             const zoom = isDefaultLocation ? defaultZoom : 15;
             setMapCenter(center);
             setMapZoom(zoom);
-            form.setValue("incidentDate", new Date());
             clearForm();
         }
     }
@@ -145,12 +162,14 @@ export default function IncidentReport({
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalPosition = mapCenter;
+    const incidentDate = new Date(values.year, values.month - 1, values.day).toISOString();
 
     const handleSubmission = (photoDataUri?: string) => {
         const submissionData = {
-            ...values,
+            title: values.title,
+            description: values.description,
             position: finalPosition,
-            incidentDate: values.incidentDate.toISOString(),
+            incidentDate: incidentDate,
             photoDataUri
         };
 
@@ -229,47 +248,45 @@ export default function IncidentReport({
                     </FormItem>
                 )}
                 />
-                 <FormField
-                    control={form.control}
-                    name="incidentDate"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                        <FormLabel>Data do Incidente</FormLabel>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                            <FormControl>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                {field.value ? (
-                                    format(field.value, "PPP", { locale: pt })
-                                ) : (
-                                    <span>Selecione uma data</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                            </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) =>
-                                date > new Date() || date < new Date("2000-01-01")
-                                }
-                                initialFocus
-                            />
-                            </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                 />
+                 <div className="space-y-2">
+                    <FormLabel>Data do Incidente</FormLabel>
+                    <div className="flex items-start gap-2">
+                        <FormField
+                            control={form.control}
+                            name="day"
+                            render={({ field }) => (
+                                <FormItem className="flex-1">
+                                    <FormControl>
+                                        <Input placeholder="DD" {...field} />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="month"
+                            render={({ field }) => (
+                                <FormItem className="flex-1">
+                                    <FormControl>
+                                        <Input placeholder="MM" {...field} />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="year"
+                            render={({ field }) => (
+                                <FormItem className="w-24">
+                                    <FormControl>
+                                        <Input placeholder="AAAA" {...field} />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                     <FormMessage>{form.formState.errors.day?.message}</FormMessage>
+                </div>
                 <FormField
                 control={form.control}
                 name="description"
@@ -308,5 +325,3 @@ export default function IncidentReport({
     </Sheet>
   );
 }
-
-    
