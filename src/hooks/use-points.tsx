@@ -4,7 +4,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData, query, orderBy, writeBatch, getDocs, where } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData, query, orderBy, writeBatch, getDocs, where, deleteDoc } from 'firebase/firestore';
 import { PointOfInterest, PointOfInterestUpdate, QueueTime, statusLabelMap } from '@/lib/data';
 import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
@@ -15,6 +15,7 @@ interface PointsContextType {
   updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
   updatePointDetails: (pointId: string, updates: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>) => Promise<void>;
+  deletePoint: (pointId: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -24,6 +25,7 @@ const PointsContext = createContext<PointsContextType>({
   updatePointStatus: async () => {},
   addUpdateToPoint: async () => {},
   updatePointDetails: async () => {},
+  deletePoint: async () => {},
   loading: true,
 });
 
@@ -173,7 +175,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         
-        const statusUpdate: Omit<PointOfInterestUpdate, 'id'> = {
+        const statusUpdate: Partial<PointOfInterestUpdate> = {
             text: updateText || `Estado atualizado para: ${statusLabelMap[status!] || status}`,
             authorId: user.uid,
             authorDisplayName: profile.displayName || "Utilizador Anónimo",
@@ -257,10 +259,26 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         throw error;
     }
   };
+  
+    const deletePoint = async (pointId: string) => {
+        if (!profile || profile.role !== 'Administrador') {
+            toast({ variant: "destructive", title: "Acesso Negado", description: "Apenas administradores podem eliminar reportes." });
+            return;
+        }
+
+        try {
+            const pointRef = doc(db, 'pointsOfInterest', pointId);
+            await deleteDoc(pointRef);
+            toast({ title: "Reporte Eliminado", description: "O ponto de interesse foi removido do sistema."});
+        } catch (error) {
+            console.error("Error deleting point: ", error);
+            toast({ variant: "destructive", title: "Erro ao Eliminar", description: "Não foi possível eliminar o ponto de interesse."});
+        }
+    }
 
 
   return (
-    <PointsContext.Provider value={{ allData, addPoint, updatePointStatus, addUpdateToPoint, updatePointDetails, loading }}>
+    <PointsContext.Provider value={{ allData, addPoint, updatePointStatus, addUpdateToPoint, updatePointDetails, deletePoint, loading }}>
       {children}
     </PointsContext.Provider>
   );
@@ -269,4 +287,5 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 export const usePoints = () => useContext(PointsContext);
 
     
+
 

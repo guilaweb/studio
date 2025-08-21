@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React from "react";
@@ -18,13 +19,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { usePoints } from "@/hooks/use-points";
+import DeleteConfirmationDialog from "./delete-confirmation-dialog";
 
 type PointOfInterestDetailsProps = {
   poi: PointOfInterest | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPoiStatusChange: (poiId: string, status: PointOfInterest['status']) => void;
-  onAddUpdate: (poiId: string, updateText: string, photoDataUri?: string) => void;
+  onPoiStatusChange: (pointId: string, status: PointOfInterest['status']) => void;
+  onAddUpdate: (pointId: string, updateText: string, photoDataUri?: string) => void;
   onEdit: (poi: PointOfInterest) => void;
 };
 
@@ -218,8 +221,8 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
         setIsGenerating(true);
         try {
             const result = await generateOfficialResponse({
-                citizenContribution: lastCitizenUpdate.text,
-                projectName: poi.title,
+                citizenContribution: lastCitizenUpdate.text || '',
+                projectName: poi.title || '',
             });
             setUpdateText(result.response);
         } catch (error) {
@@ -474,20 +477,21 @@ const DocumentList = ({poi} : {poi: PointOfInterest}) => {
 
 export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange, onAddUpdate, onEdit }: PointOfInterestDetailsProps) {
   const { user, profile } = useAuth();
+  const { deletePoint } = usePoints();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   
   if (!poi) return null;
 
   const config = layerConfig[poi.type];
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
   const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement'].includes(poi.type);
-  const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
+  const isAdmin = profile?.role === 'Administrador';
+  const isOwner = poi.authorId === user?.uid;
 
   let canEdit = false;
   // Allow editing for owners or managers, with specific restrictions
   if (user && profile) {
-      const isOwner = poi.authorId === user.uid;
-
-      if (isManager) {
+      if (isAdmin) {
         // Managers can edit anything except incidents they don't own
         canEdit = poi.type !== 'incident' || isOwner;
       } else {
@@ -496,94 +500,126 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
       }
   }
 
+  const handleDelete = () => {
+    if (!isAdmin && !isOwner) {
+        return; // Security check
+    }
+    setIsDeleteDialogOpen(true);
+  }
+
+  const confirmDelete = async () => {
+    await deletePoint(poi.id);
+    setIsDeleteDialogOpen(false);
+    onOpenChange(false);
+  }
+
 
   const incidentDate = poi.incidentDate || poi.lastReported;
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${poi.position.lat},${poi.position.lng}`;
 
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader className="text-left mb-6">
-          <div className="flex items-start gap-4">
-            <div className="flex-1">
-                <Badge variant={config.variant} className="mb-2">{config.label}</Badge>
-                <SheetTitle className="text-2xl">{poi.title}</SheetTitle>
-                 {priorityInfo && (
-                    <div className={`mt-2 inline-flex items-center gap-2 text-sm font-semibold p-2 rounded-md ${priorityInfo.color}`}>
-                       <priorityInfo.icon className="h-4 w-4" />
-                       <span>{priorityInfo.label}</span>
-                    </div>
-                )}
-            </div>
-            <div className="flex flex-col items-end gap-2">
-                <config.Icon className="h-10 w-10 text-muted-foreground" />
-                <div className="flex gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                        <Link href={directionsUrl} target="_blank" rel="noopener noreferrer">
-                            <Compass className="mr-2 h-3 w-3"/>
-                            Obter Direções
-                        </Link>
-                    </Button>
-                    {canEdit && (
-                        <Button variant="outline" size="sm" onClick={() => onEdit(poi)}>
-                            <Pencil className="mr-2 h-3 w-3"/>
-                            Editar
-                        </Button>
+    <>
+        <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+            <SheetHeader className="text-left mb-6">
+            <div className="flex items-start gap-4">
+                <div className="flex-1">
+                    <Badge variant={config?.variant || 'default'} className="mb-2">{config?.label || 'Ponto de Interesse'}</Badge>
+                    <SheetTitle className="text-2xl">{poi.title}</SheetTitle>
+                    {priorityInfo && (
+                        <div className={`mt-2 inline-flex items-center gap-2 text-sm font-semibold p-2 rounded-md ${priorityInfo.color}`}>
+                        <priorityInfo.icon className="h-4 w-4" />
+                        <span>{priorityInfo.label}</span>
+                        </div>
                     )}
                 </div>
+                <div className="flex flex-col items-end gap-2">
+                    {config?.Icon && <config.Icon className="h-10 w-10 text-muted-foreground" />}
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={directionsUrl} target="_blank" rel="noopener noreferrer">
+                                <Compass className="mr-2 h-3 w-3"/>
+                                Obter Direções
+                            </Link>
+                        </Button>
+                        {canEdit && (
+                            <Button variant="outline" size="sm" onClick={() => onEdit(poi)}>
+                                <Pencil className="mr-2 h-3 w-3"/>
+                                Editar
+                            </Button>
+                        )}
+                    </div>
+                </div>
             </div>
-          </div>
-        </SheetHeader>
-        <div className="space-y-4">
-            {(poi.type === 'construction' || poi.type === 'announcement') && poi.startDate && poi.endDate && (
-                 <div className="flex items-center text-sm text-muted-foreground">
-                   <Calendar className="mr-2 h-4 w-4" />
-                   <span>{format(new Date(poi.startDate), "dd/MM/yy", { locale: pt })} - {format(new Date(poi.endDate), "dd/MM/yy", { locale: pt })}</span>
-                </div>
-            )}
-             {poi.type === 'announcement' && poi.announcementCategory && (
-                <div className="flex items-center text-sm text-muted-foreground">
-                    <Tags className="mr-2 h-4 w-4" />
-                    <span>Categoria: {announcementCategoryMap[poi.announcementCategory]}</span>
-                </div>
-            )}
-            {poi.type !== 'construction' && poi.type !== 'land_plot' && poi.type !== 'announcement' && incidentDate && (
-                <div className="flex items-center text-sm text-muted-foreground">
-                   <Calendar className="mr-2 h-4 w-4" />
-                   <span>Ocorrido em: {format(new Date(incidentDate), "PPP", { locale: pt })}</span>
-                </div>
-            )}
-            {poi.type !== 'land_plot' && (
-                <div>
-                    <h3 className="font-semibold mb-2">Descrição</h3>
-                    <p className="text-muted-foreground whitespace-pre-wrap">{poi.description}</p>
-                </div>
-            )}
-             {poi.type !== 'land_plot' && poi.type !== 'announcement' && (
-                <div>
-                    <h3 className="font-semibold mb-2">Localização (Centroide)</h3>
-                    <p className="text-muted-foreground">{`Lat: ${poi.position.lat.toFixed(6)}, Lng: ${poi.position.lng.toFixed(6)}`}</p>
-                </div>
-             )}
-            {poi.type === 'incident' && <IncidentTags description={poi.description} />}
-            
-            {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
-            
-            {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
-            
-            {poi.type === 'land_plot' && <LandPlotDetails poi={poi} />}
-            
-            {poi.type === 'construction' && <DocumentList poi={poi} />}
+            </SheetHeader>
+            <div className="space-y-4">
+                {(poi.type === 'construction' || poi.type === 'announcement') && poi.startDate && poi.endDate && (
+                    <div className="flex items-center text-sm text-muted-foreground">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    <span>{format(new Date(poi.startDate), "dd/MM/yy", { locale: pt })} - {format(new Date(poi.endDate), "dd/MM/yy", { locale: pt })}</span>
+                    </div>
+                )}
+                {poi.type === 'announcement' && poi.announcementCategory && (
+                    <div className="flex items-center text-sm text-muted-foreground">
+                        <Tags className="mr-2 h-4 w-4" />
+                        <span>Categoria: {announcementCategoryMap[poi.announcementCategory]}</span>
+                    </div>
+                )}
+                {poi.type !== 'construction' && poi.type !== 'land_plot' && poi.type !== 'announcement' && incidentDate && (
+                    <div className="flex items-center text-sm text-muted-foreground">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    <span>Ocorrido em: {format(new Date(incidentDate), "PPP", { locale: pt })}</span>
+                    </div>
+                )}
+                {poi.type !== 'land_plot' && (
+                    <div>
+                        <h3 className="font-semibold mb-2">Descrição</h3>
+                        <p className="text-muted-foreground whitespace-pre-wrap">{poi.description}</p>
+                    </div>
+                )}
+                {poi.type !== 'land_plot' && poi.type !== 'announcement' && (
+                    <div>
+                        <h3 className="font-semibold mb-2">Localização (Centroide)</h3>
+                        <p className="text-muted-foreground">{`Lat: ${poi.position.lat.toFixed(6)}, Lng: ${poi.position.lng.toFixed(6)}`}</p>
+                    </div>
+                )}
+                {poi.type === 'incident' && <IncidentTags description={poi.description} />}
+                
+                {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
+                
+                {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
+                
+                {poi.type === 'land_plot' && <LandPlotDetails poi={poi} />}
+                
+                {poi.type === 'construction' && <DocumentList poi={poi} />}
 
-            {showTimeline && (
-                <Timeline 
-                    poi={poi} 
-                    onAddUpdate={onAddUpdate}
-                />
-            )}
-        </div>
-      </SheetContent>
-    </Sheet>
+                {showTimeline && (
+                    <Timeline 
+                        poi={poi} 
+                        onAddUpdate={onAddUpdate}
+                    />
+                )}
+                {(isAdmin || isOwner) && (
+                     <>
+                        <Separator />
+                        <div className="pt-4">
+                           <Button variant="destructive" className="w-full" onClick={handleDelete}>
+                                <Trash2 className="mr-2 h-4 w-4"/>
+                                Eliminar Reporte
+                           </Button>
+                           <p className="text-xs text-muted-foreground mt-2 text-center">Esta ação é irreversível e irá remover permanentemente o ponto de interesse do mapa.</p>
+                        </div>
+                    </>
+                )}
+            </div>
+        </SheetContent>
+        </Sheet>
+        <DeleteConfirmationDialog 
+            open={isDeleteDialogOpen}
+            onOpenChange={setIsDeleteDialogOpen}
+            onConfirm={confirmDelete}
+        />
+    </>
   );
 }
