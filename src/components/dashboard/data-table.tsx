@@ -93,6 +93,8 @@ export function DataTable<TData extends PointOfInterest, TValue>({
   const isFiltered = table.getState().columnFilters.length > 0;
 
   const csvData = React.useMemo(() => {
+    if (!isClient) return { headers: [], data: [] }; // Don't generate data on server
+
     const headers = [
         { label: "ID", key: "id" },
         { label: "Título", key: "title" },
@@ -110,7 +112,7 @@ export function DataTable<TData extends PointOfInterest, TValue>({
         const poi = row.original as PointOfInterest;
         return {
             ...poi,
-            type: typeLabelMap[poi.type],
+            type: poi.type ? typeLabelMap[poi.type] : "N/A",
             priority: poi.priority ? priorityLabelMap[poi.priority] : "N/A",
             status: poi.status ? statusLabelMap[poi.status] : "N/A",
             lastReported: poi.lastReported ? new Date(poi.lastReported).toLocaleString('pt-PT') : "N/A"
@@ -119,7 +121,7 @@ export function DataTable<TData extends PointOfInterest, TValue>({
 
     return { headers, data };
 
-  }, [table.getFilteredRowModel().rows]);
+  }, [table, isClient]);
 
   return (
     <div>
