@@ -114,7 +114,11 @@ const getKPIs = (data: PointOfInterest[]) => {
         
         const sortedUpdates = [...p.updates].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
         const creationUpdate = sortedUpdates[0];
-        const resolutionUpdate = sortedUpdates.find(u => (u as any).status === 'collected') || sortedUpdates[sortedUpdates.length - 1]; // Fallback to last update
+        // Ensure there's a resolution update *after* the creation update
+        const resolutionUpdate = sortedUpdates.find(u => 
+            (u as any).status === 'collected' && 
+            new Date(u.timestamp) > new Date(creationUpdate.timestamp)
+        );
 
         if (creationUpdate && resolutionUpdate) {
             const creationTime = new Date(creationUpdate.timestamp).getTime();
