@@ -132,11 +132,9 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <span>Uso do Solo</span>
                             </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link href="/comunicacoes">
-                                <Megaphone className="mr-2 h-4 w-4" />
-                                <span>Comunicações</span>
-                            </Link>
+                        <DropdownMenuItem onClick={() => window.location.href = '/?poi=announcement-1755434075725#report-announcement'}>
+                            <Megaphone className="mr-2 h-4 w-4" />
+                            <span>Comunicações</span>
                         </DropdownMenuItem>
                          <DropdownMenuItem asChild>
                             <Link href="/admin/definicoes">

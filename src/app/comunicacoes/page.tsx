@@ -14,7 +14,7 @@ function ComunicacoesRedirectPage() {
     const router = useRouter();
 
     React.useEffect(() => {
-        router.replace("/");
+        router.replace('/?poi=announcement-1755434075725#report-announcement');
     }, [router]);
     
     return (

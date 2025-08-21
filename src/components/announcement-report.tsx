@@ -171,7 +171,7 @@ export default function AnnouncementReport({
     },
   });
   
-  const clearForm = () => {
+  const clearForm = React.useCallback(() => {
     form.reset({
       message: "",
       category: undefined,
@@ -182,7 +182,7 @@ export default function AnnouncementReport({
     });
     setDrawnPolygon(null);
     setClearPolygonTrigger(val => !val);
-  }
+  }, [form]);
 
   useEffect(() => {
     if (open) {
@@ -209,7 +209,7 @@ export default function AnnouncementReport({
             clearForm();
         }
     }
-  }, [poiToEdit, open, form, initialCenter]);
+  }, [poiToEdit, open, form, initialCenter, clearForm]);
   
 
   function onSubmit(values: z.infer<typeof formSchema>) {

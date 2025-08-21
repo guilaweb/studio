@@ -21,7 +21,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Waves } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Waves, GitBranch, ShieldCheck } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -695,7 +695,11 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     let canEdit = false;
     if (isManager) {
         // Managers can edit anything except incidents they don't own to preserve citizen authorship
-        canEdit = poi.type !== 'incident' || isOwner;
+        if (poi.type === 'incident') {
+            canEdit = isOwner;
+        } else {
+            canEdit = true;
+        }
     } else {
         // Regular users can only edit what they own, and only specific types
         canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement');

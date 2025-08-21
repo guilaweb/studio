@@ -24,7 +24,8 @@ const typeVariantMap: { [key in PointOfInterest['type']]: "default" | "secondary
     sanitation: "outline",
     water: "default",
     land_plot: "secondary",
-    announcement: "default"
+    announcement: "default",
+    water_resource: "default"
 }
 
 const priorityIcons = {
