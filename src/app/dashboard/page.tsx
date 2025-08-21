@@ -10,7 +10,7 @@ import {
   ChartConfig,
 } from "@/components/ui/chart";
 import { usePoints } from "@/hooks/use-points";
-import { Layer, PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
+import { Layer, PointOfInterest } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -124,10 +124,9 @@ const getKPIs = (data: PointOfInterest[]) => {
         return acc;
     }, [] as number[]);
 
-    let avgResolutionTime = "N/A";
+    let avgResolutionTimeMs: number | null = null;
     if (resolutionTimes.length > 0) {
-        const avgMillis = resolutionTimes.reduce((sum, time) => sum + time, 0) / resolutionTimes.length;
-        avgResolutionTime = formatDistanceStrict(new Date(0), new Date(avgMillis), { locale: pt });
+        avgResolutionTimeMs = resolutionTimes.reduce((sum, time) => sum + time, 0) / resolutionTimes.length;
     }
     
     // --- General KPIs ---
@@ -135,7 +134,7 @@ const getKPIs = (data: PointOfInterest[]) => {
 
     return {
         newReportsCount: newReports.length,
-        avgResolutionTime,
+        avgResolutionTimeMs,
         resolutionRate: resolutionRate.toFixed(0),
         activeReports,
     }
@@ -145,26 +144,37 @@ function DashboardPage() {
   const { allData } = usePoints();
   const router = useRouter();
   const [mapView, setMapView] = React.useState<'heatmap' | 'cluster'>('heatmap');
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const kpis = React.useMemo(() => getKPIs(allData), [allData]);
   
   const intelligentAlerts = React.useMemo(() => getIntelligentAlerts(allData), [allData]);
 
   const chartData = React.useMemo(() => {
-    const counts = allData.reduce((acc, point) => {
-      const type = point.type;
-      if (type && chartConfig[type]) {
-        acc[type] = (acc[type] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<Layer, number>);
+    const counts: { [key in Layer]?: number } = {};
+
+    for (const key in chartConfig) {
+        if (key !== 'reports' && key !== 'default') {
+            counts[key as Layer] = 0;
+        }
+    }
+
+    allData.forEach(point => {
+        if (point.type && counts.hasOwnProperty(point.type)) {
+            counts[point.type]!++;
+        }
+    });
 
     return Object.entries(counts).map(([name, total]) => ({
-        name: name,
+        name,
         total,
         fill: `var(--color-${name})`,
-      }));
-  }, [allData]);
+    }));
+}, [allData]);
 
 
   const handleViewOnMap = (poiId: string) => {
@@ -174,6 +184,10 @@ function DashboardPage() {
   const mapData = React.useMemo(() => {
     return allData.filter(p => p.type !== 'land_plot').map(p => p.position)
   }, [allData]);
+  
+  const avgResolutionTime = isClient && kpis.avgResolutionTimeMs
+    ? formatDistanceStrict(new Date(0), new Date(kpis.avgResolutionTimeMs), { locale: pt })
+    : 'N/A';
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -208,7 +222,7 @@ function DashboardPage() {
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription>Tempo Médio de Resolução</CardDescription>
-                            <CardTitle className="text-3xl">{kpis.avgResolutionTime}</CardTitle>
+                            <CardTitle className="text-3xl">{avgResolutionTime}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="text-xs text-muted-foreground">
@@ -332,7 +346,5 @@ function DashboardPage() {
 }
 
 export default withAuth(DashboardPage, ['Agente Municipal', 'Administrador']);
-
-    
 
     

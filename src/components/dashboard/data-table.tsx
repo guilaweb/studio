@@ -13,6 +13,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  Table,
 } from "@tanstack/react-table"
 import {
     DropdownMenu,
@@ -21,7 +22,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  Table,
+  Table as UITable,
   TableBody,
   TableCell,
   TableHead,
@@ -39,6 +40,63 @@ import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { CSVLink } from "react-csv";
 
+const CsvExportButton = ({ table }: { table: Table<PointOfInterest> }) => {
+    const [isClient, setIsClient] = React.useState(false);
+    
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    const csvData = React.useMemo(() => {
+        if (!isClient) return { headers: [], data: [] }; // Don't generate data on server
+
+        const headers = [
+            { label: "ID", key: "id" },
+            { label: "Título", key: "title" },
+            { label: "Tipo", key: "type" },
+            { label: "Prioridade", key: "priority" },
+            { label: "Descrição", key: "description" },
+            { label: "Estado", key: "status" },
+            { label: "Último Reporte", key: "lastReported" },
+            { label: "Latitude", key: "position.lat" },
+            { label: "Longitude", key: "position.lng" },
+            { label: "ID do Autor", key: "authorId" },
+        ];
+        
+        const data = table.getFilteredRowModel().rows.map(row => {
+            const poi = row.original as PointOfInterest;
+            return {
+                ...poi,
+                type: poi.type ? typeLabelMap[poi.type] : "N/A",
+                priority: poi.priority ? priorityLabelMap[poi.priority] : "N/A",
+                status: poi.status ? statusLabelMap[poi.status] : "N/A",
+                lastReported: poi.lastReported ? new Date(poi.lastReported).toLocaleString('pt-PT') : "N/A"
+            }
+        });
+
+        return { headers, data };
+    }, [table, isClient]);
+
+    if (!isClient) {
+        return null;
+    }
+
+    return (
+        <Button variant="outline" className="h-9" asChild>
+            <CSVLink 
+                data={csvData.data}
+                headers={csvData.headers}
+                filename={"reportes-cidadao-online.csv"}
+                className="flex items-center"
+                target="_blank"
+            >
+                <Download className="mr-2 h-4 w-4" />
+                Exportar CSV
+            </CSVLink>
+        </Button>
+    );
+};
+
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -55,12 +113,6 @@ export function DataTable<TData extends PointOfInterest, TValue>({
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [date, setDate] = React.useState<DateRange | undefined>()
-    const [isClient, setIsClient] = React.useState(false)
-
-    React.useEffect(() => {
-        setIsClient(true)
-    }, [])
-
 
   const table = useReactTable({
     data,
@@ -91,37 +143,6 @@ export function DataTable<TData extends PointOfInterest, TValue>({
   }, [date, table]);
 
   const isFiltered = table.getState().columnFilters.length > 0;
-
-  const csvData = React.useMemo(() => {
-    if (!isClient) return { headers: [], data: [] }; // Don't generate data on server
-
-    const headers = [
-        { label: "ID", key: "id" },
-        { label: "Título", key: "title" },
-        { label: "Tipo", key: "type" },
-        { label: "Prioridade", key: "priority" },
-        { label: "Descrição", key: "description" },
-        { label: "Estado", key: "status" },
-        { label: "Último Reporte", key: "lastReported" },
-        { label: "Latitude", key: "position.lat" },
-        { label: "Longitude", key: "position.lng" },
-        { label: "ID do Autor", key: "authorId" },
-    ];
-    
-    const data = table.getFilteredRowModel().rows.map(row => {
-        const poi = row.original as PointOfInterest;
-        return {
-            ...poi,
-            type: poi.type ? typeLabelMap[poi.type] : "N/A",
-            priority: poi.priority ? priorityLabelMap[poi.priority] : "N/A",
-            status: poi.status ? statusLabelMap[poi.status] : "N/A",
-            lastReported: poi.lastReported ? new Date(poi.lastReported).toLocaleString('pt-PT') : "N/A"
-        }
-    });
-
-    return { headers, data };
-
-  }, [table, isClient]);
 
   return (
     <div>
@@ -262,24 +283,11 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                         <X className="ml-2 h-4 w-4" />
                     </Button>
                  )}
-                {isClient && (
-                    <Button variant="outline" className="h-9" asChild>
-                        <CSVLink 
-                            data={csvData.data}
-                            headers={csvData.headers}
-                            filename={"reportes-cidadao-online.csv"}
-                            className="flex items-center"
-                            target="_blank"
-                        >
-                            <Download className="mr-2 h-4 w-4" />
-                            Exportar CSV
-                        </CSVLink>
-                    </Button>
-                )}
+                <CsvExportButton table={table} />
             </div>
         </div>
         <div className="rounded-md border">
-        <Table>
+        <UITable>
             <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -320,7 +328,7 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                 </TableRow>
             )}
             </TableBody>
-        </Table>
+        </UITable>
         </div>
         <div className="flex items-center justify-end space-x-2 py-4">
             <Button
@@ -343,3 +351,5 @@ export function DataTable<TData extends PointOfInterest, TValue>({
     </div>
   )
 }
+
+    
