@@ -5,7 +5,7 @@
 import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap } from "@/lib/data";
+import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime } from "@/lib/data";
 import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,12 +21,13 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { usePoints } from "@/hooks/use-points";
 import DeleteConfirmationDialog from "./delete-confirmation-dialog";
+import AtmNoteReport from "./atm-note-report";
 
 type PointOfInterestDetailsProps = {
   poi: PointOfInterest | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPoiStatusChange: (pointId: string, status: PointOfInterest['status']) => void;
+  onPoiStatusChange: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => void;
   onAddUpdate: (pointId: string, updateText: string, photoDataUri?: string) => void;
   onEdit: (poi: PointOfInterest) => void;
 };
@@ -71,6 +72,8 @@ const IncidentTags = ({ description }: { description: string }) => {
 
 const ATMStatus = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], canUpdate: boolean}) => {
     const { toast } = useToast();
+    const [noteReportOpen, setNoteReportOpen] = React.useState(false);
+
     if (poi.type !== 'atm') return null;
 
     const getStatusBadge = () => {
@@ -86,37 +89,54 @@ const ATMStatus = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, o
         });
     };
 
+    const handleConfirmAvailable = (notes: number[], queueTime?: QueueTime) => {
+        const updateText = `Reportou como "Com Dinheiro".`;
+        onPoiStatusChange(poi.id, 'available', updateText, notes, queueTime);
+    }
+    
+    const handleConfirmUnavailable = () => {
+        const updateText = `Reportou como "Sem Dinheiro".`;
+        onPoiStatusChange(poi.id, 'unavailable', updateText);
+    }
+
     return (
-        <div className="mt-4 p-4 rounded-lg bg-muted/50">
-            <h3 className="font-semibold mb-2">Estado do ATM</h3>
-            <div className="flex items-center justify-between mb-4">
-                {getStatusBadge()}
-                {getLastReportedTime(poi.lastReported)}
+        <>
+            <div className="mt-4 p-4 rounded-lg bg-muted/50">
+                <h3 className="font-semibold mb-2">Estado do ATM</h3>
+                <div className="flex items-center justify-between mb-4">
+                    {getStatusBadge()}
+                    {getLastReportedTime(poi.lastReported)}
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                    {poi.status === 'unavailable' ? (
+                        <Button variant="outline" className="w-full" onClick={handleNotifyClick}>
+                            <BellRing className="mr-2 h-4 w-4" /> Avise-me Quando Tiver Dinheiro
+                        </Button>
+                    ) : (
+                        <Button variant="outline" className="w-full" asChild>
+                            <Link href={`/atm/${poi.id}`}>
+                                <Clock className="mr-2 h-4 w-4" /> Ver Histórico de Atividade
+                            </Link>
+                        </Button>
+                    )}
+                    {canUpdate && (
+                        <div className="grid grid-cols-2 gap-2">
+                            <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => setNoteReportOpen(true)}>
+                                <ThumbsUp className="mr-2"/> TEM
+                            </Button>
+                            <Button variant="outline" className="bg-red-100 border-red-500 text-red-700 hover:bg-red-200" onClick={handleConfirmUnavailable}>
+                                <ThumbsDown className="mr-2"/> NÃO TEM
+                            </Button>
+                        </div>
+                    )}
+                </div>
             </div>
-             <div className="grid grid-cols-1 gap-2">
-                {poi.status === 'unavailable' ? (
-                    <Button variant="outline" className="w-full" onClick={handleNotifyClick}>
-                        <BellRing className="mr-2 h-4 w-4" /> Avise-me Quando Tiver Dinheiro
-                    </Button>
-                ) : (
-                    <Button variant="outline" className="w-full" asChild>
-                        <Link href={`/atm/${poi.id}`}>
-                            <Clock className="mr-2 h-4 w-4" /> Ver Histórico de Atividade
-                        </Link>
-                    </Button>
-                )}
-                {canUpdate && (
-                    <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => onPoiStatusChange(poi.id, 'available')}>
-                            <ThumbsUp className="mr-2"/> TEM
-                        </Button>
-                        <Button variant="outline" className="bg-red-100 border-red-500 text-red-700 hover:bg-red-200" onClick={() => onPoiStatusChange(poi.id, 'unavailable')}>
-                            <ThumbsDown className="mr-2"/> NÃO TEM
-                        </Button>
-                    </div>
-                 )}
-             </div>
-        </div>
+            <AtmNoteReport
+                open={noteReportOpen}
+                onOpenChange={setNoteReportOpen}
+                onConfirm={handleConfirmAvailable}
+            />
+        </>
     )
 }
 
@@ -269,7 +289,7 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
                             </Label>
                             <Input id="update-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-2 h-auto p-1"/>
                         </div>
-                        {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={100} height={150} className="rounded-md object-cover" />}
+                        {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={200} height={150} className="rounded-md object-cover" />}
 
                         <div className="flex flex-wrap gap-2">
                             <Button type="submit" size="sm" disabled={!updateText.trim()}>

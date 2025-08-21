@@ -126,8 +126,8 @@ const formSchema = z.object({
   message: z.string().min(10, "A mensagem deve ter pelo menos 10 caracteres."),
   category: AnnouncementCategoryEnum,
   dates: z.object({
-      from: z.date(),
-      to: z.date(),
+      from: z.date({required_error: "A data de início é obrigatória."}),
+      to: z.date({required_error: "A data de fim é obrigatória."}),
   }, { required_error: "As datas de início e fim são obrigatórias."}),
 });
 
@@ -343,7 +343,7 @@ export default function AnnouncementReport({
                                             variant={"outline"}
                                             className={cn(
                                                 "w-full pl-3 text-left font-normal",
-                                                !field.value.from && "text-muted-foreground"
+                                                !field.value?.from && "text-muted-foreground"
                                             )}
                                             >
                                             {field.value?.from ? (
