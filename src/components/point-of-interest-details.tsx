@@ -499,6 +499,7 @@ const DocumentList = ({poi} : {poi: PointOfInterest}) => {
 export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange, onAddUpdate, onEdit }: PointOfInterestDetailsProps) {
   const { user, profile } = useAuth();
   const { deletePoint } = usePoints();
+  const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   
   if (!poi) return null;
@@ -520,6 +521,27 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
         canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement');
       }
   }
+  
+   const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status']) => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para atualizar o estado.",
+        });
+        return;
+    }
+
+    const statusLabel = status ? statusLabelMap[status] : 'desconhecido';
+    const updateText = `Estado atualizado para: ${statusLabel}`;
+
+    onPoiStatusChange(pointId, status, updateText);
+    
+    toast({
+        title: "Estado atualizado!",
+        description: "Obrigado pela sua contribuição.",
+    })
+  };
 
   const handleDelete = () => {
     if (!isAdmin && !isOwner) {
@@ -609,7 +631,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 
                 {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
                 
-                {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
+                {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />}
                 
                 {poi.type === 'land_plot' && <LandPlotDetails poi={poi} />}
                 
@@ -644,3 +666,4 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </>
   );
 }
+
