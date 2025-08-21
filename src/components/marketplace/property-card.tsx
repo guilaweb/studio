@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PointOfInterest, propertyTypeLabelMap } from "@/lib/data";
 import { VerificationSeal } from "./verification-seal";
-import { BedDouble, Bath, Ruler } from "lucide-react";
+import { BedDouble, Bath, Ruler, Leaf } from "lucide-react";
 
 
 export const PropertyCard = ({ property }: { property: PointOfInterest }) => {
@@ -25,6 +25,12 @@ export const PropertyCard = ({ property }: { property: PointOfInterest }) => {
                         data-ai-hint="house exterior"
                         className="group-hover:scale-105 transition-transform duration-300"
                     />
+                     {property.sustainableSeal && (
+                        <div className="absolute top-2 right-2 flex items-center gap-1.5 p-1.5 rounded-full bg-green-100/80 text-green-800 text-xs font-semibold backdrop-blur-sm">
+                            <Leaf className="h-3.5 w-3.5" />
+                            Sustentável
+                        </div>
+                    )}
                 </div>
                 <CardHeader className="pb-2">
                     <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">{property.title}</CardTitle>

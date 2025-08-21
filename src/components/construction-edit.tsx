@@ -29,8 +29,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Separator } from "./ui/separator";
-import { FileText, Loader2, Send, Trash2, CheckCircle2, Circle } from "lucide-react";
+import { FileText, Loader2, Send, Trash2, CheckCircle2, Circle, Leaf } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "./ui/checkbox";
 
 const requiredLoteamentoDocs = [
     { key: 'levantamento', name: 'Levantamento Topográfico' },
@@ -42,12 +43,27 @@ const requiredLoteamentoDocs = [
     { key: 'estradas', name: 'Projeto de Estradas e Passeios' },
 ];
 
+const sustainabilityChecklist = [
+    { id: 'solarPanels', label: 'Painéis Solares' },
+    { id: 'rainwaterHarvesting', label: 'Recolha de Água da Chuva' },
+    { id: 'greenRoofs', label: 'Coberturas Verdes' },
+    { id: 'permeablePavements', label: 'Pavimentos Permeáveis' },
+    { id: 'evCharging', label: 'Carregamento de Veículos Elétricos' },
+];
+
 
 const formSchema = z.object({
   projectName: z.string().min(5, "O nome do projeto é obrigatório."),
   projectType: z.string({ required_error: "O tipo de projeto é obrigatório." }),
   architectName: z.string().min(3, "O nome do arquiteto é obrigatório."),
   projectDescription: z.string().min(10, "A descrição é obrigatória."),
+  sustainabilityFeatures: z.object({
+    solarPanels: z.boolean().optional(),
+    rainwaterHarvesting: z.boolean().optional(),
+    greenRoofs: z.boolean().optional(),
+    permeablePavements: z.boolean().optional(),
+    evCharging: z.boolean().optional(),
+  }).optional(),
 });
 
 type ConstructionEditProps = {
@@ -75,6 +91,7 @@ export default function ConstructionEdit({
             projectType: "",
             architectName: "",
             projectDescription: "",
+            sustainabilityFeatures: {},
         },
     });
 
@@ -85,6 +102,7 @@ export default function ConstructionEdit({
                 projectType: poiToEdit.projectType,
                 architectName: poiToEdit.architectName,
                 projectDescription: poiToEdit.description,
+                sustainabilityFeatures: poiToEdit.sustainabilityFeatures || {},
             });
             setFiles(poiToEdit.files || []);
         }
@@ -123,6 +141,7 @@ export default function ConstructionEdit({
             projectType: values.projectType,
             architectName: values.architectName,
             description: values.projectDescription,
+            sustainabilityFeatures: values.sustainabilityFeatures,
             files: uploadedFiles,
         };
 
@@ -228,6 +247,38 @@ export default function ConstructionEdit({
                                         </FormItem>
                                     )}
                                 />
+                                
+                                <Separator />
+
+                                <div className="space-y-4">
+                                     <h3 className="text-lg font-medium">Checklist de Sustentabilidade</h3>
+                                     <p className="text-sm text-muted-foreground">
+                                         Selecione as práticas sustentáveis que o seu projeto irá incorporar. A verificação pode dar acesso ao Selo "Bairro Sustentável".
+                                     </p>
+                                     <div className="grid grid-cols-2 gap-4">
+                                         {sustainabilityChecklist.map((item) => (
+                                            <FormField
+                                                key={item.id}
+                                                control={form.control}
+                                                name={`sustainabilityFeatures.${item.id as keyof z.infer<typeof formSchema>['sustainabilityFeatures']}`}
+                                                render={({ field }) => (
+                                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                                         <FormControl>
+                                                            <Checkbox
+                                                                checked={field.value}
+                                                                onCheckedChange={field.onChange}
+                                                            />
+                                                        </FormControl>
+                                                        <div className="space-y-1 leading-none">
+                                                            <FormLabel>{item.label}</FormLabel>
+                                                        </div>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                         ))}
+                                     </div>
+                                </div>
+
 
                                 <Separator />
 

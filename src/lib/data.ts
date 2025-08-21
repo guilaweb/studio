@@ -38,6 +38,13 @@ export type PropertyType = z.infer<typeof PropertyTypeEnum>;
 export const PropertyTaxStatusEnum = z.enum(['paid', 'due']);
 export type PropertyTaxStatus = z.infer<typeof PropertyTaxStatusEnum>;
 
+const SustainabilityFeaturesSchema = z.object({
+    solarPanels: z.boolean().optional(),
+    rainwaterHarvesting: z.boolean().optional(),
+    greenRoofs: z.boolean().optional(),
+    permeablePavements: z.boolean().optional(),
+    evCharging: z.boolean().optional(),
+}).optional();
 
 const PositionSchema = z.object({ lat: z.number(), lng: z.number() });
 const FileSchema = z.object({ name: z.string(), url: z.string() });
@@ -84,6 +91,9 @@ export const PointOfInterestSchema = z.object({
   announcementCategory: AnnouncementCategoryEnum.optional(),
   // Duplicate detection
   potentialDuplicateOfId: z.string().optional(),
+  // Sustainability
+  sustainableSeal: z.boolean().optional(),
+  sustainabilityFeatures: SustainabilityFeaturesSchema,
 });
 
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;

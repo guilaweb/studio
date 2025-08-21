@@ -11,7 +11,7 @@ import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/da
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck, Download, ExternalLink } from "lucide-react";
+import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck, Download, ExternalLink, Leaf } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -23,6 +23,8 @@ import WorkflowSuggestions from "@/components/admin/projetos/workflow-suggestion
 import { generateLicense } from "@/ai/flows/generate-license-flow";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { PointOfInterestMarker } from "@/components/map-component";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
     if (isFirst) {
@@ -89,7 +91,7 @@ function AdminProjectDetailPage() {
     const params = useParams();
     const projectId = params.id as string;
     const { profile: adminProfile, user } = useAuth();
-    const { allData, loading: loadingPoints, addUpdateToPoint } = usePoints();
+    const { allData, loading: loadingPoints, addUpdateToPoint, updatePointDetails } = usePoints();
     const [project, setProject] = React.useState<PointOfInterest | null>(null);
     const { user: applicant, loading: loadingApplicant } = useUserProfile(project?.authorId || null);
     const [updateText, setUpdateText] = React.useState("");
@@ -219,7 +221,24 @@ function AdminProjectDetailPage() {
             desfavoravel: "**PARECER DESFAVORÁVEL**\n\nO projeto não cumpre com os regulamentos pelos seguintes motivos:\n1. [Motivo 1 - Ex: Violação do recuo frontal]\n2. [Motivo 2 - Ex: Índice de ocupação excede o permitido]\n\nRecomenda-se a rejeição do pedido ou a submissão de um novo projeto corrigido."
         };
         setUpdateText(templates[templateType]);
-    }
+    };
+
+     const handleSustainableSealToggle = async (isSustainable: boolean) => {
+        if (!project) return;
+        try {
+            await updatePointDetails(project.id, { sustainableSeal: isSustainable });
+            toast({
+                title: "Selo de Sustentabilidade Atualizado",
+                description: `O projeto foi ${isSustainable ? 'marcado como' : 'desmarcado como'} sustentável.`,
+            });
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Erro ao Atualizar Selo",
+                description: "Não foi possível alterar o estado do selo de sustentabilidade.",
+            });
+        }
+    };
 
 
     if (loadingPoints || loadingApplicant) {
@@ -378,6 +397,25 @@ function AdminProjectDetailPage() {
                                 </div>
                             </CardContent>
                         </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Certificação</CardTitle>
+                            </CardHeader>
+                             <CardContent>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="sustainable-seal" className="flex items-center gap-2">
+                                        <Leaf className="h-5 w-5 text-green-600" />
+                                        <span>Selo Sustentável</span>
+                                    </Label>
+                                    <Switch
+                                        id="sustainable-seal"
+                                        checked={project.sustainableSeal}
+                                        onCheckedChange={handleSustainableSealToggle}
+                                        aria-label="Atribuir Selo Sustentável"
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
                         {landPlot && (
                              <Card className="h-[30vh] flex flex-col">
                                 <CardHeader>
@@ -447,6 +485,3 @@ function AdminProjectDetailPage() {
 }
 
 export default withAuth(AdminProjectDetailPage, ['Agente Municipal', 'Administrador']);
-
-    
-    

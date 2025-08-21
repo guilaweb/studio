@@ -11,7 +11,7 @@ import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest, PointOfInterestStatus, propertyTypeLabelMap, statusLabelMap } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, BedDouble, Bath, Ruler, FileText, ExternalLink, MessageSquare, ShieldCheck, Shield, ShieldAlert, HelpCircle, CheckCircle, XCircle, Landmark, Map as MapIcon } from "lucide-react";
+import { ArrowLeft, BedDouble, Bath, Ruler, FileText, ExternalLink, MessageSquare, ShieldCheck, Shield, ShieldAlert, HelpCircle, CheckCircle, XCircle, Landmark, Map as MapIcon, Leaf } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Separator } from "@/components/ui/separator";
@@ -136,8 +136,27 @@ export default function MarketplacePropertyDetailPage() {
                             <div className="md:col-span-2 space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle className="text-3xl">{property.title}</CardTitle>
-                                        <CardDescription>{property.propertyType ? propertyTypeLabelMap[property.propertyType] : 'Imóvel'}</CardDescription>
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <CardTitle className="text-3xl">{property.title}</CardTitle>
+                                                <CardDescription>{property.propertyType ? propertyTypeLabelMap[property.propertyType] : 'Imóvel'}</CardDescription>
+                                            </div>
+                                            {property.sustainableSeal && (
+                                                 <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="flex items-center gap-2 p-2 rounded-md bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                                                                <Leaf className="h-5 w-5" />
+                                                                <span className="font-semibold text-sm">Selo Sustentável</span>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Este projeto cumpre com critérios de sustentabilidade MUNITU.</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            )}
+                                        </div>
                                         <div className="text-4xl font-bold text-primary pt-2">
                                             {property.price ? `AOA ${property.price.toLocaleString()}` : "Preço a Negociar"}
                                         </div>
@@ -247,4 +266,3 @@ export default function MarketplacePropertyDetailPage() {
         </APIProvider>
     );
 }
-
