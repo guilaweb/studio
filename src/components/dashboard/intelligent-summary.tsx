@@ -21,6 +21,12 @@ const IntelligentSummary: React.FC<IntelligentSummaryProps> = ({ allData }) => {
 
     React.useEffect(() => {
         const fetchSummary = async () => {
+            if (allData.length === 0) {
+                setSummary("Ainda não existem dados suficientes para gerar um sumário.");
+                setLoading(false);
+                return;
+            }
+            
             setLoading(true);
             try {
                 const result = await generateDashboardSummary({ 
@@ -28,14 +34,25 @@ const IntelligentSummary: React.FC<IntelligentSummaryProps> = ({ allData }) => {
                     currentDate: new Date().toISOString()
                 });
                 setSummary(result.summary);
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Error generating summary:", error);
-                setSummary("Não foi possível gerar o sumário executivo. Por favor, tente recarregar a página.");
-                toast({
-                    variant: "destructive",
-                    title: "Erro de IA",
-                    description: "Houve um problema ao gerar o sumário do painel.",
-                });
+                const errorMessage = "Não foi possível gerar o sumário executivo.";
+                
+                if (error.message && error.message.includes('503')) {
+                    setSummary(`${errorMessage} O serviço de IA parece estar sobrecarregado.`);
+                     toast({
+                        variant: "destructive",
+                        title: "Serviço de IA Indisponível",
+                        description: "O modelo de IA está sobrecarregado. Por favor, tente novamente mais tarde.",
+                    });
+                } else {
+                     setSummary(`${errorMessage} Por favor, tente recarregar a página.`);
+                     toast({
+                        variant: "destructive",
+                        title: "Erro de IA",
+                        description: "Houve um problema ao gerar o sumário do painel.",
+                    });
+                }
             } finally {
                 setLoading(false);
             }
