@@ -19,6 +19,7 @@ import { APIProvider, AdvancedMarker, Map, Pin } from "@vis.gl/react-google-maps
 import { getPinStyle } from "@/components/map-component";
 import { VerificationSeal } from "@/components/marketplace/verification-seal";
 import { startConversation } from "@/services/chat-service";
+import { useToast } from "@/hooks/use-toast";
 
 const TrustInfoItem = ({ icon, label, value, status }: { icon: React.ReactNode, label: string, value: string, status?: boolean }) => {
     const StatusIcon = status === undefined ? null : (status ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />);
@@ -60,6 +61,7 @@ export default function MarketplacePropertyDetailPage() {
     const params = useParams();
     const router = useRouter();
     const { profile } = useAuth();
+    const { toast } = useToast();
     const propertyId = params.id as string;
     const { allData, loading } = usePoints();
     const [property, setProperty] = React.useState<PointOfInterest | null>(null);
@@ -75,7 +77,16 @@ export default function MarketplacePropertyDetailPage() {
     const handleContactSeller = async () => {
         if (!property || !profile) return;
         setIsStartingChat(true);
-        await startConversation(property, profile);
+        const result = await startConversation(property, profile);
+        if (result.conversationId) {
+            router.push(`/inbox/${result.conversationId}`);
+        } else if (result.error) {
+            toast({
+                variant: "destructive",
+                title: "Erro ao Iniciar Conversa",
+                description: result.error,
+            });
+        }
         setIsStartingChat(false);
     }
     

@@ -84,7 +84,10 @@ export const sendMessage = async (conversationId: string, text: string, sender: 
     };
 
     const batch = writeBatch(db);
-    batch.add(messagesRef, newMessage);
+    
+    const messageDocRef = doc(collection(db, "conversations", conversationId, "messages"));
+    batch.set(messageDocRef, newMessage);
+
     batch.update(conversationRef, {
         lastMessage: newMessage,
         updatedAt: new Date().toISOString(),
@@ -93,19 +96,15 @@ export const sendMessage = async (conversationId: string, text: string, sender: 
     await batch.commit();
 }
 
-// Function to start or get a conversation
-export const startConversation = async (property: PointOfInterest, buyer: UserProfile) => {
-    const { toast } = useToast();
-    const router = useRouter();
 
+// Function to start or get a conversation
+export const startConversation = async (property: PointOfInterest, buyer: UserProfile): Promise<{ conversationId: string | null; error?: string }> => {
     if (!property.authorId || !property.title) {
-        toast({ variant: "destructive", title: "Erro", description: "Não é possível contactar o vendedor deste imóvel." });
-        return;
+        return { conversationId: null, error: "Não é possível contactar o vendedor deste imóvel." };
     }
     
     if (property.authorId === buyer.uid) {
-        toast({ variant: "destructive", title: "Este é o seu imóvel!", description: "Não pode iniciar uma conversa consigo mesmo." });
-        return;
+        return { conversationId: null, error: "Não pode iniciar uma conversa consigo mesmo." };
     }
 
     const conversationId = `${property.id}-${buyer.uid}`;
@@ -117,8 +116,7 @@ export const startConversation = async (property: PointOfInterest, buyer: UserPr
         if (!conversationSnap.exists()) {
             const sellerDoc = await getDoc(doc(db, "users", property.authorId));
             if (!sellerDoc.exists()) {
-                 toast({ variant: "destructive", title: "Erro", description: "O vendedor deste imóvel não foi encontrado." });
-                 return;
+                 return { conversationId: null, error: "O vendedor deste imóvel não foi encontrado." };
             }
             const seller = sellerDoc.data() as UserProfile;
             
@@ -137,10 +135,10 @@ export const startConversation = async (property: PointOfInterest, buyer: UserPr
             await setDoc(conversationRef, newConversation);
         }
         
-        router.push(`/inbox/${conversationId}`);
+        return { conversationId };
 
     } catch (error) {
         console.error("Error starting conversation: ", error);
-        toast({ variant: "destructive", title: "Erro de Comunicação", description: "Não foi possível iniciar a conversa." });
+        return { conversationId: null, error: "Não foi possível iniciar a conversa." };
     }
 };
