@@ -1,9 +1,9 @@
 
 'use server';
 /**
- * @fileOverview Flow to analyze the compliance of a construction project against zoning regulations.
+ * @fileOverview Flow to analyze the compliance and infrastructure risk of a construction project.
  * 
- * - analyzeProjectComplianceFlow - A function that uses AI to check for potential non-compliance.
+ * - analyzeProjectComplianceFlow - A function that uses AI to check for potential non-compliance and infrastructure conflicts.
  */
 
 import { ai } from '@/ai/genkit';
@@ -14,21 +14,32 @@ const prompt = ai.definePrompt({
     input: { schema: AnalyzeProjectComplianceInputSchema },
     output: { schema: AnalyzeProjectComplianceOutputSchema },
     prompt: `
-        You are an expert urban planning and zoning analyst for a municipality. 
-        Your task is to perform a preliminary compliance check for a new construction project based on the provided project details and the zoning regulations for the specific land plot.
+        You are an expert urban planning and zoning analyst for a municipality, with a secondary specialization in infrastructure risk assessment. 
+        Your task is to perform a preliminary compliance and risk check for a new construction project.
 
-        Analyze the project information and compare it against the zoning data. Your goal is to identify any clear or potential conflicts with the established regulations.
+        Your analysis must cover two areas:
+        1.  **Zoning Compliance:** Compare the project against the zoning regulations for the plot.
+        2.  **Infrastructure Risk:** Identify potential conflicts with subterranean infrastructure based on the project description.
 
-        Consider the following rules for your analysis:
-        1.  **Usage Type:** Does the project's description and type (e.g., 'remodel', 'new build') align with the permitted usage ('usageType') for the plot (e.g., 'residential', 'commercial')? A new commercial build on a 'residential' plot is a clear conflict. A remodel of an existing house on a residential plot is compliant.
-        2.  **Implicit Information from Description:** Use the project description to infer details. For example, a description containing "prédio de 5 andares" conflicts with a 'maxHeight' of 4. A description with "uma ocupação de 75%" conflicts with a 'buildingRatio' of 60.
-        3.  **General Regulations:** Check the project description against the 'zoningInfo' field, which may contain specific rules like setbacks, architectural styles, or other restrictions.
-        4.  **Be Conservative:** If the information is insufficient to make a clear determination for a specific rule, assume it's compliant for that rule but mention the lack of data in the analysis. If you find at least one clear conflict, the overall result is non-compliant.
+        **Analysis Rules:**
 
-        Based on your analysis:
-        -   Set 'isCompliant' to 'true' if the project appears to fully comply with all provided regulations.
-        -   Set 'isCompliant' to 'false' if you identify at least one clear or highly potential conflict.
-        -   In the 'analysis' field, provide a concise, professional summary of your findings in Portuguese (Portugal). If it is compliant, state that and mention a key aspect (e.g., "Projeto parece estar em conformidade com o uso residencial permitido e os limites de altura."). If non-compliant, clearly state the main reason (e.g., "Potencial conflito: A altura do projeto (5 pisos) excede o limite de 4 pisos permitido para o lote.").
+        **Part 1: Zoning Compliance**
+        1.  **Usage Type:** Does the project's description align with the permitted usage ('usageType') for the plot (e.g., 'commercial' vs. 'residential')?
+        2.  **Implicit Information:** Infer details from the description. "Prédio de 5 andares" conflicts with a 'maxHeight' of 4. "Ocupação de 75%" conflicts with a 'buildingRatio' of 60.
+        3.  **General Regulations:** Check the description against the 'zoningInfo' field for specific rules.
+        4.  **Conservative Approach:** If information is insufficient, assume compliance for that rule but mention it.
+
+        **Part 2: Infrastructure Risk (Simulated "Before You Dig")**
+        1.  **Keyword Detection:** Scrutinize the project description for keywords related to ground intervention, such as "escavação", "fundação", "cave", "subsolo", "estacas", "infraestrutura subterrânea".
+        2.  **Risk Inference:** If such keywords are present, assume a potential conflict with underground networks (water, electricity, fiber optics) is possible. This is a preliminary warning.
+        3.  **Risk Flagging:** If a potential infrastructure risk is detected, prepend the main analysis text with a clear, separate warning.
+
+        **Output Generation:**
+        -   Set 'isCompliant' to 'true' only if NO conflicts (zoning or infrastructure risk) are found.
+        -   Set 'isCompliant' to 'false' if you identify at least one clear zoning conflict OR a potential infrastructure risk.
+        -   In the 'analysis' field, provide a concise, professional summary in Portuguese (Portugal).
+        -   If an infrastructure risk is found, the analysis MUST begin with: "**Alerta de Infraestrutura:** O seu projeto menciona trabalhos de escavação. É obrigatória a consulta prévia às concessionárias (EPAL, ENDE, etc.) para obter as plantas das redes subterrâneas antes de iniciar qualquer obra no solo.\\n\\n"
+        -   Following the alert (if any), provide the zoning analysis. Example: "Projeto parece estar em conformidade com o uso residencial..." or "Potencial conflito: A altura do projeto (5 pisos) excede o limite de 4 pisos..."
 
         Project Data:
         - Project Type: {{{projectType}}}

@@ -23,9 +23,9 @@ const ComplianceChecklist: React.FC<ComplianceChecklistProps> = ({ result }) => 
                     <Icon className={`h-6 w-6 mt-1 flex-shrink-0 ${colorClass}`} />
                     <div>
                         <h4 className={`font-semibold ${colorClass}`}>
-                            {result.isCompliant ? 'Projeto em Conformidade Preliminar' : 'Potencial Inconformidade Detetada'}
+                            {result.isCompliant ? 'Projeto em Conformidade Preliminar' : 'Potencial Inconformidade ou Risco Detetado'}
                         </h4>
-                        <p className="text-sm text-muted-foreground">{result.analysis}</p>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{result.analysis}</p>
                     </div>
                 </div>
             </CardContent>

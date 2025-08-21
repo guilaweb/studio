@@ -247,7 +247,7 @@ function NewLicensePage() {
                                             )} />
                                         </div>
                                         <FormField control={form.control} name="projectDescription" render={({ field }) => (
-                                            <FormItem><FormLabel>Descrição do Projeto</FormLabel><FormControl><Textarea placeholder="Descreva brevemente os trabalhos a realizar. Se for um PIP, descreva a intenção." rows={4} {...field} /></FormControl><FormMessage /></FormItem>
+                                            <FormItem><FormLabel>Descrição do Projeto</FormLabel><FormControl><Textarea placeholder="Descreva brevemente os trabalhos a realizar, incluindo detalhes sobre escavações, fundações ou caves, se aplicável." rows={4} {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
                                         <div className="flex justify-between">
                                             <Button type="button" variant="outline" onClick={() => setStep(1)}>Voltar</Button>
@@ -261,10 +261,10 @@ function NewLicensePage() {
                             )}
                             {step === 3 && complianceResult && (
                                 <div className="space-y-6">
-                                    <h3 className="text-lg font-medium">Análise de Conformidade Preliminar (Pré-Fiscal)</h3>
+                                    <h3 className="text-lg font-medium">Análise de Conformidade e Risco (IA)</h3>
                                     <ComplianceChecklist result={complianceResult} />
                                     <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-md">
-                                        <p><strong>Atenção:</strong> Esta é uma análise preliminar e automática gerada por IA. Não substitui a análise técnica completa por um funcionário municipal. Serve como um guia para ajudar a identificar potenciais problemas antes da submissão formal.</p>
+                                        <p><strong>Atenção:</strong> Esta é uma análise preliminar e automática gerada por IA. Não substitui a análise técnica completa por um funcionário municipal nem a consulta formal às concessionárias. Serve como um guia para ajudar a identificar potenciais problemas antes da submissão formal.</p>
                                     </div>
                                     <p className="text-sm">O próximo passo é submeter este pedido inicial. Após a submissão, poderá anexar todos os documentos necessários ao processo (plantas, memória descritiva, etc.) na sua área de licenças.</p>
                                     <div className="flex justify-between">
