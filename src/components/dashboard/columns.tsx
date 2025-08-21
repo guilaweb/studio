@@ -39,11 +39,11 @@ const priorityIcons = {
     low: { icon: ArrowDown, color: "text-green-500", label: "Baixa" },
 }
 
-const ActionsCell = ({ row }: { row: any }) => {
+const ActionsCell = ({ row, table }: { row: any, table: any }) => {
     const poi = row.original as PointOfInterest;
     const { profile } = useAuth();
     const { deletePoint } = usePoints();
-    const { onViewOnMap } = (row.table.options.meta as any) || {};
+    const { onViewOnMap } = table.options.meta as any;
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
     const handleDelete = () => {
