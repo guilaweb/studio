@@ -6,6 +6,8 @@ import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Waves } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
+import { LandPlotPolygons } from "./marketplace/land-plot-polygons";
+
 
 type MapComponentProps = {
   activeLayers: ActiveLayers;
@@ -120,126 +122,116 @@ export const getPinStyle = (point: PointOfInterest) => {
     return {};
 }
 
-export const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut }: { point: PointOfInterest; onClick: (pointId: string) => void; onMouseOver: (pointId: string) => void; onMouseOut: () => void; }) => {
-  const [markerRef, marker] = useAdvancedMarkerRef();
-  const [polygon, setPolygon] = useState<google.maps.Polygon | null>(null);
-  const pinStyle = getPinStyle(point);
-  const isPolygonType = (point.type === 'land_plot' || point.type === 'announcement' || point.type === 'water_resource');
-  const showPolygon = isPolygonType && point.polygon;
+export const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut }: { point: PointOfInterest; onClick: (pointId: string) => void; onMouseOver: (e: google.maps.MapMouseEvent, point: PointOfInterest) => void; onMouseOut: () => void; }) => {
+    const [markerRef, marker] = useAdvancedMarkerRef();
+    const pinStyle = getPinStyle(point);
 
-  useEffect(() => {
-    if (marker && showPolygon && !polygon) {
-      const poly = new google.maps.Polygon({
-        paths: point.polygon,
-        strokeColor: pinStyle.background || 'hsl(var(--primary))',
-        strokeOpacity: 0.8,
-        strokeWeight: 2,
-        fillColor: pinStyle.background || 'hsl(var(--primary))',
-        fillOpacity: 0.35,
-        clickable: true,
-      });
-
-      poly.setMap(marker.map);
-      poly.addListener('click', () => onClick(point.id));
-      poly.addListener('mouseover', () => onMouseOver(point.id));
-      poly.addListener('mouseout', onMouseOut);
-      setPolygon(poly);
+    if (point.type === 'announcement' && point.status === 'expired') {
+        return null;
     }
 
-    // Cleanup function to remove polygon from map
-    return () => {
-      if (polygon) {
-        polygon.setMap(null);
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [marker]); // dependency on marker ensures this runs when the marker is ready
-
-  if (point.type === 'announcement' && point.status === 'expired') {
-    return null;
-  }
-
-  // Always render the marker
-  return (
-    <AdvancedMarker 
-        ref={markerRef} 
-        position={point.position} 
-        title={point.title} 
-        onClick={() => onClick(point.id)}
-        onMouseOver={() => onMouseOver(point.id)}
-        onMouseOut={onMouseOut}
-    >
-        <Pin 
-            background={pinStyle.background} 
-            borderColor={pinStyle.borderColor} 
-            glyphColor={pinStyle.glyphColor}
+    return (
+        <AdvancedMarker
+            ref={markerRef}
+            position={point.position}
+            title={point.title}
+            onClick={() => onClick(point.id)}
+            onMouseOver={(e) => onMouseOver(e, point)}
+            onMouseOut={onMouseOut}
         >
-            <MarkerIcon type={point.type} />
-        </Pin>
-    </AdvancedMarker>
-  );
+            <Pin
+                background={pinStyle.background}
+                borderColor={pinStyle.borderColor}
+                glyphColor={pinStyle.glyphColor}
+            >
+                <MarkerIcon type={point.type} />
+            </Pin>
+        </AdvancedMarker>
+    );
 };
 
 export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
   
-  const [hoveredPoiId, setHoveredPoiId] = React.useState<string | null>(null);
-  
-  const handleCameraChange = (e: google.maps.MapCameraChangedEvent) => {
-    onCenterChanged(e.detail.center);
-    onZoomChanged(e.detail.zoom);
-  };
+    const [infoWindowState, setInfoWindowState] = useState<{ anchor: google.maps.Marker | null; poi: PointOfInterest | null }>({ anchor: null, poi: null });
+    const [markerRef, marker] = useAdvancedMarkerRef();
 
-  const hoveredPoi = React.useMemo(() => data.find(p => p.id === hoveredPoiId), [data, hoveredPoiId]);
-  
-  return (
-    <div style={{ height: "100%", width: "100%" }}>
-      <Map
-        mapId="jango-digital-map"
-        center={center}
-        zoom={zoom}
-        gestureHandling={"greedy"}
-        disableDefaultUI={false}
-        styles={mapStyles}
-        onCameraChanged={handleCameraChange}
-      >
-        {data
-          .filter((point) => activeLayers[point.type])
-          .map((point) => (
-            <PointOfInterestMarker 
-                key={point.id} 
-                point={point} 
-                onClick={onMarkerClick}
-                onMouseOver={() => setHoveredPoiId(point.id)}
-                onMouseOut={() => setHoveredPoiId(null)}
-             />
-          ))}
-          
-        {hoveredPoi && (
-            <InfoWindow
-                anchor={new google.maps.Marker({position: hoveredPoi.position})}
-                onCloseClick={() => setHoveredPoiId(null)}
-                pixelOffset={new google.maps.Size(0, -40)}
+    const handleCameraChange = (e: google.maps.MapCameraChangedEvent) => {
+        onCenterChanged(e.detail.center);
+        onZoomChanged(e.detail.zoom);
+    };
+
+    const handleMouseOver = (event: google.maps.MapMouseEvent, poi: PointOfInterest) => {
+        if (!event.domEvent.target) return;
+        
+        const anchor = new google.maps.Marker({ position: poi.position });
+        setInfoWindowState({ anchor, poi });
+    };
+
+    const handleMouseOut = () => {
+        setInfoWindowState({ anchor: null, poi: null });
+    };
+
+    const polygonPoints = React.useMemo(() => {
+        return data.filter(p => activeLayers[p.type] && p.polygon);
+    }, [data, activeLayers]);
+
+    const markerPoints = React.useMemo(() => {
+        return data.filter(p => activeLayers[p.type] && !p.polygon);
+    }, [data, activeLayers]);
+
+    return (
+        <div style={{ height: "100%", width: "100%" }}>
+            <Map
+                mapId="jango-digital-map"
+                center={center}
+                zoom={zoom}
+                gestureHandling={"greedy"}
+                disableDefaultUI={false}
+                styles={mapStyles}
+                onCameraChanged={handleCameraChange}
             >
-                <MapInfoWindow poi={hoveredPoi} />
-            </InfoWindow>
-        )}
+                {markerPoints.map((point) => (
+                    <PointOfInterestMarker
+                        key={point.id}
+                        point={point}
+                        onClick={onMarkerClick}
+                        onMouseOver={handleMouseOver}
+                        onMouseOut={handleMouseOut}
+                    />
+                ))}
 
-        {userPosition && (
-          <AdvancedMarker position={userPosition} title="Sua localização">
-            <span className="relative flex h-4 w-4">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-4 w-4 bg-primary border-2 border-white"></span>
-            </span>
-          </AdvancedMarker>
-        )}
-        {searchedPlace && (
-            <AdvancedMarker position={searchedPlace} title="Local Pesquisado">
-                <Pin>
-                    <Search className="h-5 w-5" />
-                </Pin>
-            </AdvancedMarker>
-        )}
-      </Map>
-    </div>
-  );
+                <LandPlotPolygons
+                    plots={polygonPoints}
+                    selectedPlotId={null} // Hover is handled by InfoWindow now
+                    onPlotClick={onMarkerClick}
+                />
+                
+                {infoWindowState.anchor && infoWindowState.poi && (
+                    <InfoWindow
+                        anchor={infoWindowState.anchor}
+                        onCloseClick={() => setInfoWindowState({ anchor: null, poi: null })}
+                        pixelOffset={new google.maps.Size(0, -40)}
+                    >
+                        <MapInfoWindow poi={infoWindowState.poi} />
+                    </InfoWindow>
+                )}
+
+                {userPosition && (
+                    <AdvancedMarker position={userPosition} title="Sua localização">
+                        <span className="relative flex h-4 w-4">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-4 w-4 bg-primary border-2 border-white"></span>
+                        </span>
+                    </AdvancedMarker>
+                )}
+                {searchedPlace && (
+                    <AdvancedMarker position={searchedPlace} title="Local Pesquisado">
+                        <Pin>
+                            <Search className="h-5 w-5" />
+                        </Pin>
+                    </AdvancedMarker>
+                )}
+            </Map>
+        </div>
+    );
 }

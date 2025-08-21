@@ -62,7 +62,7 @@ export const LandPlotPolygons: React.FC<{
             newPolygons.forEach(p => p.setMap(null));
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [map, plots, selectedPlotId]);
+    }, [map, plots, selectedPlotId, onPlotClick]);
 
 
     return null;
