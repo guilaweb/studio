@@ -20,7 +20,7 @@ export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 export const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired', 'em_verificacao', 'verificado_ouro', 'verificado_prata', 'informacao_insuficiente', 'Privado']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
-export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement']);
+export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement', 'water_resource']);
 export type PointOfInterestType = z.infer<typeof PointOfInterestTypeEnum>;
 
 export const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
@@ -99,7 +99,7 @@ export const PointOfInterestSchema = z.object({
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 
 
-export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement';
+export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource';
 
 export type ActiveLayers = {
   [key in Layer]: boolean;
@@ -134,6 +134,7 @@ export const typeLabelMap: Record<PointOfInterestType, string> = {
     water: "Rede de Água",
     land_plot: "Lote de Terreno",
     announcement: "Anúncio",
+    water_resource: "Recurso Hídrico",
 };
 
 export const propertyTypeLabelMap: Record<PropertyType, string> = {

@@ -3,7 +3,7 @@
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Waves } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 
@@ -54,6 +54,8 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
         return <Trash className={commonClasses} />;
     case "water":
         return <Droplet className={commonClasses} />;
+    case "water_resource":
+        return <Waves className={commonClasses} />;
     case "land_plot":
         return <Square className={commonClasses} />;
     case "announcement":
@@ -99,7 +101,7 @@ export const getPinStyle = (point: PointOfInterest) => {
                 return { background: '#a1a1aa', borderColor: '#71717a', glyphColor: '#ffffff' }; // gray
         }
     }
-    if (point.type === 'land_plot' || point.type === 'announcement') {
+    if (point.type === 'land_plot' || point.type === 'announcement' || point.type === 'water_resource') {
         switch (point.status) {
             case 'available':
                 return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
@@ -122,7 +124,7 @@ export const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut 
   const [markerRef, marker] = useAdvancedMarkerRef();
   const [polygon, setPolygon] = useState<google.maps.Polygon | null>(null);
   const pinStyle = getPinStyle(point);
-  const isPolygonType = (point.type === 'land_plot' || point.type === 'announcement');
+  const isPolygonType = (point.type === 'land_plot' || point.type === 'announcement' || point.type === 'water_resource');
   const showPolygon = isPolygonType && point.polygon;
 
   useEffect(() => {
