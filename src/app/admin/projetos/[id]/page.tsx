@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -29,10 +28,10 @@ const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
     if (isFirst) {
         return <FileText className="h-4 w-4 text-muted-foreground" />;
     }
-    if (update.text.startsWith('**AUTO DE VISTORIA**')) {
+    if (update.text?.startsWith('**AUTO DE VISTORIA**')) {
         return <ClipboardCheck className="h-4 w-4 text-blue-500" />;
     }
-    if (update.text.startsWith('**PARECER')) {
+    if (update.text?.startsWith('**PARECER')) {
         return <Check className="h-4 w-4 text-green-500" />;
     }
     return <MessageSquare className="h-4 w-4 text-muted-foreground" />;
@@ -60,7 +59,7 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
     return (
         <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:h-full before:w-0.5 before:bg-border before:-translate-x-px">
             {sortedUpdates.map((update, index) => {
-                const isVistoria = update.text.startsWith('**AUTO DE VISTORIA**');
+                const isVistoria = update.text?.startsWith('**AUTO DE VISTORIA**');
                 return (
                     <div key={update.id} className="relative flex items-start gap-4">
                         <div className={`flex h-10 w-10 items-center justify-center rounded-full border ${isVistoria ? 'bg-blue-50' : 'bg-background'} z-10`}>
@@ -449,4 +448,5 @@ function AdminProjectDetailPage() {
 
 export default withAuth(AdminProjectDetailPage, ['Agente Municipal', 'Administrador']);
 
+    
     
