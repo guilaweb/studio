@@ -10,7 +10,7 @@ import { LandPlotPolygons } from "./marketplace/land-plot-polygons";
 
 
 type MapComponentProps = {
-  activeLayers: ActiveLayers;
+  activeLayers: ActiveLayers | null;
   data: PointOfInterest[];
   userPosition: google.maps.LatLngLiteral | null;
   searchedPlace: google.maps.LatLngLiteral | null;
@@ -170,10 +170,12 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
     };
 
     const polygonPoints = React.useMemo(() => {
+        if (!activeLayers) return [];
         return data.filter(p => activeLayers[p.type] && p.polygon);
     }, [data, activeLayers]);
 
     const markerPoints = React.useMemo(() => {
+        if (!activeLayers) return [];
         return data.filter(p => activeLayers[p.type] && !p.polygon);
     }, [data, activeLayers]);
 

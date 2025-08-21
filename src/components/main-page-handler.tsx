@@ -21,7 +21,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Waves, GitBranch, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -45,6 +45,17 @@ type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
 
+const defaultActiveLayers: ActiveLayers = {
+    atm: true,
+    construction: true,
+    incident: true,
+    sanitation: true,
+    water: true,
+    land_plot: true,
+    announcement: true,
+    water_resource: true,
+};
+
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
   const { allData, addPoint, updatePointStatus, addUpdateToPoint, updatePointDetails } = usePoints();
   const searchParams = useSearchParams();
@@ -54,16 +65,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   const { publicLayers, loading: loadingLayers } = usePublicLayerSettings();
 
 
-  const [activeLayers, setActiveLayers] = React.useState<ActiveLayers>({
-    atm: true,
-    construction: true,
-    incident: true,
-    sanitation: true,
-    water: true,
-    land_plot: true,
-    announcement: true,
-    water_resource: true,
-  });
+  const [activeLayers, setActiveLayers] = React.useState<ActiveLayers>(defaultActiveLayers);
   const [selectedPoi, setSelectedPoi] = React.useState<PointOfInterest | null>(null);
   const [searchedPlace, setSearchedPlace] = React.useState<google.maps.places.PlaceResult | null>(null);
   const [userPosition, setUserPosition] = React.useState<google.maps.LatLngLiteral | null>(null);
@@ -82,7 +84,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
   // Effect to synchronize active layers with public settings for citizens
   React.useEffect(() => {
-      if (!isManager && !loadingLayers) {
+      if (!isManager && !loadingLayers && publicLayers) {
           setActiveLayers(publicLayers);
       }
   }, [publicLayers, isManager, loadingLayers]);
