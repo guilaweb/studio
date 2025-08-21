@@ -12,7 +12,7 @@ import { useAuth } from './use-auth';
 interface PointsContextType {
   allData: PointOfInterest[];
   addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => Promise<void>;
-  updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText: string, availableNotes?: number[], queueTime?: QueueTime) => Promise<void>;
+  updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
   updatePointDetails: (pointId: string, updates: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>) => Promise<void>;
   loading: boolean;
@@ -76,6 +76,9 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         announcementCategory: data.announcementCategory,
         // Duplicate detection
         potentialDuplicateOfId: data.potentialDuplicateOfId,
+        // Sustainability
+        sustainableSeal: data.sustainableSeal,
+        sustainabilityFeatures: data.sustainabilityFeatures,
     };
 };
 
@@ -162,7 +165,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updatePointStatus = async (pointId: string, status: PointOfInterest['status'], updateText: string, availableNotes?: number[], queueTime?: QueueTime) => {
+  const updatePointStatus = async (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => {
     if (!user || !profile) {
       toast({ variant: "destructive", title: "Erro de Permissão", description: "Utilizador não autenticado." });
       return;
@@ -171,7 +174,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         
         const statusUpdate: Omit<PointOfInterestUpdate, 'id'> = {
-            text: updateText,
+            text: updateText || `Estado atualizado para: ${statusLabelMap[status!] || status}`,
             authorId: user.uid,
             authorDisplayName: profile.displayName || "Utilizador Anónimo",
             timestamp: new Date().toISOString(),

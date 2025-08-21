@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -6,7 +7,7 @@ export type QueueTime = z.infer<typeof QueueTimeEnum>;
 
 export const PointOfInterestUpdateSchema = z.object({
   id: z.string(),
-  text: z.string(),
+  text: z.string().optional(),
   authorId: z.string(),
   authorDisplayName: z.string().default('Cidadão Anónimo'),
   timestamp: z.string(),
@@ -340,3 +341,4 @@ export const ConversationSchema = z.object({
   updatedAt: z.string(),
 });
 export type Conversation = z.infer<typeof ConversationSchema>;
+
