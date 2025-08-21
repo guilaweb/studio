@@ -14,12 +14,13 @@ const prompt = ai.definePrompt({
     input: { schema: AnalyzeProjectComplianceInputSchema },
     output: { schema: AnalyzeProjectComplianceOutputSchema },
     prompt: `
-        You are an expert urban planning and zoning analyst for a municipality, with a secondary specialization in infrastructure risk assessment. 
+        You are an expert urban planning and zoning analyst for a municipality, with a secondary specialization in infrastructure and environmental risk assessment. 
         Your task is to perform a preliminary compliance and risk check for a new construction project.
 
-        Your analysis must cover two areas:
+        Your analysis must cover three areas:
         1.  **Zoning Compliance:** Compare the project against the zoning regulations for the plot.
         2.  **Infrastructure Risk:** Identify potential conflicts with subterranean infrastructure based on the project description.
+        3.  **Environmental Risk:** Identify if the project is located in a potential high-risk environmental area.
 
         **Analysis Rules:**
 
@@ -32,14 +33,18 @@ const prompt = ai.definePrompt({
         **Part 2: Infrastructure Risk (Simulated "Before You Dig")**
         1.  **Keyword Detection:** Scrutinize the project description for keywords related to ground intervention, such as "escavação", "fundação", "cave", "subsolo", "estacas", "infraestrutura subterrânea".
         2.  **Risk Inference:** If such keywords are present, assume a potential conflict with underground networks (water, electricity, fiber optics) is possible. This is a preliminary warning.
-        3.  **Risk Flagging:** If a potential infrastructure risk is detected, prepend the main analysis text with a clear, separate warning.
+
+        **Part 3: Environmental Risk (Simulated High-Risk Zone Detection)**
+        1.  **Keyword Detection:** Scrutinize the project description for keywords indicating high-risk locations, such as "margem do rio", "linha de água", "ravina", "encosta íngreme", "zona de inundação", "terreno instável".
+        2.  **Risk Flagging:** If a potential environmental risk is detected, the project MUST be flagged as non-compliant.
 
         **Output Generation:**
-        -   Set 'isCompliant' to 'true' only if NO conflicts (zoning or infrastructure risk) are found.
-        -   Set 'isCompliant' to 'false' if you identify at least one clear zoning conflict OR a potential infrastructure risk.
+        -   Set 'isCompliant' to 'false' if you identify at least one clear zoning conflict, a potential infrastructure risk, OR a potential environmental risk.
+        -   Set 'isCompliant' to 'true' only if NO conflicts of any kind are found.
         -   In the 'analysis' field, provide a concise, professional summary in Portuguese (Portugal).
         -   If an infrastructure risk is found, the analysis MUST begin with: "**Alerta de Infraestrutura:** O seu projeto menciona trabalhos de escavação. É obrigatória a consulta prévia às concessionárias (EPAL, ENDE, etc.) para obter as plantas das redes subterrâneas antes de iniciar qualquer obra no solo.\\n\\n"
-        -   Following the alert (if any), provide the zoning analysis. Example: "Projeto parece estar em conformidade com o uso residencial..." or "Potencial conflito: A altura do projeto (5 pisos) excede o limite de 4 pisos..."
+        -   If an environmental risk is found, the analysis MUST include a section like: "**Alerta de Risco Ambiental:** A descrição do seu projeto sugere uma localização em zona de risco (ex: margem de rio, encosta íngreme). A construção nestas áreas é fortemente condicionada ou proibida. É necessária uma análise técnica especializada para avaliar a viabilidade.\\n\\n"
+        -   Following any alerts, provide the zoning analysis. Example: "Projeto parece estar em conformidade com o uso residencial..." or "Potencial conflito: A altura do projeto (5 pisos) excede o limite de 4 pisos..."
 
         Project Data:
         - Project Type: {{{projectType}}}
