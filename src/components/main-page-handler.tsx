@@ -729,7 +729,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     setSelectedPoi(null);
   };
 
-  const handlePoiStatusChange = (poiId: string, status: PointOfInterest['status']) => {
+  const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status']) => {
     if (!user) {
         toast({
             variant: "destructive",
@@ -742,7 +742,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     const statusLabel = status ? statusLabelMap[status] : 'desconhecido';
     const updateText = `Estado atualizado para: ${statusLabel}`;
 
-    updatePointStatus(poiId, status, updateText);
+    updatePointStatus(pointId, status, updateText);
     setSelectedPoi(prevPoi => prevPoi ? { ...prevPoi, status, lastReported: new Date().toISOString() } : null);
     toast({
         title: "Estado atualizado!",
@@ -750,7 +750,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     })
   };
 
-  const handleAddUpdate = (poiId: string, updateText: string, photoDataUri?: string) => {
+  const handleAddUpdate = (pointId: string, updateText: string, photoDataUri?: string) => {
     if (!user || !profile) {
         toast({
             variant: "destructive",
@@ -839,12 +839,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Construction className="mr-2 h-4 w-4" />
                             Mapear Obra/Projeto
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStartReporting('atm')}>
-                            <Landmark className="mr-2 h-4 w-4" />
-                            Mapear Caixa Eletrónico
-                        </DropdownMenuItem>
                         {isManager && (
                             <>
+                                <DropdownMenuItem onClick={() => handleStartReporting('atm')}>
+                                    <Landmark className="mr-2 h-4 w-4" />
+                                    Mapear Caixa Eletrónico
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
                                     <Square className="mr-2 h-4 w-4" />
                                     Mapear Lote de Terreno
@@ -935,12 +935,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Construction className="mr-2 h-4 w-4" />
                             Mapear Obra/Projeto
                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={() => handleStartReporting('atm')}>
-                            <Landmark className="mr-2 h-4 w-4" />
-                            Mapear Caixa Eletrónico
-                        </DropdownMenuItem>
                         {isManager && (
                             <>
+                                 <DropdownMenuItem onClick={() => handleStartReporting('atm')}>
+                                    <Landmark className="mr-2 h-4 w-4" />
+                                    Mapear Caixa Eletrónico
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
                                     <Square className="mr-2 h-4 w-4" />
                                     Mapear Lote de Terreno
