@@ -37,19 +37,39 @@ const chartConfig = {
   },
   incident: {
     label: "Incidentes",
-    color: "hsl(var(--accent))",
+    color: "hsl(var(--chart-1))",
   },
   construction: {
     label: "Obras",
-    color: "hsl(var(--secondary))",
+    color: "hsl(var(--chart-2))",
   },
   atm: {
     label: "ATMs",
-    color: "hsl(var(--primary))",
+    color: "hsl(var(--chart-3))",
   },
   sanitation: {
     label: "Saneamento",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(var(--chart-4))",
+  },
+  water: {
+      label: "Rede de Água",
+      color: "hsl(var(--chart-5))",
+  },
+  water_resource: {
+      label: "Rec. Hídricos",
+      color: "hsl(var(--chart-1))",
+  },
+  land_plot: {
+      label: "Lotes",
+      color: "hsl(var(--chart-2))",
+  },
+  announcement: {
+      label: "Anúncios",
+      color: "hsl(var(--chart-3))",
+  },
+  default: {
+    label: "Outro",
+    color: "hsl(var(--muted))",
   },
 } satisfies ChartConfig;
 
@@ -137,7 +157,7 @@ function DashboardPage() {
     }, {} as Record<Layer, number>);
 
     return Object.entries(counts).map(([name, total]) => ({
-      name: chartConfig[name as Layer]?.label || name,
+      name: name,
       total,
       fill: `var(--color-${name})`,
     }));
@@ -267,6 +287,9 @@ function DashboardPage() {
                                     tickLine={false}
                                     tickMargin={10}
                                     axisLine={false}
+                                    tickFormatter={(value) =>
+                                        chartConfig[value as keyof typeof chartConfig]?.label || value
+                                      }
                                     className="text-xs"
                                     width={80}
                                 />
@@ -305,3 +328,5 @@ function DashboardPage() {
 }
 
 export default withAuth(DashboardPage, ['Agente Municipal', 'Administrador']);
+
+    
