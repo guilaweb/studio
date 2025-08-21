@@ -291,6 +291,21 @@ export const GenerateLicenseOutputSchema = z.object({
 export type GenerateLicenseOutput = z.infer<typeof GenerateLicenseOutputSchema>;
 
 
+export const AnalyzeEnvironmentalImpactInputSchema = z.object({
+    projectDescription: z.string().describe("The detailed description of the project."),
+    projectType: z.string().optional().describe("The type of project (e.g., 'loteamento', 'new-build')."),
+    area: z.number().optional().describe("The total area of the plot in square meters."),
+});
+export type AnalyzeEnvironmentalImpactInput = z.infer<typeof AnalyzeEnvironmentalImpactInputSchema>;
+
+export const AnalyzeEnvironmentalImpactOutputSchema = z.object({
+    drainageAnalysis: z.string().describe("Analysis of water management and drainage. Suggests improvements like permeable pavements or retention basins."),
+    heatIslandAnalysis: z.string().describe("Analysis of the heat island effect. Suggests increasing green spaces or using reflective materials."),
+    energyEfficiencyAnalysis: z.string().describe("Analysis of energy and water efficiency. Suggests things like rainwater harvesting or ideal solar orientation."),
+});
+export type AnalyzeEnvironmentalImpactOutput = z.infer<typeof AnalyzeEnvironmentalImpactOutputSchema>;
+
+
 // Schemas for Chat / Inbox
 export const MessageSchema = z.object({
   id: z.string(),
