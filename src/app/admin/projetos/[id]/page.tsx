@@ -25,6 +25,7 @@ import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { PointOfInterestMarker } from "@/components/map-component";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import EnvironmentalImpactAnalysis from "@/components/admin/projetos/environmental-impact-analysis";
 
 const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
     if (isFirst) {
@@ -267,6 +268,7 @@ function AdminProjectDetailPage() {
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
                     <div className="grid auto-rows-max items-start gap-4 md:col-span-2 lg:col-span-3">
                         <WorkflowSuggestions project={project} />
+                        <EnvironmentalImpactAnalysis project={project} />
                         <Card>
                             <CardHeader>
                                 <CardTitle>Linha do Tempo, Comunicações e Pareceres</CardTitle>

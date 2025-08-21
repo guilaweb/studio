@@ -8,6 +8,7 @@
 
 import { ai } from '@/ai/genkit';
 import { AnalyzeEnvironmentalImpactInputSchema, AnalyzeEnvironmentalImpactOutputSchema } from '@/lib/data';
+import { z } from 'zod';
 
 const prompt = ai.definePrompt({
     name: 'analyzeEnvironmentalImpactPrompt',
