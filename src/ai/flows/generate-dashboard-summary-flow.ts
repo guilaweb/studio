@@ -18,6 +18,7 @@ const prompt = ai.definePrompt({
     name: 'generateDashboardSummaryPrompt',
     input: { schema: GenerateDashboardSummaryInputSchema },
     output: { schema: GenerateDashboardSummaryOutputSchema },
+    model: 'googleai/gemini-pro',
     prompt: `
         You are a municipal operations analyst AI. Your task is to provide a concise executive summary for the city manager's dashboard based on the provided data.
         The summary must be in Portuguese (Portugal).
