@@ -335,7 +335,7 @@ export const MessageSchema = z.object({
   senderDisplayName: z.string(),
   text: z.string(),
   timestamp: z.string(),
-  read: z.boolean().default(false),
+  readBy: z.array(z.string()).default([]),
 });
 export type Message = z.infer<typeof MessageSchema>;
 
@@ -343,13 +343,15 @@ export const ConversationSchema = z.object({
   id: z.string(), // e.g., `${propertyId}-${buyerId}`
   propertyId: z.string(),
   propertyTitle: z.string(),
-  sellerId: z.string(),
-  buyerId: z.string(),
+  propertyImage: z.string().optional(),
   participants: z.array(z.string()), // [sellerId, buyerId]
+  participantDetails: z.array(z.object({
+      uid: z.string(),
+      displayName: z.string(),
+      photoURL: z.string().optional(),
+  })),
   lastMessage: MessageSchema.optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
 export type Conversation = z.infer<typeof ConversationSchema>;
-
-

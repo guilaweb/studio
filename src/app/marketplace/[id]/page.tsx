@@ -3,21 +3,22 @@
 "use client";
 
 import * as React from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { withAuth } from "@/hooks/use-auth";
+import { withAuth, useAuth } from "@/hooks/use-auth";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest, PointOfInterestStatus, propertyTypeLabelMap, statusLabelMap } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, BedDouble, Bath, Ruler, FileText, ExternalLink, MessageSquare, ShieldCheck, Shield, ShieldAlert, HelpCircle, CheckCircle, XCircle, Landmark, Map as MapIcon, Leaf } from "lucide-react";
+import { ArrowLeft, BedDouble, Bath, Ruler, FileText, ExternalLink, MessageSquare, ShieldCheck, Shield, ShieldAlert, HelpCircle, CheckCircle, XCircle, Landmark, Map as MapIcon, Leaf, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Separator } from "@/components/ui/separator";
 import { APIProvider, AdvancedMarker, Map, Pin } from "@vis.gl/react-google-maps";
 import { getPinStyle } from "@/components/map-component";
 import { VerificationSeal } from "@/components/marketplace/verification-seal";
+import { startConversation } from "@/services/chat-service";
 
 const TrustInfoItem = ({ icon, label, value, status }: { icon: React.ReactNode, label: string, value: string, status?: boolean }) => {
     const StatusIcon = status === undefined ? null : (status ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />);
@@ -57,9 +58,12 @@ const mapStyles: google.maps.MapTypeStyle[] = [
 
 export default function MarketplacePropertyDetailPage() {
     const params = useParams();
+    const router = useRouter();
+    const { profile } = useAuth();
     const propertyId = params.id as string;
     const { allData, loading } = usePoints();
     const [property, setProperty] = React.useState<PointOfInterest | null>(null);
+    const [isStartingChat, setIsStartingChat] = React.useState(false);
     
     React.useEffect(() => {
         if (allData.length > 0) {
@@ -67,6 +71,13 @@ export default function MarketplacePropertyDetailPage() {
             setProperty(foundProperty || null);
         }
     }, [allData, propertyId]);
+
+    const handleContactSeller = async () => {
+        if (!property || !profile) return;
+        setIsStartingChat(true);
+        await startConversation(property, profile);
+        setIsStartingChat(false);
+    }
     
     const media = property?.updates?.map(u => u.photoDataUri).filter(Boolean) as string[] || [];
     if (property?.files) {
@@ -250,11 +261,9 @@ export default function MarketplacePropertyDetailPage() {
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <p className="text-sm text-muted-foreground">Contacte o proprietário para mais informações ou para agendar uma visita.</p>
-                                        <Button className="w-full" asChild>
-                                            <Link href={`/inbox/new?propertyId=${property.id}&sellerId=${property.authorId}`}>
-                                                <MessageSquare className="mr-2 h-4 w-4" />
-                                                Enviar Mensagem
-                                            </Link>
+                                        <Button className="w-full" onClick={handleContactSeller} disabled={isStartingChat}>
+                                            {isStartingChat ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <MessageSquare className="mr-2 h-4 w-4" />}
+                                            {isStartingChat ? "A iniciar conversa..." : "Enviar Mensagem"}
                                         </Button>
                                     </CardContent>
                                 </Card>
