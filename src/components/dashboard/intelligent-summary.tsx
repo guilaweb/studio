@@ -5,14 +5,48 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from '@/hooks/use-toast';
-import { PointOfInterest } from '@/lib/data';
+import { PointOfInterest, DashboardStats } from '@/lib/data';
 import { Wand2 } from 'lucide-react';
 import { generateDashboardSummary } from '@/ai/flows/generate-dashboard-summary-flow';
-
+import { getIntelligentAlerts } from '@/services/alert-service';
 
 interface IntelligentSummaryProps {
     allData: PointOfInterest[];
 }
+
+const getDashboardStats = (allData: PointOfInterest[]): DashboardStats => {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const newIncidents = allData.filter(p => 
+        p.type === 'incident' && 
+        p.lastReported &&
+        new Date(p.lastReported) > twentyFourHoursAgo
+    );
+
+    const sanitationPoints = allData.filter(p => p.type === 'sanitation');
+    const resolvedSanitation = sanitationPoints.filter(p => p.status === 'collected');
+    const fullContainers = sanitationPoints.filter(p => p.status === 'full').length;
+    const resolutionRate = sanitationPoints.length > 0 ? (resolvedSanitation.length / sanitationPoints.length) * 100 : 0;
+    
+    const newConstructionUpdates = allData.filter(p => 
+        p.type === 'construction' && 
+        p.updates &&
+        p.updates.some(u => new Date(u.timestamp) > twentyFourHoursAgo)
+    ).length;
+    
+    const incidentClusters = getIntelligentAlerts(allData).filter(a => a.type === 'cluster').length;
+
+    return {
+        totalPoints: allData.length,
+        newIncidentsCount: newIncidents.length,
+        incidentClustersCount: incidentClusters,
+        sanitationResolutionRate: parseFloat(resolutionRate.toFixed(1)),
+        fullContainersCount: fullContainers,
+        newConstructionUpdatesCount: newConstructionUpdates,
+    };
+}
+
 
 const IntelligentSummary: React.FC<IntelligentSummaryProps> = ({ allData }) => {
     const [summary, setSummary] = React.useState<string>("");
@@ -29,8 +63,9 @@ const IntelligentSummary: React.FC<IntelligentSummaryProps> = ({ allData }) => {
             
             setLoading(true);
             try {
+                const stats = getDashboardStats(allData);
                 const result = await generateDashboardSummary({ 
-                    pointsOfInterest: allData,
+                    stats: stats,
                     currentDate: new Date().toISOString()
                 });
                 setSummary(result.summary);
@@ -38,7 +73,7 @@ const IntelligentSummary: React.FC<IntelligentSummaryProps> = ({ allData }) => {
                 console.error("Error generating summary:", error);
                 const errorMessage = "Não foi possível gerar o sumário executivo.";
                 
-                if (error.message && error.message.includes('503')) {
+                if (error.message && (error.message.includes('503') || error.message.includes('429'))) {
                     setSummary(`${errorMessage} O serviço de IA parece estar sobrecarregado.`);
                      toast({
                         variant: "destructive",

@@ -7,7 +7,7 @@ export type QueueTime = z.infer<typeof QueueTimeEnum>;
 
 export const PointOfInterestUpdateSchema = z.object({
   id: z.string(),
-  text: z.string().optional(),
+  text: z.string().optional().default(''),
   authorId: z.string(),
   authorDisplayName: z.string().default('Cidadão Anónimo'),
   timestamp: z.string(),
@@ -210,8 +210,18 @@ export const GenerateOfficialResponseOutputSchema = z.object({
 export type GenerateOfficialResponseOutput = z.infer<typeof GenerateOfficialResponseOutputSchema>;
 
 
+export const DashboardStatsSchema = z.object({
+    totalPoints: z.number(),
+    newIncidentsCount: z.number(),
+    incidentClustersCount: z.number(),
+    sanitationResolutionRate: z.number(),
+    fullContainersCount: z.number(),
+    newConstructionUpdatesCount: z.number(),
+});
+export type DashboardStats = z.infer<typeof DashboardStatsSchema>;
+
 export const GenerateDashboardSummaryInputSchema = z.object({
-  pointsOfInterest: z.array(PointOfInterestSchema),
+  stats: DashboardStatsSchema,
   currentDate: z.string().describe("The current date and time in ISO format, for context."),
 });
 export type GenerateDashboardSummaryInput = z.infer<typeof GenerateDashboardSummaryInputSchema>;
@@ -341,4 +351,5 @@ export const ConversationSchema = z.object({
   updatedAt: z.string(),
 });
 export type Conversation = z.infer<typeof ConversationSchema>;
+
 

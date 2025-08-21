@@ -7,7 +7,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import { GenerateDashboardSummaryInput, GenerateDashboardSummaryInputSchema, GenerateDashboardSummaryOutput, GenerateDashboardSummaryOutputSchema } from '@/lib/data';
+import { GenerateDashboardSummaryInput, GenerateDashboardSummaryInputSchema, GenerateDashboardSummaryOutput, GenerateDashboardSummaryOutputSchema, DashboardStatsSchema } from '@/lib/data';
 
 
 export async function generateDashboardSummary(input: GenerateDashboardSummaryInput): Promise<GenerateDashboardSummaryOutput> {
@@ -16,27 +16,24 @@ export async function generateDashboardSummary(input: GenerateDashboardSummaryIn
 
 const prompt = ai.definePrompt({
     name: 'generateDashboardSummaryPrompt',
-    input: { schema: GenerateDashboardSummaryInputSchema },
+    input: { schema: DashboardStatsSchema },
     output: { schema: GenerateDashboardSummaryOutputSchema },
     model: 'googleai/gemini-1.5-flash',
     prompt: `
-        You are a municipal operations analyst AI. Your task is to provide a concise executive summary for the city manager's dashboard based on the provided data.
+        You are a municipal operations analyst AI. Your task is to provide a concise executive summary for the city manager's dashboard based on the provided statistical data.
         The summary must be in Portuguese (Portugal).
 
-        Focus on events from the last 24 hours relative to the current date: {{currentDate}}.
+        Analyze the provided JSON data and use it to write a professional, data-driven summary.
+        - Start with a general overview.
+        - Highlight the number of new incidents in the last 24 hours.
+        - Comment on any significant incident clusters detected.
+        - Mention the sanitation status, including the resolution rate and number of full containers.
+        - Briefly touch on citizen engagement regarding construction projects.
 
-        Analyze the provided JSON data of points of interest and identify:
-        1.  **New Incidents:** Mention the number of new incidents and highlight any significant trends (e.g., a specific type of incident, a location).
-        2.  **Incident Clusters:** Mention if any significant incident clusters have been detected.
-        3.  **Sanitation Status:** Comment on the general status of sanitation points (e.g., number of full containers, resolution rate).
-        4.  **Citizen Engagement:** Highlight any new citizen contributions or updates on construction projects.
+        Be concise and synthesize the information into a clear narrative about the city's operational status.
 
-        Be concise, professional, and data-driven. Provide a clear, high-level overview of the city's operational status. Do not list every single point. Synthesize the information.
-
-        Data:
-        "{{{json pointsOfInterest}}}"
-
-        Generate a suitable executive summary.
+        Statistical Data:
+        "{{{json stats}}}"
     `,
 });
 
@@ -47,7 +44,7 @@ const generateDashboardSummaryFlow = ai.defineFlow(
         outputSchema: GenerateDashboardSummaryOutputSchema,
     },
     async (input) => {
-        const { output } = await prompt(input);
+        const { output } = await prompt({stats: input.stats});
         return output!;
     }
 );
