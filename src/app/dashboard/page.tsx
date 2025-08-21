@@ -152,16 +152,20 @@ function DashboardPage() {
 
   const chartData = React.useMemo(() => {
     const counts = allData.reduce((acc, point) => {
-      acc[point.type] = (acc[point.type] || 0) + 1;
+      const type = point.type;
+      if (type && chartConfig[type]) {
+        acc[type] = (acc[type] || 0) + 1;
+      }
       return acc;
     }, {} as Record<Layer, number>);
 
     return Object.entries(counts).map(([name, total]) => ({
-      name: name,
-      total,
-      fill: `var(--color-${name})`,
-    }));
+        name: name,
+        total,
+        fill: `var(--color-${name})`,
+      }));
   }, [allData]);
+
 
   const handleViewOnMap = (poiId: string) => {
     router.push(`/?poi=${poiId}`);
@@ -328,5 +332,7 @@ function DashboardPage() {
 }
 
 export default withAuth(DashboardPage, ['Agente Municipal', 'Administrador']);
+
+    
 
     
