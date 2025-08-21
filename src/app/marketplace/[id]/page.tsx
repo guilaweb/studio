@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -16,31 +17,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext
 import { Separator } from "@/components/ui/separator";
 import { APIProvider, AdvancedMarker, Map, Pin } from "@vis.gl/react-google-maps";
 import { getPinStyle } from "@/components/map-component";
-
-const VerificationSeal = ({ status }: { status: PointOfInterestStatus }) => {
-    const sealConfig = {
-        verificado_ouro: { Icon: ShieldCheck, label: "Verificado (Ouro)", description: "Propriedade validada com documentos oficiais.", className: "text-yellow-500" },
-        verificado_prata: { Icon: Shield, label: "Verificado (Prata)", description: "Posse confirmada com base em documentos históricos.", className: "text-slate-500" },
-        em_verificacao: { Icon: ShieldAlert, label: "Em Verificação", description: "Imóvel a ser analisado pelos nossos técnicos.", className: "text-blue-500" },
-        informacao_insuficiente: { Icon: HelpCircle, label: "Informação Insuficiente", description: "Verificação falhou. Contacte o proprietário.", className: "text-red-500" },
-        default: { Icon: HelpCircle, label: "Não Verificado", description: "Este imóvel não foi verificado pela MUNITU.", className: "text-gray-500" }
-    };
-    const config = sealConfig[status as keyof typeof sealConfig] || sealConfig.default;
-
-    return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger>
-                    <div className={`flex items-center gap-2 text-lg font-semibold ${config.className}`}>
-                        <config.Icon className="h-6 w-6" />
-                        <span>{config.label}</span>
-                    </div>
-                </TooltipTrigger>
-                <TooltipContent><p>{config.description}</p></TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
-    );
-};
+import { VerificationSeal } from "@/components/marketplace/verification-seal";
 
 const TrustInfoItem = ({ icon, label, value, status }: { icon: React.ReactNode, label: string, value: string, status?: boolean }) => {
     const StatusIcon = status === undefined ? null : (status ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />);

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -13,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowLeft, MessageSquare, Check, Eye, Star, Pencil, Tag, PauseCircle, Archive } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
-import { VerificationSeal } from "@/app/meus-imoveis/page"; // Re-using the seal from the list page
+import { VerificationSeal } from "@/components/marketplace/verification-seal";
 import { Separator } from "@/components/ui/separator";
 
 const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
