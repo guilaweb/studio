@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Trash2 } from "lucide-react";
-import type { FormData } from "./property-registration-wizard";
+import type { FormData } from './property-registration-wizard';
 
 // Re-using the DrawingManager component logic
 const DrawingManager: React.FC<{
