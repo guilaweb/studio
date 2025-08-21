@@ -45,6 +45,8 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         description: data.description,
         status: data.status,
         priority: data.priority,
+        price: data.price,
+        propertyTaxStatus: data.propertyTaxStatus,
         lastReported: data.lastReported,
         incidentDate: data.incidentDate,
         startDate: data.startDate,
@@ -54,7 +56,6 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         updates: sortedUpdates,
         files: data.files,
         // Land Plot & Property Specific
-        price: data.price,
         propertyType: data.propertyType,
         area: data.area, // in square meters
         builtArea: data.builtArea, // in square meters
@@ -69,7 +70,6 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         minLotArea: data.minLotArea, // Loteamento
         roadCession: data.roadCession, // Loteamento
         greenSpaceCession: data.greenSpaceCession, // Loteamento
-        propertyTaxStatus: data.propertyTaxStatus,
         // Project Specific
         landPlotId: data.landPlotId,
         projectType: data.projectType,
@@ -175,7 +175,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         
-        const statusUpdate: Partial<PointOfInterestUpdate> = {
+        const statusUpdate: Omit<PointOfInterestUpdate, 'id'> = {
             text: updateText || `Estado atualizado para: ${statusLabelMap[status!] || status}`,
             authorId: user.uid,
             authorDisplayName: profile.displayName || "Utilizador Anónimo",
@@ -287,6 +287,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 export const usePoints = () => useContext(PointsContext);
 
     
+
 
 
 

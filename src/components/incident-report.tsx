@@ -120,9 +120,9 @@ export default function IncidentReport({
             form.reset({
                 title: incidentToEdit.title,
                 description: incidentToEdit.description,
-                day: incidentDate.getDate(),
-                month: incidentDate.getMonth() + 1,
-                year: incidentDate.getFullYear(),
+                day: incidentDate.getUTCDate(),
+                month: incidentDate.getUTCMonth() + 1,
+                year: incidentDate.getUTCFullYear(),
             });
             
             setMapCenter(incidentToEdit.position);
@@ -162,7 +162,7 @@ export default function IncidentReport({
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalPosition = mapCenter;
-    const incidentDate = new Date(values.year, values.month - 1, values.day).toISOString();
+    const incidentDate = new Date(Date.UTC(values.year, values.month - 1, values.day)).toISOString();
 
     const handleSubmission = (photoDataUri?: string) => {
         const submissionData = {

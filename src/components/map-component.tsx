@@ -3,7 +3,7 @@
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Waves } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 import { LandPlotPolygons } from "./marketplace/land-plot-polygons";
@@ -57,7 +57,7 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
     case "water":
         return <Droplet className={commonClasses} />;
     case "water_resource":
-        return <Waves className={commonClasses} />;
+        return <Droplets className={commonClasses} />;
     case "land_plot":
         return <Square className={commonClasses} />;
     case "announcement":
@@ -152,8 +152,7 @@ export const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut 
 
 export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
   
-    const [infoWindowState, setInfoWindowState] = useState<{ anchor: google.maps.Marker | null; poi: PointOfInterest | null }>({ anchor: null, poi: null });
-    const [markerRef, marker] = useAdvancedMarkerRef();
+    const [infoWindowState, setInfoWindowState] = useState<{ anchor: google.maps.marker.AdvancedMarkerElement | null; poi: PointOfInterest | null }>({ anchor: null, poi: null });
 
     const handleCameraChange = (e: google.maps.MapCameraChangedEvent) => {
         onCenterChanged(e.detail.center);
@@ -162,8 +161,7 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
 
     const handleMouseOver = (event: google.maps.MapMouseEvent, poi: PointOfInterest) => {
         if (!event.domEvent.target) return;
-        
-        const anchor = new google.maps.Marker({ position: poi.position });
+        const anchor = event.domEvent.target as unknown as google.maps.marker.AdvancedMarkerElement;
         setInfoWindowState({ anchor, poi });
     };
 

@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Waves } from "lucide-react";
+import { ArrowLeft, Droplets } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterestMarker } from "@/components/map-component";

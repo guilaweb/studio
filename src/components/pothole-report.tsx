@@ -120,7 +120,7 @@ export default function PotholeReport({
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalPosition = mapCenter;
-    const incidentDate = new Date(values.year, values.month - 1, values.day).toISOString();
+    const incidentDate = new Date(Date.UTC(values.year, values.month - 1, values.day)).toISOString();
 
     const handleSubmission = (photoDataUri?: string) => {
         onPotholeSubmit({ 
