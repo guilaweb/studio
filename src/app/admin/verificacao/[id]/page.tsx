@@ -18,13 +18,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { PointOfInterestMarker } from "@/components/map-component";
+import DocumentAnalysis from "@/components/admin/verificacao/document-analysis";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
     { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
     { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
     { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
-    { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
+    { featureType: "administrative.land_parcel", stylers: [{ visibility: "off" }] },
     { featureType: "poi", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
     { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
     { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
@@ -63,7 +64,7 @@ const VerificationControl = ({ property, updatePointStatus, addUpdateToPoint }: 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Ação de Verificação</CardTitle>
+                <CardTitle>Ação de Verificação (Manual)</CardTitle>
                 <CardDescription>Escreva o seu parecer técnico e defina o nível de verificação do imóvel.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -97,6 +98,7 @@ function AdminVerificationDetailPage() {
     const { allData, loading: loadingPoints, updatePointStatus, addUpdateToPoint } = usePoints();
     const [property, setProperty] = React.useState<PointOfInterest | null>(null);
     const { user: applicant, loading: loadingApplicant } = useUserProfile(property?.authorId || null);
+    const firstDocumentUrl = property?.files?.[0]?.url;
 
     React.useEffect(() => {
         if (allData.length > 0) {
@@ -134,7 +136,8 @@ function AdminVerificationDetailPage() {
                 </header>
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
                     <div className="grid auto-rows-max items-start gap-4 md:col-span-2 lg:col-span-3">
-                       <VerificationControl property={property} updatePointStatus={updatePointStatus} addUpdateToPoint={addUpdateToPoint} />
+                        {firstDocumentUrl && <DocumentAnalysis documentUrl={firstDocumentUrl} />}
+                        <VerificationControl property={property} updatePointStatus={updatePointStatus} addUpdateToPoint={addUpdateToPoint} />
                         <Card>
                             <CardHeader>
                                 <CardTitle>Documentos de Prova</CardTitle>

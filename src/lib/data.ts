@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -326,6 +325,21 @@ export const AnalyzeEnvironmentalImpactOutputSchema = z.object({
     energyEfficiencyAnalysis: z.string().describe("Analysis of energy and water efficiency. Suggests things like rainwater harvesting or ideal solar orientation."),
 });
 export type AnalyzeEnvironmentalImpactOutput = z.infer<typeof AnalyzeEnvironmentalImpactOutputSchema>;
+
+export const AnalyzePropertyDocumentInputSchema = z.object({
+    documentDataUri: z.string().describe("A property document image as a data URI."),
+});
+export type AnalyzePropertyDocumentInput = z.infer<typeof AnalyzePropertyDocumentInputSchema>;
+
+export const AnalyzePropertyDocumentOutputSchema = z.object({
+    ownerName: z.string().describe("The name of the owner extracted from the document."),
+    registrationNumber: z.string().describe("The official registration number of the property."),
+    plotArea: z.number().optional().describe("The area of the plot in square meters, if mentioned."),
+    summary: z.string().describe("A brief summary of the document's content."),
+    confidenceScore: z.number().min(0).max(100).describe("A confidence score (0-100) on the document's authenticity."),
+    redFlags: z.array(z.string()).describe("A list of potential red flags or issues observed."),
+});
+export type AnalyzePropertyDocumentOutput = z.infer<typeof AnalyzePropertyDocumentOutputSchema>;
 
 
 // Schemas for Chat / Inbox
