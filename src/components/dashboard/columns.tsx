@@ -43,7 +43,7 @@ const ActionsCell = ({ row }: { row: any }) => {
     const poi = row.original as PointOfInterest;
     const { profile } = useAuth();
     const { deletePoint } = usePoints();
-    const { onViewOnMap } = row.table.options.meta as any;
+    const { onViewOnMap } = (row.table.options.meta as any) || {};
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
     const handleDelete = () => {
