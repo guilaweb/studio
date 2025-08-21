@@ -141,8 +141,8 @@ export const columns: ColumnDef<PointOfInterest>[] = [
     },
     cell: ({ row }) => {
       const priority = row.getValue("priority") as PointOfInterest['priority'];
-      if (!priority) {
-        return <div className="text-center">-</div>;
+      if (!priority || !priorityIcons[priority]) {
+        return <div className="text-center text-muted-foreground">-</div>;
       }
       const { icon: Icon, color, label } = priorityIcons[priority];
       return (

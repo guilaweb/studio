@@ -39,63 +39,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { CSVLink } from "react-csv";
-
-const CsvExportButton = ({ table }: { table: Table<PointOfInterest> }) => {
-    const [isClient, setIsClient] = React.useState(false);
-    
-    React.useEffect(() => {
-        setIsClient(true);
-    }, []);
-
-    const csvData = React.useMemo(() => {
-        if (!isClient) return { headers: [], data: [] }; // Don't generate data on server
-
-        const headers = [
-            { label: "ID", key: "id" },
-            { label: "Título", key: "title" },
-            { label: "Tipo", key: "type" },
-            { label: "Prioridade", key: "priority" },
-            { label: "Descrição", key: "description" },
-            { label: "Estado", key: "status" },
-            { label: "Último Reporte", key: "lastReported" },
-            { label: "Latitude", key: "position.lat" },
-            { label: "Longitude", key: "position.lng" },
-            { label: "ID do Autor", key: "authorId" },
-        ];
-        
-        const data = table.getFilteredRowModel().rows.map(row => {
-            const poi = row.original as PointOfInterest;
-            return {
-                ...poi,
-                type: poi.type ? typeLabelMap[poi.type] : "N/A",
-                priority: poi.priority ? priorityLabelMap[poi.priority] : "N/A",
-                status: poi.status ? statusLabelMap[poi.status] : "N/A",
-                lastReported: poi.lastReported ? new Date(poi.lastReported).toLocaleString('pt-PT') : "N/A"
-            }
-        });
-
-        return { headers, data };
-    }, [table, isClient]);
-
-    if (!isClient) {
-        return null;
-    }
-
-    return (
-        <Button variant="outline" className="h-9" asChild>
-            <CSVLink 
-                data={csvData.data}
-                headers={csvData.headers}
-                filename={"reportes-cidadao-online.csv"}
-                className="flex items-center"
-                target="_blank"
-            >
-                <Download className="mr-2 h-4 w-4" />
-                Exportar CSV
-            </CSVLink>
-        </Button>
-    );
-};
+import CsvExportButton from "./csv-export-button"
 
 
 interface DataTableProps<TData, TValue> {
@@ -156,7 +100,7 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                 className="max-w-sm h-9"
             />
             <div className="flex gap-2 flex-wrap justify-end flex-1">
-                 {table.getColumn("type") && (
+                 {table.getColumn("type") && typeLabelMap && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="h-9">
@@ -182,7 +126,7 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
-                 {table.getColumn("priority") && (
+                 {table.getColumn("priority") && priorityLabelMap && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="h-9">
@@ -208,7 +152,7 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
-                 {table.getColumn("status") && (
+                 {table.getColumn("status") && statusLabelMap && (
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="h-9">
@@ -351,5 +295,3 @@ export function DataTable<TData extends PointOfInterest, TValue>({
     </div>
   )
 }
-
-    
