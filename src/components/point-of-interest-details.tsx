@@ -522,7 +522,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
       }
   }
   
-   const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status']) => {
+   const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => {
     if (!user) {
         toast({
             variant: "destructive",
@@ -532,8 +532,10 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
         return;
     }
     
-    const text = `Estado atualizado para: ${statusLabelMap[status!] || status}`;
-    onPoiStatusChange(pointId, status, text);
+    const statusLabel = status ? (statusLabelMap[status] || status) : 'desconhecido';
+    const text = updateText || `Estado atualizado para: ${statusLabel}`;
+
+    onPoiStatusChange(pointId, status, text, availableNotes, queueTime);
     
     toast({
         title: "Estado atualizado!",
@@ -627,7 +629,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 )}
                 {poi.type === 'incident' && <IncidentTags description={poi.description} />}
                 
-                {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
+                {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />}
                 
                 {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />}
                 
@@ -664,5 +666,6 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </>
   );
 }
+
 
 
