@@ -11,7 +11,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
-import { PointOfInterest, PointOfInterestUpdate, UserProfile, statusLabelMap, ActiveLayers } from "@/lib/data";
+import { PointOfInterest, PointOfInterestUpdate, UserProfile, statusLabelMap, ActiveLayers, QueueTime } from "@/lib/data";
 import { Logo } from "@/components/icons";
 import AppHeader from "@/components/app-header";
 import MapComponent from "@/components/map-component";
@@ -57,7 +57,7 @@ const defaultActiveLayers: ActiveLayers = {
 };
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
-  const { allData, addPoint, updatePointStatus, addUpdateToPoint, updatePointDetails } = usePoints();
+  const { allData, addPoint, updatePointStatus, addUpdateToPoint, updatePointDetails, deletePoint } = usePoints();
   const searchParams = useSearchParams();
   const prevDataRef = React.useRef<PointOfInterest[]>([]);
   const { user, profile } = useAuth();
@@ -81,6 +81,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   
   const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
 
+  const finalActiveLayers = React.useMemo(() => {
+    if (isManager) {
+        return activeLayers;
+    }
+    return publicLayers || defaultActiveLayers;
+  }, [isManager, activeLayers, publicLayers]);
 
   // Effect to synchronize active layers with public settings for citizens
   React.useEffect(() => {
@@ -731,7 +737,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     setSelectedPoi(null);
   };
 
-  const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status']) => {
+  const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => {
     if (!user) {
         toast({
             variant: "destructive",
@@ -742,9 +748,9 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
 
     const statusLabel = status ? statusLabelMap[status] : 'desconhecido';
-    const updateText = `Estado atualizado para: ${statusLabel}`;
+    const text = updateText || `Estado atualizado para: ${statusLabel}`;
 
-    updatePointStatus(pointId, status, updateText);
+    updatePointStatus(pointId, status, text, availableNotes, queueTime);
     setSelectedPoi(prevPoi => prevPoi ? { ...prevPoi, status, lastReported: new Date().toISOString() } : null);
     toast({
         title: "Estado atualizado!",
@@ -888,7 +894,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             </AppHeader>
             <div className="flex-1 overflow-hidden relative">
                <MapComponent
-                activeLayers={activeLayers}
+                activeLayers={finalActiveLayers}
                 data={allData}
                 userPosition={userPosition}
                 searchedPlace={searchedPlace?.geometry?.location?.toJSON()}
