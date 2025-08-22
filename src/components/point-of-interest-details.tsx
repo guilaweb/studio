@@ -531,11 +531,9 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
         });
         return;
     }
-
-    const statusLabel = status ? statusLabelMap[status] : 'desconhecido';
-    const updateText = `Estado atualizado para: ${statusLabel}`;
-
-    onPoiStatusChange(pointId, status, updateText);
+    
+    const text = `Estado atualizado para: ${statusLabelMap[status!] || status}`;
+    onPoiStatusChange(pointId, status, text);
     
     toast({
         title: "Estado atualizado!",
@@ -666,4 +664,5 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </>
   );
 }
+
 
