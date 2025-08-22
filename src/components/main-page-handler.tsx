@@ -238,7 +238,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         (now - new Date(p.lastReported).getTime() < timeThreshold)
     );
     
-    let potentialDuplicateOfId: string | undefined = undefined;
+    let potentialDuplicateOfId: string | null = null;
 
     try {
         const duplicateResult = await detectDuplicate({
@@ -296,7 +296,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       status: 'unknown',
       updates: [initialUpdate],
       priority: priority,
-      potentialDuplicateOfId: potentialDuplicateOfId,
+      potentialDuplicateOfId: potentialDuplicateOfId || undefined,
     };
     
     addPoint(incidentToAdd);
@@ -823,6 +823,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Siren className="mr-2 h-4 w-4" />
                             Reportar Incidente
                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => handleStartReporting('atm')}>
+                            <Landmark className="mr-2 h-4 w-4" />
+                            Mapear Caixa Eletrónico
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStartReporting('water_leak')}>
                             <Droplet className="mr-2 h-4 w-4" />
                             Reportar Fuga de Água
@@ -849,10 +853,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         </DropdownMenuItem>
                         {isManager && (
                             <>
-                                <DropdownMenuItem onClick={() => handleStartReporting('atm')}>
-                                    <Landmark className="mr-2 h-4 w-4" />
-                                    Mapear Caixa Eletrónico
-                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
                                     <Square className="mr-2 h-4 w-4" />
                                     Mapear Lote de Terreno
@@ -919,6 +919,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Siren className="mr-2 h-4 w-4" />
                             Reportar Incidente
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStartReporting('atm')}>
+                            <Landmark className="mr-2 h-4 w-4" />
+                            Mapear Caixa Eletrónico
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStartReporting('water_leak')}>
                             <Droplet className="mr-2 h-4 w-4" />
                             Reportar Fuga de Água
@@ -945,10 +949,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         </DropdownMenuItem>
                         {isManager && (
                             <>
-                                 <DropdownMenuItem onClick={() => handleStartReporting('atm')}>
-                                    <Landmark className="mr-2 h-4 w-4" />
-                                    Mapear Caixa Eletrónico
-                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
                                     <Square className="mr-2 h-4 w-4" />
                                     Mapear Lote de Terreno
