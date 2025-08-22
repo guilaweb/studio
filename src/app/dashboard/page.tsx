@@ -100,7 +100,7 @@ const getKPIs = (data: PointOfInterest[]) => {
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     const newReports = data.filter(p => {
-        const reportDate = p.updates?.[p.updates.length-1]?.timestamp || p.lastReported;
+        const reportDate = p.updates?.[p.updates.length - 1]?.timestamp || p.lastReported;
         return reportDate && new Date(reportDate) > twentyFourHoursAgo;
     });
 
@@ -108,16 +108,16 @@ const getKPIs = (data: PointOfInterest[]) => {
     const sanitationPoints = data.filter(p => p.type === 'sanitation');
     const resolvedSanitation = sanitationPoints.filter(p => p.status === 'collected');
     const resolutionRate = sanitationPoints.length > 0 ? (resolvedSanitation.length / sanitationPoints.length) * 100 : 0;
-    
+
     const resolutionTimes = resolvedSanitation.reduce((acc, p) => {
         if (!p.updates || p.updates.length < 2) return acc;
-        
-        const sortedUpdates = [...p.updates].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+        const sortedUpdates = [...p.updates].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
         const creationUpdate = sortedUpdates[0];
-        // Ensure there's a resolution update *after* the creation update
-        const resolutionUpdate = sortedUpdates.find(u => 
-            (u as any).status === 'collected' && 
-            new Date(u.timestamp) > new Date(creationUpdate.timestamp)
+
+        const resolutionUpdate = sortedUpdates.find(u =>
+            (u as any).status === 'collected' &&
+            new Date(u.timestamp).getTime() > new Date(creationUpdate.timestamp).getTime()
         );
 
         if (creationUpdate && resolutionUpdate) {
@@ -127,12 +127,12 @@ const getKPIs = (data: PointOfInterest[]) => {
         }
         return acc;
     }, [] as number[]);
-
+    
     let avgResolutionTimeMs: number | null = null;
     if (resolutionTimes.length > 0) {
         avgResolutionTimeMs = resolutionTimes.reduce((sum, time) => sum + time, 0) / resolutionTimes.length;
     }
-    
+
     // --- General KPIs ---
     const activeReports = data.filter(p => p.status !== 'collected' && p.status !== 'available').length;
 
