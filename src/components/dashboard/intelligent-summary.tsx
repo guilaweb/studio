@@ -14,7 +14,9 @@ interface IntelligentSummaryProps {
     allData: PointOfInterest[];
 }
 
-const getDashboardStats = (allData: PointOfInterest[]): DashboardStats => {
+const getDashboardStats = (allData: PointOfInterest[]): DashboardStats | null => {
+    if (!allData || allData.length === 0) return null;
+
     const now = new Date();
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
@@ -55,7 +57,9 @@ const IntelligentSummary: React.FC<IntelligentSummaryProps> = ({ allData }) => {
 
     React.useEffect(() => {
         const fetchSummary = async () => {
-            if (allData.length === 0) {
+            const stats = getDashboardStats(allData);
+
+            if (!stats) {
                 setSummary("Ainda não existem dados suficientes para gerar um sumário.");
                 setLoading(false);
                 return;
@@ -63,7 +67,6 @@ const IntelligentSummary: React.FC<IntelligentSummaryProps> = ({ allData }) => {
             
             setLoading(true);
             try {
-                const stats = getDashboardStats(allData);
                 const result = await generateDashboardSummary({ 
                     stats: stats,
                     currentDate: new Date().toISOString()

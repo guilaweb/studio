@@ -13,7 +13,6 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  Table,
 } from "@tanstack/react-table"
 import {
     DropdownMenu,
@@ -32,13 +31,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { PointOfInterest, priorityLabelMap, statusLabelMap, typeLabelMap } from "@/lib/data"
-import { ChevronDown, X, Calendar as CalendarIcon, Download } from "lucide-react"
+import { ChevronDown, X, Calendar as CalendarIcon } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { CSVLink } from "react-csv";
 import CsvExportButton from "./csv-export-button"
 
 
@@ -79,14 +77,11 @@ export function DataTable<TData extends PointOfInterest, TValue>({
   })
 
   React.useEffect(() => {
-    if (date?.from && date?.to) {
-        table.getColumn('lastReported')?.setFilterValue([date.from.toISOString(), date.to.toISOString()]);
-    } else {
-        table.getColumn('lastReported')?.setFilterValue(undefined);
-    }
+    table.getColumn('lastReported')?.setFilterValue(date ? [date.from?.toISOString(), date.to?.toISOString()] : undefined)
   }, [date, table]);
 
-  const isFiltered = table.getState().columnFilters.length > 0;
+
+  const isFiltered = table.getState().columnFilters.length > 0 || date;
 
   return (
     <div>

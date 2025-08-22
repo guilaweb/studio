@@ -96,6 +96,15 @@ const mapStyles: google.maps.MapTypeStyle[] = [
   ];
 
 const getKPIs = (data: PointOfInterest[]) => {
+    if (!data || data.length === 0) {
+        return {
+            newReportsCount: 0,
+            avgResolutionTimeMs: null,
+            resolutionRate: '0',
+            activeReports: 0,
+        };
+    }
+
     const now = new Date();
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
@@ -159,6 +168,9 @@ function DashboardPage() {
   const intelligentAlerts = React.useMemo(() => getIntelligentAlerts(allData), [allData]);
 
   const chartData = React.useMemo(() => {
+    if (!allData || allData.length === 0) {
+        return [];
+    }
     const counts: { [key in Layer]?: number } = {};
 
     for (const key in chartConfig) {

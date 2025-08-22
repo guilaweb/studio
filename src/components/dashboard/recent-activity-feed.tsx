@@ -15,13 +15,16 @@ const RecentActivityFeed = ({ data }: { data: PointOfInterest[] }) => {
         setIsClient(true);
     }, []);
 
-    const recentPoints = data
-        .sort((a, b) => {
-            const dateA = a.lastReported ? new Date(a.lastReported).getTime() : 0;
-            const dateB = b.lastReported ? new Date(b.lastReported).getTime() : 0;
-            return dateB - dateA;
-        })
-        .slice(0, 5);
+    const recentPoints = React.useMemo(() => {
+        if (!data || data.length === 0) return [];
+        return data
+            .sort((a, b) => {
+                const dateA = a.lastReported ? new Date(a.lastReported).getTime() : 0;
+                const dateB = b.lastReported ? new Date(b.lastReported).getTime() : 0;
+                return dateB - dateA;
+            })
+            .slice(0, 5);
+    }, [data]);
 
     return (
         <Card>
