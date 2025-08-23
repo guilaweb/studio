@@ -532,8 +532,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
         return;
     }
     
-    const statusLabel = status ? (statusLabelMap[status] || status) : 'desconhecido';
-    const text = updateText || `Estado atualizado para: ${statusLabel}`;
+    const text = updateText || `Estado atualizado para: ${statusLabelMap[status!] || status}`;
 
     onPoiStatusChange(pointId, status, text, availableNotes, queueTime);
     
@@ -666,6 +665,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </>
   );
 }
+
 
 
 

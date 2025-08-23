@@ -175,8 +175,10 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     try {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         
+        const text = updateText || `Estado atualizado para: ${statusLabelMap[status!] || status}`;
+
         const statusUpdate: Omit<PointOfInterestUpdate, 'id'> = {
-            text: updateText || `Estado atualizado para: ${statusLabelMap[status!] || status}`,
+            text: text,
             authorId: user.uid,
             authorDisplayName: profile.displayName || "Utilizador Anónimo",
             timestamp: new Date().toISOString(),
@@ -287,6 +289,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 export const usePoints = () => useContext(PointsContext);
 
     
+
 
 
 
