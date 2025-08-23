@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/hooks/use-auth';
 import { PointsProvider } from '@/hooks/use-points';
 import { ThemeProvider } from '@/components/theme-provider';
+import GlobalErrorBoundary from '@/components/global-error-boundary';
 
 export const metadata: Metadata = {
   title: 'MUNITU',
@@ -24,19 +25,21 @@ export default function RootLayout({
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
       <body className="font-body antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AuthProvider>
-            <PointsProvider>
-              {children}
-              <Toaster />
-            </PointsProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <GlobalErrorBoundary>
+            <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+            >
+            <AuthProvider>
+                <PointsProvider>
+                {children}
+                <Toaster />
+                </PointsProvider>
+            </AuthProvider>
+            </ThemeProvider>
+        </GlobalErrorBoundary>
       </body>
     </html>
   );
