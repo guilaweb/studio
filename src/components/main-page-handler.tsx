@@ -82,11 +82,15 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
 
   const finalActiveLayers = React.useMemo(() => {
+    if (loadingLayers && !isManager) {
+        // Return a default set of layers for citizens while public settings are loading
+        return defaultActiveLayers;
+    }
     if (isManager) {
         return activeLayers;
     }
     return publicLayers || defaultActiveLayers;
-  }, [isManager, activeLayers, publicLayers]);
+  }, [isManager, activeLayers, publicLayers, loadingLayers]);
 
   // Effect to synchronize active layers with public settings for citizens
   React.useEffect(() => {
@@ -747,7 +751,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         return;
     }
 
-    const statusLabel = status ? statusLabelMap[status] : 'desconhecido';
+    const statusLabel = status ? (statusLabelMap[status] || status) : 'desconhecido';
     const text = updateText || `Estado atualizado para: ${statusLabel}`;
 
     updatePointStatus(pointId, status, text, availableNotes, queueTime);
@@ -807,7 +811,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
               </Link>
             </SidebarHeader>
             <SidebarContent>
-              <LayerControls activeLayers={activeLayers} onLayerChange={setActiveLayers} />
+              <LayerControls activeLayers={finalActiveLayers} onLayerChange={setActiveLayers} />
             </SidebarContent>
             <SidebarFooter className="space-y-2">
               {user && (
