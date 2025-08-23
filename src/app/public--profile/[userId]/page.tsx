@@ -10,10 +10,11 @@ import Link from "next/link";
 import { ArrowLeft, Award } from "lucide-react";
 import { useUserProfile } from "@/services/user-service";
 import { medals } from "@/lib/medals";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 function PublicProfilePage() {
     const params = useParams();
+    const router = useRouter();
     const userId = params.userId as string;
     const { allData } = usePoints();
     const { user, loading } = useUserProfile(userId);
@@ -49,11 +50,9 @@ function PublicProfilePage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button asChild>
-                            <Link href="/admin/users">
-                                <ArrowLeft className="mr-2 h-4 w-4"/>
-                                Voltar à Gestão de Utilizadores
-                            </Link>
+                        <Button onClick={() => router.back()}>
+                            <ArrowLeft className="mr-2 h-4 w-4"/>
+                            Voltar
                         </Button>
                     </CardContent>
                 </Card>
@@ -64,11 +63,9 @@ function PublicProfilePage() {
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
             <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-                <Button size="icon" variant="outline" asChild>
-                    <Link href="/admin/users">
-                        <ArrowLeft className="h-5 w-5" />
-                        <span className="sr-only">Voltar à Gestão de Utilizadores</span>
-                    </Link>
+                <Button size="icon" variant="outline" onClick={() => router.back()}>
+                    <ArrowLeft className="h-5 w-5" />
+                    <span className="sr-only">Voltar</span>
                 </Button>
                 <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
                     Perfil Público do Cidadão
@@ -142,3 +139,5 @@ function PublicProfilePage() {
 }
 
 export default PublicProfilePage;
+
+    
