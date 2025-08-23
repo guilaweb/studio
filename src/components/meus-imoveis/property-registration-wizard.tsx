@@ -10,6 +10,9 @@ import DetailsStep from "./details-step";
 import DocumentsStep from "./documents-step";
 import MediaStep from "./media-step";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { usePoints } from "@/hooks/use-points";
+import { PointOfInterest } from "@/lib/data";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -22,6 +25,8 @@ export type FormData = {
 
 export default function PropertyRegistrationWizard() {
     const [step, setStep] = React.useState<Step>(1);
+    const { user, profile } = useAuth();
+    const { addPoint } = usePoints();
     const [formData, setFormData] = React.useState<FormData>({
         polygon: null,
         details: {},
@@ -45,19 +50,62 @@ export default function PropertyRegistrationWizard() {
         }
     };
 
-    const handleSubmit = () => {
-        // Here you would typically call a service to submit the data
-        // For now we just log it and show a toast
-        const submissionData = {
-            ...formData,
-            status: 'em_verificacao', // Set initial status
+    const handleSubmit = async () => {
+        if (!user || !profile || !formData.polygon) {
+            toast({
+                variant: "destructive",
+                title: "Erro de Submissão",
+                description: "Não foi possível submeter o formulário. Verifique se está autenticado e se o polígono foi desenhado.",
+            });
+            return;
+        }
+
+        const centerLat = formData.polygon.reduce((sum, p) => sum + p.lat, 0) / formData.polygon.length;
+        const centerLng = formData.polygon.reduce((sum, p) => sum + p.lng, 0) / formData.polygon.length;
+
+        const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: any[] } = {
+            id: `land_plot-${Date.now()}`,
+            type: 'land_plot',
+            title: `Imóvel registado por ${profile.displayName}`,
+            description: formData.details.description,
+            authorId: user.uid,
+            authorDisplayName: profile.displayName,
+            position: { lat: centerLat, lng: centerLng },
+            polygon: formData.polygon,
+            lastReported: new Date().toISOString(),
+            status: 'em_verificacao',
+            propertyType: formData.details.propertyType,
+            area: formData.details.area,
+            builtArea: formData.details.builtArea,
+            bedrooms: formData.details.bedrooms,
+            bathrooms: formData.details.bathrooms,
+            updates: [{
+                id: `update-${Date.now()}`,
+                text: 'Registo inicial do imóvel submetido para verificação.',
+                authorId: user.uid,
+                authorDisplayName: profile.displayName,
+                timestamp: new Date().toISOString(),
+            }],
+            // In a real app, you would upload files to a storage service
+            // and save the URLs here. For now, we save the names.
+            files: formData.documents.map(f => ({ name: f.name, url: '#' })),
         };
-        console.log("Final form data:", submissionData);
+        
+        await addPoint(pointToAdd as any);
+
         toast({
             title: "Submissão Enviada!",
             description: "O seu imóvel foi submetido para verificação. Será notificado sobre o progresso.",
         });
-        // Reset or redirect after submission
+        // Here you would typically redirect the user
+        // e.g., router.push('/meus-imoveis');
+        setStep(1);
+        setFormData({
+            polygon: null,
+            details: {},
+            documents: [],
+            media: [],
+        });
     };
 
     return (

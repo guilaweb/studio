@@ -59,14 +59,14 @@ export default function DetailsStep({ onNext, onBack, initialData }: DetailsStep
             </Select>
           )}
         />
-        {errors.propertyType && <p className="text-sm text-destructive">{errors.propertyType.message}</p>}
+        {errors.propertyType && <p className="text-sm text-destructive">{(errors.propertyType.message as string)}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="area">Área do Terreno (m²)</Label>
           <Input id="area" type="number" {...register("area")} />
-          {errors.area && <p className="text-sm text-destructive">{errors.area.message}</p>}
+          {errors.area && <p className="text-sm text-destructive">{errors.area.message as string}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="builtArea">Área Construída (m²)</Label>
@@ -88,7 +88,7 @@ export default function DetailsStep({ onNext, onBack, initialData }: DetailsStep
       <div className="space-y-2">
         <Label htmlFor="description">Descrição do Imóvel</Label>
         <Textarea id="description" {...register("description")} />
-        {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
+        {errors.description && <p className="text-sm text-destructive">{errors.description.message as string}</p>}
       </div>
 
       <div className="flex justify-between">

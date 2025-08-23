@@ -126,5 +126,3 @@ export default function LocationStep({ onNext, initialPolygon }: LocationStepPro
         </div>
     );
 }
-
-    
