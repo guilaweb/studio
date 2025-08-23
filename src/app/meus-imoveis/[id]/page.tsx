@@ -21,7 +21,7 @@ const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
     if (isFirst) {
         return <Pencil className="h-4 w-4 text-muted-foreground" />;
     }
-    if (update.text.startsWith('**PARECER TÉCNICO**')) {
+    if (update.text?.startsWith('**PARECER TÉCNICO**')) {
         return <Check className="h-4 w-4 text-green-500" />;
     }
     return <MessageSquare className="h-4 w-4 text-muted-foreground" />;
