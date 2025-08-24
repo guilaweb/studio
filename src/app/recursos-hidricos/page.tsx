@@ -34,7 +34,12 @@ const features = [
             {
                 title: "Visualizador de Camadas Hidrográficas",
                 Icon: Layers,
-                points: ["Rede Fluvial (Rios e Afluentes)", "Corpos de Água (Lagos, Lagoas)", "Bacias e Sub-bacias Hidrográficas", "Mapa de Aquíferos Subterrâneos"]
+                points: [
+                    "Rede Fluvial: Mapeamento de todos os rios (principais e afluentes) e riachos, com atributos como nome, comprimento e caudal médio.",
+                    "Corpos de Água: Mapeamento de lagos, lagoas e chanas, com dados de área e volume estimado.",
+                    "Bacias e Sub-bacias Hidrográficas: Delimitação visual de todas as bacias de drenagem, a unidade fundamental para a gestão da água.",
+                    "Mapa de Aquíferos: Mapeamento das reservas de água subterrânea, indicando profundidade, vulnerabilidade e potencial."
+                ]
             },
             {
                 title: "Inventário de Infraestruturas Hídricas",
