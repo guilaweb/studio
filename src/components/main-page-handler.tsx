@@ -662,16 +662,17 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
 
-  const handleAddNewCroqui = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute'>) => {
+  const handleAddNewCroqui = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName'>, propertyIdToLink?: string) => {
       if (!user || !profile) {
         toast({ variant: "destructive", title: "Ação necessária", description: "Por favor, faça login para criar um croqui."});
         return;
       }
       handleSheetOpenChange(false);
       const timestamp = new Date().toISOString();
+      const croquiId = `croqui-${Date.now()}`;
 
       const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
-          id: `croqui-${Date.now()}`,
+          id: croquiId,
           type: 'croqui',
           title: data.title,
           description: data.description,
@@ -681,6 +682,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           lastReported: timestamp,
           croquiPoints: data.croquiPoints,
           croquiRoute: data.croquiRoute,
+          collectionName: data.collectionName,
           status: 'active',
           updates: [{
               text: `Croqui criado: ${data.title}`,
@@ -690,7 +692,11 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           }]
       };
       
-      addPoint(pointToAdd);
+      await addPoint(pointToAdd);
+      
+      if (propertyIdToLink) {
+          await updatePointDetails(propertyIdToLink, { croquiId: croquiId });
+      }
 
       toast({
           title: "Croqui Criado!",

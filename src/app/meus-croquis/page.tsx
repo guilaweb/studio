@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -6,7 +7,7 @@ import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Plus, Share2 } from "lucide-react";
+import { ArrowLeft, Plus, Share2, Folder } from "lucide-react";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
 import { useRouter } from "next/navigation";
@@ -44,9 +45,19 @@ function MeusCroquisPage() {
     const router = useRouter();
     const { toast } = useToast();
 
-    const userCroquis = React.useMemo(() => {
-        if (!user) return [];
-        return allData.filter(p => p.type === 'croqui' && p.authorId === user.uid);
+    const userCroquisByCollection = React.useMemo(() => {
+        if (!user) return {};
+        const croquis = allData.filter(p => p.type === 'croqui' && p.authorId === user.uid);
+        
+        return croquis.reduce((acc, croqui) => {
+            const collectionName = croqui.collectionName || 'Croquis Individuais';
+            if (!acc[collectionName]) {
+                acc[collectionName] = [];
+            }
+            acc[collectionName].push(croqui);
+            return acc;
+        }, {} as Record<string, PointOfInterest[]>);
+
     }, [allData, user]);
 
     const handleShare = (id: string, title: string) => {
@@ -66,6 +77,8 @@ function MeusCroquisPage() {
     if (loading) {
         return <div className="flex min-h-screen items-center justify-center">A carregar os seus croquis...</div>;
     }
+
+    const hasCroquis = Object.keys(userCroquisByCollection).length > 0;
 
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -87,17 +100,21 @@ function MeusCroquisPage() {
                 </div>
             </header>
             <main className="flex-1 p-4 sm:px-6 sm:py-6">
-                {userCroquis.length > 0 ? (
-                     <div className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Os Meus Croquis de Localização</CardTitle>
-                                <CardDescription>Gira, partilhe e visualize todos os seus croquis guardados.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {userCroquis.map(c => <CroquiCard key={c.id} croqui={c} onShare={handleShare} />)}
-                            </CardContent>
-                        </Card>
+                {hasCroquis ? (
+                     <div className="space-y-6">
+                        {Object.entries(userCroquisByCollection).map(([collectionName, croquis]) => (
+                            <Card key={collectionName}>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Folder className="h-5 w-5 text-primary" />
+                                        {collectionName}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {croquis.map(c => <CroquiCard key={c.id} croqui={c} onShare={handleShare} />)}
+                                </CardContent>
+                            </Card>
+                        ))}
                     </div>
                 ) : (
                     <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8 text-center">

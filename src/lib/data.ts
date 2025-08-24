@@ -100,6 +100,8 @@ export const PointOfInterestSchema = z.object({
   croquiId: z.string().optional(), // Link to a croqui
   croquiPoints: z.array(CroquiPointSchema).optional(),
   croquiRoute: z.array(PositionSchema).optional(),
+  collectionId: z.string().optional(),
+  collectionName: z.string().optional(),
   // Duplicate detection
   potentialDuplicateOfId: z.string().optional(),
   // Sustainability

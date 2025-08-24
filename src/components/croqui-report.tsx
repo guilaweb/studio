@@ -44,6 +44,7 @@ import { Label } from "./ui/label";
 const formSchema = z.object({
   title: z.string().min(5, "O nome do croqui é obrigatório."),
   description: z.string().optional(),
+  collectionName: z.string().optional(),
 });
 
 type DrawingMode = 'points' | 'route' | null;
@@ -109,7 +110,7 @@ const DrawingManager: React.FC<{
 type CroquiReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute'>, propertyIdToLink?: string) => void;
+  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName'>, propertyIdToLink?: string) => void;
   initialCenter: google.maps.LatLngLiteral;
   mapRef?: React.RefObject<google.maps.Map>;
 };
@@ -137,6 +138,7 @@ export default function CroquiReport({
     defaultValues: {
       title: "",
       description: "",
+      collectionName: "",
     },
   });
   
@@ -144,6 +146,7 @@ export default function CroquiReport({
     form.reset({
       title: "",
       description: "",
+      collectionName: "",
     });
     setReferencePoints([]);
     setDrawingMode(null);
@@ -161,7 +164,7 @@ export default function CroquiReport({
             setPropertyToLink(poi);
             setMapCenter(poi.position);
             setMapZoom(16);
-            form.reset({ title: `Acesso a: ${poi.title}`, description: `Croqui para o imóvel ${poi.title}` });
+            form.reset({ title: `Acesso a: ${poi.title}`, description: `Croqui para o imóvel ${poi.title}`, collectionName: "Meus Imóveis" });
         } else {
             const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
             const center = isDefaultLocation ? defaultCenter : initialCenter;
@@ -270,6 +273,19 @@ export default function CroquiReport({
                         <FormLabel>Nome do Croqui</FormLabel>
                         <FormControl>
                             <Input placeholder="Ex: Casa da Família Santos, Festa do Kito" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                 />
+                 <FormField
+                    control={form.control}
+                    name="collectionName"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Coleção (Opcional)</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Ex: Meus Clientes, Rede de Postes" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
