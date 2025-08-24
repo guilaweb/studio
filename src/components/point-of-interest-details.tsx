@@ -5,7 +5,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,6 +40,7 @@ const layerConfig = {
     land_plot: { label: "Lote de Terreno", Icon: Square, variant: "secondary" as const },
     announcement: { label: "Anúncio", Icon: Megaphone, variant: "default" as const },
     water_resource: { label: "Recurso Hídrico", Icon: Droplets, variant: "default" as const },
+    croqui: { label: "Croqui de Localização", Icon: Share2, variant: "default" as const },
 };
 
 const priorityConfig = {
@@ -494,6 +495,42 @@ const DocumentList = ({poi} : {poi: PointOfInterest}) => {
     )
 }
 
+const CroquiActions = ({ poi }: { poi: PointOfInterest }) => {
+    if (poi.type !== 'croqui') return null;
+
+    const shareUrl = `${window.location.origin}/croquis/${poi.id}`;
+
+    const handleShare = (platform: 'whatsapp' | 'facebook' | 'copy') => {
+        const text = `Veja como chegar a "${poi.title}" através deste croqui da MUNITU: ${shareUrl}`;
+        switch (platform) {
+            case 'whatsapp':
+                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+                break;
+            case 'facebook':
+                 window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`);
+                break;
+            case 'copy':
+                navigator.clipboard.writeText(shareUrl);
+                // toast({ title: "Link copiado!" });
+                break;
+        }
+    };
+
+    return (
+        <div className="mt-4 p-4 rounded-lg bg-muted/50">
+            <h3 className="font-semibold mb-2">Partilhar Croqui</h3>
+            <div className="space-y-2">
+                <Input value={shareUrl} readOnly />
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleShare('copy')}>Copiar Link</Button>
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleShare('whatsapp')}>WhatsApp</Button>
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleShare('facebook')}>Facebook</Button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange, onAddUpdate, onEdit }: PointOfInterestDetailsProps) {
   const { user, profile } = useAuth();
@@ -505,7 +542,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
 
   const config = layerConfig[poi.type];
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
-  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement', 'water_resource'].includes(poi.type);
+  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui'].includes(poi.type);
   const isAdmin = profile?.role === 'Administrador';
   const isOwner = poi.authorId === user?.uid;
 
@@ -517,7 +554,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
         canEdit = poi.type !== 'incident' || isOwner;
       } else {
         // Regular users can only edit what they own, and only specific types
-        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement');
+        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement' || poi.type === 'croqui');
       }
   }
   
@@ -590,6 +627,15 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                                 Editar
                             </Button>
                         )}
+                         {poi.type === 'croqui' && (
+                             <Button variant="outline" size="sm" onClick={() => {
+                                 navigator.clipboard.writeText(`${window.location.origin}/croquis/${poi.id}`);
+                                 toast({title: 'Link do Croqui Copiado!'});
+                             }}>
+                                <Share2 className="mr-2 h-3 w-3"/>
+                                Partilhar
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -635,6 +681,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 
                 {poi.type === 'construction' && <DocumentList poi={poi} />}
 
+                {poi.type === 'croqui' && <CroquiActions poi={poi} />}
+
                 {showTimeline && (
                     <Timeline 
                         poi={poi} 
@@ -664,4 +712,3 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </>
   );
 }
-
