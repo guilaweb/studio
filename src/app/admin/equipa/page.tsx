@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search } from "lucide-react";
+import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search, Loader2 } from "lucide-react";
 import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { Badge } from "@/components/ui/badge";
 import { TeamMemberMarker } from "@/components/team-management/team-member-marker";
@@ -17,9 +17,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import TeamMemberPath from "@/components/team-management/team-member-path";
 import { useUsers } from "@/services/user-service";
-import { PointOfInterest, UserProfile } from "@/lib/data";
+import { PointOfInterest, SuggestTechnicianOutput, UserProfile } from "@/lib/data";
 import { usePoints } from "@/hooks/use-points";
 import { useToast } from "@/hooks/use-toast";
+import { suggestTechnicianFlow } from "@/ai/flows/suggest-technician-flow";
+import { SuggestionBadge } from "@/components/team-management/suggestion-badge";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -45,6 +47,8 @@ function TeamManagementPage() {
     const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('Todos');
     const [teamFilter, setTeamFilter] = React.useState('Todos');
     const [localTasks, setLocalTasks] = React.useState<PointOfInterest[]>([]);
+    const [suggestedTechnicians, setSuggestedTechnicians] = React.useState<SuggestTechnicianOutput['suggestions']>([]);
+    const [isSuggesting, setIsSuggesting] = React.useState<string | null>(null); // Holds the ID of the task being analyzed
     const { toast } = useToast();
 
     // Filter for technicians from the user list
@@ -54,7 +58,7 @@ function TeamManagementPage() {
     
     // Filter for unassigned tasks from the points list
     React.useEffect(() => {
-        const unassigned = allPoints.filter(p => (p.type === 'incident' || p.type === 'sanitation') && (p.status === 'unknown' || p.status === 'full'));
+        const unassigned = allPoints.filter(p => (p.type === 'incident' || p.type === 'sanitation') && (p.status === 'unknown' || p.status === 'full' || p.status === 'in_progress' === false));
         setLocalTasks(unassigned);
     }, [allPoints]);
 
@@ -74,38 +78,80 @@ function TeamManagementPage() {
         return teamMembers.filter(member => {
             const nameMatch = member.displayName.toLowerCase().includes(searchQuery.toLowerCase());
             const statusMatch = statusFilter === 'Todos' || member.status === statusFilter;
-            const teamMatch = teamFilter === 'Todos' || member.team === teamMatch;
+            const teamMatch = teamFilter === 'Todos' || member.team === teamFilter; // Corrected teamMatch logic
             return nameMatch && statusMatch && teamMatch;
         });
     }, [teamMembers, searchQuery, statusFilter, teamFilter]);
 
     const handleAssignTask = (task: PointOfInterest) => {
-        const availableTechnician = teamMembers.find(t => t.status === 'Disponível');
-        if (!availableTechnician) {
+        if (!suggestedTechnicians.length) {
             toast({
                 variant: 'destructive',
-                title: 'Nenhum Técnico Disponível',
-                description: 'Não foi encontrado nenhum técnico disponível para atribuir a tarefa.',
+                title: 'Sem Sugestões Ativas',
+                description: 'Por favor, selecione uma tarefa primeiro para obter sugestões de técnicos.',
             });
             return;
         }
+        const topSuggestion = suggestedTechnicians.find(s => s.rank === 1);
+        if (!topSuggestion) {
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi encontrada uma sugestão principal.'});
+            return;
+        }
 
-        const updatedTechnician: UserProfile = {
-            ...availableTechnician,
+        const technicianToAssign = teamMembers.find(t => t.uid === topSuggestion.technicianId);
+        if (!technicianToAssign) {
+             toast({ variant: 'destructive', title: 'Erro', description: 'O técnico sugerido não foi encontrado.'});
+            return;
+        }
+
+        const updatedTechnician: Partial<UserProfile> = {
             status: 'Ocupado',
-            taskQueue: [...(availableTechnician.taskQueue || []), task],
+            taskQueue: [...(technicianToAssign.taskQueue || []), task],
         };
         
-        updateUserProfile(availableTechnician.uid, updatedTechnician);
+        updateUserProfile(technicianToAssign.uid, updatedTechnician);
 
         // Remove task from local list of unassigned tasks
         setLocalTasks(prev => prev.filter(t => t.id !== task.id));
+        setSuggestedTechnicians([]); // Clear suggestions after assignment
+        setIsSuggesting(null);
 
         toast({
             title: 'Tarefa Atribuída!',
-            description: `A tarefa "${task.title}" foi atribuída a ${availableTechnician.displayName}.`,
+            description: `A tarefa "${task.title}" foi atribuída a ${technicianToAssign.displayName}.`,
         });
     };
+    
+    const handleTaskSelect = async (task: PointOfInterest) => {
+        setIsSuggesting(task.id);
+        setSuggestedTechnicians([]); // Clear previous suggestions
+        try {
+            const result = await suggestTechnicianFlow({
+                task: {
+                    id: task.id,
+                    title: task.title,
+                    location: task.position
+                },
+                technicians: teamMembers.map(t => ({
+                    id: t.uid,
+                    name: t.displayName,
+                    location: t.location!,
+                    status: t.status!,
+                    skills: t.skills || [],
+                    taskQueueSize: t.taskQueue?.length || 0,
+                }))
+            });
+            setSuggestedTechnicians(result.suggestions);
+            if(result.suggestions.length === 0) {
+                toast({ title: 'Nenhum técnico adequado encontrado.', description: 'Todos os técnicos podem estar ocupados ou offline.'})
+            }
+        } catch (error) {
+             toast({ variant: 'destructive', title: 'Erro na Sugestão', description: 'Não foi possível obter sugestões da IA.'})
+        } finally {
+            setIsSuggesting(null);
+        }
+    }
+
 
      if (loadingUsers || loadingPoints) {
         return <div>A carregar dados da equipa...</div>;
@@ -193,18 +239,18 @@ function TeamManagementPage() {
                             </CardContent>
                         </Card>
                         <Card>
-                            <CardHeader>
+                             <CardHeader>
                                 <CardTitle>Tarefas Não Atribuídas</CardTitle>
-                                <CardDescription>Arraste uma tarefa para um membro no mapa.</CardDescription>
+                                <CardDescription>Clique numa tarefa para ver sugestões.</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-3">
+                            <CardContent className="space-y-3 max-h-[30vh] overflow-auto">
                                {localTasks.map(task => (
-                                    <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background cursor-grab active:cursor-grabbing">
+                                    <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background cursor-pointer hover:bg-muted" onClick={() => handleTaskSelect(task)}>
                                         <div className="flex items-center gap-3">
-                                            <Package className="h-5 w-5 text-muted-foreground"/>
+                                            {isSuggesting === task.id ? <Loader2 className="h-5 w-5 text-muted-foreground animate-spin"/> : <Package className="h-5 w-5 text-muted-foreground"/>}
                                             <p className="font-semibold text-sm">{task.title}</p>
                                         </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAssignTask(task)}>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleAssignTask(task); }}>
                                             <Send className="h-4 w-4 text-muted-foreground" />
                                         </Button>
                                     </div>
@@ -223,19 +269,23 @@ function TeamManagementPage() {
                                     disableDefaultUI={true}
                                     styles={mapStyles}
                                 >
-                                    {filteredMembers.map(member => (
-                                        member.location && (
+                                    {filteredMembers.map(member => {
+                                        const suggestion = suggestedTechnicians.find(s => s.technicianId === member.uid);
+                                        return member.location && (
                                             <AdvancedMarker key={member.uid} position={member.location} title={member.displayName} onClick={() => setSelectedMember(member)}>
-                                                <TeamMemberMarker 
-                                                        name={member.displayName}
-                                                        photoURL={member.photoURL}
-                                                        status={member.status || 'Offline'}
-                                                    />
+                                                <div className="relative">
+                                                    <TeamMemberMarker 
+                                                            name={member.displayName}
+                                                            photoURL={member.photoURL}
+                                                            status={member.status || 'Offline'}
+                                                        />
+                                                    {suggestion && <SuggestionBadge rank={suggestion.rank} />}
+                                                </div>
                                             </AdvancedMarker>
                                         )
-                                    ))}
+                                    })}
                                     {localTasks.map(task => (
-                                            <AdvancedMarker key={task.id} position={task.position} title={task.title}>
+                                            <AdvancedMarker key={task.id} position={task.position} title={task.title} onClick={() => handleTaskSelect(task)}>
                                                 <Pin background={'#F97316'} borderColor={'#EA580C'} glyphColor={'#ffffff'}>
                                                     <Package />
                                                 </Pin>
