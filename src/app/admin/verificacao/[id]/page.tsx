@@ -208,7 +208,7 @@ function AdminVerificationDetailPage() {
                                         <div>
                                             <p className="font-semibold">{applicant.displayName}</p>
                                             <p className="text-sm text-muted-foreground">{applicant.email}</p>
-                                            <Link href={`/public--profile/${applicant.uid}`} className="text-xs text-primary hover:underline">Ver Perfil Público</Link>
+                                            <Link href={`/public-profile/${applicant.uid}`} className="text-xs text-primary hover:underline">Ver Perfil Público</Link>
                                         </div>
                                     </div>
                                 )}
