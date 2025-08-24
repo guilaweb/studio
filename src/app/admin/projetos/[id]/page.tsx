@@ -11,7 +11,7 @@ import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/da
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck, Download, ExternalLink, Leaf } from "lucide-react";
+import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck, Download, ExternalLink, Leaf, Map as MapIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -26,6 +26,7 @@ import { PointOfInterestMarker } from "@/components/map-component";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import EnvironmentalImpactAnalysis from "@/components/admin/projetos/environmental-impact-analysis";
+import { generateLocationSketch } from "@/ai/flows/generate-location-sketch-flow";
 
 const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
     if (isFirst) {
@@ -101,6 +102,8 @@ function AdminProjectDetailPage() {
     const {toast} = useToast();
     const [licenseHtml, setLicenseHtml] = React.useState<string | null>(null);
     const [isGeneratingLicense, setIsGeneratingLicense] = React.useState(false);
+    const [sketchHtml, setSketchHtml] = React.useState<string | null>(null);
+    const [isGeneratingSketch, setIsGeneratingSketch] = React.useState(false);
 
 
     React.useEffect(() => {
@@ -209,10 +212,44 @@ function AdminProjectDetailPage() {
         }
     };
 
-    const handleViewLicense = () => {
-        if (!licenseHtml) return;
-        localStorage.setItem('licensePreview', licenseHtml);
-        window.open('/licenca/preview', '_blank');
+    const handleGenerateSketch = async () => {
+        if (!project || !applicant || !landPlot || !landPlot.polygon) return;
+        setIsGeneratingSketch(true);
+        try {
+            const result = await generateLocationSketch({
+                plot: {
+                    polygon: landPlot.polygon,
+                    area: landPlot.area,
+                    plotNumber: landPlot.plotNumber,
+                },
+                project: {
+                    requesterName: applicant.displayName,
+                    municipality: "Município Exemplo", // Placeholder
+                    province: "Província Exemplo", // Placeholder
+                    date: new Date().toLocaleDateString('pt-PT'),
+                },
+            });
+            setSketchHtml(result.sketchHtml);
+            toast({
+                title: "Croqui de Localização Gerado",
+                description: "O croqui foi gerado e está pronto para visualização.",
+            });
+        } catch (error) {
+            console.error("Failed to generate location sketch:", error);
+            toast({
+                variant: "destructive",
+                title: "Erro ao Gerar Croqui",
+                description: "Não foi possível gerar o croqui de localização. Tente novamente.",
+            });
+        } finally {
+            setIsGeneratingSketch(false);
+        }
+    };
+
+    const handleViewDocument = (htmlContent: string | null, storageKey: string, url: string) => {
+        if (!htmlContent) return;
+        localStorage.setItem(storageKey, htmlContent);
+        window.open(url, '_blank');
     };
     
     const setParecerTemplate = (templateType: 'favoravel' | 'condicionantes' | 'desfavoravel') => {
@@ -319,29 +356,46 @@ function AdminProjectDetailPage() {
                             </CardContent>
                         </Card>
                         {project.status === 'approved' && (
-                            <Card>
+                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Emissão de Licença Digital</CardTitle>
-                                    <CardDescription>O processo foi aprovado. Gere a licença final para o requerente.</CardDescription>
+                                    <CardTitle>Documentos Oficiais</CardTitle>
+                                    <CardDescription>O processo foi aprovado. Gere a licença e outros documentos necessários.</CardDescription>
                                 </CardHeader>
-                                <CardContent>
-                                    {!licenseHtml ? (
-                                        <Button onClick={handleGenerateLicense} disabled={isGeneratingLicense}>
-                                            {isGeneratingLicense ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileCheck className="mr-2 h-4 w-4" />}
-                                            Gerar Licença
-                                        </Button>
-                                    ) : (
-                                        <div className="flex items-center gap-4 rounded-lg border p-4 bg-green-50 text-green-800 border-green-200">
-                                            <FileCheck className="h-8 w-8" />
-                                            <div>
-                                                <p className="font-semibold">Licença do Projeto</p>
-                                                <p className="text-sm">Gerada e pronta para visualização.</p>
-                                            </div>
-                                            <Button variant="outline" size="sm" className="ml-auto text-green-800 border-green-800/50 hover:bg-green-100 hover:text-green-900" onClick={handleViewLicense}>
-                                                Ver Licença
-                                            </Button>
+                                <CardContent className="flex flex-wrap gap-4">
+                                    {/* License Generation */}
+                                    <div className="flex items-center gap-4 rounded-lg border p-4 bg-green-50 text-green-800 border-green-200 flex-1 min-w-[280px]">
+                                        <FileCheck className="h-8 w-8 text-green-700" />
+                                        <div>
+                                            <p className="font-semibold">Licença de Construção</p>
+                                            <p className="text-sm">Gere a licença digital final.</p>
                                         </div>
-                                    )}
+                                        {licenseHtml ? (
+                                            <Button variant="outline" size="sm" className="ml-auto text-green-800 border-green-800/50 hover:bg-green-100 hover:text-green-900" onClick={() => handleViewDocument(licenseHtml, 'licensePreview', '/licenca/preview')}>
+                                                Ver
+                                            </Button>
+                                        ) : (
+                                            <Button variant="default" size="sm" className="ml-auto" onClick={handleGenerateLicense} disabled={isGeneratingLicense}>
+                                                {isGeneratingLicense ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Gerar'}
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {/* Sketch Generation */}
+                                    <div className="flex items-center gap-4 rounded-lg border p-4 bg-blue-50 text-blue-800 border-blue-200 flex-1 min-w-[280px]">
+                                        <MapIcon className="h-8 w-8 text-blue-700" />
+                                        <div>
+                                            <p className="font-semibold">Croqui de Localização</p>
+                                            <p className="text-sm">Gere o documento técnico do lote.</p>
+                                        </div>
+                                         {sketchHtml ? (
+                                            <Button variant="outline" size="sm" className="ml-auto text-blue-800 border-blue-800/50 hover:bg-blue-100 hover:text-blue-900" onClick={() => handleViewDocument(sketchHtml, 'sketchPreview', '/licenca/sketch-preview')}>
+                                                Ver
+                                            </Button>
+                                        ) : (
+                                            <Button variant="default" size="sm" className="ml-auto" onClick={handleGenerateSketch} disabled={isGeneratingSketch}>
+                                                {isGeneratingSketch ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Gerar'}
+                                            </Button>
+                                        )}
+                                    </div>
                                 </CardContent>
                             </Card>
                         )}
@@ -487,3 +541,5 @@ function AdminProjectDetailPage() {
 }
 
 export default withAuth(AdminProjectDetailPage, ['Agente Municipal', 'Administrador']);
+
+    
