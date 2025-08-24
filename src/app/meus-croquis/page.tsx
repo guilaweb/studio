@@ -7,17 +7,23 @@ import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Plus, Share2, Folder, Upload } from "lucide-react";
+import { ArrowLeft, Plus, Share2, Folder, Upload, Route } from "lucide-react";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
-const CroquiCard = ({ croqui, onShare }: { croqui: PointOfInterest, onShare: (id: string, title: string) => void }) => {
+const CroquiCard = ({ croqui, onShare, onSelect, isSelected }: { croqui: PointOfInterest, onShare: (id: string, title: string) => void, onSelect: (id: string, selected: boolean) => void, isSelected: boolean }) => {
     return (
-        <Card>
+        <Card className={`transition-colors ${isSelected ? 'bg-primary/10 border-primary' : ''}`}>
             <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
+                    <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(checked) => onSelect(croqui.id, !!checked)}
+                        aria-label={`Selecionar ${croqui.title}`}
+                    />
                     <Share2 className="h-8 w-8 text-muted-foreground" />
                     <div>
                         <p className="font-semibold">{croqui.title}</p>
@@ -44,6 +50,7 @@ function MeusCroquisPage() {
     const { allData, loading } = usePoints();
     const router = useRouter();
     const { toast } = useToast();
+    const [selectedCroquis, setSelectedCroquis] = React.useState<string[]>([]);
 
     const userCroquisByCollection = React.useMemo(() => {
         if (!user) return {};
@@ -74,6 +81,23 @@ function MeusCroquisPage() {
         }
     };
     
+    const handleSelectCroqui = (id: string, selected: boolean) => {
+        setSelectedCroquis(prev => {
+            if (selected) {
+                return [...prev, id];
+            } else {
+                return prev.filter(croquiId => croquiId !== id);
+            }
+        });
+    };
+
+    const handleOptimizeRoute = () => {
+        toast({
+            title: "Funcionalidade em Desenvolvimento",
+            description: "A otimização de rotas com múltiplos pontos estará disponível em breve.",
+        });
+    };
+    
     if (loading) {
         return <div className="flex min-h-screen items-center justify-center">A carregar os seus croquis...</div>;
     }
@@ -97,6 +121,10 @@ function MeusCroquisPage() {
                         <Upload className="mr-2 h-4 w-4" />
                         Importar em Massa
                     </Button>
+                    <Button variant="secondary" onClick={handleOptimizeRoute} disabled={selectedCroquis.length < 2}>
+                        <Route className="mr-2 h-4 w-4" />
+                        Otimizar Rota ({selectedCroquis.length})
+                    </Button>
                      <Button onClick={() => router.push('/?#report-croqui')}>
                         <Plus className="mr-2 h-4 w-4" />
                         Criar Novo Croqui
@@ -115,7 +143,15 @@ function MeusCroquisPage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    {croquis.map(c => <CroquiCard key={c.id} croqui={c} onShare={handleShare} />)}
+                                    {croquis.map(c => (
+                                        <CroquiCard 
+                                            key={c.id} 
+                                            croqui={c} 
+                                            onShare={handleShare} 
+                                            onSelect={handleSelectCroqui}
+                                            isSelected={selectedCroquis.includes(c.id)}
+                                        />
+                                    ))}
                                 </CardContent>
                             </Card>
                         ))}
