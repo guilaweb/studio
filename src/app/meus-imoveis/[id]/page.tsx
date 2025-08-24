@@ -3,7 +3,7 @@
 "use client";
 
 import * as React from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { withAuth, useAuth } from "@/hooks/use-auth";
@@ -11,7 +11,7 @@ import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MessageSquare, Check, Eye, Star, Pencil, Tag, PauseCircle, Archive } from "lucide-react";
+import { ArrowLeft, MessageSquare, Check, Eye, Star, Pencil, Tag, PauseCircle, Archive, Share2, PlusCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
 import { VerificationSeal } from "@/components/marketplace/verification-seal";
@@ -56,6 +56,7 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
 
 function ManagePropertyPage() {
     const params = useParams();
+    const router = useRouter();
     const propertyId = params.id as string;
     const { allData, loading } = usePoints();
     const [property, setProperty] = React.useState<PointOfInterest | null>(null);
@@ -66,6 +67,12 @@ function ManagePropertyPage() {
             setProperty(foundProperty || null);
         }
     }, [allData, propertyId]);
+
+    const handleCreateCroqui = () => {
+        if (!property) return;
+        sessionStorage.setItem('poiForCroqui', JSON.stringify(property));
+        router.push('/?#report-croqui');
+    };
 
     if (loading) {
         return <div className="flex min-h-screen items-center justify-center">A carregar dados do imóvel...</div>;
@@ -133,7 +140,17 @@ function ManagePropertyPage() {
                         <CardContent className="flex flex-col gap-2">
                              <Button><Tag className="mr-2 h-4 w-4" /> Colocar à Venda</Button>
                              <Button variant="outline"><Pencil className="mr-2 h-4 w-4" /> Editar Informações</Button>
-                             <Button variant="outline" disabled><Star className="mr-2 h-4 w-4 text-yellow-500" /> Destacar Anúncio</Button>
+                            {property.croquiId ? (
+                                <Button variant="outline" asChild>
+                                    <Link href={`/croquis/${property.croquiId}`} target="_blank">
+                                        <Share2 className="mr-2 h-4 w-4" /> Ver Croqui de Acesso
+                                    </Link>
+                                </Button>
+                            ) : (
+                                <Button variant="secondary" onClick={handleCreateCroqui}>
+                                    <PlusCircle className="mr-2 h-4 w-4" /> Criar Croqui de Acesso
+                                </Button>
+                            )}
                         </CardContent>
                     </Card>
                     <Card>

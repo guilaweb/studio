@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -108,7 +109,7 @@ const DrawingManager: React.FC<{
 type CroquiReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute'>) => void;
+  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute'>, propertyIdToLink?: string) => void;
   initialCenter: google.maps.LatLngLiteral;
   mapRef?: React.RefObject<google.maps.Map>;
 };
@@ -129,6 +130,7 @@ export default function CroquiReport({
   const [newReferencePosition, setNewReferencePosition] = useState<google.maps.LatLngLiteral | null>(null);
   const [drawingMode, setDrawingMode] = useState<DrawingMode>(null);
   const [drawnRoute, setDrawnRoute] = useState<google.maps.Polyline | null>(null);
+  const [propertyToLink, setPropertyToLink] = useState<PointOfInterest | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -147,16 +149,27 @@ export default function CroquiReport({
     setDrawingMode(null);
     if (drawnRoute) drawnRoute.setMap(null);
     setDrawnRoute(null);
+    setPropertyToLink(null);
+    sessionStorage.removeItem('poiForCroqui');
   }
 
   useEffect(() => {
     if (open) {
-        const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
-        const center = isDefaultLocation ? defaultCenter : initialCenter;
-        const zoom = isDefaultLocation ? defaultZoom : 15;
-        setMapCenter(center);
-        setMapZoom(zoom);
-        clearForm();
+        const poiForCroquiJSON = sessionStorage.getItem('poiForCroqui');
+        if (poiForCroquiJSON) {
+            const poi: PointOfInterest = JSON.parse(poiForCroquiJSON);
+            setPropertyToLink(poi);
+            setMapCenter(poi.position);
+            setMapZoom(16);
+            form.reset({ title: `Acesso a: ${poi.title}`, description: `Croqui para o imóvel ${poi.title}` });
+        } else {
+            const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
+            const center = isDefaultLocation ? defaultCenter : initialCenter;
+            const zoom = isDefaultLocation ? defaultZoom : 15;
+            setMapCenter(center);
+            setMapZoom(zoom);
+            clearForm();
+        }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialCenter]);
@@ -195,7 +208,7 @@ export default function CroquiReport({
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalPosition = mapCenter;
     const routePath = drawnRoute?.getPath().getArray().map(p => p.toJSON()) || [];
-    onCroquiSubmit({ ...values, position: finalPosition, croquiPoints: referencePoints, croquiRoute: routePath });
+    onCroquiSubmit({ ...values, position: finalPosition, croquiPoints: referencePoints, croquiRoute: routePath }, propertyToLink?.id);
   }
 
   return (
@@ -211,6 +224,7 @@ export default function CroquiReport({
         <SheetHeader className="p-6 pb-2">
           <SheetTitle>Criar Croqui de Localização</SheetTitle>
           <SheetDescription>
+            {propertyToLink ? `A criar um croqui para "${propertyToLink.title}". ` : ''}
             Arraste o mapa para posicionar o pino principal, adicione pontos de referência e desenhe a rota.
           </SheetDescription>
         </SheetHeader>
@@ -237,6 +251,11 @@ export default function CroquiReport({
                             <Pin background={'#FB923C'} borderColor={'#F97316'} glyphColor={'#ffffff'} />
                          </AdvancedMarker>
                     ))}
+                    {propertyToLink && (
+                        <AdvancedMarker position={propertyToLink.position} title={propertyToLink.title}>
+                           <Pin background={'hsl(var(--primary))'} borderColor={'hsl(var(--primary))'} glyphColor={'hsl(var(--primary-foreground))'} />
+                        </AdvancedMarker>
+                    )}
                 </Map>
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
                     <MapPin className="text-primary h-10 w-10" />

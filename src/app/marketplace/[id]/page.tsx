@@ -11,7 +11,7 @@ import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest, PointOfInterestStatus, propertyTypeLabelMap, statusLabelMap } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, BedDouble, Bath, Ruler, FileText, ExternalLink, MessageSquare, ShieldCheck, Shield, ShieldAlert, HelpCircle, CheckCircle, XCircle, Landmark, Map as MapIcon, Leaf, Loader2 } from "lucide-react";
+import { ArrowLeft, BedDouble, Bath, Ruler, FileText, ExternalLink, MessageSquare, ShieldCheck, Shield, ShieldAlert, HelpCircle, CheckCircle, XCircle, Landmark, Map as MapIcon, Leaf, Loader2, Share2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Separator } from "@/components/ui/separator";
@@ -271,6 +271,13 @@ export default function MarketplacePropertyDetailPage() {
                                         <CardTitle>Contactar Vendedor</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
+                                        {property.croquiId && (
+                                            <Button variant="outline" className="w-full" asChild>
+                                                <Link href={`/croquis/${property.croquiId}`} target="_blank">
+                                                    <Share2 className="mr-2 h-4 w-4" /> Ver Croqui de Acesso
+                                                </Link>
+                                            </Button>
+                                        )}
                                         <p className="text-sm text-muted-foreground">Contacte o proprietário para mais informações ou para agendar uma visita.</p>
                                         <Button className="w-full" onClick={handleContactSeller} disabled={isStartingChat}>
                                             {isStartingChat ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <MessageSquare className="mr-2 h-4 w-4" />}

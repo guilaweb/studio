@@ -97,6 +97,7 @@ export const PointOfInterestSchema = z.object({
   // Announcement Specific
   announcementCategory: AnnouncementCategoryEnum.optional(),
   // Croqui Specific
+  croquiId: z.string().optional(), // Link to a croqui
   croquiPoints: z.array(CroquiPointSchema).optional(),
   croquiRoute: z.array(PositionSchema).optional(),
   // Duplicate detection
