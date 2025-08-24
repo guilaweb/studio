@@ -6,12 +6,15 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check } from "lucide-react";
+import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search } from "lucide-react";
 import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { Badge } from "@/components/ui/badge";
 import { TeamMemberMarker } from "@/components/team-management/team-member-marker";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -34,6 +37,7 @@ const teamMembers = [
         location: { lat: -8.82, lng: 13.24 }, 
         photoURL: 'https://placehold.co/40x40.png',
         employeeId: 'TEC-001',
+        team: 'Eletricidade',
         vehicle: { type: 'Carrinha de Manutenção', plate: 'LD-01-02-AA' },
         currentTask: { id: 'task-4', title: 'Verificar PT-456' },
         taskQueue: [
@@ -49,6 +53,7 @@ const teamMembers = [
         location: { lat: -8.84, lng: 13.22 }, 
         photoURL: 'https://placehold.co/40x40.png',
         employeeId: 'TEC-002',
+        team: 'Saneamento',
         vehicle: { type: 'Motorizada de Intervenção Rápida', plate: 'LD-03-04-BB' },
         currentTask: null,
         taskQueue: [],
@@ -61,6 +66,7 @@ const teamMembers = [
         location: { lat: -8.85, lng: 13.26 }, 
         photoURL: null,
         employeeId: 'TEC-003',
+        team: 'Saneamento',
         vehicle: { type: 'Carrinha de Manutenção', plate: 'LD-05-06-CC' },
         currentTask: { id: 'task-7', title: 'Reparar fuga de água na Rua Z' },
         taskQueue: [],
@@ -73,6 +79,7 @@ const teamMembers = [
         location: { lat: -8.83, lng: 13.21 }, 
         photoURL: 'https://placehold.co/40x40.png',
         employeeId: 'TEC-004',
+        team: 'Eletricidade',
         vehicle: null,
         currentTask: null,
         taskQueue: [],
@@ -86,10 +93,15 @@ const unassignedTasks = [
     { id: 'task-3', title: "Vistoria Técnica PT-123", location: { lat: -8.86, lng: 13.21 } },
 ];
 
+type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
+
 
 function TeamManagementPage() {
-    const [selectedMember, setSelectedMember] = React.useState<typeof teamMembers[0] | null>(null);
-
+    const [selectedMember, setSelectedMember] = React.useState<(typeof teamMembers)[0] | null>(null);
+    const [searchQuery, setSearchQuery] = React.useState('');
+    const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('Todos');
+    const [teamFilter, setTeamFilter] = React.useState('Todos');
+    
     const statusBadgeVariant = (status: string) => {
         switch(status) {
             case 'Disponível': return 'bg-green-500';
@@ -99,6 +111,15 @@ function TeamManagementPage() {
             default: return 'secondary';
         }
     }
+    
+    const filteredMembers = React.useMemo(() => {
+        return teamMembers.filter(member => {
+            const nameMatch = member.name.toLowerCase().includes(searchQuery.toLowerCase());
+            const statusMatch = statusFilter === 'Todos' || member.status === statusFilter;
+            const teamMatch = teamFilter === 'Todos' || member.team === teamFilter;
+            return nameMatch && statusMatch && teamMatch;
+        });
+    }, [searchQuery, statusFilter, teamFilter]);
 
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -121,23 +142,61 @@ function TeamManagementPage() {
                                 <CardTitle>Equipa Ativa</CardTitle>
                                 <CardDescription>Localização e estado dos técnicos.</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-3">
-                                {teamMembers.map(member => (
-                                    <div key={member.id} className={`flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted ${selectedMember?.id === member.id ? 'bg-primary/10 border-primary' : 'bg-background'}`} onClick={() => setSelectedMember(member)}>
-                                        <div className="flex items-center gap-3">
-                                            <User className="h-5 w-5 text-primary"/>
-                                            <div>
-                                                <p className="font-semibold text-sm">{member.name}</p>
-                                                <Badge variant="secondary" className={statusBadgeVariant(member.status)}>
-                                                    {member.status}
-                                                </Badge>
+                            <CardContent className="space-y-4">
+                                <div className="relative">
+                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        type="search"
+                                        placeholder="Pesquisar por nome..."
+                                        className="pl-8"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                     <div className="grid grid-cols-2 gap-2">
+                                        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Filtrar por estado" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Todos">Todos os Estados</SelectItem>
+                                                <SelectItem value="Disponível">Disponível</SelectItem>
+                                                <SelectItem value="Em Rota">Em Rota</SelectItem>
+                                                <SelectItem value="Ocupado">Ocupado</SelectItem>
+                                                <SelectItem value="Offline">Offline</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <Select value={teamFilter} onValueChange={setTeamFilter}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Filtrar por equipa" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Todos">Todas as Equipas</SelectItem>
+                                                <SelectItem value="Saneamento">Saneamento</SelectItem>
+                                                <SelectItem value="Eletricidade">Eletricidade</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                     </div>
+                                </div>
+                                <div className="space-y-3 max-h-[40vh] overflow-y-auto">
+                                    {filteredMembers.map(member => (
+                                        <div key={member.id} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted", selectedMember?.id === member.id ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
+                                            <div className="flex items-center gap-3">
+                                                <User className="h-5 w-5 text-primary"/>
+                                                <div>
+                                                    <p className="font-semibold text-sm">{member.name}</p>
+                                                    <Badge variant="secondary" className={statusBadgeVariant(member.status)}>
+                                                        {member.status}
+                                                    </Badge>
+                                                </div>
                                             </div>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                            </Button>
                                         </div>
-                                         <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                                        </Button>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </CardContent>
                         </Card>
                         <Card>
@@ -171,7 +230,7 @@ function TeamManagementPage() {
                                     disableDefaultUI={true}
                                     styles={mapStyles}
                                 >
-                                {teamMembers.map(member => (
+                                {filteredMembers.map(member => (
                                     <AdvancedMarker key={member.id} position={member.location} title={member.name} onClick={() => setSelectedMember(member)}>
                                         <TeamMemberMarker 
                                                 name={member.name}
