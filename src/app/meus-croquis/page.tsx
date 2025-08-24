@@ -7,7 +7,7 @@ import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Plus, Share2, Folder } from "lucide-react";
+import { ArrowLeft, Plus, Share2, Folder, Upload } from "lucide-react";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
 import { useRouter } from "next/navigation";
@@ -92,7 +92,11 @@ function MeusCroquisPage() {
                 <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
                     Meus Croquis
                 </h1>
-                 <div className="ml-auto">
+                 <div className="ml-auto flex items-center gap-2">
+                     <Button variant="outline" onClick={() => router.push('/meus-croquis/importar')}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Importar em Massa
+                    </Button>
                      <Button onClick={() => router.push('/?#report-croqui')}>
                         <Plus className="mr-2 h-4 w-4" />
                         Criar Novo Croqui
