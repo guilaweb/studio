@@ -11,7 +11,7 @@ import { useAuth } from './use-auth';
 
 interface PointsContextType {
   allData: PointOfInterest[];
-  addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => Promise<void>;
+  addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }, propertyIdToLink?: string) => Promise<void>;
   updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
   updatePointDetails: (pointId: string, updates: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>) => Promise<void>;
@@ -127,7 +127,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
 
-  const addPoint = async (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }) => {
+  const addPoint = async (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }, propertyIdToLink?: string) => {
     try {
         const batch = writeBatch(db);
 
@@ -162,6 +162,12 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         const cleanedPoint = removeUndefinedFields(pointWithCleanUpdates);
 
         batch.set(pointRef, cleanedPoint);
+
+        // If a croqui is being created and linked to a property, update the property.
+        if (point.type === 'croqui' && propertyIdToLink) {
+            const propertyRef = doc(db, 'pointsOfInterest', propertyIdToLink);
+            batch.update(propertyRef, { croquiId: point.id });
+        }
 
         await batch.commit();
 
@@ -297,6 +303,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 export const usePoints = () => useContext(PointsContext);
 
     
+
 
 
 
