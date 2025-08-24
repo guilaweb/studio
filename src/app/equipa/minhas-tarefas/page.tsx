@@ -7,44 +7,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, ListTodo } from "lucide-react";
-import { TaskCard, Task } from "@/components/team-management/task-card";
+import { TaskCard } from "@/components/team-management/task-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const assignedTasks: Task[] = [
-    { 
-        id: 'task-456', 
-        title: 'Verificar PT-456', 
-        status: 'Em Rota', 
-        location: 'Bairro Popular', 
-        priority: 'Média', 
-        deadline: '2024-08-15T14:00:00Z',
-        details: 'Cliente reportou oscilação de energia. Levar multímetro e equipamento de proteção.'
-    },
-     { 
-        id: 'task-789', 
-        title: 'Reparar fuga de água', 
-        status: 'Pendente', 
-        location: 'Rua da Samba', 
-        priority: 'Alta', 
-        deadline: '2024-08-15T11:00:00Z',
-        details: 'Fuga grave reportada na via pública. Necessário fechar a válvula principal. Cidadão anexou foto.'
-    },
-    { 
-        id: 'task-101', 
-        title: 'Recolha de contentor', 
-        status: 'Concluída', 
-        location: 'Avenida Brasil', 
-        priority: 'Baixa', 
-        deadline: '2024-08-14T18:00:00Z',
-        details: 'Recolha de rotina do contentor #C-58.'
-    },
-];
+import { usePoints } from "@/hooks/use-points";
+import { PointOfInterest } from "@/lib/data";
 
 function MyTasksPage() {
     const { profile } = useAuth();
-    const [tasks, setTasks] = React.useState(assignedTasks);
+    const { allData, loading } = usePoints();
+    const [tasks, setTasks] = React.useState<PointOfInterest[]>([]);
 
-    const handleStatusChange = (taskId: string, newStatus: Task['status']) => {
+    React.useEffect(() => {
+        // Here you would typically filter tasks assigned to the current user.
+        // For this example, we'll just use some actionable incidents and sanitation points.
+        const myTasks = allData.filter(p => (p.type === 'incident' || p.type === 'sanitation') && p.status !== 'collected');
+        setTasks(myTasks);
+    }, [allData]);
+
+    const handleStatusChange = (taskId: string, newStatus: PointOfInterest['status']) => {
         setTasks(prevTasks => 
             prevTasks.map(task => 
                 task.id === taskId ? { ...task, status: newStatus } : task
@@ -52,8 +32,12 @@ function MyTasksPage() {
         );
     };
 
-    const pendingTasks = tasks.filter(t => t.status === 'Pendente' || t.status === 'Em Rota' || t.status === 'No Local');
-    const completedTasks = tasks.filter(t => t.status === 'Concluída');
+    const pendingTasks = tasks.filter(t => t.status === 'unknown' || t.status === 'full' || t.status === 'in_progress');
+    const completedTasks = tasks.filter(t => t.status === 'collected');
+
+    if (loading) {
+        return <div>A carregar tarefas...</div>;
+    }
 
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40">

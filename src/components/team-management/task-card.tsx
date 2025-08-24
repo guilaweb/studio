@@ -8,16 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Compass, FileText, CheckCircle, Play, MoreVertical, ChevronsUpDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
+import { PointOfInterest } from '@/lib/data';
 
-export type Task = {
-    id: string;
-    title: string;
-    status: 'Pendente' | 'Em Rota' | 'No Local' | 'Concluída';
-    location: string;
-    priority: 'Alta' | 'Média' | 'Baixa';
-    deadline: string;
-    details: string;
-};
+// Task is now a PointOfInterest
+export type Task = PointOfInterest;
 
 interface TaskCardProps {
     task: Task;
@@ -28,31 +22,46 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
     const { toast } = useToast();
 
     const priorityVariant = {
-        'Alta': 'destructive',
-        'Média': 'default',
-        'Baixa': 'secondary'
+        'high': 'destructive',
+        'medium': 'default',
+        'low': 'secondary',
     } as const;
 
     const statusBadge = {
-        'Pendente': <Badge variant="outline">Pendente</Badge>,
-        'Em Rota': <Badge className="bg-orange-500 text-white">Em Rota</Badge>,
-        'No Local': <Badge className="bg-blue-500 text-white">No Local</Badge>,
-        'Concluída': <Badge className="bg-green-500 text-white">Concluída</Badge>
+        'unknown': <Badge variant="outline">Pendente</Badge>,
+        'in_progress': <Badge className="bg-blue-500 text-white">No Local</Badge>,
+        'collected': <Badge className="bg-green-500 text-white">Concluída</Badge>,
+        'full': <Badge className="bg-orange-500 text-white">Pendente</Badge>,
+        // Add other statuses as needed
     };
+    
+    // Simulating the "Em Rota" status locally since it's a technician state, not a task state
+    const [isEnRoute, setIsEnRoute] = useState(false);
 
     const handleAccept = () => {
-        onStatusChange(task.id, 'Em Rota');
+        setIsEnRoute(true);
         toast({ title: "Tarefa Aceite!", description: `A navegar para: ${task.title}` });
     };
 
     const handleArrive = () => {
-        onStatusChange(task.id, 'No Local');
+        setIsEnRoute(false);
+        onStatusChange(task.id, 'in_progress');
     };
 
     const handleComplete = () => {
-        onStatusChange(task.id, 'Concluída');
+        onStatusChange(task.id, 'collected');
         toast({ title: "Tarefa Concluída!", description: `${task.title}` });
     };
+
+    const currentStatus = isEnRoute ? 'Em Rota' : (task.status || 'unknown');
+
+    const statusBadgeMap = {
+        'unknown': <Badge variant="outline">Pendente</Badge>,
+        'in_progress': <Badge className="bg-blue-500 text-white">No Local</Badge>,
+        'collected': <Badge className="bg-green-500 text-white">Concluída</Badge>,
+        'full': <Badge className="bg-orange-500 text-white">Pendente (Cheio)</Badge>,
+        'Em Rota': <Badge className="bg-orange-500 text-white">Em Rota</Badge>,
+    }
 
     return (
         <Collapsible>
@@ -60,11 +69,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
                 <div className="flex items-center p-4">
                     <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
-                             <Badge variant={priorityVariant[task.priority]}>{task.priority}</Badge>
-                             {statusBadge[task.status]}
+                             {task.priority && <Badge variant={priorityVariant[task.priority]}>{task.priority}</Badge>}
+                             {statusBadgeMap[currentStatus as keyof typeof statusBadgeMap] || <Badge variant="secondary">{currentStatus}</Badge>}
                         </div>
                         <p className="font-semibold">{task.title}</p>
-                        <p className="text-sm text-muted-foreground">{task.location}</p>
+                        <p className="text-sm text-muted-foreground">{task.description?.substring(0, 50)}...</p>
                     </div>
                      <CollapsibleTrigger asChild>
                         <Button variant="ghost" size="sm">
@@ -77,20 +86,20 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
                     <CardContent className="pt-0 pb-4 px-4 space-y-4">
                         <div className="p-3 rounded-md bg-muted text-sm">
                             <p className="font-semibold text-xs text-muted-foreground mb-1">Detalhes da Tarefa</p>
-                            {task.details}
+                            {task.description}
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            {task.status === 'Pendente' && (
+                            {currentStatus !== 'Em Rota' && currentStatus !== 'in_progress' && currentStatus !== 'collected' && (
                                 <Button onClick={handleAccept}>
                                     <Play className="mr-2 h-4 w-4"/> Aceitar e Navegar
                                 </Button>
                             )}
-                            {task.status === 'Em Rota' && (
+                            {currentStatus === 'Em Rota' && (
                                 <Button onClick={handleArrive}>
                                     <CheckCircle className="mr-2 h-4 w-4"/> Cheguei ao Local
                                 </Button>
                             )}
-                            {task.status === 'No Local' && (
+                             {currentStatus === 'in_progress' && (
                                 <Button onClick={handleComplete}>
                                     <CheckCircle className="mr-2 h-4 w-4"/> Concluir Tarefa
                                 </Button>

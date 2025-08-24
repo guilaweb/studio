@@ -16,6 +16,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import TeamMemberPath from "@/components/team-management/team-member-path";
+import { useUsers } from "@/services/user-service";
+import { PointOfInterest, UserProfile } from "@/lib/data";
+import { usePoints } from "@/hooks/use-points";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -30,95 +33,61 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
 ];
 
-const teamMembers = [
-    { 
-        id: 1, 
-        name: "João Silva", 
-        status: 'Em Rota' as const, 
-        location: { lat: -8.82, lng: 13.24 }, 
-        photoURL: 'https://placehold.co/40x40.png',
-        employeeId: 'TEC-001',
-        team: 'Eletricidade',
-        vehicle: { type: 'Carrinha de Manutenção', plate: 'LD-01-02-AA' },
-        currentTask: { id: 'task-4', title: 'Verificar PT-456' },
-        taskQueue: [
-            { id: 'task-5', title: 'Reparar semáforo Cruzamento X' },
-            { id: 'task-6', title: 'Inspeção de rotina Y' }
-        ],
-        stats: { completed: 3, avgTime: '35 min' },
-        path: [
-            { lat: -8.815, lng: 13.235 },
-            { lat: -8.818, lng: 13.238 },
-            { lat: -8.82,  lng: 13.24 },
-        ]
-    },
-    { 
-        id: 2, 
-        name: "Maria Santos", 
-        status: 'Disponível' as const, 
-        location: { lat: -8.84, lng: 13.22 }, 
-        photoURL: 'https://placehold.co/40x40.png',
-        employeeId: 'TEC-002',
-        team: 'Saneamento',
-        vehicle: { type: 'Motorizada de Intervenção Rápida', plate: 'LD-03-04-BB' },
-        currentTask: null,
-        taskQueue: [],
-        stats: { completed: 5, avgTime: '25 min' },
-        path: [
-             { lat: -8.842, lng: 13.218 },
-             { lat: -8.841, lng: 13.221 },
-             { lat: -8.84,  lng: 13.22 },
-        ]
-    },
-    { 
-        id: 3, 
-        name: "Carlos Mendes", 
-        status: 'Ocupado' as const, 
-        location: { lat: -8.85, lng: 13.26 }, 
-        photoURL: null,
-        employeeId: 'TEC-003',
-        team: 'Saneamento',
-        vehicle: { type: 'Carrinha de Manutenção', plate: 'LD-05-06-CC' },
-        currentTask: { id: 'task-7', title: 'Reparar fuga de água na Rua Z' },
-        taskQueue: [],
-        stats: { completed: 2, avgTime: '75 min' },
-        path: [
-            { lat: -8.848, lng: 13.255 },
-            { lat: -8.851, lng: 13.258 },
-            { lat: -8.85,  lng: 13.26 },
-        ]
-    },
-    { 
-        id: 4, 
-        name: "Ana Pereira", 
-        status: 'Offline' as const, 
-        location: { lat: -8.83, lng: 13.21 }, 
-        photoURL: 'https://placehold.co/40x40.png',
-        employeeId: 'TEC-004',
-        team: 'Eletricidade',
-        vehicle: null,
-        currentTask: null,
-        taskQueue: [],
-        stats: { completed: 0, avgTime: 'N/A' },
-        path: []
-    },
-];
-
-const unassignedTasks = [
-    { id: 'task-1', title: "Entrega Cliente A", location: { lat: -8.835, lng: 13.23 } },
-    { id: 'task-2', title: "Recolha Fornecedor B", location: { lat: -8.81, lng: 13.25 } },
-    { id: 'task-3', title: "Vistoria Técnica PT-123", location: { lat: -8.86, lng: 13.21 } },
-];
+type TeamMember = UserProfile & {
+    id: string; // Use UID as ID
+    status: 'Em Rota' | 'Disponível' | 'Ocupado' | 'Offline';
+    location: { lat: number; lng: number };
+    team: 'Eletricidade' | 'Saneamento' | 'Geral';
+    vehicle: { type: string; plate: string } | null;
+    currentTask: PointOfInterest | null;
+    taskQueue: PointOfInterest[];
+    stats: { completed: number; avgTime: string };
+    path: { lat: number; lng: number }[];
+};
 
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
 
 function TeamManagementPage() {
-    const [selectedMember, setSelectedMember] = React.useState<(typeof teamMembers)[0] | null>(null);
+    const { users, loading: loadingUsers } = useUsers();
+    const { allData: allPoints, loading: loadingPoints } = usePoints();
+    const [selectedMember, setSelectedMember] = React.useState<TeamMember | null>(null);
     const [searchQuery, setSearchQuery] = React.useState('');
     const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('Todos');
     const [teamFilter, setTeamFilter] = React.useState('Todos');
     
+    // Convert UserProfile to TeamMember with mock data for dynamic fields
+    const teamMembers = React.useMemo(() => {
+        return users
+            .filter(u => u.role === 'Agente Municipal')
+            .map((user, index) => {
+                // Mock dynamic data for demonstration
+                const statuses: TeamMember['status'][] = ['Disponível', 'Em Rota', 'Ocupado', 'Offline'];
+                const teams: TeamMember['team'][] = ['Eletricidade', 'Saneamento', 'Geral'];
+                
+                return {
+                    ...user,
+                    id: user.uid,
+                    status: statuses[index % statuses.length],
+                    location: { lat: -8.82 + (index * 0.01), lng: 13.23 + (index * 0.01) },
+                    team: teams[index % teams.length],
+                    vehicle: { type: 'Carrinha de Manutenção', plate: `LD-${index < 10 ? '0' : ''}${index}-00-AA` },
+                    currentTask: null,
+                    taskQueue: [],
+                    stats: { completed: Math.floor(Math.random() * 5), avgTime: `${20 + Math.floor(Math.random() * 20)} min` },
+                    path: [
+                        { lat: -8.82 + (index * 0.01) - 0.002, lng: 13.23 + (index * 0.01) - 0.002 },
+                        { lat: -8.82 + (index * 0.01), lng: 13.23 + (index * 0.01) }
+                    ]
+                } as TeamMember;
+            });
+    }, [users]);
+    
+    const unassignedTasks = React.useMemo(() => {
+        return allPoints.filter(p => (p.type === 'incident' || p.type === 'sanitation') && (p.status === 'unknown' || p.status === 'full'));
+    }, [allPoints]);
+
+
     const statusBadgeVariant = (status: string) => {
         switch(status) {
             case 'Disponível': return 'bg-green-500';
@@ -131,12 +100,16 @@ function TeamManagementPage() {
     
     const filteredMembers = React.useMemo(() => {
         return teamMembers.filter(member => {
-            const nameMatch = member.name.toLowerCase().includes(searchQuery.toLowerCase());
+            const nameMatch = member.displayName.toLowerCase().includes(searchQuery.toLowerCase());
             const statusMatch = statusFilter === 'Todos' || member.status === statusFilter;
             const teamMatch = teamFilter === 'Todos' || member.team === teamFilter;
             return nameMatch && statusMatch && teamMatch;
         });
-    }, [searchQuery, statusFilter, teamFilter]);
+    }, [teamMembers, searchQuery, statusFilter, teamFilter]);
+
+     if (loadingUsers || loadingPoints) {
+        return <div>A carregar dados da equipa...</div>;
+    }
 
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -192,6 +165,7 @@ function TeamManagementPage() {
                                                 <SelectItem value="Todos">Todas as Equipas</SelectItem>
                                                 <SelectItem value="Saneamento">Saneamento</SelectItem>
                                                 <SelectItem value="Eletricidade">Eletricidade</SelectItem>
+                                                <SelectItem value="Geral">Geral</SelectItem>
                                             </SelectContent>
                                         </Select>
                                      </div>
@@ -202,7 +176,7 @@ function TeamManagementPage() {
                                             <div className="flex items-center gap-3">
                                                 <User className="h-5 w-5 text-primary"/>
                                                 <div>
-                                                    <p className="font-semibold text-sm">{member.name}</p>
+                                                    <p className="font-semibold text-sm">{member.displayName}</p>
                                                     <Badge variant="secondary" className={statusBadgeVariant(member.status)}>
                                                         {member.status}
                                                     </Badge>
@@ -248,16 +222,16 @@ function TeamManagementPage() {
                                     styles={mapStyles}
                                 >
                                     {filteredMembers.map(member => (
-                                        <AdvancedMarker key={member.id} position={member.location} title={member.name} onClick={() => setSelectedMember(member)}>
+                                        <AdvancedMarker key={member.id} position={member.location} title={member.displayName} onClick={() => setSelectedMember(member)}>
                                             <TeamMemberMarker 
-                                                    name={member.name}
+                                                    name={member.displayName}
                                                     photoURL={member.photoURL}
                                                     status={member.status}
                                                 />
                                         </AdvancedMarker>
                                     ))}
                                     {unassignedTasks.map(task => (
-                                            <AdvancedMarker key={task.id} position={task.location} title={task.title}>
+                                            <AdvancedMarker key={task.id} position={task.position} title={task.title}>
                                                 <Pin background={'#F97316'} borderColor={'#EA580C'} glyphColor={'#ffffff'}>
                                                     <Package />
                                                 </Pin>
@@ -274,12 +248,12 @@ function TeamManagementPage() {
                                         <div className="flex justify-between items-start">
                                             <div className="flex items-center gap-3">
                                                 <Avatar className="h-12 w-12">
-                                                    <AvatarImage src={selectedMember.photoURL || undefined} alt={selectedMember.name} />
-                                                    <AvatarFallback>{selectedMember.name.charAt(0)}</AvatarFallback>
+                                                    <AvatarImage src={selectedMember.photoURL || undefined} alt={selectedMember.displayName} />
+                                                    <AvatarFallback>{selectedMember.displayName.charAt(0)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <CardTitle className="text-lg">{selectedMember.name}</CardTitle>
-                                                    <CardDescription>ID: {selectedMember.employeeId}</CardDescription>
+                                                    <CardTitle className="text-lg">{selectedMember.displayName}</CardTitle>
+                                                    <CardDescription>ID: {selectedMember.uid}</CardDescription>
                                                 </div>
                                             </div>
                                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSelectedMember(null)}><X className="h-4 w-4" /></Button>
@@ -343,5 +317,3 @@ function TeamManagementPage() {
 }
 
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
-
-    
