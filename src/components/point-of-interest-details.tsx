@@ -497,7 +497,7 @@ const DocumentList = ({poi} : {poi: PointOfInterest}) => {
 
 const CroquiActions = ({ poi }: { poi: PointOfInterest }) => {
     if (poi.type !== 'croqui') return null;
-
+    const { toast } = useToast();
     const shareUrl = `${window.location.origin}/croquis/${poi.id}`;
 
     const handleShare = (platform: 'whatsapp' | 'facebook' | 'copy') => {
@@ -511,7 +511,7 @@ const CroquiActions = ({ poi }: { poi: PointOfInterest }) => {
                 break;
             case 'copy':
                 navigator.clipboard.writeText(shareUrl);
-                // toast({ title: "Link copiado!" });
+                toast({ title: "Link copiado!" });
                 break;
         }
     };

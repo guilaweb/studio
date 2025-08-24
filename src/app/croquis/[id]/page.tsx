@@ -7,7 +7,7 @@ import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker, Pin, useMap } from "@vis.gl/react-google-maps";
 import { Logo } from "@/components/icons";
 import { Compass, MapPin, Share2, Phone } from "lucide-react";
 
@@ -165,4 +165,3 @@ export default function PublicCroquiPage() {
         </APIProvider>
     );
 }
-
