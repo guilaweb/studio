@@ -6,10 +6,12 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, User, Package, MapPin, PersonStanding, Send } from "lucide-react";
+import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check } from "lucide-react";
 import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { Badge } from "@/components/ui/badge";
 import { TeamMemberMarker } from "@/components/team-management/team-member-marker";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -24,12 +26,58 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
 ];
 
-// Mock Data - In a real app, this would come from a real-time database
 const teamMembers = [
-    { id: 1, name: "João Silva", status: 'Em Rota' as const, location: { lat: -8.82, lng: 13.24 }, photoURL: 'https://placehold.co/40x40.png' },
-    { id: 2, name: "Maria Santos", status: 'Disponível' as const, location: { lat: -8.84, lng: 13.22 }, photoURL: 'https://placehold.co/40x40.png' },
-    { id: 3, name: "Carlos Mendes", status: 'Ocupado' as const, location: { lat: -8.85, lng: 13.26 }, photoURL: null },
-    { id: 4, name: "Ana Pereira", status: 'Offline' as const, location: { lat: -8.83, lng: 13.21 }, photoURL: 'https://placehold.co/40x40.png' },
+    { 
+        id: 1, 
+        name: "João Silva", 
+        status: 'Em Rota' as const, 
+        location: { lat: -8.82, lng: 13.24 }, 
+        photoURL: 'https://placehold.co/40x40.png',
+        employeeId: 'TEC-001',
+        vehicle: { type: 'Carrinha de Manutenção', plate: 'LD-01-02-AA' },
+        currentTask: { id: 'task-4', title: 'Verificar PT-456' },
+        taskQueue: [
+            { id: 'task-5', title: 'Reparar semáforo Cruzamento X' },
+            { id: 'task-6', title: 'Inspeção de rotina Y' }
+        ],
+        stats: { completed: 3, avgTime: '35 min' }
+    },
+    { 
+        id: 2, 
+        name: "Maria Santos", 
+        status: 'Disponível' as const, 
+        location: { lat: -8.84, lng: 13.22 }, 
+        photoURL: 'https://placehold.co/40x40.png',
+        employeeId: 'TEC-002',
+        vehicle: { type: 'Motorizada de Intervenção Rápida', plate: 'LD-03-04-BB' },
+        currentTask: null,
+        taskQueue: [],
+        stats: { completed: 5, avgTime: '25 min' }
+    },
+    { 
+        id: 3, 
+        name: "Carlos Mendes", 
+        status: 'Ocupado' as const, 
+        location: { lat: -8.85, lng: 13.26 }, 
+        photoURL: null,
+        employeeId: 'TEC-003',
+        vehicle: { type: 'Carrinha de Manutenção', plate: 'LD-05-06-CC' },
+        currentTask: { id: 'task-7', title: 'Reparar fuga de água na Rua Z' },
+        taskQueue: [],
+        stats: { completed: 2, avgTime: '75 min' }
+    },
+    { 
+        id: 4, 
+        name: "Ana Pereira", 
+        status: 'Offline' as const, 
+        location: { lat: -8.83, lng: 13.21 }, 
+        photoURL: 'https://placehold.co/40x40.png',
+        employeeId: 'TEC-004',
+        vehicle: null,
+        currentTask: null,
+        taskQueue: [],
+        stats: { completed: 0, avgTime: 'N/A' }
+    },
 ];
 
 const unassignedTasks = [
@@ -40,6 +88,7 @@ const unassignedTasks = [
 
 
 function TeamManagementPage() {
+    const [selectedMember, setSelectedMember] = React.useState<typeof teamMembers[0] | null>(null);
 
     const statusBadgeVariant = (status: string) => {
         switch(status) {
@@ -50,7 +99,6 @@ function TeamManagementPage() {
             default: return 'secondary';
         }
     }
-
 
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -71,11 +119,11 @@ function TeamManagementPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Equipa Ativa</CardTitle>
-                                <CardDescription>Localização e estado dos técnicos no terreno.</CardDescription>
+                                <CardDescription>Localização e estado dos técnicos.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3">
                                 {teamMembers.map(member => (
-                                    <div key={member.id} className="flex items-center justify-between p-2 rounded-md border bg-background">
+                                    <div key={member.id} className={`flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted ${selectedMember?.id === member.id ? 'bg-primary/10 border-primary' : 'bg-background'}`} onClick={() => setSelectedMember(member)}>
                                         <div className="flex items-center gap-3">
                                             <User className="h-5 w-5 text-primary"/>
                                             <div>
@@ -95,7 +143,7 @@ function TeamManagementPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Tarefas Não Atribuídas</CardTitle>
-                                <CardDescription>Arraste uma tarefa para um membro da equipa no mapa para a atribuir.</CardDescription>
+                                <CardDescription>Arraste uma tarefa para um membro no mapa.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3">
                                {unassignedTasks.map(task => (
@@ -112,34 +160,104 @@ function TeamManagementPage() {
                             </CardContent>
                         </Card>
                     </div>
-                    <div className="md:col-span-2 lg:col-span-3">
-                        <Card className="h-[calc(100vh-10rem)]">
-                             <Map
-                                mapId="team-management-map"
-                                defaultCenter={{ lat: -8.83, lng: 13.24 }}
-                                defaultZoom={13}
-                                gestureHandling={'greedy'}
-                                disableDefaultUI={true}
-                                styles={mapStyles}
-                            >
-                               {teamMembers.map(member => (
-                                   <AdvancedMarker key={member.id} position={member.location} title={member.name}>
-                                       <TeamMemberMarker 
-                                            name={member.name}
-                                            photoURL={member.photoURL}
-                                            status={member.status}
-                                        />
-                                   </AdvancedMarker>
-                               ))}
-                               {unassignedTasks.map(task => (
-                                    <AdvancedMarker key={task.id} position={task.location} title={task.title}>
-                                        <Pin background={'#F97316'} borderColor={'#EA580C'} glyphColor={'#ffffff'}>
-                                            <Package />
-                                        </Pin>
-                                   </AdvancedMarker>
-                               ))}
-                            </Map>
-                        </Card>
+                    <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                         <div className={`transition-all duration-300 ${selectedMember ? 'md:col-span-2' : 'md:col-span-3'}`}>
+                             <Card className="h-[calc(100vh-10rem)]">
+                                <Map
+                                    mapId="team-management-map"
+                                    defaultCenter={{ lat: -8.83, lng: 13.24 }}
+                                    defaultZoom={13}
+                                    gestureHandling={'greedy'}
+                                    disableDefaultUI={true}
+                                    styles={mapStyles}
+                                >
+                                {teamMembers.map(member => (
+                                    <AdvancedMarker key={member.id} position={member.location} title={member.name} onClick={() => setSelectedMember(member)}>
+                                        <TeamMemberMarker 
+                                                name={member.name}
+                                                photoURL={member.photoURL}
+                                                status={member.status}
+                                            />
+                                    </AdvancedMarker>
+                                ))}
+                                {unassignedTasks.map(task => (
+                                        <AdvancedMarker key={task.id} position={task.location} title={task.title}>
+                                            <Pin background={'#F97316'} borderColor={'#EA580C'} glyphColor={'#ffffff'}>
+                                                <Package />
+                                            </Pin>
+                                    </AdvancedMarker>
+                                ))}
+                                </Map>
+                            </Card>
+                        </div>
+                        {selectedMember && (
+                             <div className="md:col-span-1 space-y-4 animate-in fade-in-50">
+                                <Card>
+                                     <CardHeader>
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-12 w-12">
+                                                    <AvatarImage src={selectedMember.photoURL || undefined} alt={selectedMember.name} />
+                                                    <AvatarFallback>{selectedMember.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <CardTitle className="text-lg">{selectedMember.name}</CardTitle>
+                                                    <CardDescription>ID: {selectedMember.employeeId}</CardDescription>
+                                                </div>
+                                            </div>
+                                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSelectedMember(null)}><X className="h-4 w-4" /></Button>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4 text-sm">
+                                        <div className="space-y-2">
+                                            <h4 className="font-semibold text-xs text-muted-foreground">Tarefa Atual</h4>
+                                            {selectedMember.currentTask ? (
+                                                <p className="font-medium p-2 bg-muted rounded-md">{selectedMember.currentTask.title}</p>
+                                            ) : (
+                                                <p className="text-muted-foreground p-2 bg-muted rounded-md">Nenhuma tarefa ativa.</p>
+                                            )}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h4 className="font-semibold text-xs text-muted-foreground">Fila de Tarefas ({selectedMember.taskQueue.length})</h4>
+                                             <div className="space-y-1">
+                                                {selectedMember.taskQueue.length > 0 ? selectedMember.taskQueue.map(task => (
+                                                    <div key={task.id} className="flex items-center gap-2 p-1.5 rounded bg-muted">
+                                                        <ListTodo className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="text-xs">{task.title}</span>
+                                                    </div>
+                                                )) : <p className="text-xs text-muted-foreground">Fila vazia.</p>}
+                                             </div>
+                                        </div>
+                                        <Separator />
+                                        <div className="space-y-2">
+                                            <h4 className="font-semibold text-xs text-muted-foreground">Veículo</h4>
+                                             {selectedMember.vehicle ? (
+                                                <div className="flex items-center gap-2">
+                                                   <Car className="h-4 w-4 text-muted-foreground" />
+                                                   <div>
+                                                     <p className="font-medium text-xs">{selectedMember.vehicle.type}</p>
+                                                     <p className="text-xs text-muted-foreground">{selectedMember.vehicle.plate}</p>
+                                                   </div>
+                                                </div>
+                                             ) : <p className="text-xs text-muted-foreground">Nenhum veículo atribuído.</p>}
+                                        </div>
+                                         <Separator />
+                                         <div className="space-y-2">
+                                            <h4 className="font-semibold text-xs text-muted-foreground">Desempenho (Hoje)</h4>
+                                            <div className="flex items-center gap-2">
+                                                <Check className="h-4 w-4 text-muted-foreground" />
+                                                <p className="text-xs">{selectedMember.stats.completed} tarefas concluídas</p>
+                                            </div>
+                                         </div>
+                                         <Separator />
+                                        <div className="flex gap-2 pt-2">
+                                            <Button variant="outline" size="sm" className="flex-1"><Phone className="mr-2 h-4 w-4" /> Ligar</Button>
+                                            <Button variant="outline" size="sm" className="flex-1"><MessageSquare className="mr-2 h-4 w-4" /> Mensagem</Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
                     </div>
                 </main>
             </div>
