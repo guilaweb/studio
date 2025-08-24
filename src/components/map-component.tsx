@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
@@ -153,10 +152,10 @@ export const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut 
     );
 };
 
-const RiverPolylines: React.FC<{
-    rivers: PointOfInterest[];
+const LineRenderer: React.FC<{
+    points: PointOfInterest[];
     onPolylineClick: (id: string) => void;
-}> = ({ rivers, onPolylineClick }) => {
+}> = ({ points, onPolylineClick }) => {
     const map = useMap();
     const [polylines, setPolylines] = useState<google.maps.Polyline[]>([]);
 
@@ -166,18 +165,38 @@ const RiverPolylines: React.FC<{
         // Clean up previous polylines
         polylines.forEach(p => p.setMap(null));
 
-        const newPolylines = rivers.map(river => {
+        const newPolylines = points.map(point => {
+            let options: google.maps.PolylineOptions = {};
+            if (point.type === 'water_resource') {
+                options = {
+                    strokeColor: '#0077be',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 4,
+                };
+            } else if (point.type === 'croqui' && point.croquiRoute) {
+                 options = {
+                    strokeColor: 'hsl(var(--accent))',
+                    strokeOpacity: 0.9,
+                    strokeWeight: 5,
+                    icons: [{
+                        icon: {
+                            path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
+                        },
+                        offset: '100%',
+                        repeat: '50px'
+                    }]
+                };
+            }
+
             const polyline = new google.maps.Polyline({
-                path: river.polyline,
+                path: point.polyline || point.croquiRoute,
                 geodesic: true,
-                strokeColor: '#0077be', // A nice blue for rivers
-                strokeOpacity: 0.8,
-                strokeWeight: 4,
                 map: map,
+                ...options
             });
 
             polyline.addListener('click', () => {
-                onPolylineClick(river.id);
+                onPolylineClick(point.id);
             });
             return polyline;
         });
@@ -188,9 +207,9 @@ const RiverPolylines: React.FC<{
         return () => {
             newPolylines.forEach(p => p.setMap(null));
         };
-    // We only want to re-run this when the map or the rivers change.
+    // We only want to re-run this when the map or the points change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [map, rivers]);
+    }, [map, points]);
 
     return null;
 }
@@ -217,17 +236,18 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
 
     const polygonPoints = React.useMemo(() => {
         if (!activeLayers) return [];
-        return data.filter(p => activeLayers[p.type] && p.polygon && !p.polyline);
+        return data.filter(p => activeLayers[p.type] && p.polygon);
     }, [data, activeLayers]);
 
     const markerPoints = React.useMemo(() => {
         if (!activeLayers) return [];
+        // Croquis also have a main marker
         return data.filter(p => activeLayers[p.type] && !p.polygon && !p.polyline);
     }, [data, activeLayers]);
 
     const polylinePoints = React.useMemo(() => {
         if (!activeLayers) return [];
-        return data.filter(p => activeLayers[p.type] && p.polyline);
+        return data.filter(p => activeLayers[p.type] && (p.polyline || p.croquiRoute));
     }, [data, activeLayers]);
 
 
@@ -258,8 +278,8 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                     onPlotClick={onMarkerClick}
                 />
                 
-                <RiverPolylines
-                    rivers={polylinePoints}
+                <LineRenderer
+                    points={polylinePoints}
                     onPolylineClick={onMarkerClick}
                 />
 
