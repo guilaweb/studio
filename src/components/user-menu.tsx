@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2 } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, Users2 } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -124,6 +124,12 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                             <Link href="/inspecao">
                                 <ScanLine className="mr-2 h-4 w-4" />
                                 <span>Inspeção de Obra</span>
+                            </Link>
+                        </DropdownMenuItem>
+                         <DropdownMenuItem asChild>
+                            <Link href="/admin/equipa">
+                                <Users2 className="mr-2 h-4 w-4" />
+                                <span>Gestão de Equipa</span>
                             </Link>
                         </DropdownMenuItem>
                          <DropdownMenuItem asChild>
