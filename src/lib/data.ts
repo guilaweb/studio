@@ -102,7 +102,6 @@ export const PointOfInterestSchema = z.object({
   croquiRoute: z.array(PositionSchema).optional(),
   collectionId: z.string().optional(),
   collectionName: z.string().optional(),
-  // Professional Croquis / Asset Management
   customData: z.record(z.string()).optional(),
   // Duplicate detection
   potentialDuplicateOfId: z.string().optional(),
@@ -128,6 +127,7 @@ export const UserProfileSchema = z.object({
     role: z.enum(['Cidadao', 'Agente Municipal', 'Administrador']),
     createdAt: z.string().optional(),
     onboardingCompleted: z.boolean().optional(),
+    phoneNumber: z.string().optional(),
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 

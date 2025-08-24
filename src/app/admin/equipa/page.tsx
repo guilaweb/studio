@@ -78,7 +78,8 @@ function TeamManagementPage() {
                     path: [
                         { lat: -8.82 + (index * 0.01) - 0.002, lng: 13.23 + (index * 0.01) - 0.002 },
                         { lat: -8.82 + (index * 0.01), lng: 13.23 + (index * 0.01) }
-                    ]
+                    ],
+                    phoneNumber: `92300000${index}` // Example phone number
                 } as TeamMember;
             });
     }, [users]);
@@ -302,8 +303,16 @@ function TeamManagementPage() {
                                          </div>
                                          <Separator />
                                         <div className="flex gap-2 pt-2">
-                                            <Button variant="outline" size="sm" className="flex-1"><Phone className="mr-2 h-4 w-4" /> Ligar</Button>
-                                            <Button variant="outline" size="sm" className="flex-1"><MessageSquare className="mr-2 h-4 w-4" /> Mensagem</Button>
+                                             <Button variant="outline" size="sm" className="flex-1" asChild>
+                                                <a href={`tel:${selectedMember.phoneNumber}`}>
+                                                    <Phone className="mr-2 h-4 w-4" /> Ligar
+                                                </a>
+                                            </Button>
+                                            <Button variant="outline" size="sm" className="flex-1" asChild>
+                                                <a href={`https://wa.me/${selectedMember.phoneNumber}`} target="_blank" rel="noopener noreferrer">
+                                                    <MessageSquare className="mr-2 h-4 w-4" /> WhatsApp
+                                                </a>
+                                            </Button>
                                         </div>
                                     </CardContent>
                                 </Card>
