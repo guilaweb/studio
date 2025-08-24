@@ -26,18 +26,18 @@ export const useUsers = () => {
                     const statuses: UserProfile['status'][] = ['Disponível', 'Em Rota', 'Ocupado', 'Offline'];
                     const teams: UserProfile['team'][] = ['Eletricidade', 'Saneamento', 'Geral'];
                     
-                    user.status = statuses[index % statuses.length];
-                    user.location = { lat: -8.82 + (index * 0.01), lng: 13.23 + (index * 0.01) };
-                    user.team = teams[index % teams.length];
-                    user.vehicle = { type: 'Carrinha de Manutenção', plate: `LD-${index < 10 ? '0' : ''}${index}-00-AA` };
-                    user.currentTask = null;
-                    user.taskQueue = [];
-                    user.stats = { completed: Math.floor(Math.random() * 5), avgTime: `${20 + Math.floor(Math.random() * 20)} min` };
-                    user.path = [
+                    user.status = user.status || statuses[index % statuses.length];
+                    user.location = user.location || { lat: -8.82 + (index * 0.01), lng: 13.23 + (index * 0.01) };
+                    user.team = user.team || teams[index % teams.length];
+                    user.vehicle = user.vehicle || { type: 'Carrinha de Manutenção', plate: `LD-${index < 10 ? '0' : ''}${index}-00-AA` };
+                    user.currentTask = user.currentTask === undefined ? null : user.currentTask;
+                    user.taskQueue = user.taskQueue || [];
+                    user.stats = user.stats || { completed: Math.floor(Math.random() * 5), avgTime: `${20 + Math.floor(Math.random() * 20)} min` };
+                    user.path = user.path || [
                         { lat: -8.82 + (index * 0.01) - 0.002, lng: 13.23 + (index * 0.01) - 0.002 },
                         { lat: -8.82 + (index * 0.01), lng: 13.23 + (index * 0.01) }
                     ];
-                    user.phoneNumber = `92300000${index}`; // Example phone number
+                    user.phoneNumber = user.phoneNumber || `92300000${index}`; // Example phone number
                 }
                 return user;
             });
@@ -62,7 +62,18 @@ export const useUsers = () => {
         }
     }, []);
 
-    return { users, loading, error, updateUserRole };
+    const updateUserProfile = useCallback(async (uid: string, profileData: Partial<UserProfile>) => {
+        const userDocRef = doc(db, 'users', uid);
+        try {
+            await updateDoc(userDocRef, profileData);
+        } catch (err) {
+            console.error("Error updating user profile:", err);
+            throw new Error("Failed to update user profile.");
+        }
+    }, []);
+
+
+    return { users, loading, error, updateUserRole, updateUserProfile };
 };
 
 
@@ -98,3 +109,5 @@ export const useUserProfile = (userId: string | null) => {
 
     return { user, loading, error };
 };
+
+    

@@ -19,6 +19,7 @@ import TeamMemberPath from "@/components/team-management/team-member-path";
 import { useUsers } from "@/services/user-service";
 import { PointOfInterest, UserProfile } from "@/lib/data";
 import { usePoints } from "@/hooks/use-points";
+import { useToast } from "@/hooks/use-toast";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -37,21 +38,24 @@ type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
 
 function TeamManagementPage() {
-    const { users, loading: loadingUsers } = useUsers();
+    const { users, loading: loadingUsers, updateUserProfile } = useUsers();
     const { allData: allPoints, loading: loadingPoints } = usePoints();
     const [selectedMember, setSelectedMember] = React.useState<UserProfile | null>(null);
     const [searchQuery, setSearchQuery] = React.useState('');
     const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('Todos');
     const [teamFilter, setTeamFilter] = React.useState('Todos');
-    
+    const [localTasks, setLocalTasks] = React.useState<PointOfInterest[]>([]);
+    const { toast } = useToast();
+
     // Filter for technicians from the user list
     const teamMembers = React.useMemo(() => {
         return users.filter(u => u.role === 'Agente Municipal');
     }, [users]);
     
     // Filter for unassigned tasks from the points list
-    const unassignedTasks = React.useMemo(() => {
-        return allPoints.filter(p => (p.type === 'incident' || p.type === 'sanitation') && (p.status === 'unknown' || p.status === 'full' || p.status === 'in_progress'));
+    React.useEffect(() => {
+        const unassigned = allPoints.filter(p => (p.type === 'incident' || p.type === 'sanitation') && (p.status === 'unknown' || p.status === 'full'));
+        setLocalTasks(unassigned);
     }, [allPoints]);
 
 
@@ -70,10 +74,38 @@ function TeamManagementPage() {
         return teamMembers.filter(member => {
             const nameMatch = member.displayName.toLowerCase().includes(searchQuery.toLowerCase());
             const statusMatch = statusFilter === 'Todos' || member.status === statusFilter;
-            const teamMatch = teamFilter === 'Todos' || member.team === teamFilter;
+            const teamMatch = teamFilter === 'Todos' || member.team === teamMatch;
             return nameMatch && statusMatch && teamMatch;
         });
     }, [teamMembers, searchQuery, statusFilter, teamFilter]);
+
+    const handleAssignTask = (task: PointOfInterest) => {
+        const availableTechnician = teamMembers.find(t => t.status === 'Disponível');
+        if (!availableTechnician) {
+            toast({
+                variant: 'destructive',
+                title: 'Nenhum Técnico Disponível',
+                description: 'Não foi encontrado nenhum técnico disponível para atribuir a tarefa.',
+            });
+            return;
+        }
+
+        const updatedTechnician: UserProfile = {
+            ...availableTechnician,
+            status: 'Ocupado',
+            taskQueue: [...(availableTechnician.taskQueue || []), task],
+        };
+        
+        updateUserProfile(availableTechnician.uid, updatedTechnician);
+
+        // Remove task from local list of unassigned tasks
+        setLocalTasks(prev => prev.filter(t => t.id !== task.id));
+
+        toast({
+            title: 'Tarefa Atribuída!',
+            description: `A tarefa "${task.title}" foi atribuída a ${availableTechnician.displayName}.`,
+        });
+    };
 
      if (loadingUsers || loadingPoints) {
         return <div>A carregar dados da equipa...</div>;
@@ -166,13 +198,13 @@ function TeamManagementPage() {
                                 <CardDescription>Arraste uma tarefa para um membro no mapa.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                               {unassignedTasks.map(task => (
+                               {localTasks.map(task => (
                                     <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background cursor-grab active:cursor-grabbing">
                                         <div className="flex items-center gap-3">
                                             <Package className="h-5 w-5 text-muted-foreground"/>
                                             <p className="font-semibold text-sm">{task.title}</p>
                                         </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAssignTask(task)}>
                                             <Send className="h-4 w-4 text-muted-foreground" />
                                         </Button>
                                     </div>
@@ -202,7 +234,7 @@ function TeamManagementPage() {
                                             </AdvancedMarker>
                                         )
                                     ))}
-                                    {unassignedTasks.map(task => (
+                                    {localTasks.map(task => (
                                             <AdvancedMarker key={task.id} position={task.position} title={task.title}>
                                                 <Pin background={'#F97316'} borderColor={'#EA580C'} glyphColor={'#ffffff'}>
                                                     <Package />
@@ -297,3 +329,5 @@ function TeamManagementPage() {
 }
 
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
+
+    
