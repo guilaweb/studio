@@ -21,13 +21,15 @@ export const useUsers = () => {
                 } as UserProfile;
 
                 // This section simulates real-time data that would come from a mobile app
-                // In a real application, this data would be fetched from a separate 'technician_status' collection
+                // Location is now handled by the drag-and-drop simulation on the map
                 if (user.role === 'Agente Municipal') {
                     const statuses: UserProfile['status'][] = ['Disponível', 'Em Rota', 'Ocupado', 'Offline'];
                     const teams: UserProfile['team'][] = ['Eletricidade', 'Saneamento', 'Geral'];
                     
                     user.status = user.status || statuses[index % statuses.length];
-                    user.location = user.location || { lat: -8.82 + (index * 0.01), lng: 13.23 + (index * 0.01) };
+                    // Location is now sourced from Firestore, updated by the simulation.
+                    // If a technician has no location, they won't appear on the map until moved.
+                    user.location = user.location || { lat: -8.82 + (Math.random() * 0.1), lng: 13.23 + (Math.random() * 0.1) };
                     user.team = user.team || teams[index % teams.length];
                     user.vehicle = user.vehicle || { type: 'Carrinha de Manutenção', plate: `LD-${index < 10 ? '0' : ''}${index}-00-AA` };
                     user.currentTask = user.currentTask === undefined ? null : user.currentTask;
@@ -37,7 +39,7 @@ export const useUsers = () => {
                         { lat: -8.82 + (index * 0.01) - 0.002, lng: 13.23 + (index * 0.01) - 0.002 },
                         { lat: -8.82 + (index * 0.01), lng: 13.23 + (index * 0.01) }
                     ];
-                    user.phoneNumber = user.phoneNumber || `92300000${index}`; // Example phone number
+                    user.phoneNumber = user.phoneNumber || `92300000${index}`;
                 }
                 return user;
             });

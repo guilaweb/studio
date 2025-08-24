@@ -78,7 +78,7 @@ function TeamManagementPage() {
         return teamMembers.filter(member => {
             const nameMatch = member.displayName.toLowerCase().includes(searchQuery.toLowerCase());
             const statusMatch = statusFilter === 'Todos' || member.status === statusFilter;
-            const teamMatch = teamFilter === 'Todos' || member.team === teamFilter; // Corrected teamMatch logic
+            const teamMatch = teamFilter === 'Todos' || member.team === teamFilter;
             return nameMatch && statusMatch && teamMatch;
         });
     }, [teamMembers, searchQuery, statusFilter, teamFilter]);
@@ -151,6 +151,12 @@ function TeamManagementPage() {
             setIsSuggesting(null);
         }
     }
+    
+    const handleMarkerDragEnd = (memberId: string, event: google.maps.MapMouseEvent) => {
+        if (!event.latLng) return;
+        const newLocation = event.latLng.toJSON();
+        updateUserProfile(memberId, { location: newLocation });
+    };
 
 
      if (loadingUsers || loadingPoints) {
@@ -272,7 +278,14 @@ function TeamManagementPage() {
                                     {filteredMembers.map(member => {
                                         const suggestion = suggestedTechnicians.find(s => s.technicianId === member.uid);
                                         return member.location && (
-                                            <AdvancedMarker key={member.uid} position={member.location} title={member.displayName} onClick={() => setSelectedMember(member)}>
+                                            <AdvancedMarker
+                                                key={member.uid}
+                                                position={member.location}
+                                                title={member.displayName}
+                                                onClick={() => setSelectedMember(member)}
+                                                draggable={true}
+                                                onDragEnd={(e) => handleMarkerDragEnd(member.uid, e)}
+                                            >
                                                 <div className="relative">
                                                     <TeamMemberMarker 
                                                             name={member.displayName}
