@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow } from "@vis.gl/react-google-maps";
+import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -150,6 +150,49 @@ export const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut 
     );
 };
 
+const RiverPolylines: React.FC<{
+    rivers: PointOfInterest[];
+    onPolylineClick: (id: string) => void;
+}> = ({ rivers, onPolylineClick }) => {
+    const map = useMap();
+    const [polylines, setPolylines] = useState<google.maps.Polyline[]>([]);
+
+    useEffect(() => {
+        if (!map) return;
+
+        // Clean up previous polylines
+        polylines.forEach(p => p.setMap(null));
+
+        const newPolylines = rivers.map(river => {
+            const polyline = new google.maps.Polyline({
+                path: river.polyline,
+                geodesic: true,
+                strokeColor: '#0077be', // A nice blue for rivers
+                strokeOpacity: 0.8,
+                strokeWeight: 4,
+                map: map,
+            });
+
+            polyline.addListener('click', () => {
+                onPolylineClick(river.id);
+            });
+            return polyline;
+        });
+
+        setPolylines(newPolylines);
+
+        // Cleanup on unmount
+        return () => {
+            newPolylines.forEach(p => p.setMap(null));
+        };
+    // We only want to re-run this when the map or the rivers change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [map, rivers]);
+
+    return null;
+}
+
+
 export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
   
     const [infoWindowState, setInfoWindowState] = useState<{ anchor: google.maps.marker.AdvancedMarkerElement | null; poi: PointOfInterest | null }>({ anchor: null, poi: null });
@@ -171,13 +214,19 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
 
     const polygonPoints = React.useMemo(() => {
         if (!activeLayers) return [];
-        return data.filter(p => activeLayers[p.type] && p.polygon);
+        return data.filter(p => activeLayers[p.type] && p.polygon && !p.polyline);
     }, [data, activeLayers]);
 
     const markerPoints = React.useMemo(() => {
         if (!activeLayers) return [];
-        return data.filter(p => activeLayers[p.type] && !p.polygon);
+        return data.filter(p => activeLayers[p.type] && !p.polygon && !p.polyline);
     }, [data, activeLayers]);
+
+    const polylinePoints = React.useMemo(() => {
+        if (!activeLayers) return [];
+        return data.filter(p => activeLayers[p.type] && p.polyline);
+    }, [data, activeLayers]);
+
 
     return (
         <div style={{ height: "100%", width: "100%" }}>
@@ -206,6 +255,11 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                     onPlotClick={onMarkerClick}
                 />
                 
+                <RiverPolylines
+                    rivers={polylinePoints}
+                    onPolylineClick={onMarkerClick}
+                />
+
                 {infoWindowState.anchor && infoWindowState.poi && (
                     <InfoWindow
                         anchor={infoWindowState.anchor}

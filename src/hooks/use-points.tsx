@@ -41,6 +41,7 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         type: data.type,
         position: data.position,
         polygon: data.polygon,
+        polyline: data.polyline,
         title: data.title,
         description: data.description,
         status: data.status,
@@ -289,6 +290,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 export const usePoints = () => useContext(PointsContext);
 
     
+
 
 
 
