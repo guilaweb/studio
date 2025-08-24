@@ -357,6 +357,32 @@ export const AnalyzePropertyDocumentOutputSchema = z.object({
 });
 export type AnalyzePropertyDocumentOutput = z.infer<typeof AnalyzePropertyDocumentOutputSchema>;
 
+export const SuggestTechnicianInputSchema = z.object({
+    task: z.object({
+        id: z.string(),
+        title: z.string(),
+        location: PositionSchema,
+    }),
+    technicians: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        location: PositionSchema,
+        status: z.enum(['Disponível', 'Em Rota', 'Ocupado', 'Offline']),
+        skills: z.array(z.string()).optional(),
+        taskQueueSize: z.number(),
+    })),
+});
+export type SuggestTechnicianInput = z.infer<typeof SuggestTechnicianInputSchema>;
+
+export const SuggestTechnicianOutputSchema = z.object({
+    suggestions: z.array(z.object({
+        technicianId: z.string(),
+        rank: z.number().int().positive(),
+        reason: z.string(),
+    })).describe("An ordered list of the top 3 technician suggestions."),
+});
+export type SuggestTechnicianOutput = z.infer<typeof SuggestTechnicianOutputSchema>;
+
 
 // Schemas for Chat / Inbox
 export const MessageSchema = z.object({
