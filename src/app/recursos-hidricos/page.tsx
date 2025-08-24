@@ -6,10 +6,11 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Droplets } from "lucide-react";
+import { ArrowLeft, Droplets, Database, Activity, GitBranch, BrainCircuit, CheckSquare, Layers, MapPin, Factory, AlertTriangle, CloudRain, Wind, FileSignature, Search, BarChart, FlaskConical } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterestMarker } from "@/components/map-component";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -22,6 +23,92 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
     { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
     { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
+];
+
+const features = [
+    {
+        category: "Cadastro de Recursos Hídricos",
+        Icon: Database,
+        description: "O Inventário SIG completo da nação.",
+        items: [
+            {
+                title: "Visualizador de Camadas Hidrográficas",
+                Icon: Layers,
+                points: ["Rede Fluvial (Rios e Afluentes)", "Corpos de Água (Lagos, Lagoas)", "Bacias e Sub-bacias Hidrográficas", "Mapa de Aquíferos Subterrâneos"]
+            },
+            {
+                title: "Inventário de Infraestruturas Hídricas",
+                Icon: CheckSquare,
+                points: ["Mapa de Barragens e Albufeiras", "Mapa de Estações de Tratamento (ETA/ETAR)", "Cadastro de Pontos de Captação (Furos, Poços)"]
+            },
+            {
+                title: "Cadastro de Uso e Qualidade da Água",
+                Icon: FlaskConical,
+                points: ["Mapa de Concessões e Licenças de Uso", "Rede de Monitoramento da Qualidade", "Mapa de Fontes de Poluição Potenciais"]
+            }
+        ]
+    },
+    {
+        category: "Monitoramento Dinâmico",
+        Icon: Activity,
+        description: "Acompanhamento em tempo real e colaborativo.",
+        items: [
+             {
+                title: "Painel de Controlo de Sensores (IoT)",
+                Icon: BarChart,
+                points: ["Visualização de Dados em Tempo Real (Nível, Caudal, pH)", "Alertas Automáticos de Sensores"]
+            },
+             {
+                title: "Portal de 'Ciência Cidadã'",
+                Icon: MapPin,
+                points: ["Funcionalidade 'Reportar Poluição'", "Funcionalidade 'Monitor Comunitário de Nível'"]
+            },
+        ]
+    },
+    {
+        category: "Gestão e Governança da Água",
+        Icon: GitBranch,
+        description: "Ferramentas para uma governação proativa.",
+        items: [
+             {
+                title: "Sistema de Alerta Precoce",
+                Icon: AlertTriangle,
+                points: ["Motor de Previsão de Cheias", "Monitor de Secas"]
+            },
+             {
+                title: "Fluxo de Trabalho para Licenciamento",
+                Icon: FileSignature,
+                points: ["Portal de Solicitação Online", "Análise de Impacto Automatizada", "Gestão de Licenças"]
+            },
+             {
+                title: "Painel de Fiscalização Ambiental",
+                Icon: Factory,
+                points: ["Mapa de Ocorrências de Poluição", "App Móvel do Fiscal"]
+            }
+        ]
+    },
+    {
+        category: "Análise e Planeamento",
+        Icon: BrainCircuit,
+        description: "Simulação e planeamento estratégico.",
+        items: [
+             {
+                title: "Ferramenta de 'Balanço Hídrico'",
+                Icon: BarChart,
+                points: ["Dashboard por Bacia Hidrográfica", "Indicador de Stress Hídrico"]
+            },
+             {
+                title: "Simulador de Cenários ('What If?')",
+                Icon: Search,
+                points: ["Simulador de Infraestruturas (Barragens, Irrigação)", "Simulador de Alterações Climáticas", "Simulador de Conflitos de Uso"]
+            },
+             {
+                title: "Identificação de Potencialidades",
+                Icon: Wind,
+                points: ["Análise de Aptidão para Irrigação", "Identificação de Potencial Hidroelétrico"]
+            },
+        ]
+    }
 ];
 
 function WaterResourcesPage() {
@@ -48,12 +135,41 @@ function WaterResourcesPage() {
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
                     <div className="md:col-span-1 lg:col-span-1 space-y-4">
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Filtros e Análise</CardTitle>
-                                <CardDescription>Funcionalidades em desenvolvimento.</CardDescription>
+                             <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Droplets className="h-6 w-6 text-primary" />
+                                    Módulo de Recursos Hídricos
+                                </CardTitle>
+                                <CardDescription>Um inventário completo e um painel de controlo dinâmico para a gestão da água em Angola.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm text-muted-foreground">Em breve poderá filtrar por tipo de recurso, bacia hidrográfica e dados de qualidade da água.</p>
+                                <Accordion type="single" collapsible className="w-full">
+                                    {features.map((feature, index) => (
+                                         <AccordionItem value={`item-${index}`} key={index}>
+                                            <AccordionTrigger>
+                                                <div className="flex items-center gap-3">
+                                                    <feature.Icon className="h-5 w-5 text-primary" />
+                                                    <span>{feature.category}</span>
+                                                </div>
+                                            </AccordionTrigger>
+                                            <AccordionContent className="space-y-4 pl-2">
+                                                {feature.items.map((item, itemIndex) => (
+                                                    <div key={itemIndex}>
+                                                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
+                                                            <item.Icon className="h-4 w-4 text-muted-foreground" />
+                                                            {item.title}
+                                                        </h4>
+                                                        <ul className="list-disc pl-6 text-xs text-muted-foreground space-y-1">
+                                                            {item.points.map((point, pointIndex) => (
+                                                                <li key={pointIndex}>{point}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                ))}
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    ))}
+                                </Accordion>
                             </CardContent>
                         </Card>
                     </div>
