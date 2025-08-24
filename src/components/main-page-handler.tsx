@@ -662,7 +662,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
 
-  const handleAddNewCroqui = async (data: any) => {
+  const handleAddNewCroqui = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute'>) => {
       if (!user || !profile) {
         toast({ variant: "destructive", title: "Ação necessária", description: "Por favor, faça login para criar um croqui."});
         return;
@@ -679,6 +679,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           authorDisplayName: profile.displayName,
           position: data.position,
           lastReported: timestamp,
+          croquiPoints: data.croquiPoints,
+          croquiRoute: data.croquiRoute,
           status: 'active',
           updates: [{
               text: `Croqui criado: ${data.title}`,

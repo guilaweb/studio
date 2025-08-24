@@ -264,7 +264,7 @@ export default function CroquiReport({
                     <FormLabel>Notas Adicionais (Opcional)</FormLabel>
                     <FormControl>
                         <Textarea
-                        placeholder="Ex: Procurar pelo portão verde, tocar a campainha 3 vezes."
+                        placeholder="Ex: Tocar a campainha 3 vezes. Procurar pelo portão verde."
                         {...field}
                         />
                     </FormControl>
