@@ -5,7 +5,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2 } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -495,6 +495,29 @@ const DocumentList = ({poi} : {poi: PointOfInterest}) => {
     )
 }
 
+const CustomDataDetails = ({ poi }: { poi: PointOfInterest }) => {
+    if (!poi.customData || Object.keys(poi.customData).length === 0) {
+        return null;
+    }
+
+    return (
+        <>
+            <Separator />
+            <div className="py-4">
+                <h3 className="font-semibold mb-2">Dados do Ativo</h3>
+                <div className="space-y-2">
+                    {Object.entries(poi.customData).map(([key, value]) => (
+                        <div key={key} className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">{key}</span>
+                            <span className="font-medium">{value}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </>
+    );
+}
+
 const CroquiActions = ({ poi }: { poi: PointOfInterest }) => {
     if (poi.type !== 'croqui') return null;
     const { toast } = useToast();
@@ -681,6 +704,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 
                 {poi.type === 'construction' && <DocumentList poi={poi} />}
 
+                <CustomDataDetails poi={poi} />
+                
                 {poi.type === 'croqui' && <CroquiActions poi={poi} />}
 
                 {showTimeline && (

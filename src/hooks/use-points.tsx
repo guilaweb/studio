@@ -77,6 +77,13 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         architectName: data.architectName,
         // Announcement Specific
         announcementCategory: data.announcementCategory,
+        // Croqui Specific
+        croquiId: data.croquiId, // Link to a croqui
+        croquiPoints: data.croquiPoints,
+        croquiRoute: data.croquiRoute,
+        collectionId: data.collectionId,
+        collectionName: data.collectionName,
+        customData: data.customData,
         // Duplicate detection
         potentialDuplicateOfId: data.potentialDuplicateOfId,
         // Sustainability
@@ -290,6 +297,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 export const usePoints = () => useContext(PointsContext);
 
     
+
 
 
 
