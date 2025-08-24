@@ -780,7 +780,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         photoDataUri: photoDataUri,
     };
     
-    addUpdateToPoint(poiId, newUpdate);
+    addUpdateToPoint(pointId, newUpdate);
     
     // Optimistic update of the selected PoI
     setSelectedPoi(prevPoi => {
