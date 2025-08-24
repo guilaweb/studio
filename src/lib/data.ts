@@ -20,7 +20,7 @@ export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 export const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired', 'em_verificacao', 'verificado_ouro', 'verificado_prata', 'informacao_insuficiente', 'Privado']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
-export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement', 'water_resource']);
+export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui']);
 export type PointOfInterestType = z.infer<typeof PointOfInterestTypeEnum>;
 
 export const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
@@ -48,13 +48,18 @@ const SustainabilityFeaturesSchema = z.object({
 
 const PositionSchema = z.object({ lat: z.number(), lng: z.number() });
 const FileSchema = z.object({ name: z.string(), url: z.string() });
+const CroquiPointSchema = z.object({
+    position: PositionSchema,
+    label: z.string(),
+    type: z.enum(['munitu', 'custom']),
+});
 
 export const PointOfInterestSchema = z.object({
   id: z.string(),
   type: PointOfInterestTypeEnum,
   position: PositionSchema,
-  polygon: z.array(PositionSchema).optional(), // For land plots
-  polyline: z.array(PositionSchema).optional(), // For rivers, roads, etc.
+  polygon: z.array(PositionSchema).optional(),
+  polyline: z.array(PositionSchema).optional(),
   title: z.string().optional(),
   description: z.string(),
   status: PointOfInterestStatusEnum.optional(),
@@ -90,6 +95,9 @@ export const PointOfInterestSchema = z.object({
   architectName: z.string().optional(),
   // Announcement Specific
   announcementCategory: AnnouncementCategoryEnum.optional(),
+  // Croqui Specific
+  croquiPoints: z.array(CroquiPointSchema).optional(),
+  croquiRoute: z.array(PositionSchema).optional(),
   // Duplicate detection
   potentialDuplicateOfId: z.string().optional(),
   // Sustainability
@@ -100,7 +108,7 @@ export const PointOfInterestSchema = z.object({
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 
 
-export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource';
+export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource' | 'croqui';
 
 export type ActiveLayers = {
   [key in Layer]: boolean;
@@ -136,6 +144,7 @@ export const typeLabelMap: Record<PointOfInterestType, string> = {
     land_plot: "Lote de Terreno",
     announcement: "Anúncio",
     water_resource: "Recurso Hídrico",
+    croqui: "Croqui de Localização",
 };
 
 export const propertyTypeLabelMap: Record<PropertyType, string> = {

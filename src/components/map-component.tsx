@@ -1,9 +1,10 @@
 
+
 "use client";
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 import { LandPlotPolygons } from "./marketplace/land-plot-polygons";
@@ -62,6 +63,8 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
         return <Square className={commonClasses} />;
     case "announcement":
         return <Megaphone className={commonClasses} />;
+    case "croqui":
+        return <Share2 className={commonClasses} />;
     default:
       return null;
   }

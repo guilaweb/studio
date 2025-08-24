@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -21,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2 } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -39,9 +40,10 @@ import LandPlotReport from "./land-plot-report";
 import { usePublicLayerSettings } from "@/services/settings-service";
 import AnnouncementReport from "./announcement-report";
 import ConstructionEdit from "./construction-edit";
+import CroquiReport from "./croqui-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui';
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
 
@@ -54,6 +56,7 @@ const defaultActiveLayers: ActiveLayers = {
     land_plot: true,
     announcement: true,
     water_resource: true,
+    croqui: true,
 };
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -659,6 +662,40 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
 
+  const handleAddNewCroqui = async (data: any) => {
+      if (!user || !profile) {
+        toast({ variant: "destructive", title: "Ação necessária", description: "Por favor, faça login para criar um croqui."});
+        return;
+      }
+      handleSheetOpenChange(false);
+      const timestamp = new Date().toISOString();
+
+      const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+          id: `croqui-${Date.now()}`,
+          type: 'croqui',
+          title: data.title,
+          description: data.description,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          position: data.position,
+          lastReported: timestamp,
+          status: 'active',
+          updates: [{
+              text: `Croqui criado: ${data.title}`,
+              authorId: user.uid,
+              authorDisplayName: profile.displayName,
+              timestamp: timestamp,
+          }]
+      };
+      
+      addPoint(pointToAdd);
+
+      toast({
+          title: "Croqui Criado!",
+          description: "O seu croqui de localização foi guardado com sucesso.",
+      });
+  }
+
   const handleEditAnnouncement = async (
     poiId: string,
     data: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>
@@ -823,6 +860,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="right" align="start">
+                        <DropdownMenuItem onClick={() => handleStartReporting('croqui')}>
+                            <Share2 className="mr-2 h-4 w-4" />
+                            Criar Croqui de Localização
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStartReporting('incident')}>
                             <Siren className="mr-2 h-4 w-4" />
                             Reportar Incidente
@@ -919,6 +960,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="top" align="start">
+                        <DropdownMenuItem onClick={() => handleStartReporting('croqui')}>
+                            <Share2 className="mr-2 h-4 w-4" />
+                            Criar Croqui
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStartReporting('incident')}>
                             <Siren className="mr-2 h-4 w-4" />
                             Reportar Incidente
@@ -1054,6 +1099,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             onOpenChange={handleSheetOpenChange}
             onConstructionEdit={handleEditConstructionProject}
             poiToEdit={poiToEdit}
+        />
+        <CroquiReport
+            open={activeSheet === 'croqui'}
+            onOpenChange={handleSheetOpenChange}
+            onCroquiSubmit={handleAddNewCroqui}
+            initialCenter={mapCenter}
         />
       </SidebarProvider>
   );
