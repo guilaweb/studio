@@ -9,6 +9,7 @@ import Link from "next/link";
 import { ArrowLeft, User, Package, MapPin, PersonStanding, Send } from "lucide-react";
 import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { Badge } from "@/components/ui/badge";
+import { TeamMemberMarker } from "@/components/team-management/team-member-marker";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -25,9 +26,10 @@ const mapStyles: google.maps.MapTypeStyle[] = [
 
 // Mock Data - In a real app, this would come from a real-time database
 const teamMembers = [
-    { id: 1, name: "João Silva", status: "Em Rota", location: { lat: -8.82, lng: 13.24 } },
-    { id: 2, name: "Maria Santos", status: "Disponível", location: { lat: -8.84, lng: 13.22 } },
-    { id: 3, name: "Carlos Mendes", status: "Em Rota", location: { lat: -8.85, lng: 13.26 } },
+    { id: 1, name: "João Silva", status: 'Em Rota' as const, location: { lat: -8.82, lng: 13.24 }, photoURL: 'https://placehold.co/40x40.png' },
+    { id: 2, name: "Maria Santos", status: 'Disponível' as const, location: { lat: -8.84, lng: 13.22 }, photoURL: 'https://placehold.co/40x40.png' },
+    { id: 3, name: "Carlos Mendes", status: 'Ocupado' as const, location: { lat: -8.85, lng: 13.26 }, photoURL: null },
+    { id: 4, name: "Ana Pereira", status: 'Offline' as const, location: { lat: -8.83, lng: 13.21 }, photoURL: 'https://placehold.co/40x40.png' },
 ];
 
 const unassignedTasks = [
@@ -38,6 +40,17 @@ const unassignedTasks = [
 
 
 function TeamManagementPage() {
+
+    const statusBadgeVariant = (status: string) => {
+        switch(status) {
+            case 'Disponível': return 'bg-green-500';
+            case 'Em Rota': return 'bg-orange-500';
+            case 'Ocupado': return 'bg-red-500';
+            case 'Offline': return 'bg-gray-400';
+            default: return 'secondary';
+        }
+    }
+
 
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -67,7 +80,7 @@ function TeamManagementPage() {
                                             <User className="h-5 w-5 text-primary"/>
                                             <div>
                                                 <p className="font-semibold text-sm">{member.name}</p>
-                                                <Badge variant={member.status === 'Disponível' ? 'default' : 'secondary'} className={member.status === 'Disponível' ? 'bg-green-500' : ''}>
+                                                <Badge variant="secondary" className={statusBadgeVariant(member.status)}>
                                                     {member.status}
                                                 </Badge>
                                             </div>
@@ -111,9 +124,11 @@ function TeamManagementPage() {
                             >
                                {teamMembers.map(member => (
                                    <AdvancedMarker key={member.id} position={member.location} title={member.name}>
-                                        <Pin background={'#10B981'} borderColor={'#059669'} glyphColor={'#ffffff'}>
-                                            <PersonStanding />
-                                        </Pin>
+                                       <TeamMemberMarker 
+                                            name={member.name}
+                                            photoURL={member.photoURL}
+                                            status={member.status}
+                                        />
                                    </AdvancedMarker>
                                ))}
                                {unassignedTasks.map(task => (
