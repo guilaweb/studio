@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import TeamMemberPath from "@/components/team-management/team-member-path";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -44,7 +45,12 @@ const teamMembers = [
             { id: 'task-5', title: 'Reparar semáforo Cruzamento X' },
             { id: 'task-6', title: 'Inspeção de rotina Y' }
         ],
-        stats: { completed: 3, avgTime: '35 min' }
+        stats: { completed: 3, avgTime: '35 min' },
+        path: [
+            { lat: -8.815, lng: 13.235 },
+            { lat: -8.818, lng: 13.238 },
+            { lat: -8.82,  lng: 13.24 },
+        ]
     },
     { 
         id: 2, 
@@ -57,7 +63,12 @@ const teamMembers = [
         vehicle: { type: 'Motorizada de Intervenção Rápida', plate: 'LD-03-04-BB' },
         currentTask: null,
         taskQueue: [],
-        stats: { completed: 5, avgTime: '25 min' }
+        stats: { completed: 5, avgTime: '25 min' },
+        path: [
+             { lat: -8.842, lng: 13.218 },
+             { lat: -8.841, lng: 13.221 },
+             { lat: -8.84,  lng: 13.22 },
+        ]
     },
     { 
         id: 3, 
@@ -70,7 +81,12 @@ const teamMembers = [
         vehicle: { type: 'Carrinha de Manutenção', plate: 'LD-05-06-CC' },
         currentTask: { id: 'task-7', title: 'Reparar fuga de água na Rua Z' },
         taskQueue: [],
-        stats: { completed: 2, avgTime: '75 min' }
+        stats: { completed: 2, avgTime: '75 min' },
+        path: [
+            { lat: -8.848, lng: 13.255 },
+            { lat: -8.851, lng: 13.258 },
+            { lat: -8.85,  lng: 13.26 },
+        ]
     },
     { 
         id: 4, 
@@ -83,7 +99,8 @@ const teamMembers = [
         vehicle: null,
         currentTask: null,
         taskQueue: [],
-        stats: { completed: 0, avgTime: 'N/A' }
+        stats: { completed: 0, avgTime: 'N/A' },
+        path: []
     },
 ];
 
@@ -230,22 +247,23 @@ function TeamManagementPage() {
                                     disableDefaultUI={true}
                                     styles={mapStyles}
                                 >
-                                {filteredMembers.map(member => (
-                                    <AdvancedMarker key={member.id} position={member.location} title={member.name} onClick={() => setSelectedMember(member)}>
-                                        <TeamMemberMarker 
-                                                name={member.name}
-                                                photoURL={member.photoURL}
-                                                status={member.status}
-                                            />
-                                    </AdvancedMarker>
-                                ))}
-                                {unassignedTasks.map(task => (
-                                        <AdvancedMarker key={task.id} position={task.location} title={task.title}>
-                                            <Pin background={'#F97316'} borderColor={'#EA580C'} glyphColor={'#ffffff'}>
-                                                <Package />
-                                            </Pin>
-                                    </AdvancedMarker>
-                                ))}
+                                    {filteredMembers.map(member => (
+                                        <AdvancedMarker key={member.id} position={member.location} title={member.name} onClick={() => setSelectedMember(member)}>
+                                            <TeamMemberMarker 
+                                                    name={member.name}
+                                                    photoURL={member.photoURL}
+                                                    status={member.status}
+                                                />
+                                        </AdvancedMarker>
+                                    ))}
+                                    {unassignedTasks.map(task => (
+                                            <AdvancedMarker key={task.id} position={task.location} title={task.title}>
+                                                <Pin background={'#F97316'} borderColor={'#EA580C'} glyphColor={'#ffffff'}>
+                                                    <Package />
+                                                </Pin>
+                                        </AdvancedMarker>
+                                    ))}
+                                    {selectedMember && <TeamMemberPath path={selectedMember.path} />}
                                 </Map>
                             </Card>
                         </div>
@@ -325,3 +343,5 @@ function TeamManagementPage() {
 }
 
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
+
+    
