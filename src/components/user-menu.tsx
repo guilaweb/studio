@@ -118,6 +118,12 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <span>Gestão de Equipa</span>
                             </Link>
                         </DropdownMenuItem>
+                         <DropdownMenuItem asChild>
+                            <Link href="/equipa/minhas-tarefas">
+                                <ListTodo className="mr-2 h-4 w-4" />
+                                <span>Minhas Tarefas</span>
+                            </Link>
+                        </DropdownMenuItem>
                         
                         <DropdownMenuSub>
                             <DropdownMenuSubTrigger>

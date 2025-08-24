@@ -4,7 +4,7 @@
 import React from "react";
 import Image from "next/image";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/data";
-import { MessageSquarePlus, Wand2, Camera, CheckCircle, FileText, Check, MessageSquare } from "lucide-react";
+import { MessageSquarePlus, Wand2, Camera, CheckCircle, FileText, Check, MessageSquare, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
@@ -23,8 +23,8 @@ const TimelineItem = ({ update, isFirst }: { update: PointOfInterestUpdate, isFi
     if (isFirst) {
         icon = <FileText className="h-4 w-4 text-muted-foreground" />;
         title = `Reportado por ${update.authorDisplayName || 'um cidadão'}`;
-    } else if (update.text?.startsWith('**AUTO DE VISTORIA**')) {
-        icon = <Check className="h-4 w-4 text-blue-500" />;
+    } else if (update.text?.startsWith('**RELATÓRIO DE VISTORIA**')) {
+        icon = <ClipboardCheck className="h-4 w-4 text-blue-500" />;
         title = `Vistoria por ${update.authorDisplayName || 'um fiscal'}`;
     } else if (update.text?.startsWith('**PARECER')) {
         icon = <CheckCircle className="h-4 w-4 text-green-500" />;
