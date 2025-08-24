@@ -50,11 +50,9 @@ const formSchema = z.object({
 type DrawingMode = 'points' | 'route' | null;
 
 const DrawingManager: React.FC<{
-    onPolygonComplete: (polygon: google.maps.Polygon) => void,
     onPolylineComplete: (polyline: google.maps.Polyline) => void,
     drawingMode: DrawingMode,
-    clearTrigger: boolean,
-}> = ({ onPolygonComplete, onPolylineComplete, drawingMode, clearTrigger }) => {
+}> = ({ onPolylineComplete, drawingMode }) => {
     const map = useMap();
     const drawing = useMapsLibrary('drawing');
     const [drawingManager, setDrawingManager] = useState<google.maps.drawing.DrawingManager | null>(null);
@@ -245,9 +243,7 @@ export default function CroquiReport({
                 >
                     <DrawingManager 
                         onPolylineComplete={setDrawnRoute}
-                        onPolygonComplete={() => {}} // dummy
                         drawingMode={drawingMode}
-                        clearTrigger={false}
                     />
                     {referencePoints.map((point, index) => (
                          <AdvancedMarker key={index} position={point.position} title={point.label}>
