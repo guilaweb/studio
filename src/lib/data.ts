@@ -53,6 +53,7 @@ const CroquiPointSchema = z.object({
     label: z.string(),
     type: z.enum(['munitu', 'custom']),
 });
+export type CroquiPoint = z.infer<typeof CroquiPointSchema>;
 
 export const PointOfInterestSchema = z.object({
   id: z.string(),
