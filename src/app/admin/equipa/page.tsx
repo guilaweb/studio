@@ -245,7 +245,7 @@ function TeamManagementPage() {
                             </CardHeader>
                             <CardContent className="space-y-3 max-h-[30vh] overflow-auto">
                                {localTasks.map(task => (
-                                    <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background cursor-pointer hover:bg-muted" onClick={() => handleTaskSelect(task)}>
+                                    <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background cursor-grab active:cursor-grabbing hover:bg-muted" onClick={() => handleTaskSelect(task)}>
                                         <div className="flex items-center gap-3">
                                             {isSuggesting === task.id ? <Loader2 className="h-5 w-5 text-muted-foreground animate-spin"/> : <Package className="h-5 w-5 text-muted-foreground"/>}
                                             <p className="font-semibold text-sm">{task.title}</p>
@@ -379,5 +379,7 @@ function TeamManagementPage() {
 }
 
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
+
+    
 
     
