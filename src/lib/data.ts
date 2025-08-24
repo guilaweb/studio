@@ -128,6 +128,15 @@ export const UserProfileSchema = z.object({
     createdAt: z.string().optional(),
     onboardingCompleted: z.boolean().optional(),
     phoneNumber: z.string().optional(),
+    // Real-time status fields from the mobile app
+    location: PositionSchema.optional(),
+    status: z.enum(['Disponível', 'Em Rota', 'Ocupado', 'Offline']).optional(),
+    team: z.enum(['Eletricidade', 'Saneamento', 'Geral']).optional(),
+    vehicle: z.object({ type: z.string(), plate: z.string() }).optional(),
+    currentTask: PointOfInterestSchema.optional().nullable(),
+    taskQueue: z.array(PointOfInterestSchema).optional(),
+    stats: z.object({ completed: z.number(), avgTime: z.string() }).optional(),
+    path: z.array(PositionSchema).optional(),
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 
@@ -136,6 +145,8 @@ export const UserProfileWithStatsSchema = UserProfileSchema.extend({
         contributions: z.number(),
         sanitationReports: z.number(),
         incidentReports: z.number(),
+        completed: z.number(),
+        avgTime: z.string(),
     })
 });
 export type UserProfileWithStats = z.infer<typeof UserProfileWithStatsSchema>;

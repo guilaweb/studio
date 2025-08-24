@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { collection, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { UserProfile } from '@/lib/data';
+import { PointOfInterest, UserProfile } from '@/lib/data';
 
 export const useUsers = () => {
     const [users, setUsers] = useState<UserProfile[]>([]);
@@ -14,10 +14,33 @@ export const useUsers = () => {
     useEffect(() => {
         const usersCollectionRef = collection(db, 'users');
         const unsubscribe = onSnapshot(usersCollectionRef, (snapshot) => {
-            const usersData = snapshot.docs.map(doc => ({
-                uid: doc.id,
-                ...doc.data()
-            } as UserProfile));
+            const usersData = snapshot.docs.map((doc, index) => {
+                const user = {
+                    uid: doc.id,
+                    ...doc.data()
+                } as UserProfile;
+
+                // This section simulates real-time data that would come from a mobile app
+                // In a real application, this data would be fetched from a separate 'technician_status' collection
+                if (user.role === 'Agente Municipal') {
+                    const statuses: UserProfile['status'][] = ['Disponível', 'Em Rota', 'Ocupado', 'Offline'];
+                    const teams: UserProfile['team'][] = ['Eletricidade', 'Saneamento', 'Geral'];
+                    
+                    user.status = statuses[index % statuses.length];
+                    user.location = { lat: -8.82 + (index * 0.01), lng: 13.23 + (index * 0.01) };
+                    user.team = teams[index % teams.length];
+                    user.vehicle = { type: 'Carrinha de Manutenção', plate: `LD-${index < 10 ? '0' : ''}${index}-00-AA` };
+                    user.currentTask = null;
+                    user.taskQueue = [];
+                    user.stats = { completed: Math.floor(Math.random() * 5), avgTime: `${20 + Math.floor(Math.random() * 20)} min` };
+                    user.path = [
+                        { lat: -8.82 + (index * 0.01) - 0.002, lng: 13.23 + (index * 0.01) - 0.002 },
+                        { lat: -8.82 + (index * 0.01), lng: 13.23 + (index * 0.01) }
+                    ];
+                    user.phoneNumber = `92300000${index}`; // Example phone number
+                }
+                return user;
+            });
             setUsers(usersData);
             setLoading(false);
         }, (err) => {

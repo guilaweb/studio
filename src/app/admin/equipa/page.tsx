@@ -33,63 +33,30 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
 ];
 
-type TeamMember = UserProfile & {
-    id: string; // Use UID as ID
-    status: 'Em Rota' | 'Disponível' | 'Ocupado' | 'Offline';
-    location: { lat: number; lng: number };
-    team: 'Eletricidade' | 'Saneamento' | 'Geral';
-    vehicle: { type: string; plate: string } | null;
-    currentTask: PointOfInterest | null;
-    taskQueue: PointOfInterest[];
-    stats: { completed: number; avgTime: string };
-    path: { lat: number; lng: number }[];
-};
-
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
 
 function TeamManagementPage() {
     const { users, loading: loadingUsers } = useUsers();
     const { allData: allPoints, loading: loadingPoints } = usePoints();
-    const [selectedMember, setSelectedMember] = React.useState<TeamMember | null>(null);
+    const [selectedMember, setSelectedMember] = React.useState<UserProfile | null>(null);
     const [searchQuery, setSearchQuery] = React.useState('');
     const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('Todos');
     const [teamFilter, setTeamFilter] = React.useState('Todos');
     
-    // Convert UserProfile to TeamMember with mock data for dynamic fields
+    // Filter for technicians from the user list
     const teamMembers = React.useMemo(() => {
-        return users
-            .filter(u => u.role === 'Agente Municipal')
-            .map((user, index) => {
-                // Mock dynamic data for demonstration
-                const statuses: TeamMember['status'][] = ['Disponível', 'Em Rota', 'Ocupado', 'Offline'];
-                const teams: TeamMember['team'][] = ['Eletricidade', 'Saneamento', 'Geral'];
-                
-                return {
-                    ...user,
-                    id: user.uid,
-                    status: statuses[index % statuses.length],
-                    location: { lat: -8.82 + (index * 0.01), lng: 13.23 + (index * 0.01) },
-                    team: teams[index % teams.length],
-                    vehicle: { type: 'Carrinha de Manutenção', plate: `LD-${index < 10 ? '0' : ''}${index}-00-AA` },
-                    currentTask: null,
-                    taskQueue: [],
-                    stats: { completed: Math.floor(Math.random() * 5), avgTime: `${20 + Math.floor(Math.random() * 20)} min` },
-                    path: [
-                        { lat: -8.82 + (index * 0.01) - 0.002, lng: 13.23 + (index * 0.01) - 0.002 },
-                        { lat: -8.82 + (index * 0.01), lng: 13.23 + (index * 0.01) }
-                    ],
-                    phoneNumber: `92300000${index}` // Example phone number
-                } as TeamMember;
-            });
+        return users.filter(u => u.role === 'Agente Municipal');
     }, [users]);
     
+    // Filter for unassigned tasks from the points list
     const unassignedTasks = React.useMemo(() => {
-        return allPoints.filter(p => (p.type === 'incident' || p.type === 'sanitation') && (p.status === 'unknown' || p.status === 'full'));
+        return allPoints.filter(p => (p.type === 'incident' || p.type === 'sanitation') && (p.status === 'unknown' || p.status === 'full' || p.status === 'in_progress'));
     }, [allPoints]);
 
 
-    const statusBadgeVariant = (status: string) => {
+    const statusBadgeVariant = (status?: string) => {
+        if(!status) return 'secondary';
         switch(status) {
             case 'Disponível': return 'bg-green-500';
             case 'Em Rota': return 'bg-orange-500';
@@ -173,14 +140,16 @@ function TeamManagementPage() {
                                 </div>
                                 <div className="space-y-3 max-h-[40vh] overflow-y-auto">
                                     {filteredMembers.map(member => (
-                                        <div key={member.id} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted", selectedMember?.id === member.id ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
+                                        <div key={member.uid} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted", selectedMember?.uid === member.uid ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
                                             <div className="flex items-center gap-3">
                                                 <User className="h-5 w-5 text-primary"/>
                                                 <div>
                                                     <p className="font-semibold text-sm">{member.displayName}</p>
-                                                    <Badge variant="secondary" className={statusBadgeVariant(member.status)}>
-                                                        {member.status}
-                                                    </Badge>
+                                                    {member.status && (
+                                                        <Badge variant="secondary" className={statusBadgeVariant(member.status)}>
+                                                            {member.status}
+                                                        </Badge>
+                                                    )}
                                                 </div>
                                             </div>
                                             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -223,13 +192,15 @@ function TeamManagementPage() {
                                     styles={mapStyles}
                                 >
                                     {filteredMembers.map(member => (
-                                        <AdvancedMarker key={member.id} position={member.location} title={member.displayName} onClick={() => setSelectedMember(member)}>
-                                            <TeamMemberMarker 
-                                                    name={member.displayName}
-                                                    photoURL={member.photoURL}
-                                                    status={member.status}
-                                                />
-                                        </AdvancedMarker>
+                                        member.location && (
+                                            <AdvancedMarker key={member.uid} position={member.location} title={member.displayName} onClick={() => setSelectedMember(member)}>
+                                                <TeamMemberMarker 
+                                                        name={member.displayName}
+                                                        photoURL={member.photoURL}
+                                                        status={member.status || 'Offline'}
+                                                    />
+                                            </AdvancedMarker>
+                                        )
                                     ))}
                                     {unassignedTasks.map(task => (
                                             <AdvancedMarker key={task.id} position={task.position} title={task.title}>
@@ -238,7 +209,7 @@ function TeamManagementPage() {
                                                 </Pin>
                                         </AdvancedMarker>
                                     ))}
-                                    {selectedMember && <TeamMemberPath path={selectedMember.path} />}
+                                    {selectedMember && selectedMember.path && <TeamMemberPath path={selectedMember.path} />}
                                 </Map>
                             </Card>
                         </div>
@@ -270,9 +241,9 @@ function TeamManagementPage() {
                                             )}
                                         </div>
                                         <div className="space-y-2">
-                                            <h4 className="font-semibold text-xs text-muted-foreground">Fila de Tarefas ({selectedMember.taskQueue.length})</h4>
+                                            <h4 className="font-semibold text-xs text-muted-foreground">Fila de Tarefas ({selectedMember.taskQueue?.length || 0})</h4>
                                              <div className="space-y-1">
-                                                {selectedMember.taskQueue.length > 0 ? selectedMember.taskQueue.map(task => (
+                                                {selectedMember.taskQueue && selectedMember.taskQueue.length > 0 ? selectedMember.taskQueue.map(task => (
                                                     <div key={task.id} className="flex items-center gap-2 p-1.5 rounded bg-muted">
                                                         <ListTodo className="h-4 w-4 text-muted-foreground" />
                                                         <span className="text-xs">{task.title}</span>
@@ -298,7 +269,7 @@ function TeamManagementPage() {
                                             <h4 className="font-semibold text-xs text-muted-foreground">Desempenho (Hoje)</h4>
                                             <div className="flex items-center gap-2">
                                                 <Check className="h-4 w-4 text-muted-foreground" />
-                                                <p className="text-xs">{selectedMember.stats.completed} tarefas concluídas</p>
+                                                <p className="text-xs">{selectedMember.stats?.completed || 0} tarefas concluídas</p>
                                             </div>
                                          </div>
                                          <Separator />
