@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { ArrowLeft, Search, FileText, User, Calendar, Camera, Send, Loader2, Building, ScanLine } from "lucide-react";
+import { ArrowLeft, Search, FileText, User, Calendar, Camera, Send, Loader2, Building, ScanLine, Signature } from "lucide-react";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
 import { format } from "date-fns";
@@ -21,8 +21,8 @@ function InspectionPage() {
     const { profile } = useAuth();
     const { toast } = useToast();
     const { allData, addUpdateToPoint, loading: loadingPoints } = usePoints();
-    const [projectId, setProjectId] = React.useState("");
-    const [project, setProject] = React.useState<PointOfInterest | null>(null);
+    const [poiId, setPoiId] = React.useState("");
+    const [poi, setPoi] = React.useState<PointOfInterest | null>(null);
     const [isLoading, setIsLoading] = React.useState(false);
     const [vistoriaText, setVistoriaText] = React.useState("");
     const [vistoriaPhoto, setVistoriaPhoto] = React.useState<File | null>(null);
@@ -30,17 +30,18 @@ function InspectionPage() {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const handleSearch = () => {
-        if (!projectId) return;
+        if (!poiId) return;
         setIsLoading(true);
-        const foundProject = allData.find(p => p.type === 'construction' && p.id === projectId);
+        // Search across all points of interest now
+        const foundPoi = allData.find(p => p.id === poiId);
         
         setTimeout(() => { // Simulate network delay
-            if (foundProject) {
-                setProject(foundProject);
-                toast({ title: "Projeto Encontrado", description: `A carregar detalhes para ${foundProject.title}` });
+            if (foundPoi) {
+                setPoi(foundPoi);
+                toast({ title: "Ponto de Interesse Encontrado", description: `A carregar detalhes para ${foundPoi.title}` });
             } else {
-                setProject(null);
-                toast({ variant: "destructive", title: "Projeto Não Encontrado", description: "O ID inserido não corresponde a nenhum projeto de construção." });
+                setPoi(null);
+                toast({ variant: "destructive", title: "Ponto Não Encontrado", description: "O ID inserido não corresponde a nenhum item registado." });
             }
             setIsLoading(false);
         }, 500);
@@ -59,29 +60,30 @@ function InspectionPage() {
     };
     
     const handleSubmitVistoria = async () => {
-        if (!project || !vistoriaText.trim() || !profile) return;
+        if (!poi || !vistoriaText.trim() || !profile) return;
         
         setIsSubmitting(true);
         
         const processSubmit = async (photoDataUri?: string) => {
             try {
+                // Generalized update text
                 const updateData: Omit<PointOfInterestUpdate, 'id'> = {
-                    text: `**AUTO DE VISTORIA**\n\n${vistoriaText}`,
+                    text: `**RELATÓRIO DE VISTORIA**\n\n${vistoriaText}`,
                     authorId: profile.uid,
                     authorDisplayName: profile.displayName,
                     timestamp: new Date().toISOString(),
                     ...(photoDataUri && { photoDataUri }),
                 };
 
-                await addUpdateToPoint(project.id, updateData);
+                await addUpdateToPoint(poi.id, updateData);
                 
-                toast({ title: "Vistoria Submetida", description: "O seu relatório foi adicionado ao processo do projeto." });
+                toast({ title: "Vistoria Submetida", description: "O seu relatório foi adicionado ao histórico do item." });
                 // Reset form
                 setVistoriaText("");
                 setVistoriaPhoto(null);
                 setPhotoPreview(null);
-                setProject(null);
-                setProjectId("");
+                setPoi(null);
+                setPoiId("");
             } catch (error) {
                  toast({ variant: "destructive", title: "Erro ao Submeter", description: "Não foi possível guardar o seu relatório." });
             } finally {
@@ -110,15 +112,15 @@ function InspectionPage() {
                     </Link>
                 </Button>
                 <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                    Fiscalização de Obra
+                    Prova de Visita / Entrega
                 </h1>
             </header>
             <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-4">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Passo 1: Ler Código QR da Licença</CardTitle>
+                        <CardTitle>Passo 1: Identificar Ponto de Interesse</CardTitle>
                         <CardDescription>
-                            Insira o ID do processo que se encontra na licença da obra para carregar os detalhes.
+                            Leia o código QR ou insira o ID do croqui, obra, ou outro ponto para carregar os detalhes.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -126,10 +128,10 @@ function InspectionPage() {
                             <div className="relative flex-grow">
                                 <ScanLine className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                 <Input 
-                                    placeholder="Insira o ID do Processo..." 
+                                    placeholder="Insira o ID do Ponto de Interesse..." 
                                     className="pl-10"
-                                    value={projectId}
-                                    onChange={(e) => setProjectId(e.target.value)}
+                                    value={poiId}
+                                    onChange={(e) => setPoiId(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                 />
                             </div>
@@ -141,72 +143,83 @@ function InspectionPage() {
                     </CardContent>
                 </Card>
 
-                {project && (
+                {poi && (
                     <div className="space-y-4 animate-in fade-in-50">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Passo 2: Verificação Rápida</CardTitle>
-                                <CardDescription>Confirme os dados essenciais da licença.</CardDescription>
+                                <CardTitle>Passo 2: Verificação dos Dados</CardTitle>
+                                <CardDescription>Confirme os dados essenciais do ponto de interesse.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4 text-sm">
                                 <div className="flex items-center gap-2">
                                     <FileText className="h-4 w-4 text-muted-foreground" />
-                                    <span className="font-semibold">Projeto:</span>
-                                    <span>{project.title}</span>
+                                    <span className="font-semibold">Nome/Título:</span>
+                                    <span>{poi.title}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <User className="h-4 w-4 text-muted-foreground" />
-                                    <span className="font-semibold">Requerente:</span>
-                                    <span>{project.authorDisplayName}</span>
+                                    <span className="font-semibold">Criado por:</span>
+                                    <span>{poi.authorDisplayName}</span>
                                 </div>
-                                 <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2">
                                     <Building className="h-4 w-4 text-muted-foreground" />
-                                    <span className="font-semibold">Arquiteto:</span>
-                                    <span>{project.architectName || 'Não especificado'}</span>
+                                    <span className="font-semibold">Tipo:</span>
+                                    <span>{poi.type}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                                    <span className="font-semibold">Data da Licença:</span>
-                                    <span>{project.lastReported ? new Date(project.lastReported).toLocaleDateString('pt-PT') : 'N/A'}</span>
+                                    <span className="font-semibold">Data de Registo:</span>
+                                    <span>{poi.lastReported ? new Date(poi.lastReported).toLocaleDateString('pt-PT') : 'N/A'}</span>
                                 </div>
                             </CardContent>
                         </Card>
 
                         <Card>
                              <CardHeader>
-                                <CardTitle>Passo 3: Relatório de Vistoria</CardTitle>
-                                <CardDescription>Preencha o seu parecer, anexe fotos se necessário e submeta o relatório.</CardDescription>
+                                <CardTitle>Passo 3: Prova de Visita / Entrega</CardTitle>
+                                <CardDescription>Preencha as observações, anexe provas e submeta o relatório.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="vistoria-text">Observações da Vistoria</Label>
+                                    <Label htmlFor="vistoria-text">Observações (Ex: Entrega efetuada, cliente ausente, etc.)</Label>
                                     <Textarea
                                         id="vistoria-text"
-                                        placeholder="Descreva a sua análise. Ex: A obra segue o projeto aprovado, não foram detetadas irregularidades."
+                                        placeholder="Descreva o resultado da visita ou entrega..."
                                         rows={6}
                                         value={vistoriaText}
                                         onChange={(e) => setVistoriaText(e.target.value)}
                                     />
                                 </div>
-                                 <div className="space-y-2">
-                                    <Label htmlFor="vistoria-photo">Anexar Fotografia (Prova)</Label>
-                                     <Input 
-                                        id="vistoria-photo" 
-                                        type="file" 
-                                        accept="image/*" 
-                                        capture="environment"
-                                        onChange={handlePhotoChange}
-                                        className="h-auto p-1"
-                                    />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                     <div className="space-y-2">
+                                        <Label htmlFor="vistoria-photo">Anexar Fotografia (Prova)</Label>
+                                         <Input 
+                                            id="vistoria-photo" 
+                                            type="file" 
+                                            accept="image/*" 
+                                            capture="environment"
+                                            onChange={handlePhotoChange}
+                                            className="h-auto p-1"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="signature">Assinatura do Receptor (Em breve)</Label>
+                                        <Button id="signature" variant="outline" className="w-full h-auto p-1 justify-center" disabled>
+                                             <div className="flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-md w-full">
+                                                <Signature className="h-8 w-8 text-muted-foreground" />
+                                                <span className="text-sm text-muted-foreground mt-2">Capturar Assinatura</span>
+                                            </div>
+                                        </Button>
+                                    </div>
                                 </div>
                                 {photoPreview && (
                                     <div className="w-full">
-                                        <Image src={photoPreview} alt="Pré-visualização da Vistoria" width={200} height={150} className="rounded-md object-cover" />
+                                        <Image src={photoPreview} alt="Pré-visualização da Prova" width={200} height={150} className="rounded-md object-cover" />
                                     </div>
                                 )}
                                 <Button onClick={handleSubmitVistoria} disabled={isSubmitting || !vistoriaText}>
                                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                                    Submeter Relatório
+                                    Submeter Relatório de Visita
                                 </Button>
                             </CardContent>
                         </Card>
@@ -218,5 +231,3 @@ function InspectionPage() {
 }
 
 export default withAuth(InspectionPage, ['Agente Municipal', 'Administrador']);
-
-    
