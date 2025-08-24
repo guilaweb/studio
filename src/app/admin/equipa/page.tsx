@@ -343,3 +343,5 @@ function TeamManagementPage() {
 }
 
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
+
+    
