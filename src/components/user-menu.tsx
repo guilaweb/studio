@@ -6,9 +6,9 @@ import { User } from "firebase/auth";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, Users2, ListTodo } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, Users2, ListTodo, Route, HardHat } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -49,7 +49,7 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                     </Avatar>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuContent className="w-64" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">{user.displayName}</p>
@@ -59,50 +59,48 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                          {profile && <p className="text-xs font-semibold leading-none text-primary pt-1">{profile.role}</p>}
                     </div>
                 </DropdownMenuLabel>
+
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>Área Pessoal</DropdownMenuLabel>
-                 <DropdownMenuItem asChild>
-                    <Link href="/perfil">
-                        <UserIcon className="mr-2 h-4 w-4" />
-                        <span>Meu Perfil</span>
-                    </Link>
-                </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
-                    <Link href="/meus-imoveis">
-                        <Home className="mr-2 h-4 w-4" />
-                        <span>Meus Imóveis</span>
-                    </Link>
-                </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
-                    <Link href="/meus-croquis">
-                        <Share2 className="mr-2 h-4 w-4" />
-                        <span>Meus Croquis</span>
-                    </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href="/equipa/minhas-tarefas">
-                        <ListTodo className="mr-2 h-4 w-4" />
-                        <span>Minhas Tarefas</span>
-                    </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href="/marketplace">
-                        <Building className="mr-2 h-4 w-4" />
-                        <span>Marketplace</span>
-                    </Link>
-                </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
-                    <Link href="/licencas">
-                        <FileText className="mr-2 h-4 w-4" />
-                        <span>Minhas Licenças</span>
-                    </Link>
-                </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
-                    <Link href="/inbox">
-                        <Inbox className="mr-2 h-4 w-4" />
-                        <span>Caixa de Entrada</span>
-                    </Link>
-                </DropdownMenuItem>
+
+                <DropdownMenuGroup>
+                     <DropdownMenuLabel>Área Pessoal</DropdownMenuLabel>
+                     <DropdownMenuItem asChild>
+                        <Link href="/perfil">
+                            <UserIcon className="mr-2 h-4 w-4" />
+                            <span>Meu Perfil</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="/inbox">
+                            <Inbox className="mr-2 h-4 w-4" />
+                            <span>Caixa de Entrada</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="/marketplace">
+                            <Building className="mr-2 h-4 w-4" />
+                            <span>Marketplace</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="/meus-imoveis">
+                            <Home className="mr-2 h-4 w-4" />
+                            <span>Meus Imóveis</span>
+                        </Link>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem asChild>
+                        <Link href="/licencas">
+                            <FileText className="mr-2 h-4 w-4" />
+                            <span>Minhas Licenças</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="/meus-croquis">
+                            <Share2 className="mr-2 h-4 w-4" />
+                            <span>Meus Croquis</span>
+                        </Link>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
                 
                 {isAgentOrAdmin && (
                     <>
@@ -114,66 +112,66 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <span>Painel Municipal</span>
                             </Link>
                         </DropdownMenuItem>
-                         <DropdownMenuItem asChild>
-                            <Link href="/admin/projetos">
-                                <Briefcase className="mr-2 h-4 w-4" />
-                                <span>Gerir Projetos</span>
-                            </Link>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem asChild>
-                            <Link href="/admin/verificacao">
-                                <ShieldCheck className="mr-2 h-4 w-4" />
-                                <span>Verificação de Imóveis</span>
-                            </Link>
-                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                            <Link href="/inspecao">
-                                <ScanLine className="mr-2 h-4 w-4" />
-                                <span>Inspeção de Obra</span>
-                            </Link>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem asChild>
                             <Link href="/admin/equipa">
                                 <Users2 className="mr-2 h-4 w-4" />
                                 <span>Gestão de Equipa</span>
                             </Link>
                         </DropdownMenuItem>
-                         <DropdownMenuItem asChild>
-                            <Link href="/recursos-hidricos">
-                                <Droplets className="mr-2 h-4 w-4" />
-                                <span>Recursos Hídricos</span>
-                            </Link>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem asChild>
-                            <Link href="/cobertura-do-solo">
+                        
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <HardHat className="mr-2 h-4 w-4" />
+                                <span>Processos Urbanos</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem asChild><Link href="/admin/projetos"><Briefcase className="mr-2 h-4 w-4" />Gerir Projetos</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/admin/verificacao"><ShieldCheck className="mr-2 h-4 w-4" />Verificação de Imóveis</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/inspecao"><ScanLine className="mr-2 h-4 w-4" />Inspeção de Obra</Link></DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+
+                         <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
                                 <GitBranch className="mr-2 h-4 w-4" />
-                                <span>Uso do Solo</span>
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link href="/admin/comunicacoes">
-                                <Megaphone className="mr-2 h-4 w-4" />
-                                <span>Comunicações</span>
-                            </Link>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem asChild>
-                            <Link href="/admin/definicoes">
+                                <span>Planeamento e Território</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem asChild><Link href="/recursos-hidricos"><Droplets className="mr-2 h-4 w-4" />Recursos Hídricos</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/cobertura-do-solo"><GitBranch className="mr-2 h-4 w-4" />Uso do Solo</Link></DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+
+                        <DropdownMenuSub>
+                             <DropdownMenuSubTrigger>
                                 <Settings className="mr-2 h-4 w-4" />
-                                <span>Gerir Camadas Públicas</span>
-                            </Link>
-                        </DropdownMenuItem>
+                                <span>Administração</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                 <DropdownMenuItem asChild>
+                                    <Link href="/admin/comunicacoes">
+                                        <Megaphone className="mr-2 h-4 w-4" />
+                                        <span>Comunicações</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/admin/definicoes">
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        <span>Gerir Camadas Públicas</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                 {isAdmin && (
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/admin/users">
+                                            <Users className="mr-2 h-4 w-4" />
+                                            <span>Gerir Utilizadores</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                )}
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
                     </>
                 )}
-
-                {isAdmin && (
-                    <DropdownMenuItem asChild>
-                        <Link href="/admin/users">
-                            <Users className="mr-2 h-4 w-4" />
-                            <span>Gerir Utilizadores</span>
-                        </Link>
-                    </DropdownMenuItem>
-                )}
-
 
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
