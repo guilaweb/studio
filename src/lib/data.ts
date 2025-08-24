@@ -261,7 +261,7 @@ export type CalculateIncidentPriorityOutput = z.infer<typeof CalculateIncidentPr
 
 
 export const AnalyzeProjectComplianceInputSchema = z.object({
-  projectType: z.string().describe("The type of project being submitted (e.g., new build, remodel)."),
+  projectType: z.string().optional().describe("The type of project being submitted (e.g., new build, remodel)."),
   projectDescription: z.string().describe("The detailed description of the project."),
   plotZoning: z.object({
     usageType: PointOfInterestUsageTypeEnum.optional().describe("The permitted usage for the plot (e.g., residential, commercial)."),

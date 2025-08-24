@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from "react";
@@ -506,7 +505,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
 
   const config = layerConfig[poi.type];
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
-  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement'].includes(poi.type);
+  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement', 'water_resource'].includes(poi.type);
   const isAdmin = profile?.role === 'Administrador';
   const isOwner = poi.authorId === user?.uid;
 
@@ -665,7 +664,4 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </>
   );
 }
-
-
-
 
