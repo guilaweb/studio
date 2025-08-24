@@ -31,37 +31,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
         'unknown': <Badge variant="outline">Pendente</Badge>,
         'in_progress': <Badge className="bg-blue-500 text-white">No Local</Badge>,
         'collected': <Badge className="bg-green-500 text-white">Concluída</Badge>,
-        'full': <Badge className="bg-orange-500 text-white">Pendente</Badge>,
-        // Add other statuses as needed
+        'full': <Badge className="bg-orange-500 text-white">Pendente (Cheio)</Badge>,
     };
     
-    // Simulating the "Em Rota" status locally since it's a technician state, not a task state
-    const [isEnRoute, setIsEnRoute] = useState(false);
-
-    const handleAccept = () => {
-        setIsEnRoute(true);
-        toast({ title: "Tarefa Aceite!", description: `A navegar para: ${task.title}` });
-    };
-
-    const handleArrive = () => {
-        setIsEnRoute(false);
-        onStatusChange(task.id, 'in_progress');
-    };
-
     const handleComplete = () => {
         onStatusChange(task.id, 'collected');
         toast({ title: "Tarefa Concluída!", description: `${task.title}` });
     };
-
-    const currentStatus = isEnRoute ? 'Em Rota' : (task.status || 'unknown');
-
-    const statusBadgeMap = {
-        'unknown': <Badge variant="outline">Pendente</Badge>,
-        'in_progress': <Badge className="bg-blue-500 text-white">No Local</Badge>,
-        'collected': <Badge className="bg-green-500 text-white">Concluída</Badge>,
-        'full': <Badge className="bg-orange-500 text-white">Pendente (Cheio)</Badge>,
-        'Em Rota': <Badge className="bg-orange-500 text-white">Em Rota</Badge>,
-    }
 
     return (
         <Collapsible>
@@ -70,7 +46,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
                     <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
                              {task.priority && <Badge variant={priorityVariant[task.priority]}>{task.priority}</Badge>}
-                             {statusBadgeMap[currentStatus as keyof typeof statusBadgeMap] || <Badge variant="secondary">{currentStatus}</Badge>}
+                             {statusBadge[task.status as keyof typeof statusBadge] || <Badge variant="secondary">{task.status}</Badge>}
                         </div>
                         <p className="font-semibold">{task.title}</p>
                         <p className="text-sm text-muted-foreground">{task.description?.substring(0, 50)}...</p>
@@ -89,23 +65,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
                             {task.description}
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            {currentStatus !== 'Em Rota' && currentStatus !== 'in_progress' && currentStatus !== 'collected' && (
-                                <Button onClick={handleAccept}>
-                                    <Play className="mr-2 h-4 w-4"/> Aceitar e Navegar
-                                </Button>
-                            )}
-                            {currentStatus === 'Em Rota' && (
-                                <Button onClick={handleArrive}>
-                                    <CheckCircle className="mr-2 h-4 w-4"/> Cheguei ao Local
-                                </Button>
-                            )}
-                             {currentStatus === 'in_progress' && (
+                            {task.status !== 'collected' && (
                                 <Button onClick={handleComplete}>
-                                    <CheckCircle className="mr-2 h-4 w-4"/> Concluir Tarefa
+                                    <CheckCircle className="mr-2 h-4 w-4"/> Marcar como Concluída
                                 </Button>
                             )}
-                            <Button variant="outline"><Compass className="mr-2 h-4 w-4"/> Ver Mapa</Button>
-                            <Button variant="outline"><FileText className="mr-2 h-4 w-4"/> Anexos</Button>
+                            <Button variant="outline" asChild>
+                                <a href={`https://www.google.com/maps/dir/?api=1&destination=${task.position.lat},${task.position.lng}`} target="_blank" rel="noopener noreferrer">
+                                    <Compass className="mr-2 h-4 w-4"/> Navegar
+                                </a>
+                            </Button>
                         </div>
                     </CardContent>
                 </CollapsibleContent>

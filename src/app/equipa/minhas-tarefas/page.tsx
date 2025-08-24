@@ -14,26 +14,26 @@ import { PointOfInterest } from "@/lib/data";
 
 function MyTasksPage() {
     const { profile } = useAuth();
-    const { allData, loading } = usePoints();
-    const [tasks, setTasks] = React.useState<PointOfInterest[]>([]);
+    const { updatePointStatus, loading } = usePoints();
+    const [myTasks, setMyTasks] = React.useState<PointOfInterest[]>([]);
 
     React.useEffect(() => {
-        // Here you would typically filter tasks assigned to the current user.
-        // For this example, we'll just use some actionable incidents and sanitation points.
-        const myTasks = allData.filter(p => (p.type === 'incident' || p.type === 'sanitation') && p.status !== 'collected');
-        setTasks(myTasks);
-    }, [allData]);
+        if (profile?.taskQueue) {
+            setMyTasks(profile.taskQueue);
+        }
+    }, [profile]);
 
     const handleStatusChange = (taskId: string, newStatus: PointOfInterest['status']) => {
-        setTasks(prevTasks => 
-            prevTasks.map(task => 
-                task.id === taskId ? { ...task, status: newStatus } : task
-            )
+        // Here you would also update the technician's taskQueue in their profile
+        // For now, we'll just update the main POI status and let the local state reflect it
+        updatePointStatus(taskId, newStatus, `Tarefa marcada como ${newStatus} pelo técnico.`);
+        setMyTasks(prevTasks => 
+            prevTasks.filter(task => task.id !== taskId) // A simple way to remove it from the pending list
         );
     };
 
-    const pendingTasks = tasks.filter(t => t.status === 'unknown' || t.status === 'full' || t.status === 'in_progress');
-    const completedTasks = tasks.filter(t => t.status === 'collected');
+    const pendingTasks = myTasks.filter(t => t.status !== 'collected');
+    const completedTasks = myTasks.filter(t => t.status === 'collected');
 
     if (loading) {
         return <div>A carregar tarefas...</div>;
@@ -55,8 +55,8 @@ function MyTasksPage() {
             <main className="flex-1 p-4 sm:px-6 sm:py-6">
                 <Tabs defaultValue="pending">
                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="pending">Pendentes</TabsTrigger>
-                        <TabsTrigger value="completed">Concluídas</TabsTrigger>
+                        <TabsTrigger value="pending">Pendentes ({pendingTasks.length})</TabsTrigger>
+                        <TabsTrigger value="completed">Concluídas ({completedTasks.length})</TabsTrigger>
                     </TabsList>
                     <TabsContent value="pending">
                         <Card>
@@ -106,4 +106,4 @@ function MyTasksPage() {
     );
 }
 
-export default withAuth(MyTasksPage);
+export default withAuth(MyTasksPage, ['Agente Municipal', 'Administrador']);
