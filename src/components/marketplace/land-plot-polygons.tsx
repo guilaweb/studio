@@ -26,7 +26,9 @@ export const LandPlotPolygons: React.FC<{
     plots: PointOfInterest[];
     selectedPlotId: string | null;
     onPlotClick: (plotId: string) => void;
-}> = ({ plots, selectedPlotId, onPlotClick }) => {
+    onMouseOver: (e: google.maps.MapMouseEvent, plot: PointOfInterest) => void;
+    onMouseOut: () => void;
+}> = ({ plots, selectedPlotId, onPlotClick, onMouseOver, onMouseOut }) => {
     const map = useMap();
     const [polygons, setPolygons] = React.useState<google.maps.Polygon[]>([]);
 
@@ -50,9 +52,10 @@ export const LandPlotPolygons: React.FC<{
                 zIndex: isSelected ? 10 : 1,
             });
 
-            poly.addListener('click', () => {
-                onPlotClick(plot.id);
-            });
+            poly.addListener('click', () => onPlotClick(plot.id));
+            poly.addListener('mouseover', (e: google.maps.MapMouseEvent) => onMouseOver(e, plot));
+            poly.addListener('mouseout', onMouseOut);
+
             return poly;
         });
 
@@ -62,7 +65,7 @@ export const LandPlotPolygons: React.FC<{
             newPolygons.forEach(p => p.setMap(null));
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [map, plots, selectedPlotId, onPlotClick]);
+    }, [map, plots, selectedPlotId]);
 
 
     return null;

@@ -352,7 +352,7 @@ const WFSLayer = ({ url, layerName }: { url: string, layerName: string }) => {
 
 export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
   
-    const [infoWindowState, setInfoWindowState] = useState<{ anchor: google.maps.marker.AdvancedMarkerElement | null; poi: PointOfInterest | null }>({ anchor: null, poi: null });
+    const [infoWindowState, setInfoWindowState] = useState<{ anchor: google.maps.marker.AdvancedMarkerElement | google.maps.LatLngLiteral | null; poi: PointOfInterest | null }>({ anchor: null, poi: null });
     const { externalLayers } = useExternalLayers();
 
     const handleCameraChange = (e: google.maps.MapCameraChangedEvent) => {
@@ -369,6 +369,13 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
     const handleMouseOut = () => {
         setInfoWindowState({ anchor: null, poi: null });
     };
+    
+    const handlePolygonMouseOver = (event: google.maps.MapMouseEvent, poi: PointOfInterest) => {
+        if (event.latLng) {
+            setInfoWindowState({ anchor: event.latLng.toJSON(), poi });
+        }
+    };
+
 
     const polygonPoints = React.useMemo(() => {
         if (!activeLayers) return [];
@@ -411,6 +418,8 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                     plots={polygonPoints}
                     selectedPlotId={null} // Hover is handled by InfoWindow now
                     onPlotClick={onMarkerClick}
+                    onMouseOver={handlePolygonMouseOver}
+                    onMouseOut={handleMouseOut}
                 />
                 
                 <LineRenderer
@@ -420,7 +429,8 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
 
                 {infoWindowState.anchor && infoWindowState.poi && (
                     <InfoWindow
-                        anchor={infoWindowState.anchor}
+                        anchor={infoWindowState.anchor instanceof google.maps.marker.AdvancedMarkerElement ? infoWindowState.anchor : undefined}
+                        position={!(infoWindowState.anchor instanceof google.maps.marker.AdvancedMarkerElement) ? infoWindowState.anchor : undefined}
                         onCloseClick={() => setInfoWindowState({ anchor: null, poi: null })}
                         pixelOffset={new google.maps.Size(0, -40)}
                     >
