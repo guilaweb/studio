@@ -138,6 +138,7 @@ export const UserProfileSchema = z.object({
     taskQueue: z.array(PointOfInterestSchema).optional(),
     stats: z.object({ completed: z.number(), avgTime: z.string() }).optional(),
     path: z.array(PositionSchema).optional(),
+    skills: z.array(z.string()).optional(),
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 
@@ -423,3 +424,24 @@ export const ConversationSchema = z.object({
   updatedAt: z.string(),
 });
 export type Conversation = z.infer<typeof ConversationSchema>;
+
+export const GenerateLocationSketchInputSchema = z.object({
+  plot: z.object({
+    polygon: z.array(PositionSchema).describe("The array of coordinates forming the plot's polygon."),
+    area: z.number().optional().describe("The area of the plot in square meters."),
+    perimeter: z.number().optional().describe("The perimeter of the plot in meters."),
+    plotNumber: z.string().optional().describe("The official number of the plot."),
+  }),
+  project: z.object({
+    requesterName: z.string().describe("The name of the person or entity requesting the license."),
+    municipality: z.string().describe("The municipality where the plot is located."),
+    province: z.string().describe("The province where the plot is located."),
+    date: z.string().describe("The date the sketch is generated."),
+  }),
+});
+export type GenerateLocationSketchInput = z.infer<typeof GenerateLocationSketchInputSchema>;
+
+export const GenerateLocationSketchOutputSchema = z.object({
+  sketchHtml: z.string().describe("The full HTML content of the generated location sketch document."),
+});
+export type GenerateLocationSketchOutput = z.infer<typeof GenerateLocationSketchOutputSchema>;

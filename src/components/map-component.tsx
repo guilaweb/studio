@@ -384,7 +384,7 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
 
     const markerPoints = React.useMemo(() => {
         if (!activeLayers) return [];
-        return data.filter(p => activeLayers[p.type] && !p.polygon && !p.polyline);
+        return data.filter(p => activeLayers[p.type] && !p.polygon && !p.polyline && !p.croquiRoute);
     }, [data, activeLayers]);
 
     const polylinePoints = React.useMemo(() => {
