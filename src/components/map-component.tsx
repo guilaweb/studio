@@ -7,6 +7,7 @@ import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphon
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 import { LandPlotPolygons } from "./marketplace/land-plot-polygons";
+import { useExternalLayers } from "@/services/external-layers-service";
 
 
 type MapComponentProps = {
@@ -214,10 +215,60 @@ const LineRenderer: React.FC<{
     return null;
 }
 
+const WMSLayer = ({ url }: { url: string }) => {
+    const map = useMap();
+
+    useEffect(() => {
+        if (!map || !url) return;
+
+        const wmsLayer = new google.maps.ImageMapType({
+            getTileUrl: function(coord, zoom) {
+                const proj = map.getProjection();
+                if (!proj) return null;
+                
+                const zfactor = Math.pow(2, zoom);
+                const tileWidth = 256 / zfactor;
+                
+                const ne = proj.fromPointToLatLng(new google.maps.Point((coord.x + 1) * tileWidth, coord.y * tileWidth));
+                const sw = proj.fromPointToLatLng(new google.maps.Point(coord.x * tileWidth, (coord.y + 1) * tileWidth));
+                
+                const bbox = `${sw.lng()},${sw.lat()},${ne.lng()},${ne.lat()}`;
+                
+                let requestUrl = url;
+                requestUrl += `?SERVICE=WMS`;
+                requestUrl += `&VERSION=1.1.1`;
+                requestUrl += `&REQUEST=GetMap`;
+                requestUrl += `&LAYERS=0`;
+                requestUrl += `&STYLES=`;
+                requestUrl += `&SRS=EPSG:4326`;
+                requestUrl += `&BBOX=${bbox}`;
+                requestUrl += `&WIDTH=256`;
+                requestUrl += `&HEIGHT=256`;
+                requestUrl += `&FORMAT=image/png`;
+                requestUrl += `&TRANSPARENT=true`;
+
+                return requestUrl;
+            },
+            tileSize: new google.maps.Size(256, 256),
+            isPng: true,
+            name: "WMS Layer"
+        });
+
+        map.overlayMapTypes.insertAt(0, wmsLayer);
+
+        return () => {
+            map.overlayMapTypes.removeAt(0);
+        };
+    }, [map, url]);
+
+    return null;
+};
+
 
 export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
   
     const [infoWindowState, setInfoWindowState] = useState<{ anchor: google.maps.marker.AdvancedMarkerElement | null; poi: PointOfInterest | null }>({ anchor: null, poi: null });
+    const { externalLayers } = useExternalLayers();
 
     const handleCameraChange = (e: google.maps.MapCameraChangedEvent) => {
         onCenterChanged(e.detail.center);
@@ -241,7 +292,6 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
 
     const markerPoints = React.useMemo(() => {
         if (!activeLayers) return [];
-        // Croquis also have a main marker
         return data.filter(p => activeLayers[p.type] && !p.polygon && !p.polyline);
     }, [data, activeLayers]);
 
@@ -308,6 +358,10 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                         </Pin>
                     </AdvancedMarker>
                 )}
+
+                {externalLayers.filter(l => l.visible).map(layer => (
+                    <WMSLayer key={layer.id} url={layer.url} />
+                ))}
             </Map>
         </div>
     );
