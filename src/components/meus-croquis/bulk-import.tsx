@@ -26,7 +26,7 @@ const requiredHeaders = ['nome', 'lat', 'lng'];
 export default function BulkImport() {
     const { toast } = useToast();
     const { user, profile } = useAuth();
-    const { addPoint } = usePoints(); // Assuming addPoint can handle croquis
+    const { addPoint } = usePoints();
     const [file, setFile] = useState<File | null>(null);
     const [collectionName, setCollectionName] = useState('');
     const [parsedData, setParsedData] = useState<ParsedRow[]>([]);
@@ -37,7 +37,7 @@ export default function BulkImport() {
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = event.target.files?.[0];
         if (selectedFile) {
-            if (selectedFile.type !== 'text/csv') {
+            if (selectedFile.type !== 'text/csv' && !selectedFile.name.endsWith('.csv')) {
                 toast({ variant: 'destructive', title: 'Ficheiro Inválido', description: 'Por favor, carregue um ficheiro CSV.' });
                 return;
             }

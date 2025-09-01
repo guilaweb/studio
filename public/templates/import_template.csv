@@ -1,0 +1,4 @@
+nome,lat,lng,contacto,notas
+"Ponto A - Cliente Exemplo","-8.815","13.235","923000001","Entregar o pacote na recepção"
+"Ponto B - Fornecedor","-8.830","13.250","923000002","Recolher material no armazém dos fundos"
+"Ponto C - Local do Evento","-8.845","13.220","","Montar a estrutura perto da entrada principal"
