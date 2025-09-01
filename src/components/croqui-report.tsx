@@ -111,6 +111,8 @@ type CroquiReportProps = {
   onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName'>, propertyIdToLink?: string) => void;
   initialCenter: google.maps.LatLngLiteral;
   mapRef?: React.RefObject<google.maps.Map>;
+  poiToEdit: PointOfInterest | null;
+  editMode: 'edit' | 'divide' | null;
 };
 
 const defaultCenter = { lat: -8.8368, lng: 13.2343 };
@@ -120,7 +122,9 @@ export default function CroquiReport({
     open, 
     onOpenChange, 
     onCroquiSubmit,
-    initialCenter, 
+    initialCenter,
+    poiToEdit,
+    editMode,
 }: CroquiReportProps) {
   const [mapCenter, setMapCenter] = useState(initialCenter);
   const [mapZoom, setMapZoom] = useState(15);
@@ -130,6 +134,7 @@ export default function CroquiReport({
   const [drawingMode, setDrawingMode] = useState<DrawingMode>(null);
   const [drawnRoute, setDrawnRoute] = useState<google.maps.Polyline | null>(null);
   const [propertyToLink, setPropertyToLink] = useState<PointOfInterest | null>(null);
+  const [isEdit, setIsEdit] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -152,28 +157,46 @@ export default function CroquiReport({
     setDrawnRoute(null);
     setPropertyToLink(null);
     sessionStorage.removeItem('poiForCroqui');
+    setIsEdit(false);
   }
 
   useEffect(() => {
     if (open) {
-        const poiForCroquiJSON = sessionStorage.getItem('poiForCroqui');
-        if (poiForCroquiJSON) {
-            const poi: PointOfInterest = JSON.parse(poiForCroquiJSON);
-            setPropertyToLink(poi);
-            setMapCenter(poi.position);
+        setIsEdit(!!poiToEdit);
+        if (poiToEdit) {
+             form.reset({
+                title: editMode === 'divide' ? `${poiToEdit.title} (Cópia)` : poiToEdit.title,
+                description: poiToEdit.description,
+                collectionName: poiToEdit.collectionName || '',
+            });
+            setMapCenter(poiToEdit.position);
             setMapZoom(16);
-            form.reset({ title: `Acesso a: ${poi.title}`, description: `Croqui para o imóvel ${poi.title}`, collectionName: "Meus Imóveis" });
+            setReferencePoints(poiToEdit.croquiPoints || []);
+            // Note: Re-drawing the route line is complex; for now, we don't pre-populate it on edit.
+            // A more advanced implementation would handle this.
+            if(drawnRoute) drawnRoute.setMap(null);
+            setDrawnRoute(null);
+
         } else {
-            const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
-            const center = isDefaultLocation ? defaultCenter : initialCenter;
-            const zoom = isDefaultLocation ? defaultZoom : 15;
-            setMapCenter(center);
-            setMapZoom(zoom);
-            clearForm();
+            const poiForCroquiJSON = sessionStorage.getItem('poiForCroqui');
+            if (poiForCroquiJSON) {
+                const poi: PointOfInterest = JSON.parse(poiForCroquiJSON);
+                setPropertyToLink(poi);
+                setMapCenter(poi.position);
+                setMapZoom(16);
+                form.reset({ title: `Acesso a: ${poi.title}`, description: `Croqui para o imóvel ${poi.title}`, collectionName: "Meus Imóveis" });
+            } else {
+                const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
+                const center = isDefaultLocation ? defaultCenter : initialCenter;
+                const zoom = isDefaultLocation ? defaultZoom : 15;
+                setMapCenter(center);
+                setMapZoom(zoom);
+                clearForm();
+            }
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialCenter]);
+  }, [open, initialCenter, poiToEdit, editMode]);
   
   const handleMapClick = (event: google.maps.MapMouseEvent) => {
       if(drawingMode === 'points' && event.latLng) {
@@ -212,6 +235,9 @@ export default function CroquiReport({
     onCroquiSubmit({ ...values, position: finalPosition, croquiPoints: referencePoints, croquiRoute: routePath }, propertyToLink?.id);
   }
 
+  const sheetTitle = isEdit ? (editMode === 'divide' ? 'Dividir Croqui (Criar Cópia)' : 'Editar Croqui') : 'Criar Croqui de Localização';
+  const submitButtonText = isEdit ? (editMode === 'divide' ? 'Criar Cópia Editada' : 'Guardar Alterações') : 'Criar e Partilhar';
+
   return (
     <>
     <Sheet open={open} onOpenChange={(isOpen) => {
@@ -223,7 +249,7 @@ export default function CroquiReport({
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         <SheetHeader className="p-6 pb-2">
-          <SheetTitle>Criar Croqui de Localização</SheetTitle>
+          <SheetTitle>{sheetTitle}</SheetTitle>
           <SheetDescription>
             {propertyToLink ? `A criar um croqui para "${propertyToLink.title}". ` : ''}
             Arraste o mapa para posicionar o pino principal, adicione pontos de referência e desenhe a rota.
@@ -343,7 +369,7 @@ export default function CroquiReport({
                 <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
                 <Button type="submit">
                     <Share2 className="mr-2 h-4 w-4" />
-                    Criar e Partilhar
+                    {submitButtonText}
                 </Button>
             </SheetFooter>
           </form>

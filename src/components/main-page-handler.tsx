@@ -44,6 +44,7 @@ import CroquiReport from "./croqui-report";
 
 
 type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui';
+type EditMode = 'edit' | 'divide' | null;
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
 
@@ -81,6 +82,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
   const [activeSheet, setActiveSheet] = React.useState<ActiveSheet>(null);
   const [poiToEdit, setPoiToEdit] = React.useState<PointOfInterest | null>(null);
+  const [editMode, setEditMode] = React.useState<EditMode>(null);
   
   const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
 
@@ -217,6 +219,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     if (!open) {
         setPoiToEdit(null);
         setActiveSheet(null);
+        setEditMode(null);
     }
   }
 
@@ -669,9 +672,18 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       }
       handleSheetOpenChange(false);
       const timestamp = new Date().toISOString();
-      const croquiId = `croqui-${Date.now()}`;
+      let croquiId = `croqui-${Date.now()}`;
+      
+      let pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] };
 
-      const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      if (editMode === 'divide' && poiToEdit) {
+          // Keep original author but create new entity
+      } else if (editMode === 'edit' && poiToEdit) {
+           // This case is handled by handleEditCroqui
+           return;
+      }
+
+      pointToAdd = {
           id: croquiId,
           type: 'croqui',
           title: data.title,
@@ -699,6 +711,22 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           description: "O seu croqui de localização foi guardado com sucesso.",
       });
   }
+  
+  const handleEditCroqui = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName'>) => {
+      if (!poiToEdit) return;
+      handleSheetOpenChange(false);
+
+      if (editMode === 'divide') {
+          // This is a "save as new" operation
+          handleAddNewCroqui(data);
+          toast({ title: 'Cópia Criada!', description: 'Uma nova versão do croqui foi criada com as suas alterações.'});
+      } else {
+           // This is a direct edit
+          await updatePointDetails(poiToEdit.id, data);
+          toast({ title: 'Croqui Atualizado!', description: 'As alterações foram guardadas.'});
+      }
+  };
+
 
   const handleEditAnnouncement = async (
     poiId: string,
@@ -732,11 +760,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         return;
     }
     setPoiToEdit(null);
+    setEditMode(null);
     setActiveSheet(type);
   };
 
 
-  const handleStartEditing = (poi: PointOfInterest) => {
+  const handleStartEditing = (poi: PointOfInterest, mode: EditMode = 'edit') => {
     if (!user || !profile) {
       toast({ variant: "destructive", title: "Acesso Negado", description: "Utilizador não autenticado." });
       return;
@@ -769,6 +798,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     
     setPoiToEdit(poi);
     setSelectedPoi(null); // Close details sheet
+    setEditMode(mode);
     setActiveSheet(poi.type === 'construction' ? 'construction_edit' : (poi.type as ActiveSheet));
   }
 
@@ -1107,8 +1137,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         <CroquiReport
             open={activeSheet === 'croqui'}
             onOpenChange={handleSheetOpenChange}
-            onCroquiSubmit={handleAddNewCroqui}
+            onCroquiSubmit={handleEditMode === 'divide' ? handleAddNewCroqui : handleEditCroqui}
             initialCenter={mapCenter}
+            poiToEdit={poiToEdit}
+            editMode={editMode}
         />
       </SidebarProvider>
   );

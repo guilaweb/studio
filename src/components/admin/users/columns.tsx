@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
@@ -77,7 +78,7 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
     cell: ({ row }) => {
       const user = row.original;
       return (
-        <Link href={`/public--profile/${user.uid}`} className="flex items-center gap-3 pl-4 group hover:underline">
+        <Link href={`/public-profile/${user.uid}`} className="flex items-center gap-3 pl-4 group hover:underline">
           <Avatar className="h-9 w-9">
             <AvatarImage src={user.photoURL || undefined} alt={user.displayName} />
             <AvatarFallback>{user.displayName.charAt(0).toUpperCase()}</AvatarFallback>
@@ -141,7 +142,7 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
                     <DropdownMenuItem asChild>
-                        <Link href={`/public--profile/${user.uid}`}>
+                        <Link href={`/public-profile/${user.uid}`}>
                             Ver Perfil Público
                         </Link>
                     </DropdownMenuItem>

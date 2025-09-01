@@ -6,7 +6,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2 } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,7 +30,7 @@ type PointOfInterestDetailsProps = {
   onOpenChange: (open: boolean) => void;
   onPoiStatusChange: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => void;
   onAddUpdate: (pointId: string, updateText: string, photoDataUri?: string) => void;
-  onEdit: (poi: PointOfInterest) => void;
+  onEdit: (poi: PointOfInterest, mode?: 'edit' | 'divide') => void;
 };
 
 const layerConfig = {
@@ -595,6 +595,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const isOwner = poi.authorId === user?.uid;
 
   let canEdit = false;
+  let canDivide = false;
   // Allow editing for owners or managers, with specific restrictions
   if (user && profile) {
       if (isAdmin) {
@@ -604,6 +605,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
         // Regular users can only edit what they own, and only specific types
         canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement' || poi.type === 'croqui');
       }
+      canDivide = isOwner && (poi.type === 'croqui' || poi.type === 'land_plot');
   }
   
    const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => {
@@ -673,6 +675,12 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                             <Button variant="outline" size="sm" onClick={() => onEdit(poi)}>
                                 <Pencil className="mr-2 h-3 w-3"/>
                                 Editar
+                            </Button>
+                        )}
+                        {canDivide && (
+                            <Button variant="outline" size="sm" onClick={() => onEdit(poi, 'divide')}>
+                                <GitBranch className="mr-2 h-3 w-3"/>
+                                Dividir
                             </Button>
                         )}
                          {poi.type === 'croqui' && (
