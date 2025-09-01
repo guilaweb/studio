@@ -75,6 +75,7 @@ const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon
             const poly = new google.maps.Polygon({
                 paths: initialPolygonPath,
                 ...manager.get('polygonOptions'),
+                editable: true,
             });
             poly.setMap(map);
             setCurrentPolygon(poly);
