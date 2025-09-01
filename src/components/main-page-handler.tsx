@@ -1137,7 +1137,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         <CroquiReport
             open={activeSheet === 'croqui'}
             onOpenChange={handleSheetOpenChange}
-            onCroquiSubmit={handleEditMode === 'divide' ? handleAddNewCroqui : handleEditCroqui}
+            onCroquiSubmit={editMode === 'divide' ? handleAddNewCroqui : handleEditCroqui}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
             editMode={editMode}
@@ -1145,3 +1145,4 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       </SidebarProvider>
   );
 }
+
