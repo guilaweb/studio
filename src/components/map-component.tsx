@@ -215,7 +215,7 @@ const LineRenderer: React.FC<{
     return null;
 }
 
-const WMSLayer = ({ url }: { url: string }) => {
+const WMSLayer = ({ url, layerName }: { url: string, layerName: string }) => {
     const map = useMap();
 
     useEffect(() => {
@@ -238,7 +238,7 @@ const WMSLayer = ({ url }: { url: string }) => {
                 requestUrl += `?SERVICE=WMS`;
                 requestUrl += `&VERSION=1.1.1`;
                 requestUrl += `&REQUEST=GetMap`;
-                requestUrl += `&LAYERS=0`;
+                requestUrl += `&LAYERS=${layerName}`;
                 requestUrl += `&STYLES=`;
                 requestUrl += `&SRS=EPSG:4326`;
                 requestUrl += `&BBOX=${bbox}`;
@@ -251,15 +251,58 @@ const WMSLayer = ({ url }: { url: string }) => {
             },
             tileSize: new google.maps.Size(256, 256),
             isPng: true,
-            name: "WMS Layer"
+            name: layerName,
         });
 
-        map.overlayMapTypes.insertAt(0, wmsLayer);
+        map.overlayMapTypes.push(wmsLayer);
 
         return () => {
-            map.overlayMapTypes.removeAt(0);
+             // Find and remove the correct layer
+            const index = map.overlayMapTypes.getArray().findIndex(l => l === wmsLayer);
+            if (index > -1) {
+                map.overlayMapTypes.removeAt(index);
+            }
         };
-    }, [map, url]);
+    }, [map, url, layerName]);
+
+    return null;
+};
+
+const WFSLayer = ({ url, layerName }: { url: string, layerName: string }) => {
+    const map = useMap();
+
+    useEffect(() => {
+        if (!map || !url || !layerName) return;
+        
+        let requestUrl = url;
+        requestUrl += `?service=WFS`;
+        requestUrl += `&version=1.0.0`;
+        requestUrl += `&request=GetFeature`;
+        requestUrl += `&typeName=${layerName}`;
+        requestUrl += `&outputFormat=application/json`;
+
+        fetch(requestUrl)
+            .then(response => response.json())
+            .then(data => {
+                map.data.addGeoJson(data);
+            })
+            .catch(error => console.error("Error fetching WFS data:", error));
+        
+        // Add styling and interaction
+        map.data.setStyle({
+            fillColor: 'hsl(var(--primary))',
+            strokeWeight: 1,
+            strokeColor: 'hsl(var(--primary))',
+            fillOpacity: 0.2,
+        });
+
+        // Cleanup on unmount
+        return () => {
+            map.data.forEach(feature => {
+                map.data.remove(feature);
+            });
+        };
+    }, [map, url, layerName]);
 
     return null;
 };
@@ -359,9 +402,15 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                     </AdvancedMarker>
                 )}
 
-                {externalLayers.filter(l => l.visible).map(layer => (
-                    <WMSLayer key={layer.id} url={layer.url} />
-                ))}
+                {externalLayers.filter(l => l.visible).map(layer => {
+                    if (layer.type === 'wms') {
+                        return <WMSLayer key={layer.id} url={layer.url} layerName={layer.layerName} />
+                    }
+                    if (layer.type === 'wfs') {
+                        return <WFSLayer key={layer.id} url={layer.url} layerName={layer.layerName} />
+                    }
+                    return null;
+                })}
             </Map>
         </div>
     );

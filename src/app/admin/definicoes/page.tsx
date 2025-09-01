@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, EyeOff, Eye, Globe, Plus, Loader2 } from "lucide-react";
+import { ArrowLeft, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, EyeOff, Eye, Globe, Plus, Loader2, Trash2 } from "lucide-react";
 import { usePublicLayerSettings, updatePublicLayerSettings } from "@/services/settings-service";
 import type { ActiveLayers, Layer } from "@/lib/data";
 import { Switch } from "@/components/ui/switch";
@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { useExternalLayers, addExternalLayer, deleteExternalLayer, updateExternalLayerVisibility } from "@/services/external-layers-service";
 import DeleteConfirmationDialog from "@/components/delete-confirmation-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { ExternalLayer } from "@/services/external-layers-service";
 
 const layerConfig = [
   { id: "atm", label: "Caixas Eletrônicos", Icon: Landmark },
@@ -33,6 +35,8 @@ function AdminSettingsPage() {
     const { externalLayers, loading: loadingExternalLayers } = useExternalLayers();
     const [newLayerName, setNewLayerName] = React.useState("");
     const [newLayerUrl, setNewLayerUrl] = React.useState("");
+    const [newLayerType, setNewLayerType] = React.useState<ExternalLayer['type']>('wms');
+    const [newLayerServiceName, setNewLayerServiceName] = React.useState("");
     const [isAddingLayer, setIsAddingLayer] = React.useState(false);
     const [layerToDelete, setLayerToDelete] = React.useState<string | null>(null);
     const { toast } = useToast();
@@ -71,16 +75,17 @@ function AdminSettingsPage() {
     
     const handleAddExternalLayer = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newLayerName || !newLayerUrl) {
-            toast({ variant: "destructive", title: "Dados em falta", description: "Preencha o nome e o URL da camada."});
+        if (!newLayerName || !newLayerUrl || !newLayerServiceName) {
+            toast({ variant: "destructive", title: "Dados em falta", description: "Preencha todos os campos da camada externa."});
             return;
         }
         setIsAddingLayer(true);
         try {
-            await addExternalLayer(newLayerName, newLayerUrl, 'wms');
+            await addExternalLayer(newLayerName, newLayerUrl, newLayerType, newLayerServiceName);
             toast({ title: "Camada Adicionada", description: `A camada "${newLayerName}" foi adicionada com sucesso.`});
             setNewLayerName("");
             setNewLayerUrl("");
+            setNewLayerServiceName("");
         } catch (error) {
             toast({ variant: "destructive", title: "Erro ao Adicionar", description: "Não foi possível adicionar a camada externa."});
         } finally {
@@ -173,22 +178,38 @@ function AdminSettingsPage() {
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Gestão de Camadas Externas (WMS)</CardTitle>
+                            <CardTitle>Gestão de Camadas Externas</CardTitle>
                             <CardDescription>
-                                Adicione e gira camadas de dados provenientes de Web Map Services externos.
+                                Adicione e gira camadas de dados provenientes de Web Services (WMS, WFS).
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <form onSubmit={handleAddExternalLayer} className="space-y-4 rounded-lg border p-4">
-                                <h4 className="text-sm font-medium">Adicionar Nova Camada WMS</h4>
+                                <h4 className="text-sm font-medium">Adicionar Nova Camada</h4>
                                 <div className="space-y-2">
-                                    <Label htmlFor="new-layer-name">Nome da Camada</Label>
+                                    <Label htmlFor="new-layer-name">Nome da Camada (Apelido)</Label>
                                     <Input id="new-layer-name" value={newLayerName} onChange={(e) => setNewLayerName(e.target.value)} placeholder="Ex: Mapa de Uso do Solo 2024" />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="new-layer-url">URL do Serviço WMS</Label>
+                                    <Label htmlFor="new-layer-url">URL Base do Serviço</Label>
                                     <Input id="new-layer-url" value={newLayerUrl} onChange={(e) => setNewLayerUrl(e.target.value)} placeholder="https://..." />
                                 </div>
+                                 <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="new-layer-type">Tipo de Serviço</Label>
+                                        <Select value={newLayerType} onValueChange={(v) => setNewLayerType(v as any)}>
+                                            <SelectTrigger><SelectValue/></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="wms">WMS (Imagem)</SelectItem>
+                                                <SelectItem value="wfs">WFS (Dados)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="new-layer-service-name">Nome da Camada no Serviço</Label>
+                                        <Input id="new-layer-service-name" value={newLayerServiceName} onChange={(e) => setNewLayerServiceName(e.target.value)} placeholder="Ex: munitu:uso_solo" />
+                                    </div>
+                                 </div>
                                 <Button type="submit" disabled={isAddingLayer}>
                                     {isAddingLayer ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Plus className="mr-2 h-4 w-4"/>}
                                     Adicionar Camada
@@ -200,7 +221,10 @@ function AdminSettingsPage() {
                                     <div key={layer.id} className="flex items-center justify-between rounded-lg border p-4">
                                         <div className="flex items-center gap-3">
                                             <Globe className="h-5 w-5 text-muted-foreground" />
-                                            <span className="font-medium text-sm">{layer.name}</span>
+                                            <div>
+                                                <span className="font-medium text-sm">{layer.name}</span>
+                                                <p className="text-xs text-muted-foreground uppercase">{layer.type}</p>
+                                            </div>
                                         </div>
                                          <div className="flex items-center gap-2">
                                             <Switch
