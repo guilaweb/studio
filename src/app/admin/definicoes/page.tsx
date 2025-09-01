@@ -180,7 +180,7 @@ function AdminSettingsPage() {
                         <CardHeader>
                             <CardTitle>Gestão de Camadas Externas</CardTitle>
                             <CardDescription>
-                                Adicione e gira camadas de dados provenientes de Web Services (WMS, WFS).
+                                Adicione e gira camadas de dados provenientes de Web Services (WMS, WMTS, WFS).
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -201,7 +201,8 @@ function AdminSettingsPage() {
                                             <SelectTrigger><SelectValue/></SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="wms">WMS (Imagem)</SelectItem>
-                                                <SelectItem value="wfs">WFS (Dados)</SelectItem>
+                                                <SelectItem value="wmts">WMTS (Mosaico de Imagens)</SelectItem>
+                                                <SelectItem value="wfs">WFS (Dados Vetoriais)</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>

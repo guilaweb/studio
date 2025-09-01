@@ -9,7 +9,7 @@ export interface ExternalLayer {
     id: string;
     name: string;
     url: string;
-    type: 'wms' | 'wfs';
+    type: 'wms' | 'wfs' | 'wmts';
     layerName: string; // The name of the layer within the service (e.g., 'munitu:uso_solo')
     visible: boolean;
     createdAt: string;
@@ -43,7 +43,7 @@ export const useExternalLayers = () => {
 };
 
 // Function to add a new external layer
-export const addExternalLayer = async (name: string, url: string, type: 'wms' | 'wfs', layerName: string): Promise<void> => {
+export const addExternalLayer = async (name: string, url: string, type: ExternalLayer['type'], layerName: string): Promise<void> => {
     try {
         const layersCollectionRef = collection(db, 'externalLayers');
         await addDoc(layersCollectionRef, {

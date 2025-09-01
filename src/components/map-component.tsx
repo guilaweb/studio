@@ -268,27 +268,69 @@ const WMSLayer = ({ url, layerName }: { url: string, layerName: string }) => {
     return null;
 };
 
+const WMTSLayer = ({ url, layerName }: { url: string; layerName: string }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map) return;
+
+    const wmtsLayer = new google.maps.ImageMapType({
+      getTileUrl: function (coord, zoom) {
+        // WMTS uses a template URL structure
+        let requestUrl = url
+          .replace('{TileMatrixSet}', 'EPSG:3857') // Common matrix set
+          .replace('{TileMatrix}', zoom.toString())
+          .replace('{TileCol}', coord.x.toString())
+          .replace('{TileRow}', coord.y.toString());
+        
+        // Sometimes the layer name is also part of the template
+        requestUrl = requestUrl.replace('{Layer}', layerName);
+
+        return requestUrl;
+      },
+      tileSize: new google.maps.Size(256, 256),
+      name: layerName,
+    });
+
+    map.overlayMapTypes.push(wmtsLayer);
+
+    return () => {
+      const index = map.overlayMapTypes.getArray().findIndex((l) => l === wmtsLayer);
+      if (index > -1) {
+        map.overlayMapTypes.removeAt(index);
+      }
+    };
+  }, [map, url, layerName]);
+
+  return null;
+};
+
+
 const WFSLayer = ({ url, layerName }: { url: string, layerName: string }) => {
     const map = useMap();
 
     useEffect(() => {
         if (!map || !url || !layerName) return;
         
+        // Basic WFS GetFeature request URL construction
         let requestUrl = url;
         requestUrl += `?service=WFS`;
-        requestUrl += `&version=1.0.0`;
+        requestUrl += `&version=1.1.0`;
         requestUrl += `&request=GetFeature`;
         requestUrl += `&typeName=${layerName}`;
         requestUrl += `&outputFormat=application/json`;
+        requestUrl += `&srsname=EPSG:4326`; // Request data in lat/lng
 
         fetch(requestUrl)
-            .then(response => response.json())
+            .then(response => {
+                if(!response.ok) throw new Error(`WFS request failed: ${response.statusText}`);
+                return response.json();
+            })
             .then(data => {
                 map.data.addGeoJson(data);
             })
             .catch(error => console.error("Error fetching WFS data:", error));
         
-        // Add styling and interaction
         map.data.setStyle({
             fillColor: 'hsl(var(--primary))',
             strokeWeight: 1,
@@ -408,6 +450,9 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                     }
                     if (layer.type === 'wfs') {
                         return <WFSLayer key={layer.id} url={layer.url} layerName={layer.layerName} />
+                    }
+                    if (layer.type === 'wmts') {
+                        return <WMTSLayer key={layer.id} url={layer.url} layerName={layer.layerName} />
                     }
                     return null;
                 })}
