@@ -692,12 +692,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           }]
       };
       
-      await addPoint(pointToAdd);
+      await addPoint(pointToAdd, propertyIdToLink);
       
-      if (propertyIdToLink) {
-          await updatePointDetails(propertyIdToLink, { croquiId: croquiId });
-      }
-
       toast({
           title: "Croqui Criado!",
           description: "O seu croqui de localização foi guardado com sucesso.",
@@ -1031,7 +1027,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             }
             }}
             onPoiStatusChange={handlePoiStatusChange}
-            onAddUpdate={handleAddUpdate}
+            onAddUpdate={onAddUpdate}
             onEdit={handleStartEditing}
         />
         <IncidentReport 
