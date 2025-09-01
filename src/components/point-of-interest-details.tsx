@@ -6,7 +6,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,7 @@ import Link from "next/link";
 import { usePoints } from "@/hooks/use-points";
 import DeleteConfirmationDialog from "./delete-confirmation-dialog";
 import AtmNoteReport from "./atm-note-report";
+import { useMapsLibrary } from "@vis.gl/react-google-maps";
 
 type PointOfInterestDetailsProps = {
   poi: PointOfInterest | null;
@@ -561,7 +562,30 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const { deletePoint } = usePoints();
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [address, setAddress] = React.useState<string | null>(null);
+  const [loadingAddress, setLoadingAddress] = React.useState(false);
+  const geocoding = useMapsLibrary("geocoding");
   
+  React.useEffect(() => {
+    if (!poi || !geocoding) {
+        setAddress(null);
+        return;
+    }
+    
+    setLoadingAddress(true);
+    const geocoder = new geocoding.Geocoder();
+    geocoder.geocode({ location: poi.position }, (results, status) => {
+        if (status === "OK" && results && results[0]) {
+            setAddress(results[0].formatted_address);
+        } else {
+            console.error(`Geocode was not successful for the following reason: ${status}`);
+            setAddress("Endereço não encontrado");
+        }
+        setLoadingAddress(false);
+    });
+  }, [poi, geocoding]);
+
+
   if (!poi) return null;
 
   const config = layerConfig[poi.type];
@@ -665,6 +689,14 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             </div>
             </SheetHeader>
             <div className="space-y-4">
+                 <div className="flex items-center text-sm text-muted-foreground">
+                    <MapPin className="mr-2 h-4 w-4" />
+                     {loadingAddress ? (
+                         <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> A procurar endereço...</div>
+                     ) : (
+                        <span>{address}</span>
+                     )}
+                </div>
                 {(poi.type === 'construction' || poi.type === 'announcement') && poi.startDate && poi.endDate && (
                     <div className="flex items-center text-sm text-muted-foreground">
                     <Calendar className="mr-2 h-4 w-4" />
@@ -689,12 +721,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                         <p className="text-muted-foreground whitespace-pre-wrap">{poi.description}</p>
                     </div>
                 )}
-                {poi.type !== 'land_plot' && poi.type !== 'announcement' && (
-                    <div>
-                        <h3 className="font-semibold mb-2">Localização (Centroide)</h3>
-                        <p className="text-muted-foreground">{`Lat: ${poi.position.lat.toFixed(6)}, Lng: ${poi.position.lng.toFixed(6)}`}</p>
-                    </div>
-                )}
+                
                 {poi.type === 'incident' && <IncidentTags description={poi.description} />}
                 
                 {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />}
