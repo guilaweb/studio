@@ -92,7 +92,7 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
 function AdminProjectDetailPage() {
     const params = useParams();
     const projectId = params.id as string;
-    const { profile: adminProfile, user } = useAuth();
+    const { profile, user } = useAuth();
     const { allData, loading: loadingPoints, addUpdateToPoint, updatePointDetails } = usePoints();
     const [project, setProject] = React.useState<PointOfInterest | null>(null);
     const { user: applicant, loading: loadingApplicant } = useUserProfile(project?.authorId || null);
@@ -105,6 +105,7 @@ function AdminProjectDetailPage() {
     const [sketchHtml, setSketchHtml] = React.useState<string | null>(null);
     const [isGeneratingSketch, setIsGeneratingSketch] = React.useState(false);
 
+    const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
 
     React.useEffect(() => {
         if (allData.length > 0) {
@@ -119,14 +120,14 @@ function AdminProjectDetailPage() {
     }, [project, allData]);
 
     const handleAddUpdate = async () => {
-        if (!project || !updateText.trim() || !adminProfile) return;
+        if (!project || !updateText.trim() || !profile) return;
 
         setIsSubmitting(true);
         try {
             const newUpdate: Omit<PointOfInterestUpdate, 'id'> = {
                 text: updateText,
-                authorId: adminProfile.uid,
-                authorDisplayName: adminProfile.displayName,
+                authorId: profile.uid,
+                authorDisplayName: profile.displayName,
                 timestamp: new Date().toISOString(),
             };
             await addUpdateToPoint(project.id, newUpdate);
@@ -292,7 +293,7 @@ function AdminProjectDetailPage() {
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
                 <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
                     <Button size="icon" variant="outline" asChild>
-                        <Link href="/admin/projetos">
+                        <Link href={isManager ? "/admin/projetos" : "/licencas"}>
                             <ArrowLeft className="h-5 w-5" />
                             <span className="sr-only">Voltar</span>
                         </Link>
@@ -304,8 +305,8 @@ function AdminProjectDetailPage() {
                 </header>
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
                     <div className="grid auto-rows-max items-start gap-4 md:col-span-2 lg:col-span-3">
-                        <WorkflowSuggestions project={project} />
-                        <EnvironmentalImpactAnalysis project={project} />
+                        {isManager && <WorkflowSuggestions project={project} />}
+                        {isManager && <EnvironmentalImpactAnalysis project={project} />}
                         <Card>
                             <CardHeader>
                                 <CardTitle>Linha do Tempo, Comunicações e Pareceres</CardTitle>
@@ -317,45 +318,47 @@ function AdminProjectDetailPage() {
                                 <Timeline updates={project.updates || []} />
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Adicionar Comunicação ou Parecer</CardTitle>
-                                <CardDescription>Use os modelos para emitir um parecer ou escreva uma comunicação livre.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex flex-wrap gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => setParecerTemplate('favoravel')}>
-                                        <ThumbsUp className="mr-2 h-4 w-4" />
-                                        Parecer Favorável
-                                    </Button>
-                                    <Button variant="outline" size="sm" onClick={() => setParecerTemplate('condicionantes')}>
-                                        <AlertTriangle className="mr-2 h-4 w-4" />
-                                        Parecer com Condicionantes
-                                    </Button>
-                                    <Button variant="outline" size="sm" onClick={() => setParecerTemplate('desfavoravel')}>
-                                        <ThumbsDown className="mr-2 h-4 w-4" />
-                                        Parecer Desfavorável
-                                    </Button>
-                                </div>
-                                <Textarea 
-                                    placeholder="Escreva aqui a sua comunicação, parecer ou despacho..." 
-                                    value={updateText}
-                                    onChange={(e) => setUpdateText(e.target.value)}
-                                    rows={8}
-                                />
-                                <div className="flex flex-wrap gap-2">
-                                    <Button onClick={handleAddUpdate} disabled={isSubmitting || !updateText.trim()}>
-                                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MessageSquare className="mr-2 h-4 w-4"/>}
-                                        Adicionar à Linha do Tempo
-                                    </Button>
-                                    <Button variant="outline" onClick={handleGenerateResponse} disabled={isGenerating}>
-                                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                                        Gerar Resposta (IA)
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        {project.status === 'approved' && (
+                        {isManager && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Adicionar Comunicação ou Parecer</CardTitle>
+                                    <CardDescription>Use os modelos para emitir um parecer ou escreva uma comunicação livre.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button variant="outline" size="sm" onClick={() => setParecerTemplate('favoravel')}>
+                                            <ThumbsUp className="mr-2 h-4 w-4" />
+                                            Parecer Favorável
+                                        </Button>
+                                        <Button variant="outline" size="sm" onClick={() => setParecerTemplate('condicionantes')}>
+                                            <AlertTriangle className="mr-2 h-4 w-4" />
+                                            Parecer com Condicionantes
+                                        </Button>
+                                        <Button variant="outline" size="sm" onClick={() => setParecerTemplate('desfavoravel')}>
+                                            <ThumbsDown className="mr-2 h-4 w-4" />
+                                            Parecer Desfavorável
+                                        </Button>
+                                    </div>
+                                    <Textarea 
+                                        placeholder="Escreva aqui a sua comunicação, parecer ou despacho..." 
+                                        value={updateText}
+                                        onChange={(e) => setUpdateText(e.target.value)}
+                                        rows={8}
+                                    />
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button onClick={handleAddUpdate} disabled={isSubmitting || !updateText.trim()}>
+                                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MessageSquare className="mr-2 h-4 w-4"/>}
+                                            Adicionar à Linha do Tempo
+                                        </Button>
+                                        <Button variant="outline" onClick={handleGenerateResponse} disabled={isGenerating}>
+                                            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                                            Gerar Resposta (IA)
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                        {isManager && project.status === 'approved' && (
                              <Card>
                                 <CardHeader>
                                     <CardTitle>Documentos Oficiais</CardTitle>
@@ -453,25 +456,27 @@ function AdminProjectDetailPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Certificação</CardTitle>
-                            </CardHeader>
-                             <CardContent>
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="sustainable-seal" className="flex items-center gap-2">
-                                        <Leaf className="h-5 w-5 text-green-600" />
-                                        <span>Selo Sustentável</span>
-                                    </Label>
-                                    <Switch
-                                        id="sustainable-seal"
-                                        checked={!!project.sustainableSeal}
-                                        onCheckedChange={handleSustainableSealToggle}
-                                        aria-label="Atribuir Selo Sustentável"
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
+                         {isManager && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Certificação</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="sustainable-seal" className="flex items-center gap-2">
+                                            <Leaf className="h-5 w-5 text-green-600" />
+                                            <span>Selo Sustentável</span>
+                                        </Label>
+                                        <Switch
+                                            id="sustainable-seal"
+                                            checked={!!project.sustainableSeal}
+                                            onCheckedChange={handleSustainableSealToggle}
+                                            aria-label="Atribuir Selo Sustentável"
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
                         {landPlot && (
                              <Card className="h-[30vh] flex flex-col">
                                 <CardHeader>
@@ -540,6 +545,4 @@ function AdminProjectDetailPage() {
     );
 }
 
-export default withAuth(AdminProjectDetailPage, ['Agente Municipal', 'Administrador']);
-
-    
+export default withAuth(AdminProjectDetailPage);

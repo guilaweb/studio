@@ -7,7 +7,7 @@ import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Plus, FileText, Edit } from "lucide-react";
+import { ArrowLeft, Plus, FileText, Edit, Eye } from "lucide-react";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +16,19 @@ import ConstructionEdit from "@/components/construction-edit";
 import { useRouter, useSearchParams } from 'next/navigation'
 
 const LicenseRequestCard = ({ project, onEditClick }: { project: PointOfInterest, onEditClick: (project: PointOfInterest) => void }) => {
+    
+    const statusVariant = {
+        'submitted': 'secondary',
+        'under_review': 'secondary',
+        'approved': 'default',
+        'rejected': 'destructive',
+    } as const;
+
+    const statusClass = project.status === 'approved' ? 'bg-green-600' : '';
+
     return (
         <Card>
-            <CardContent className="p-4 flex items-center justify-between">
+            <CardContent className="p-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-4">
                 <div className="flex items-center gap-4">
                     <FileText className="h-8 w-8 text-muted-foreground" />
                     <div>
@@ -28,18 +38,18 @@ const LicenseRequestCard = ({ project, onEditClick }: { project: PointOfInterest
                         </p>
                     </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                    <Badge variant={project.status === 'approved' ? 'default' : (project.status === 'rejected' ? 'destructive' : 'secondary')} className={project.status === 'approved' ? 'bg-green-600' : ''}>
+                <div className="flex items-center gap-2 self-end sm:self-center">
+                    <Badge variant={statusVariant[project.status as keyof typeof statusVariant] || 'secondary'} className={statusClass}>
                         {project.status ? statusLabelMap[project.status] : "N/A"}
                     </Badge>
-                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm" asChild>
-                            <Link href={`/admin/projetos/${project.id}`}>Ver Processo</Link>
-                        </Button>
-                         <Button variant="outline" size="sm" onClick={() => onEditClick(project)}>
-                             <Edit className="mr-2 h-3 w-3" /> Anexar
-                        </Button>
-                    </div>
+                     <Button variant="outline" size="sm" asChild>
+                        <Link href={`/admin/projetos/${project.id}`}>
+                            <Eye className="mr-2 h-3 w-3" /> Ver Processo
+                        </Link>
+                    </Button>
+                     <Button variant="secondary" size="sm" onClick={() => onEditClick(project)}>
+                         <Edit className="mr-2 h-3 w-3" /> Anexar Docs
+                    </Button>
                 </div>
             </CardContent>
         </Card>
