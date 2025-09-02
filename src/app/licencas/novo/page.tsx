@@ -25,6 +25,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PropertyCard } from "@/components/marketplace/property-card";
+import { LandPlotPolygons } from "@/components/marketplace/land-plot-polygons";
+
 
 const formSchema = z.object({
     projectName: z.string().min(5, "O nome do projeto é obrigatório."),
@@ -142,7 +146,7 @@ function NewLicensePage() {
         };
 
         try {
-            await addPoint(pointToAdd);
+            await addPoint(pointToAdd as any);
             toast({ 
                 title: "Pedido Submetido!", 
                 description: "O seu pedido foi enviado. Anexe agora os documentos necessários.",
@@ -171,7 +175,7 @@ function NewLicensePage() {
                     </h1>
                 </header>
                 <main className="flex-1 p-4 sm:px-6 sm:py-6">
-                   <Card className="w-full max-w-4xl mx-auto">
+                   <Card className="w-full max-w-5xl mx-auto">
                         <CardHeader>
                             <Progress value={progress} className="mb-4" />
                             <CardTitle>Passo {step}: {step === 1 ? 'Selecionar o Lote' : step === 2 ? 'Detalhes do Projeto' : 'Análise e Submissão'}</CardTitle>
@@ -181,32 +185,49 @@ function NewLicensePage() {
                         </CardHeader>
                         <CardContent>
                              {step === 1 && (
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    <div className="space-y-4">
+                                <div className="grid md:grid-cols-3 gap-6">
+                                    <div className="md:col-span-1 space-y-4">
                                         <LandPlotSearch onSearch={setSearchFilters} initialFilters={searchFilters} />
-                                        <div className="max-h-[40vh] overflow-y-auto space-y-2 pr-2">
-                                            {filteredLandPlots.map(plot => (
-                                                <Card key={plot.id} className="p-3 cursor-pointer hover:bg-muted" onClick={() => handleSelectPlot(plot)}>
-                                                    <p className="font-semibold">{plot.title}</p>
-                                                    <p className="text-sm text-muted-foreground">Área: {plot.area} m² | Uso: {plot.usageType}</p>
-                                                </Card>
-                                            ))}
-                                        </div>
                                     </div>
-                                    <div className="h-[60vh] md:h-full rounded-md overflow-hidden">
-                                        <Map 
-                                            mapId="license-map" 
-                                            defaultCenter={{lat: -8.83, lng: 13.23}} 
-                                            defaultZoom={12} 
-                                            gestureHandling="greedy"
-                                            styles={mapStyles}
-                                        >
-                                            {filteredLandPlots.map(plot => (
-                                                <AdvancedMarker key={plot.id} position={plot.position} onClick={() => handleSelectPlot(plot)}>
-                                                    <Pin />
-                                                </AdvancedMarker>
-                                            ))}
-                                        </Map>
+                                    <div className="md:col-span-2">
+                                         <Tabs defaultValue="map" className="w-full">
+                                            <div className="flex items-center justify-end px-1 pb-2">
+                                                <TabsList>
+                                                    <TabsTrigger value="map">Mapa</TabsTrigger>
+                                                    <TabsTrigger value="list">Lista</TabsTrigger>
+                                                </TabsList>
+                                            </div>
+                                            <TabsContent value="map">
+                                                 <div className="h-[60vh] md:h-[50vh] rounded-md overflow-hidden border">
+                                                    <Map 
+                                                        mapId="license-map" 
+                                                        defaultCenter={{lat: -8.83, lng: 13.23}} 
+                                                        defaultZoom={12} 
+                                                        gestureHandling="greedy"
+                                                        styles={mapStyles}
+                                                    >
+                                                        <LandPlotPolygons 
+                                                            plots={filteredLandPlots}
+                                                            selectedPlotId={null}
+                                                            onPlotClick={(id) => handleSelectPlot(filteredLandPlots.find(p => p.id === id)!)}
+                                                        />
+                                                    </Map>
+                                                </div>
+                                            </TabsContent>
+                                            <TabsContent value="list">
+                                                 <div className="max-h-[50vh] overflow-y-auto space-y-2 pr-2">
+                                                    {filteredLandPlots.length > 0 ? filteredLandPlots.map(plot => (
+                                                        <div key={plot.id} onClick={() => handleSelectPlot(plot)}>
+                                                            <PropertyCard property={plot} />
+                                                        </div>
+                                                    )) : (
+                                                         <div className="text-center text-muted-foreground py-16">
+                                                            <p>Nenhum lote encontrado com os filtros atuais.</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </TabsContent>
+                                         </Tabs>
                                     </div>
                                 </div>
                             )}

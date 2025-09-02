@@ -11,6 +11,7 @@ const getPlotColors = (status: PointOfInterest['status']) => {
             return { stroke: '#16a34a', fill: '#22c55e' }; // green
         case 'occupied':
         case 'reserved':
+        case 'under_review':
             return { stroke: '#ea580c', fill: '#f97316' }; // orange
         case 'in_dispute':
             return { stroke: '#dc2626', fill: '#ef4444' }; // red
@@ -26,7 +27,9 @@ export const LandPlotPolygons: React.FC<{
     plots: PointOfInterest[];
     selectedPlotId: string | null;
     onPlotClick: (plotId: string) => void;
-}> = ({ plots, selectedPlotId, onPlotClick }) => {
+    onMouseOver?: (e: google.maps.MapMouseEvent, poi: PointOfInterest) => void;
+    onMouseOut?: () => void;
+}> = ({ plots, selectedPlotId, onPlotClick, onMouseOver, onMouseOut }) => {
     const map = useMap();
     const [polygons, setPolygons] = React.useState<google.maps.Polygon[]>([]);
 
@@ -51,6 +54,12 @@ export const LandPlotPolygons: React.FC<{
             });
 
             poly.addListener('click', () => onPlotClick(plot.id));
+            if(onMouseOver) {
+                poly.addListener('mouseover', (e: google.maps.MapMouseEvent) => onMouseOver(e, plot));
+            }
+            if(onMouseOut) {
+                poly.addListener('mouseout', onMouseOut);
+            }
             
             return poly;
         });
