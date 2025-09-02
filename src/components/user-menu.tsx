@@ -163,7 +163,7 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <DropdownMenuItem asChild>
                                     <Link href="/admin/definicoes">
                                         <Settings className="mr-2 h-4 w-4" />
-                                        <span>Gerir Camadas Públicas</span>
+                                        <span>Definições</span>
                                     </Link>
                                 </DropdownMenuItem>
                                  {isAdmin && (

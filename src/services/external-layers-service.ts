@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 
 export interface ExternalLayer {
     id: string;
@@ -23,7 +23,9 @@ export const useExternalLayers = () => {
 
     useEffect(() => {
         const layersCollectionRef = collection(db, 'externalLayers');
-        const unsubscribe = onSnapshot(layersCollectionRef, (snapshot) => {
+        const q = query(layersCollectionRef, orderBy('createdAt', 'desc'));
+        
+        const unsubscribe = onSnapshot(q, (snapshot) => {
             const layersData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
