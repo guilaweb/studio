@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from "react";
@@ -286,7 +285,7 @@ const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointO
                          <div>
                             <Label htmlFor="update-photo" className="text-sm font-medium">
                                 <div className="flex items-center gap-2 cursor-pointer">
-                                    <Camera className="h-4 w-4" />
+                                    <Camera className="mr-2 h-4 w-4" />
                                     Anexar Fotografia (Opcional)
                                 </div>
                             </Label>
@@ -572,17 +571,17 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
         return;
     }
     
-    setLoadingAddress(true);
-    const geocoder = new geocoding.Geocoder();
-    geocoder.geocode({ location: poi.position }, (results, status) => {
-        if (status === "OK" && results && results[0]) {
-            setAddress(results[0].formatted_address);
-        } else {
-            console.error(`Geocode was not successful for the following reason: ${status}`);
-            setAddress("Endereço não encontrado");
-        }
-        setLoadingAddress(false);
-    });
+    // setLoadingAddress(true);
+    // const geocoder = new geocoding.Geocoder();
+    // geocoder.geocode({ location: poi.position }, (results, status) => {
+    //     if (status === "OK" && results && results[0]) {
+    //         setAddress(results[0].formatted_address);
+    //     } else {
+    //         console.error(`Geocode was not successful for the following reason: ${status}`);
+    //         setAddress("Endereço não encontrado");
+    //     }
+    //     setLoadingAddress(false);
+    // });
   }, [poi, geocoding]);
 
 
@@ -702,7 +701,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                      {loadingAddress ? (
                          <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> A procurar endereço...</div>
                      ) : (
-                        <span>{address}</span>
+                        <span>{address || 'Detalhes da localização'}</span>
                      )}
                 </div>
                 {(poi.type === 'construction' || poi.type === 'announcement') && poi.startDate && poi.endDate && (
@@ -773,3 +772,5 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </>
   );
 }
+
+    
