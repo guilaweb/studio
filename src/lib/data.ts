@@ -456,3 +456,5 @@ export const GenerateLocationSketchOutputSchema = z.object({
   sketchHtml: z.string().describe("The full HTML content of the generated location sketch document."),
 });
 export type GenerateLocationSketchOutput = z.infer<typeof GenerateLocationSketchOutputSchema>;
+
+    

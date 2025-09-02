@@ -57,3 +57,5 @@ export const PropertyCard = ({ property }: { property: PointOfInterest }) => {
         </Link>
     );
 }
+
+    
