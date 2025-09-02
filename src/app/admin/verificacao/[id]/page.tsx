@@ -20,18 +20,6 @@ import { Badge } from "@/components/ui/badge";
 import { PointOfInterestMarker } from "@/components/map-component";
 import DocumentAnalysis from "@/components/admin/verificacao/document-analysis";
 
-const mapStyles: google.maps.MapTypeStyle[] = [
-    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
-    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
-    { featureType: "administrative.land_parcel", stylers: [{ visibility: "off" }] },
-    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
-    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
-];
-
 const VerificationControl = ({ property, updatePointStatus, addUpdateToPoint }: { property: PointOfInterest, updatePointStatus: any, addUpdateToPoint: any }) => {
     const { profile } = useAuth();
     const [parecerText, setParecerText] = React.useState("");
@@ -183,7 +171,6 @@ function AdminVerificationDetailPage() {
                                     defaultZoom={15}
                                     gestureHandling={'greedy'}
                                     disableDefaultUI={true}
-                                    styles={mapStyles}
                                 >
                                     <PointOfInterestMarker
                                         point={property}

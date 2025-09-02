@@ -37,25 +37,6 @@ const TrustInfoItem = ({ icon, label, value, status }: { icon: React.ReactNode, 
     );
 };
 
-const mapStyles: google.maps.MapTypeStyle[] = [
-    { elementType: "geometry", stylers: [{ color: "#e8e8e8" }] },
-    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] },
-    { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#c9c9c9" }] },
-    { featureType: "administrative.land_parcel", stylers: [{ visibility: "off" }] },
-    { featureType: "administrative.land_parcel", elementType: "labels", stylers: [{ visibility: "off" }] },
-    { featureType: "poi", stylers: [{ visibility: "off" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
-    { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#fdfdfd" }] },
-    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#f8f8f8" }] },
-    { featureType: "road.local", stylers: [{ visibility: "off" }] },
-    { featureType: "transit", stylers: [{ visibility: "off" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#d4d4d4" }] },
-    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
-];
-
 
 export default function MarketplacePropertyDetailPage() {
     const params = useParams();
@@ -205,8 +186,7 @@ export default function MarketplacePropertyDetailPage() {
                                             defaultCenter={property.position}
                                             defaultZoom={15}
                                             gestureHandling={'greedy'}
-                                            disableDefaultUI={true}
-                                            styles={mapStyles}
+                                            disableDefaultUI={false}
                                         >
                                             <AdvancedMarker position={property.position} zIndex={1000}>
                                                 <Pin background={"hsl(var(--primary))"} glyphColor={"hsl(var(--primary-foreground))"} borderColor={"hsl(var(--primary))"} />

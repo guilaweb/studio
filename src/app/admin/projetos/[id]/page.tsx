@@ -41,18 +41,6 @@ const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
     return <MessageSquare className="h-4 w-4 text-muted-foreground" />;
 }
 
-const mapStyles: google.maps.MapTypeStyle[] = [
-    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
-    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
-    { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
-    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
-    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
-];
-
 const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
      if (!updates || updates.length === 0) {
         return <p className="text-sm text-muted-foreground text-center py-8">Sem atualizações ou comunicações registadas.</p>
@@ -489,7 +477,6 @@ function AdminProjectDetailPage() {
                                         defaultZoom={15}
                                         gestureHandling={'greedy'}
                                         disableDefaultUI={true}
-                                        styles={mapStyles}
                                     >
                                         <PointOfInterestMarker
                                             point={landPlot}

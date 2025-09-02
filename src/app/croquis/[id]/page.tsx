@@ -13,19 +13,6 @@ import { Logo } from "@/components/icons";
 import { Compass, MapPin, Share2, Phone } from "lucide-react";
 import { GenericPolygonsRenderer } from "@/components/generic-polygons-renderer";
 
-const mapStyles: google.maps.MapTypeStyle[] = [
-    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
-    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
-    { featureType: "administrative.land_parcel", stylers: [{ visibility: "off" }] },
-    { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
-    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
-    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
-];
-
 const RouteRenderer: React.FC<{
     route: google.maps.LatLngLiteral[];
 }> = ({ route }) => {
@@ -145,7 +132,6 @@ export default function PublicCroquiPage() {
                             defaultCenter={croqui.position}
                             defaultZoom={16}
                             gestureHandling="greedy"
-                            styles={mapStyles}
                         >
                             <AdvancedMarker position={croqui.position} title={croqui.title}>
                                <Pin background={'hsl(var(--primary))'} borderColor={'hsl(var(--primary))'} glyphColor={'hsl(var(--primary-foreground))'}>

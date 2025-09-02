@@ -23,19 +23,6 @@ import { useToast } from "@/hooks/use-toast";
 import { suggestTechnicianFlow } from "@/ai/flows/suggest-technician-flow";
 import { SuggestionBadge } from "@/components/team-management/suggestion-badge";
 
-const mapStyles: google.maps.MapTypeStyle[] = [
-    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
-    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
-    { featureType: "administrative.land_parcel", stylers: [{ visibility: "off" }] },
-    { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
-    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
-    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
-];
-
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
 
@@ -78,7 +65,7 @@ function TeamManagementPage() {
         return teamMembers.filter(member => {
             const nameMatch = member.displayName.toLowerCase().includes(searchQuery.toLowerCase());
             const statusMatch = statusFilter === 'Todos' || member.status === statusFilter;
-            const teamMatch = teamFilter === 'Todos' || member.team === teamFilter;
+            const teamMatch = teamFilter === 'Todos' || member.team === teamMatch;
             return nameMatch && statusMatch && teamMatch;
         });
     }, [teamMembers, searchQuery, statusFilter, teamFilter]);
@@ -273,7 +260,6 @@ function TeamManagementPage() {
                                     defaultZoom={6}
                                     gestureHandling={'greedy'}
                                     disableDefaultUI={true}
-                                    styles={mapStyles}
                                 >
                                     {filteredMembers.map(member => {
                                         const suggestion = suggestedTechnicians.find(s => s.technicianId === member.uid);
