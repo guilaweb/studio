@@ -145,6 +145,7 @@ export default function CroquiReport({
   const [drawnPolygon, setDrawnPolygon] = useState<google.maps.Polygon | null>(null);
   const [propertyToLink, setPropertyToLink] = useState<PointOfInterest | null>(null);
   const [isEdit, setIsEdit] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -215,6 +216,7 @@ export default function CroquiReport({
   const handleMapClick = (event: google.maps.MapMouseEvent) => {
       if(drawingMode === 'points' && event.latLng) {
           setNewReferencePosition(event.latLng.toJSON());
+          setIsAlertOpen(true);
       }
   }
 
@@ -228,7 +230,15 @@ export default function CroquiReport({
         setNewReferenceLabel("");
         setNewReferencePosition(null);
         setDrawingMode(null);
+        setIsAlertOpen(false);
     }
+  }
+  
+  const handleCancelAddReference = () => {
+    setNewReferencePosition(null);
+    setNewReferenceLabel("");
+    setDrawingMode(null);
+    setIsAlertOpen(false);
   }
   
   const removeReferencePoint = (index: number) => {
@@ -407,7 +417,7 @@ export default function CroquiReport({
       </SheetContent>
     </Sheet>
     
-    <AlertDialog open={drawingMode === 'points' && !!newReferencePosition} onOpenChange={(open) => !open && setDrawingMode(null)}>
+    <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Adicionar Ponto de Referência</AlertDialogTitle>
@@ -425,7 +435,7 @@ export default function CroquiReport({
             />
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => { setNewReferencePosition(null); setNewReferenceLabel(""); setDrawingMode(null); }}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel onClick={handleCancelAddReference}>Cancelar</AlertDialogCancel>
           <AlertDialogAction onClick={handleAddReference} disabled={!newReferenceLabel}>Adicionar</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -434,4 +444,5 @@ export default function CroquiReport({
     </>
   );
 }
+
 
