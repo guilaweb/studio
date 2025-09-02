@@ -13,7 +13,7 @@ import { PointOfInterest } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { statusLabelMap } from "@/lib/data";
 import ConstructionEdit from "@/components/construction-edit";
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const LicenseRequestCard = ({ project, onEditClick }: { project: PointOfInterest, onEditClick: (project: PointOfInterest) => void }) => {
     return (
@@ -52,18 +52,19 @@ function LicencasPage() {
     const { user } = useAuth();
     const [poiToEdit, setPoiToEdit] = React.useState<PointOfInterest | null>(null);
     const router = useRouter();
-
+    const searchParams = useSearchParams();
 
     React.useEffect(() => {
-        const poiToEditJson = sessionStorage.getItem('poiToEditAfterRedirect');
-        if (poiToEditJson) {
-            const poi: PointOfInterest = JSON.parse(poiToEditJson);
-            // Find the full POI from allData to ensure it's up-to-date
-            const fullPoi = allData.find(p => p.id === poi.id);
-            setPoiToEdit(fullPoi || poi);
-            sessionStorage.removeItem('poiToEditAfterRedirect');
+        const projectIdToEdit = searchParams.get('editProject');
+        if (projectIdToEdit && allData.length > 0) {
+            const project = allData.find(p => p.id === projectIdToEdit);
+            if (project) {
+                setPoiToEdit(project);
+                // Clean the URL
+                router.replace('/licencas', {scroll: false});
+            }
         }
-    }, [allData]);
+    }, [searchParams, allData, router]);
     
     const userProjects = React.useMemo(() => {
         if (!user) return [];

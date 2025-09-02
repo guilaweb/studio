@@ -145,21 +145,11 @@ function NewLicensePage() {
             await addPoint(pointToAdd);
             toast({ 
                 title: "Pedido Submetido!", 
-                description: "O seu pedido foi enviado e o lote associado foi marcado como 'Em Análise'.",
-                action: (
-                    <Button asChild variant="secondary" onClick={() => {
-                        const newPoi = {...pointToAdd, updates: []}; 
-                        sessionStorage.setItem('poiToEditAfterRedirect', JSON.stringify(newPoi));
-                        router.push('/licencas');
-                    }}>
-                        Anexar Documentos
-                    </Button>
-                )
+                description: "O seu pedido foi enviado. Anexe agora os documentos necessários.",
             });
-            router.push('/licencas');
+            router.push(`/licencas?editProject=${newProjectId}`);
         } catch (error) {
             toast({ variant: "destructive", title: "Erro", description: "Não foi possível submeter o pedido." });
-        } finally {
             setIsSubmitting(false);
         }
     }
@@ -266,12 +256,12 @@ function NewLicensePage() {
                                     <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-md">
                                         <p><strong>Atenção:</strong> Esta é uma análise preliminar e automática gerada por IA. Não substitui a análise técnica completa por um funcionário municipal nem a consulta formal às concessionárias. Serve como um guia para ajudar a identificar potenciais problemas antes da submissão formal.</p>
                                     </div>
-                                    <p className="text-sm">O próximo passo é submeter este pedido inicial. Após a submissão, poderá anexar todos os documentos necessários ao processo (plantas, memória descritiva, etc.) na sua área de licenças.</p>
+                                    <p className="text-sm">O próximo passo é submeter este pedido inicial. Após a submissão, será redirecionado para a página das suas licenças, onde poderá anexar todos os documentos necessários (plantas, memória descritiva, etc.).</p>
                                     <div className="flex justify-between">
                                         <Button type="button" variant="outline" onClick={() => setStep(2)}>Voltar</Button>
                                         <Button onClick={handleSubmit} disabled={isSubmitting}>
                                             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                            Submeter Pedido
+                                            Submeter Pedido e Anexar Docs
                                         </Button>
                                     </div>
                                 </div>
