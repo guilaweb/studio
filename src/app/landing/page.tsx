@@ -479,6 +479,7 @@ export default function LandingPage() {
                         <p>&copy; 2024 MUNITU. Todos os direitos reservados.</p>
                         <Link href="/governo" className="underline hover:text-primary">Soluções para Governo</Link>
                         <Link href="/docs" className="underline hover:text-primary">Documentação Técnica</Link>
+                        <Link href="/artigo-cientifico" className="underline hover:text-primary">Artigo Científico</Link>
                         <Link href="/funcionalidades" className="underline hover:text-primary">Funcionalidades</Link>
                         <Link href="/exemplos-de-uso" className="underline hover:text-primary">Exemplos de Uso</Link>
                         <Link href="/termos-e-condicoes" className="underline hover:text-primary">Termos e Condições</Link>
