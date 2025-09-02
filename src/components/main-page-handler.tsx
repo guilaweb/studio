@@ -41,9 +41,10 @@ import { usePublicLayerSettings } from "@/services/settings-service";
 import AnnouncementReport from "./announcement-report";
 import ConstructionEdit from "./construction-edit";
 import CroquiReport from "./croqui-report";
+import WaterResourceReport from "./water-resource-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource';
 type EditMode = 'edit' | 'divide' | null;
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
@@ -749,6 +750,46 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         description: "O anúncio foi modificado com sucesso.",
     });
   }
+  
+  const handleAddNewWaterResource = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData'> & { photoDataUri?: string }) => {
+     if (!user || !profile) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para mapear um recurso hídrico.",
+        });
+        return;
+    }
+    handleSheetOpenChange(false);
+    const timestamp = new Date().toISOString();
+
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `water_resource-${Date.now()}`,
+      type: 'water_resource',
+      title: data.title,
+      authorId: user.uid,
+      authorDisplayName: profile.displayName,
+      lastReported: timestamp,
+      status: 'active',
+      description: data.description,
+      position: data.position,
+      customData: data.customData,
+      updates: [{
+          text: `Recurso Hídrico mapeado: ${data.description}`,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+          photoDataUri: data.photoDataUri,
+      }]
+    };
+    
+    addPoint(pointToAdd);
+
+    toast({
+      title: "Recurso Hídrico Mapeado!",
+      description: "Obrigado por ajudar a construir o cadastro nacional de águas.",
+    });
+  }
 
 
   const handleStartReporting = (type: ActiveSheet) => {
@@ -941,6 +982,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                                     <Megaphone className="mr-2 h-4 w-4" />
                                     Criar Anúncio
                                 </DropdownMenuItem>
+                                 <DropdownMenuItem onClick={() => handleStartReporting('water_resource')}>
+                                    <Droplets className="mr-2 h-4 w-4" />
+                                    Mapear Recurso Hídrico
+                                </DropdownMenuItem>
                             </>
                         )}
                     </DropdownMenuContent>
@@ -1040,6 +1085,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                                 <DropdownMenuItem onClick={() => handleStartReporting('announcement')}>
                                     <Megaphone className="mr-2 h-4 w-4" />
                                     Criar Anúncio
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStartReporting('water_resource')}>
+                                    <Droplets className="mr-2 h-4 w-4" />
+                                    Mapear Recurso Hídrico
                                 </DropdownMenuItem>
                             </>
                         )}
@@ -1143,7 +1192,14 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             poiToEdit={poiToEdit}
             editMode={editMode}
         />
+        <WaterResourceReport
+            open={activeSheet === 'water_resource'}
+            onOpenChange={handleSheetOpenChange}
+            onWaterResourceSubmit={handleAddNewWaterResource}
+            initialCenter={mapCenter}
+        />
       </SidebarProvider>
   );
 }
+
 
