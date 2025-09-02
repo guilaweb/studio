@@ -287,8 +287,8 @@ function DashboardPage() {
                             <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
                                 <Map
                                     mapId={'dashboard-map'}
-                                    defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
-                                    defaultZoom={12}
+                                    defaultCenter={{ lat: -12.5, lng: 18.5 }}
+                                    defaultZoom={6}
                                     gestureHandling={'greedy'}
                                     disableDefaultUI={true}
                                     styles={mapStyles}

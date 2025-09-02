@@ -269,8 +269,8 @@ function TeamManagementPage() {
                              <Card className="h-[calc(100vh-10rem)]">
                                 <Map
                                     mapId="team-management-map"
-                                    defaultCenter={{ lat: -8.83, lng: 13.24 }}
-                                    defaultZoom={13}
+                                    defaultCenter={{ lat: -12.5, lng: 18.5 }}
+                                    defaultZoom={6}
                                     gestureHandling={'greedy'}
                                     disableDefaultUI={true}
                                     styles={mapStyles}

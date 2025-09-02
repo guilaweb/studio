@@ -131,8 +131,8 @@ function MarketplacePage() {
                                     <CardContent className="h-[70vh] p-0 relative">
                                         <Map
                                             mapId="marketplace-map"
-                                            defaultCenter={{ lat: -8.8368, lng: 13.2343 }}
-                                            defaultZoom={13}
+                                            defaultCenter={{ lat: -12.5, lng: 18.5 }}
+                                            defaultZoom={6}
                                             gestureHandling={'greedy'}
                                             disableDefaultUI={true}
                                             styles={mapStyles}
