@@ -47,12 +47,13 @@ const formSchema = z.object({
   collectionName: z.string().optional(),
 });
 
-type DrawingMode = 'points' | 'route' | null;
+type DrawingMode = 'points' | 'route' | 'polygon' | null;
 
 const DrawingManager: React.FC<{
     onPolylineComplete: (polyline: google.maps.Polyline) => void,
+    onPolygonComplete: (polygon: google.maps.Polygon) => void,
     drawingMode: DrawingMode,
-}> = ({ onPolylineComplete, drawingMode }) => {
+}> = ({ onPolylineComplete, onPolygonComplete, drawingMode }) => {
     const map = useMap();
     const drawing = useMapsLibrary('drawing');
     const [drawingManager, setDrawingManager] = useState<google.maps.drawing.DrawingManager | null>(null);
@@ -82,9 +83,15 @@ const DrawingManager: React.FC<{
             onPolylineComplete(poly);
             manager.setDrawingMode(null);
         });
+
+         const polygonListener = manager.addListener('polygoncomplete', (poly: google.maps.Polygon) => {
+            onPolygonComplete(poly);
+            manager.setDrawingMode(null);
+        });
         
         return () => {
             polylineListener.remove();
+            polygonListener.remove();
             manager.setMap(null);
         };
 
@@ -95,6 +102,8 @@ const DrawingManager: React.FC<{
         if (drawingManager) {
             if(drawingMode === 'route') {
                 drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYLINE);
+            } else if (drawingMode === 'polygon') {
+                drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
             } else {
                  drawingManager.setDrawingMode(null);
             }
@@ -108,7 +117,7 @@ const DrawingManager: React.FC<{
 type CroquiReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName'>, propertyIdToLink?: string) => void;
+  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon'>, propertyIdToLink?: string) => void;
   initialCenter: google.maps.LatLngLiteral;
   mapRef?: React.RefObject<google.maps.Map>;
   poiToEdit: PointOfInterest | null;
@@ -133,6 +142,7 @@ export default function CroquiReport({
   const [newReferencePosition, setNewReferencePosition] = useState<google.maps.LatLngLiteral | null>(null);
   const [drawingMode, setDrawingMode] = useState<DrawingMode>(null);
   const [drawnRoute, setDrawnRoute] = useState<google.maps.Polyline | null>(null);
+  const [drawnPolygon, setDrawnPolygon] = useState<google.maps.Polygon | null>(null);
   const [propertyToLink, setPropertyToLink] = useState<PointOfInterest | null>(null);
   const [isEdit, setIsEdit] = useState(false);
   
@@ -155,6 +165,8 @@ export default function CroquiReport({
     setDrawingMode(null);
     if (drawnRoute) drawnRoute.setMap(null);
     setDrawnRoute(null);
+    if (drawnPolygon) drawnPolygon.setMap(null);
+    setDrawnPolygon(null);
     setPropertyToLink(null);
     sessionStorage.removeItem('poiForCroqui');
     setIsEdit(false);
@@ -172,10 +184,12 @@ export default function CroquiReport({
             setMapCenter(poiToEdit.position);
             setMapZoom(16);
             setReferencePoints(poiToEdit.croquiPoints || []);
-            // Note: Re-drawing the route line is complex; for now, we don't pre-populate it on edit.
+            // Note: Re-drawing the route/polygon is complex; for now, we don't pre-populate it on edit.
             // A more advanced implementation would handle this.
             if(drawnRoute) drawnRoute.setMap(null);
             setDrawnRoute(null);
+            if(drawnPolygon) drawnPolygon.setMap(null);
+            setDrawnPolygon(null);
 
         } else {
             const poiForCroquiJSON = sessionStorage.getItem('poiForCroqui');
@@ -225,14 +239,30 @@ export default function CroquiReport({
     if (drawnRoute) {
         drawnRoute.setMap(null);
         setDrawnRoute(null);
-        setDrawingMode('route');
     }
+    setDrawingMode('route');
+  }
+  
+  const handleClearPolygon = () => {
+    if (drawnPolygon) {
+        drawnPolygon.setMap(null);
+        setDrawnPolygon(null);
+    }
+    setDrawingMode('polygon');
   }
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalPosition = mapCenter;
-    const routePath = drawnRoute?.getPath().getArray().map(p => p.toJSON()) || [];
-    onCroquiSubmit({ ...values, position: finalPosition, croquiPoints: referencePoints, croquiRoute: routePath }, propertyToLink?.id);
+    const routePath = drawnRoute?.getPath().getArray().map(p => p.toJSON());
+    const polygonPath = drawnPolygon?.getPath().getArray().map(p => p.toJSON());
+
+    onCroquiSubmit({ 
+        ...values, 
+        position: finalPosition, 
+        croquiPoints: referencePoints, 
+        croquiRoute: routePath,
+        polygon: polygonPath,
+    }, propertyToLink?.id);
   }
 
   const sheetTitle = isEdit ? (editMode === 'divide' ? 'Dividir Croqui (Criar Cópia)' : 'Editar Croqui') : 'Criar Croqui de Localização';
@@ -252,7 +282,7 @@ export default function CroquiReport({
           <SheetTitle>{sheetTitle}</SheetTitle>
           <SheetDescription>
             {propertyToLink ? `A criar um croqui para "${propertyToLink.title}". ` : ''}
-            Arraste o mapa para posicionar o pino principal, adicione pontos de referência e desenhe a rota.
+            Arraste o mapa para posicionar o pino principal, adicione pontos de referência e desenhe a rota ou a área.
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -269,6 +299,7 @@ export default function CroquiReport({
                 >
                     <DrawingManager 
                         onPolylineComplete={setDrawnRoute}
+                        onPolygonComplete={setDrawnPolygon}
                         drawingMode={drawingMode}
                     />
                     {referencePoints.map((point, index) => (
@@ -331,27 +362,26 @@ export default function CroquiReport({
                 />
                 
                 <div className="space-y-2">
-                    <Label>Pontos de Referência</Label>
+                    <Label>Ferramentas de Desenho</Label>
                     <div className="flex flex-wrap gap-2">
                          <Button type="button" variant={drawingMode === 'points' ? 'secondary' : 'outline'} size="sm" onClick={() => setDrawingMode(prev => prev === 'points' ? null : 'points')}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Adicionar Referência
                         </Button>
-                        <Button type="button" variant={drawingMode === 'route' ? 'secondary' : 'outline'} size="sm" onClick={() => setDrawingMode('route')} disabled={!!drawnRoute}>
+                        <Button type="button" variant={drawingMode === 'route' ? 'secondary' : 'outline'} size="sm" onClick={handleClearRoute}>
                             <PlusCircle className="mr-2 h-4 w-4" />
-                            Desenhar Rota
+                            {drawnRoute ? 'Redesenhar Rota' : 'Desenhar Rota'}
                         </Button>
-                        {drawnRoute && (
-                            <Button type="button" variant="destructive" size="sm" onClick={handleClearRoute}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Limpar Rota
-                            </Button>
-                        )}
+                         <Button type="button" variant={drawingMode === 'polygon' ? 'secondary' : 'outline'} size="sm" onClick={handleClearPolygon}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            {drawnPolygon ? 'Redesenhar Área' : 'Desenhar Área'}
+                        </Button>
                     </div>
                     
                     <p className="text-xs text-muted-foreground">
                         {drawingMode === 'points' && 'Clique no mapa para adicionar um ponto de referência personalizado.'}
                         {drawingMode === 'route' && 'Clique no mapa para começar a desenhar a rota. Clique duas vezes para terminar.'}
+                        {drawingMode === 'polygon' && 'Clique no mapa para começar a desenhar a área. Clique no primeiro ponto para fechar.'}
                     </p>
 
                     {referencePoints.map((point, index) => (
@@ -404,3 +434,4 @@ export default function CroquiReport({
     </>
   );
 }
+

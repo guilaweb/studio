@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -10,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { APIProvider, Map, AdvancedMarker, Pin, useMap } from "@vis.gl/react-google-maps";
 import { Logo } from "@/components/icons";
 import { Compass, MapPin, Share2, Phone } from "lucide-react";
+import { GenericPolygonsRenderer } from "@/components/generic-polygons-renderer";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
@@ -158,6 +160,13 @@ export default function PublicCroquiPage() {
                             ))}
                             
                             {croqui.croquiRoute && <RouteRenderer route={croqui.croquiRoute} />}
+                            {croqui.polygon && (
+                                <GenericPolygonsRenderer
+                                    plots={[croqui]}
+                                    selectedPlotId={null}
+                                    onPlotClick={() => {}}
+                                />
+                            )}
                         </Map>
                     </main>
                 </div>
@@ -165,3 +174,4 @@ export default function PublicCroquiPage() {
         </APIProvider>
     );
 }
+

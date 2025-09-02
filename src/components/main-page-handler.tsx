@@ -665,7 +665,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
 
-  const handleAddNewCroqui = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName'>, propertyIdToLink?: string) => {
+  const handleAddNewCroqui = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon'>, propertyIdToLink?: string) => {
       if (!user || !profile) {
         toast({ variant: "destructive", title: "Ação necessária", description: "Por favor, faça login para criar um croqui."});
         return;
@@ -694,6 +694,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           lastReported: timestamp,
           croquiPoints: data.croquiPoints,
           croquiRoute: data.croquiRoute,
+          polygon: data.polygon,
           collectionName: data.collectionName,
           status: 'active',
           updates: [{
@@ -712,7 +713,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       });
   }
   
-  const handleEditCroqui = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName'>) => {
+  const handleEditCroqui = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon'>) => {
       if (!poiToEdit) return;
       handleSheetOpenChange(false);
 
@@ -1145,3 +1146,4 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       </SidebarProvider>
   );
 }
+

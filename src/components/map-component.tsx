@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
@@ -6,7 +7,7 @@ import type { PointOfInterest, ActiveLayers } from "@/lib/data";
 import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
-import { LandPlotPolygons } from "./marketplace/land-plot-polygons";
+import { GenericPolygonsRenderer } from "./generic-polygons-renderer";
 import { useExternalLayers } from "@/services/external-layers-service";
 
 
@@ -106,7 +107,7 @@ export const getPinStyle = (point: PointOfInterest) => {
                 return { background: '#a1a1aa', borderColor: '#71717a', glyphColor: '#ffffff' }; // gray
         }
     }
-    if (point.type === 'land_plot' || point.type === 'announcement' || point.type === 'water_resource') {
+    if (point.type === 'land_plot' || point.type === 'announcement' || point.type === 'water_resource' || point.type === 'croqui') {
         switch (point.status) {
             case 'available':
                 return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
@@ -414,7 +415,7 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                     />
                 ))}
 
-                <LandPlotPolygons
+                <GenericPolygonsRenderer
                     plots={polygonPoints}
                     selectedPlotId={null} // Hover is handled by InfoWindow now
                     onPlotClick={onMarkerClick}
@@ -470,3 +471,4 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
         </div>
     );
 }
+

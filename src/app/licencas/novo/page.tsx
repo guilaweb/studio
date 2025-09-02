@@ -27,7 +27,7 @@ import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertyCard } from "@/components/marketplace/property-card";
-import { LandPlotPolygons } from "@/components/marketplace/land-plot-polygons";
+import { GenericPolygonsRenderer } from "@/components/generic-polygons-renderer";
 
 
 const formSchema = z.object({
@@ -206,7 +206,7 @@ function NewLicensePage() {
                                                         gestureHandling="greedy"
                                                         styles={mapStyles}
                                                     >
-                                                        <LandPlotPolygons 
+                                                        <GenericPolygonsRenderer 
                                                             plots={filteredLandPlots}
                                                             selectedPlotId={null}
                                                             onPlotClick={(id) => handleSelectPlot(filteredLandPlots.find(p => p.id === id)!)}

@@ -30,11 +30,13 @@ const getPlotColors = (point: PointOfInterest) => {
 }
 
 
-export const LandPlotPolygons: React.FC<{
+export const GenericPolygonsRenderer: React.FC<{
     plots: PointOfInterest[];
     selectedPlotId: string | null;
     onPlotClick: (plotId: string) => void;
-}> = ({ plots, selectedPlotId, onPlotClick }) => {
+    onMouseOver?: (e: google.maps.MapMouseEvent, poi: PointOfInterest) => void;
+    onMouseOut?: () => void;
+}> = ({ plots, selectedPlotId, onPlotClick, onMouseOver, onMouseOut }) => {
     const map = useMap();
     const [polygons, setPolygons] = React.useState<google.maps.Polygon[]>([]);
 
@@ -61,6 +63,12 @@ export const LandPlotPolygons: React.FC<{
             });
 
             poly.addListener('click', () => onPlotClick(plot.id));
+            if(onMouseOver) {
+                poly.addListener('mouseover', (e: google.maps.MapMouseEvent) => onMouseOver(e, plot));
+            }
+            if(onMouseOut) {
+                poly.addListener('mouseout', onMouseOut);
+            }
             
             return poly;
         }).filter((p): p is google.maps.Polygon => p !== null);

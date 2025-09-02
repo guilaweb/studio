@@ -15,7 +15,7 @@ import PropertySearch, { SearchFilters } from "@/components/marketplace/property
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertyCard } from "@/components/marketplace/property-card";
-import { LandPlotPolygons } from "@/components/marketplace/land-plot-polygons";
+import { GenericPolygonsRenderer } from "@/components/generic-polygons-renderer";
 
 
 const mapStyles: google.maps.MapTypeStyle[] = [
@@ -137,7 +137,7 @@ function MarketplacePage() {
                                             disableDefaultUI={true}
                                             styles={mapStyles}
                                         >
-                                            <LandPlotPolygons 
+                                            <GenericPolygonsRenderer 
                                                 plots={filteredLandPlots}
                                                 selectedPlotId={selectedPlot?.id || null}
                                                 onPlotClick={handlePlotSelect}
