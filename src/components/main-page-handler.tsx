@@ -751,7 +751,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
   
-  const handleAddNewWaterResource = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData'> & { photoDataUri?: string }) => {
+  const handleAddNewWaterResource = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'polyline'> & { photoDataUri?: string }) => {
      if (!user || !profile) {
         toast({
             variant: "destructive",
@@ -773,6 +773,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       status: 'active',
       description: data.description,
       position: data.position,
+      polyline: data.polyline,
       customData: data.customData,
       updates: [{
           text: `Recurso Hídrico mapeado: ${data.description}`,
@@ -1107,7 +1108,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             }
             }}
             onPoiStatusChange={handlePoiStatusChange}
-            onAddUpdate={handleAddUpdate}
+            onAddUpdate={onAddUpdate}
             onEdit={handleStartEditing}
         />
         <IncidentReport 
@@ -1201,5 +1202,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       </SidebarProvider>
   );
 }
+
 
 

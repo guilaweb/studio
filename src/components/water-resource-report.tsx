@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -25,12 +24,62 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { PointOfInterest } from "@/lib/data";
-import { Map } from "@vis.gl/react-google-maps";
-import { Camera, MapPin, Plus, Trash2 } from "lucide-react";
+import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { Camera, MapPin, Plus, Trash2, GitMerge } from "lucide-react";
 import Image from "next/image";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+
+const DrawingManager: React.FC<{
+    onPolylineComplete: (polyline: google.maps.Polyline) => void,
+    drawingMode: 'polyline' | null,
+}> = ({ onPolylineComplete, drawingMode }) => {
+    const map = useMap();
+    const drawing = useMapsLibrary('drawing');
+    const [drawingManager, setDrawingManager] = useState<google.maps.drawing.DrawingManager | null>(null);
+
+    useEffect(() => {
+        if (!map || !drawing) return;
+
+        const manager = new drawing.DrawingManager({
+            drawingControl: false, // We use our own UI
+            polylineOptions: {
+                strokeColor: "hsl(var(--primary))",
+                strokeWeight: 4,
+                editable: true,
+            }
+        });
+        
+        setDrawingManager(manager);
+        manager.setMap(map);
+
+        const polylineListener = manager.addListener('polylinecomplete', (poly: google.maps.Polyline) => {
+            onPolylineComplete(poly);
+            manager.setDrawingMode(null);
+        });
+        
+        return () => {
+            polylineListener.remove();
+            manager.setMap(null);
+        };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [map, drawing]);
+
+    useEffect(() => {
+        if (drawingManager) {
+            if(drawingMode === 'polyline') {
+                drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYLINE);
+            } else {
+                 drawingManager.setDrawingMode(null);
+            }
+        }
+    }, [drawingManager, drawingMode]);
+    
+    return null;
+};
+
 
 const formSchema = z.object({
   title: z.string().min(1, "O tipo de recurso é obrigatório."),
@@ -44,7 +93,7 @@ const formSchema = z.object({
 type WaterResourceReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onWaterResourceSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData'> & { photoDataUri?: string }) => void;
+  onWaterResourceSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'polyline'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -62,6 +111,8 @@ export default function WaterResourceReport({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [customFields, setCustomFields] = useState([{key: '', value: ''}]);
+  const [drawingMode, setDrawingMode] = useState<'polyline' | null>(null);
+  const [drawnPolyline, setDrawnPolyline] = useState<google.maps.Polyline | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -77,6 +128,9 @@ export default function WaterResourceReport({
     setCustomFields([{key: '', value: ''}]);
     setPhotoFile(null);
     setPhotoPreview(null);
+    setDrawingMode(null);
+    if(drawnPolyline) drawnPolyline.setMap(null);
+    setDrawnPolyline(null);
   }
 
   useEffect(() => {
@@ -126,6 +180,8 @@ export default function WaterResourceReport({
         }
         return acc;
     }, {} as Record<string, any>);
+    
+    const polylinePath = drawnPolyline?.getPath().getArray().map(p => p.toJSON());
 
     const handleSubmission = (photoDataUri?: string) => {
         onWaterResourceSubmit({ 
@@ -133,6 +189,7 @@ export default function WaterResourceReport({
             description: values.description || '',
             position: finalPosition,
             customData: customDataObject,
+            polyline: polylinePath,
             photoDataUri 
         });
     };
@@ -161,7 +218,7 @@ export default function WaterResourceReport({
         <SheetHeader className="p-6 pb-2">
           <SheetTitle>Mapear Recurso Hídrico</SheetTitle>
           <SheetDescription>
-            Ajuste o pino no mapa para a localização exata, selecione o tipo e adicione detalhes.
+            Ajuste o pino no mapa, desenhe o curso do rio (opcional) e adicione detalhes.
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -175,6 +232,10 @@ export default function WaterResourceReport({
                     onZoomChanged={(e) => setMapZoom(e.detail.zoom)}
                     gestureHandling={'greedy'}
                 >
+                    <DrawingManager 
+                        onPolylineComplete={setDrawnPolyline}
+                        drawingMode={drawingMode}
+                    />
                 </Map>
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
                     <MapPin className="text-primary h-10 w-10" />
@@ -194,11 +255,15 @@ export default function WaterResourceReport({
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="Furo de Água">Furo de Água</SelectItem>
-                                <SelectItem value="Poço">Poço</SelectItem>
-                                <SelectItem value="Nascente">Nascente</SelectItem>
-                                <SelectItem value="Represa Pequena">Represa Pequena</SelectItem>
-                                <SelectItem value="Ponto de Captação (Rio)">Ponto de Captação (Rio)</SelectItem>
+                                <SelectItem value="Rio Principal">Rio Principal</SelectItem>
+                                <SelectItem value="Afluente / Riacho">Afluente / Riacho</SelectItem>
+                                <SelectItem value="Canal de Irrigação">Canal de Irrigação</SelectItem>
+                                <SelectItem value="Canal de Drenagem">Canal de Drenagem</SelectItem>
+                                <SelectItem value="Furo de Água">Furo de Água (Ponto)</SelectItem>
+                                <SelectItem value="Poço">Poço (Ponto)</SelectItem>
+                                <SelectItem value="Nascente">Nascente (Ponto)</SelectItem>
+                                <SelectItem value="Represa Pequena">Represa Pequena (Ponto)</SelectItem>
+                                <SelectItem value="Ponto de Captação (Rio)">Ponto de Captação (Ponto)</SelectItem>
                                 <SelectItem value="Outro">Outro</SelectItem>
                             </SelectContent>
                         </Select>
@@ -206,6 +271,18 @@ export default function WaterResourceReport({
                         </FormItem>
                     )}
                 />
+                 <div>
+                    <Label>Desenhar Rio/Canal (Opcional)</Label>
+                    <Button 
+                        type="button" 
+                        variant={drawingMode === 'polyline' ? 'secondary' : 'outline'} 
+                        className="w-full mt-2" 
+                        onClick={() => setDrawingMode(prev => prev ? null : 'polyline')}
+                    >
+                        <GitMerge className="mr-2 h-4 w-4" />
+                        {drawnPolyline ? 'Redesenhar Curso do Rio' : 'Desenhar Curso do Rio'}
+                    </Button>
+                </div>
                 <FormField
                 control={form.control}
                 name="description"
