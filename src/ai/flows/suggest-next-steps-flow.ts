@@ -1,4 +1,5 @@
 
+
 'use server';
 /**
  * @fileOverview Flow to suggest next steps for a construction project approval process.
@@ -23,6 +24,7 @@ const prompt = ai.definePrompt({
 
         Analyze the project details provided. Based on the rules below, create a list of required steps.
         For each step, specify the department, the reason for the review, and set the initial status to "pending".
+        Each step must also have a unique 'id'.
 
         **Crucially, the 'reason' for each step must be in Portuguese (Portugal).**
 
@@ -50,6 +52,15 @@ const suggestNextStepsFlow = ai.defineFlow(
     },
     async (input) => {
         const { output } = await prompt(input);
+        
+        // Ensure each step has a unique ID, as the model might forget.
+        if (output && output.steps) {
+            output.steps = output.steps.map((step, index) => ({
+                ...step,
+                id: `step-${Date.now()}-${index}`
+            }));
+        }
+        
         return output!;
     }
 );

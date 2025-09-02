@@ -1,5 +1,6 @@
 
 
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -75,6 +76,7 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         landPlotId: data.landPlotId,
         projectType: data.projectType,
         architectName: data.architectName,
+        workflowSteps: data.workflowSteps,
         // Announcement Specific
         announcementCategory: data.announcementCategory,
         // Croqui Specific
@@ -245,21 +247,21 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         const pointRef = doc(db, 'pointsOfInterest', pointId);
         
         const { photoDataUri, ...otherUpdates } = updates as any;
-
-        // Add a new update to the timeline to log the edit
-        const editUpdate: Omit<PointOfInterestUpdate, 'id'> = {
-            text: `Detalhes do item atualizados por ${profile.displayName}.`,
-            authorId: user.uid,
-            authorDisplayName: profile.displayName,
-            timestamp: new Date().toISOString(),
-        };
-
-        const editUpdateWithId = {...editUpdate, id: `upd-${pointId}-${Date.now()}-${Math.random()}`};
         
-        const cleanedData = removeUndefinedFields({
-            ...otherUpdates,
-            updates: arrayUnion(removeUndefinedFields(editUpdateWithId))
-        });
+        const cleanedData = removeUndefinedFields(otherUpdates);
+
+        // Check if we are updating workflow steps, if not, add a general update log
+        if (!cleanedData.workflowSteps) {
+            const editUpdate: Omit<PointOfInterestUpdate, 'id'> = {
+                text: `Detalhes do item atualizados por ${profile.displayName}.`,
+                authorId: user.uid,
+                authorDisplayName: profile.displayName,
+                timestamp: new Date().toISOString(),
+            };
+            const editUpdateWithId = {...editUpdate, id: `upd-${pointId}-${Date.now()}-${Math.random()}`};
+            cleanedData.updates = arrayUnion(removeUndefinedFields(editUpdateWithId));
+        }
+
 
         if (Object.keys(cleanedData).length > 0) {
              await updateDoc(pointRef, cleanedData);
@@ -303,6 +305,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 export const usePoints = () => useContext(PointsContext);
 
     
+
 
 
 

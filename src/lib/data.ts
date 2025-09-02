@@ -56,6 +56,15 @@ const CroquiPointSchema = z.object({
 });
 export type CroquiPoint = z.infer<typeof CroquiPointSchema>;
 
+export const WorkflowStepSchema = z.object({
+    id: z.string(),
+    department: z.string().describe("The name of the department that needs to provide a review/opinion."),
+    reason: z.string().describe("A brief reason why this department's review is necessary, in Portuguese (Portugal)."),
+    status: z.enum(['pending', 'completed', 'not_required']).describe("The current status of this step."),
+});
+export type WorkflowStep = z.infer<typeof WorkflowStepSchema>;
+
+
 export const PointOfInterestSchema = z.object({
   id: z.string(),
   type: PointOfInterestTypeEnum,
@@ -95,6 +104,7 @@ export const PointOfInterestSchema = z.object({
   landPlotId: z.string().optional(),
   projectType: z.string().optional(),
   architectName: z.string().optional(),
+  workflowSteps: z.array(WorkflowStepSchema).optional(),
   // Announcement Specific
   announcementCategory: AnnouncementCategoryEnum.optional(),
   // Croqui Specific
@@ -316,6 +326,7 @@ export type SuggestNextStepsInput = z.infer<typeof SuggestNextStepsInputSchema>;
 
 export const SuggestNextStepsOutputSchema = z.object({
   steps: z.array(z.object({
+    id: z.string(),
     department: z.string().describe("The name of the department that needs to provide a review/opinion."),
     reason: z.string().describe("A brief reason why this department's review is necessary, in Portuguese (Portugal)."),
     status: z.enum(['pending', 'completed', 'not_required']).describe("The current status of this step."),
