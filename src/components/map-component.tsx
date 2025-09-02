@@ -401,7 +401,7 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                 center={center}
                 zoom={zoom}
                 gestureHandling={"greedy"}
-                disableDefaultUI={false}
+                disableDefaultUI={true}
                 styles={mapStyles}
                 onCameraChanged={handleCameraChange}
             >
