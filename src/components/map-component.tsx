@@ -312,26 +312,12 @@ const WFSLayer = ({ url, layerName }: { url: string, layerName: string }) => {
 
     useEffect(() => {
         if (!map || !url || !layerName) return;
-        
-        // Basic WFS GetFeature request URL construction
-        let requestUrl = url;
-        requestUrl += `?service=WFS`;
-        requestUrl += `&version=1.1.0`;
-        requestUrl += `&request=GetFeature`;
-        requestUrl += `&typeName=${layerName}`;
-        requestUrl += `&outputFormat=application/json`;
-        requestUrl += `&srsname=EPSG:4326`; // Request data in lat/lng
 
-        fetch(requestUrl)
-            .then(response => {
-                if(!response.ok) throw new Error(`WFS request failed: ${response.statusText}`);
-                return response.json();
-            })
-            .then(data => {
-                map.data.addGeoJson(data);
-            })
-            .catch(error => console.error("Error fetching WFS data:", error));
-        
+        let requestUrl = `${url}?service=WFS&version=1.1.0&request=GetFeature&typeName=${layerName}&outputFormat=application/json&srsname=EPSG:4326`;
+
+        // Use the map's built-in GeoJSON loader
+        map.data.loadGeoJson(requestUrl);
+
         map.data.setStyle({
             fillColor: 'hsl(var(--primary))',
             strokeWeight: 1,
@@ -349,6 +335,7 @@ const WFSLayer = ({ url, layerName }: { url: string, layerName: string }) => {
 
     return null;
 };
+
 
 
 export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
