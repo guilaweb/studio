@@ -152,13 +152,12 @@ function DashboardPage() {
         return [];
     }
     const counts: { [key in Layer]?: number } = {};
-    const visibleLayers = Object.entries(publicLayers)
-        .filter(([, isVisible]) => isVisible)
-        .map(([key]) => key);
+    
+    const layerKeys = Object.keys(publicLayers) as Layer[];
 
-    for (const key of visibleLayers) {
-        if (key in chartConfig) {
-            counts[key as Layer] = 0;
+    for (const key of layerKeys) {
+        if (key in chartConfig && publicLayers[key]) {
+            counts[key] = 0;
         }
     }
 
@@ -349,3 +348,5 @@ function DashboardPage() {
 
 export default withAuth(DashboardPage, ['Agente Municipal', 'Administrador']);
 
+
+    

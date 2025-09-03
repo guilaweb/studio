@@ -266,7 +266,6 @@ export type DashboardStats = z.infer<typeof DashboardStatsSchema>;
 
 export const GenerateDashboardSummaryInputSchema = z.object({
   stats: DashboardStatsSchema,
-  currentDate: z.string().describe("The current date and time in ISO format, for context."),
 });
 export type GenerateDashboardSummaryInput = z.infer<typeof GenerateDashboardSummaryInputSchema>;
 
@@ -462,3 +461,5 @@ export const GenerateLocationSketchOutputSchema = z.object({
   sketchHtml: z.string().describe("The full HTML content of the generated location sketch document."),
 });
 export type GenerateLocationSketchOutput = z.infer<typeof GenerateLocationSketchOutputSchema>;
+
+    

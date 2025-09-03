@@ -16,7 +16,7 @@ export async function generateDashboardSummary(input: GenerateDashboardSummaryIn
 
 const prompt = ai.definePrompt({
     name: 'generateDashboardSummaryPrompt',
-    input: { schema: DashboardStatsSchema },
+    input: { schema: GenerateDashboardSummaryInputSchema },
     output: { schema: GenerateDashboardSummaryOutputSchema },
     model: 'googleai/gemini-1.5-flash',
     prompt: `
@@ -48,3 +48,5 @@ const generateDashboardSummaryFlow = ai.defineFlow(
         return output!;
     }
 );
+
+    

@@ -68,8 +68,7 @@ const IntelligentSummary: React.FC<IntelligentSummaryProps> = ({ allData }) => {
             setLoading(true);
             try {
                 const result = await generateDashboardSummary({ 
-                    stats: stats,
-                    currentDate: new Date().toISOString()
+                    stats: stats
                 });
                 setSummary(result.summary);
             } catch (error: any) {
@@ -130,3 +129,5 @@ const IntelligentSummary: React.FC<IntelligentSummaryProps> = ({ allData }) => {
 };
 
 export default IntelligentSummary;
+
+    
