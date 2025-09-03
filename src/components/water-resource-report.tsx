@@ -133,6 +133,12 @@ const reservoirDefaultFields = [
     { key: 'Uso Principal', value: '' },
 ];
 
+const treatmentStationDefaultFields = [
+    { key: 'Capacidade de Tratamento (m³/dia)', value: '' },
+    { key: 'Tipo de Tratamento', value: '' },
+    { key: 'População Servida', value: '' },
+];
+
 
 export default function WaterResourceReport({ 
     open, 
@@ -203,9 +209,11 @@ export default function WaterResourceReport({
         setCustomFields(damDefaultFields);
     } else if (value === 'Albufeira') {
         setCustomFields(reservoirDefaultFields);
+    } else if (value.startsWith('Estação de Tratamento')) {
+        setCustomFields(treatmentStationDefaultFields);
     } else if (customFields.length === 1 && customFields[0].key === '' && customFields[0].value === '') {
         // do nothing if it's the default empty field
-    } else if (JSON.stringify(customFields) === JSON.stringify(aquiferDefaultFields) || JSON.stringify(customFields) === JSON.stringify(damDefaultFields) || JSON.stringify(customFields) === JSON.stringify(reservoirDefaultFields)) {
+    } else if ([JSON.stringify(aquiferDefaultFields), JSON.stringify(damDefaultFields), JSON.stringify(reservoirDefaultFields), JSON.stringify(treatmentStationDefaultFields)].includes(JSON.stringify(customFields))) {
         setCustomFields([{key: '', value: ''}]);
     }
   }
@@ -312,6 +320,8 @@ export default function WaterResourceReport({
                             <SelectContent>
                                 <SelectItem value="Barragem">Barragem</SelectItem>
                                 <SelectItem value="Albufeira">Albufeira (Corpo de Água)</SelectItem>
+                                <SelectItem value="Estação de Tratamento de Água (ETA)">Estação de Tratamento de Água (ETA)</SelectItem>
+                                <SelectItem value="Estação de Tratamento de Águas Residuais (ETAR)">Estação de Tratamento de Águas Residuais (ETAR)</SelectItem>
                                 <SelectItem value="Aquífero">Aquífero</SelectItem>
                                 <SelectItem value="Bacia Hidrográfica">Bacia Hidrográfica</SelectItem>
                                 <SelectItem value="Sub-bacia Hidrográfica">Sub-bacia Hidrográfica</SelectItem>
