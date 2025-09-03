@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, Users2, ListTodo, Route, HardHat } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, Users2, ListTodo, Route, HardHat, Waves } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -133,6 +133,7 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                             <DropdownMenuSubContent>
                                 <DropdownMenuItem asChild><Link href="/admin/projetos"><Briefcase className="mr-2 h-4 w-4" />Gerir Projetos</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/verificacao"><ShieldCheck className="mr-2 h-4 w-4" />Verificação de Imóveis</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/admin/fiscalizacao-ambiental"><Waves className="mr-2 h-4 w-4" />Fiscalização Ambiental</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/inspecao"><ScanLine className="mr-2 h-4 w-4" />Inspeção de Obra</Link></DropdownMenuItem>
                             </DropdownMenuSubContent>
                         </DropdownMenuSub>
