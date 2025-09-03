@@ -116,10 +116,23 @@ const defaultCenter = { lat: -8.8368, lng: 13.2343 };
 const defaultZoom = 12;
 
 const aquiferDefaultFields = [
-    { key: 'Profundidade (m)', value: '' },
+    { key: 'Profundidade Média (m)', value: '' },
     { key: 'Vulnerabilidade', value: '' },
-    { key: 'Potencial', value: '' },
+    { key: 'Potencial de Exploração', value: '' },
 ];
+
+const damDefaultFields = [
+    { key: 'Altura do Paredão (m)', value: '' },
+    { key: 'Comprimento da Crista (m)', value: '' },
+    { key: 'Tipo de Barragem', value: '' },
+];
+
+const reservoirDefaultFields = [
+    { key: 'Capacidade Máxima (m³)', value: '' },
+    { key: 'Área Inundada (km²)', value: '' },
+    { key: 'Uso Principal', value: '' },
+];
+
 
 export default function WaterResourceReport({ 
     open, 
@@ -186,9 +199,13 @@ export default function WaterResourceReport({
     form.setValue('title', value);
     if (value === 'Aquífero') {
         setCustomFields(aquiferDefaultFields);
+    } else if (value === 'Barragem') {
+        setCustomFields(damDefaultFields);
+    } else if (value === 'Albufeira') {
+        setCustomFields(reservoirDefaultFields);
     } else if (customFields.length === 1 && customFields[0].key === '' && customFields[0].value === '') {
         // do nothing if it's the default empty field
-    } else if (JSON.stringify(customFields) === JSON.stringify(aquiferDefaultFields)) {
+    } else if (JSON.stringify(customFields) === JSON.stringify(aquiferDefaultFields) || JSON.stringify(customFields) === JSON.stringify(damDefaultFields) || JSON.stringify(customFields) === JSON.stringify(reservoirDefaultFields)) {
         setCustomFields([{key: '', value: ''}]);
     }
   }
@@ -293,9 +310,11 @@ export default function WaterResourceReport({
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                                <SelectItem value="Barragem">Barragem</SelectItem>
+                                <SelectItem value="Albufeira">Albufeira (Corpo de Água)</SelectItem>
+                                <SelectItem value="Aquífero">Aquífero</SelectItem>
                                 <SelectItem value="Bacia Hidrográfica">Bacia Hidrográfica</SelectItem>
                                 <SelectItem value="Sub-bacia Hidrográfica">Sub-bacia Hidrográfica</SelectItem>
-                                <SelectItem value="Aquífero">Aquífero</SelectItem>
                                 <SelectItem value="Rio Principal">Rio Principal</SelectItem>
                                 <SelectItem value="Afluente / Riacho">Afluente / Riacho</SelectItem>
                                 <SelectItem value="Lago / Lagoa">Lago / Lagoa</SelectItem>
