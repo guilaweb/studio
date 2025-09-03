@@ -30,7 +30,7 @@ export type PointOfInterestPriority = z.infer<typeof PointOfInterestPriorityEnum
 export const PointOfInterestUsageTypeEnum = z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']);
 export type PointOfInterestUsageType = z.infer<typeof PointOfInterestUsageTypeEnum>;
 
-export const AnnouncementCategoryEnum = z.enum(['general', 'traffic', 'event', 'public_works', 'security', 'other']);
+export const AnnouncementCategoryEnum = z.enum(['general', 'traffic', 'event', 'public_works', 'security', 'other', 'flood_warning', 'drought_warning']);
 export type AnnouncementCategory = z.infer<typeof AnnouncementCategoryEnum>;
 
 export const PropertyTypeEnum = z.enum(['land', 'house', 'apartment', 'villa', 'farm', 'commercial']);
@@ -227,6 +227,8 @@ export const announcementCategoryMap: Record<AnnouncementCategory, string> = {
     public_works: 'Obras Públicas',
     security: 'Segurança',
     other: 'Outro',
+    flood_warning: 'Alerta de Cheia',
+    drought_warning: 'Alerta de Seca',
 };
 
 export const queueTimeLabelMap: Record<QueueTime, string> = {

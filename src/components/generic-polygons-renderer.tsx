@@ -8,8 +8,19 @@ import { PointOfInterest } from "@/lib/data";
 
 const getPlotColors = (point: PointOfInterest) => {
     const status = point.status;
-    if (point.type === 'announcement' || point.type === 'croqui') {
+    
+    if (point.type === 'announcement') {
+        if (point.announcementCategory === 'flood_warning') {
+            return { stroke: '#ef4444', fill: '#ef4444' }; // red
+        }
+         if (point.announcementCategory === 'drought_warning') {
+            return { stroke: '#f97316', fill: '#f97316' }; // orange
+        }
         return { stroke: 'hsl(var(--primary))', fill: 'hsl(var(--primary))' };
+    }
+    
+    if (point.type === 'croqui') {
+         return { stroke: 'hsl(var(--primary))', fill: 'hsl(var(--primary))' };
     }
     
     if (point.type === 'water_resource') {
