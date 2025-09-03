@@ -7,7 +7,7 @@ import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Plus, Share2, Folder, Upload, Route, MoreVertical, Edit } from "lucide-react";
+import { ArrowLeft, Plus, Share2, Folder, Upload, Route, MoreVertical, Edit, FileSignature, Loader2 } from "lucide-react";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
 import { useRouter } from "next/navigation";
@@ -17,11 +17,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import CroquiEditDialog from "@/components/meus-croquis/croqui-edit-dialog";
+import { generateLocationSketch } from "@/ai/flows/generate-location-sketch-flow";
 
-const CroquiCard = ({ croqui, onShare, onSelect, isSelected, onEdit }: { croqui: PointOfInterest, onShare: (id: string, title: string) => void, onSelect: (id: string, selected: boolean) => void, isSelected: boolean, onEdit: (croqui: PointOfInterest) => void }) => {
+const CroquiCard = ({ croqui, onShare, onSelect, isSelected, onEdit, onGenerateDocument, isGeneratingId }: { croqui: PointOfInterest, onShare: (id: string, title: string) => void, onSelect: (id: string, selected: boolean) => void, isSelected: boolean, onEdit: (croqui: PointOfInterest) => void, onGenerateDocument: (croqui: PointOfInterest) => void, isGeneratingId: string | null }) => {
     return (
         <Card className={`transition-colors ${isSelected ? 'bg-primary/10 border-primary' : ''}`}>
             <CardContent className="p-4 flex items-center justify-between">
@@ -46,7 +48,7 @@ const CroquiCard = ({ croqui, onShare, onSelect, isSelected, onEdit }: { croqui:
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-9 w-9">
-                                <MoreVertical className="h-4 w-4" />
+                                {isGeneratingId === croqui.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <MoreVertical className="h-4 w-4" />}
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -55,6 +57,10 @@ const CroquiCard = ({ croqui, onShare, onSelect, isSelected, onEdit }: { croqui:
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => onEdit(croqui)}>
                                 <Edit className="mr-2 h-4 w-4" /> Editar / Mover
+                            </DropdownMenuItem>
+                             <DropdownMenuSeparator />
+                             <DropdownMenuItem onClick={() => onGenerateDocument(croqui)} disabled={isGeneratingId === croqui.id}>
+                                <FileSignature className="mr-2 h-4 w-4" /> Gerar Documento
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -71,6 +77,7 @@ function MeusCroquisPage() {
     const { toast } = useToast();
     const [selectedCroquis, setSelectedCroquis] = React.useState<string[]>([]);
     const [croquiToEdit, setCroquiToEdit] = React.useState<PointOfInterest | null>(null);
+    const [isGeneratingId, setIsGeneratingId] = React.useState<string | null>(null);
 
     const userCroquisByCollection = React.useMemo(() => {
         if (!user) return {};
@@ -119,6 +126,45 @@ function MeusCroquisPage() {
         toast({ title: "Croqui Atualizado!", description: "As suas alterações foram guardadas com sucesso." });
         setCroquiToEdit(null);
     };
+    
+    const handleGenerateDocument = async (croqui: PointOfInterest) => {
+        if (!croqui.polygon || !croqui.customData) {
+            toast({ variant: "destructive", title: "Dados Insuficientes", description: "O croqui precisa de ter uma área desenhada e dados do requerente para gerar o documento." });
+            return;
+        }
+        setIsGeneratingId(croqui.id);
+        try {
+            const result = await generateLocationSketch({
+                plot: {
+                    polygon: croqui.polygon,
+                    area: croqui.area,
+                    plotNumber: croqui.plotNumber,
+                },
+                project: {
+                    requesterName: croqui.customData.requesterName,
+                    municipality: croqui.customData.municipality,
+                    province: croqui.customData.province,
+                    date: new Date().toLocaleDateString('pt-PT'),
+                },
+            });
+            localStorage.setItem('sketchPreview', result.sketchHtml);
+            window.open('/licenca/sketch-preview', '_blank');
+            toast({
+                title: "Croqui de Localização Gerado",
+                description: "O documento foi gerado e aberto numa nova aba.",
+            });
+        } catch (error) {
+            console.error("Failed to generate location sketch:", error);
+            toast({
+                variant: "destructive",
+                title: "Erro ao Gerar Croqui",
+                description: "Não foi possível gerar o documento de localização.",
+            });
+        } finally {
+            setIsGeneratingId(null);
+        }
+    };
+
 
     if (loading) {
         return <div className="flex min-h-screen items-center justify-center">A carregar os seus croquis...</div>;
@@ -174,6 +220,8 @@ function MeusCroquisPage() {
                                                 onSelect={handleSelectCroqui}
                                                 isSelected={selectedCroquis.includes(c.id)}
                                                 onEdit={handleEditCroqui}
+                                                onGenerateDocument={handleGenerateDocument}
+                                                isGeneratingId={isGeneratingId}
                                             />
                                         ))}
                                     </CardContent>
