@@ -22,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2 } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -42,9 +42,10 @@ import AnnouncementReport from "./announcement-report";
 import ConstructionEdit from "./construction-edit";
 import CroquiReport from "./croqui-report";
 import WaterResourceReport from "./water-resource-report";
+import PollutionReport from "./pollution-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource' | 'pollution';
 type EditMode = 'edit' | 'divide' | null;
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
@@ -469,6 +470,49 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     toast({
       title: "Reporte de Fuga de Água Recebido!",
       description: "Obrigado pela sua contribuição para a gestão da nossa rede de águas.",
+    });
+  }
+  
+   const handleAddNewPollutionReport = async (
+    data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate' | 'priority'> & { photoDataUri?: string }
+  ) => {
+     if (!user || !profile) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para reportar.",
+        });
+        return;
+    }
+    handleSheetOpenChange(false);
+    const timestamp = new Date().toISOString();
+
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `water-${Date.now()}`,
+      type: 'water',
+      title: 'Reporte de Poluição',
+      authorId: user.uid,
+      authorDisplayName: profile.displayName,
+      lastReported: timestamp,
+      status: 'unknown',
+      description: data.description,
+      position: data.position,
+      priority: data.priority,
+      incidentDate: data.incidentDate,
+      updates: [{
+          text: data.description,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+          photoDataUri: data.photoDataUri,
+      }]
+    };
+    
+    addPoint(pointToAdd);
+
+    toast({
+      title: "Reporte de Poluição Recebido!",
+      description: "A sua denúncia foi registada e será analisada. Obrigado!",
     });
   }
 
@@ -953,6 +997,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Droplet className="mr-2 h-4 w-4" />
                             Reportar Fuga de Água
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStartReporting('pollution')}>
+                            <Waves className="mr-2 h-4 w-4" />
+                            Reportar Poluição
+                        </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => handleStartReporting('sanitation')}>
                             <Trash className="mr-2 h-4 w-4" />
                             Mapear Contentor
@@ -1056,6 +1104,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         <DropdownMenuItem onClick={() => handleStartReporting('water_leak')}>
                             <Droplet className="mr-2 h-4 w-4" />
                             Reportar Fuga de Água
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStartReporting('pollution')}>
+                            <Waves className="mr-2 h-4 w-4" />
+                            Reportar Poluição
                         </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => handleStartReporting('sanitation')}>
                             <Trash className="mr-2 h-4 w-4" />
@@ -1163,6 +1215,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             onWaterLeakSubmit={handleAddNewWaterLeakReport}
             initialCenter={mapCenter}
         />
+         <PollutionReport
+            open={activeSheet === 'pollution'}
+            onOpenChange={handleSheetOpenChange}
+            onPollutionSubmit={handleAddNewPollutionReport}
+            initialCenter={mapCenter}
+        />
         <LandPlotReport
             open={activeSheet === 'land_plot'}
             onOpenChange={handleSheetOpenChange}
@@ -1202,6 +1260,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       </SidebarProvider>
   );
 }
+
 
 
 

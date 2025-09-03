@@ -5,8 +5,8 @@
 import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical } from "lucide-react";
+import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime, PointOfInterestStatus } from "@/lib/data";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical, Waves } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +23,7 @@ import { usePoints } from "@/hooks/use-points";
 import DeleteConfirmationDialog from "./delete-confirmation-dialog";
 import AtmNoteReport from "./atm-note-report";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 type PointOfInterestDetailsProps = {
   poi: PointOfInterest | null;
@@ -180,6 +181,38 @@ const SanitationTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInte
                     </div>
                  )}
              </div>
+        </div>
+    )
+}
+
+const CommunityWaterMonitor = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], canUpdate: boolean}) => {
+    
+    if (poi.type !== 'water_resource') return null;
+    
+    const [level, setLevel] = React.useState<PointOfInterestStatus | null>(null);
+
+    const getStatusBadge = () => {
+        if (!poi.status || !['level_low', 'level_normal', 'level_flood'].includes(poi.status)) {
+            return <Badge variant="secondary">Sem dados comunitários</Badge>
+        }
+        return <Badge variant={poi.status === 'level_flood' ? 'destructive' : 'default'}>{statusLabelMap[poi.status]}</Badge>;
+    }
+    
+    if (!canUpdate) return null;
+
+    return (
+        <div className="mt-4 p-4 rounded-lg bg-muted/50">
+             <h3 className="font-semibold mb-2">Monitor Comunitário de Nível</h3>
+             <div className="flex items-center justify-between mb-4">
+                {getStatusBadge()}
+                {getLastReportedTime(poi.lastReported)}
+            </div>
+             <p className="text-xs text-muted-foreground mb-2">Se está perto deste local, ajude a comunidade reportando o nível atual da água.</p>
+             <div className="grid grid-cols-3 gap-2">
+                <Button variant="outline" onClick={() => onPoiStatusChange(poi.id, 'level_low')}>Baixo</Button>
+                <Button variant="outline" onClick={() => onPoiStatusChange(poi.id, 'level_normal')}>Normal</Button>
+                <Button variant="destructive" onClick={() => onPoiStatusChange(poi.id, 'level_flood')}>Cheia</Button>
+            </div>
         </div>
     )
 }
@@ -769,6 +802,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 {poi.type === 'construction' && <DocumentList poi={poi} />}
 
                 {poi.type === 'water_resource' && <SensorDataDetails poi={poi} />}
+                
+                <CommunityWaterMonitor poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />
 
                 <CustomDataDetails poi={poi} />
                 
