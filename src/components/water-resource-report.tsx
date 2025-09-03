@@ -160,6 +160,11 @@ const pollutionSourceDefaultFields = [
     { key: 'Estado da Licença Ambiental', value: '' },
 ];
 
+const watershedDefaultFields = [
+    { key: 'Disponibilidade Anual (hm³)', value: '' },
+    { key: 'Procura Total (hm³)', value: '' },
+];
+
 
 export default function WaterResourceReport({ 
     open, 
@@ -238,6 +243,8 @@ export default function WaterResourceReport({
         setCustomFields(monitoringPointDefaultFields);
     } else if (value === 'Fonte de Poluição Potencial') {
         setCustomFields(pollutionSourceDefaultFields);
+    } else if (value === 'Bacia Hidrográfica') {
+        setCustomFields(watershedDefaultFields);
     } else if (customFields.length === 1 && customFields[0].key === '' && customFields[0].value === '') {
         // do nothing if it's the default empty field
     } else if ([
@@ -247,7 +254,8 @@ export default function WaterResourceReport({
         JSON.stringify(treatmentStationDefaultFields),
         JSON.stringify(concessionDefaultFields),
         JSON.stringify(monitoringPointDefaultFields),
-        JSON.stringify(pollutionSourceDefaultFields)
+        JSON.stringify(pollutionSourceDefaultFields),
+        JSON.stringify(watershedDefaultFields)
         ].includes(JSON.stringify(customFields))) {
         setCustomFields([{key: '', value: ''}]);
     }

@@ -6,11 +6,14 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Droplets, Database, Activity, GitBranch, BrainCircuit, CheckSquare, Layers, MapPin, Factory, AlertTriangle, CloudRain, Wind, FileSignature, Search, BarChart, FlaskConical } from "lucide-react";
+import { ArrowLeft, Droplets, Database, Activity, GitBranch, BrainCircuit, CheckSquare, Layers, MapPin, Factory, AlertTriangle, CloudRain, Wind, FileSignature, Search, BarChart, FlaskConical, PlusCircle } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterestMarker } from "@/components/map-component";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 
 const features = [
     {
@@ -103,12 +106,92 @@ const features = [
     }
 ];
 
+const WaterBalanceDashboard = ({ watersheds }: { watersheds: any[] }) => {
+    const [selectedWatershed, setSelectedWatershed] = React.useState<any | null>(null);
+
+    const disponibilidade = selectedWatershed?.customData?.['Disponibilidade Anual (hm³)'] || 0;
+    const procura = selectedWatershed?.customData?.['Procura Total (hm³)'] || 0;
+    const balanco = disponibilidade - procura;
+    
+    let stressPercentage = 0;
+    let stressColor = 'bg-green-500';
+
+    if (disponibilidade > 0) {
+        const ratio = procura / disponibilidade;
+        if (ratio < 0.2) { // Low stress
+            stressPercentage = ratio * 100;
+            stressColor = 'bg-green-500';
+        } else if (ratio < 0.4) { // Medium stress
+            stressPercentage = ratio * 100;
+            stressColor = 'bg-yellow-500';
+        } else { // High stress
+            stressPercentage = Math.min(ratio * 100, 100);
+            stressColor = 'bg-red-500';
+        }
+    } else if (procura > 0) {
+        stressPercentage = 100;
+        stressColor = 'bg-red-500';
+    }
+
+
+    return (
+         <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <BarChart className="h-6 w-6 text-primary" />
+                    Balanço Hídrico
+                </CardTitle>
+                <CardDescription>Análise da disponibilidade vs. procura de água por bacia hidrográfica.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <Select onValueChange={(id) => setSelectedWatershed(watersheds.find(w => w.id === id) || null)}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma Bacia Hidrográfica" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {watersheds.map(ws => (
+                            <SelectItem key={ws.id} value={ws.id}>{ws.title}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                {selectedWatershed && (
+                    <div className="space-y-4 pt-2">
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                                <Label>Disponibilidade (Oferta)</Label>
+                                <span className="font-semibold">{disponibilidade} hm³/ano</span>
+                            </div>
+                             <div className="flex justify-between text-sm">
+                                <Label>Uso Total (Procura)</Label>
+                                <span className="font-semibold">{procura} hm³/ano</span>
+                            </div>
+                             <div className="flex justify-between text-sm font-bold">
+                                <Label>Balanço</Label>
+                                <span className={balanco >= 0 ? 'text-green-600' : 'text-red-600'}>{balanco.toFixed(2)} hm³/ano</span>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Indicador de Stress Hídrico ({stressPercentage.toFixed(0)}%)</Label>
+                            <Progress value={stressPercentage} indicatorClassName={stressColor} />
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
+
 function WaterResourcesPage() {
     const { allData } = usePoints();
     
     const waterResources = React.useMemo(() => {
         return allData.filter(p => p.type === 'water_resource');
     }, [allData]);
+    
+    const watersheds = React.useMemo(() => {
+        return waterResources.filter(p => p.title.toLowerCase().includes('bacia'));
+    }, [waterResources]);
 
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -126,6 +209,7 @@ function WaterResourcesPage() {
                 </header>
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
                     <div className="md:col-span-1 lg:col-span-1 space-y-4">
+                        <WaterBalanceDashboard watersheds={watersheds} />
                         <Card>
                              <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
