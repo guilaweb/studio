@@ -15,13 +15,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { WMSLayer, WFSLayer, WMTSLayer } from "@/components/map-component";
 
 function LandUsePage() {
     const { externalLayers, loading } = useExternalLayers();
     const { toast } = useToast();
     
-    const landCoverLayer = React.useMemo(() => {
-        return externalLayers.find(l => l.name.toLowerCase().includes('uso do solo'));
+    const landCoverLayers = React.useMemo(() => {
+        return externalLayers.filter(l => l.name.toLowerCase().includes('uso do solo') && l.visible);
     }, [externalLayers]);
 
     const legendItems = [
@@ -76,11 +77,11 @@ function LandUsePage() {
                             </CardHeader>
                             <CardContent>
                                 <Tabs defaultValue="deforestation">
-                                    <TabsList className="grid w-full grid-cols-2">
+                                    <TabsList className="w-full md:grid-cols-2 grid">
                                         <TabsTrigger value="deforestation">Desflorestação</TabsTrigger>
                                         <TabsTrigger value="arable">Terras Aráveis</TabsTrigger>
                                     </TabsList>
-                                    <TabsContent value="deforestation" className="pt-4 space-y-4">
+                                    <TabsContent value="deforestation" className="pt-6 space-y-6">
                                         <div className="space-y-2">
                                             <Label>Período de Análise</Label>
                                             <div className="grid grid-cols-2 gap-2">
@@ -93,7 +94,7 @@ function LandUsePage() {
                                             Analisar Desflorestação
                                         </Button>
                                     </TabsContent>
-                                    <TabsContent value="arable" className="pt-4 space-y-4">
+                                    <TabsContent value="arable" className="pt-6 space-y-6">
                                          <div className="space-y-2">
                                             <Label htmlFor="culture-type">Tipo de Cultura Potencial</Label>
                                             <Select>
@@ -131,7 +132,18 @@ function LandUsePage() {
                             >
                                 {loading ? <Skeleton className="h-full w-full"/> : (
                                     <>
-                                     {/* Future WMS/WFS layers will be rendered here from the service */}
+                                     {landCoverLayers.map(layer => {
+                                        if (layer.type === 'wms') {
+                                            return <WMSLayer key={layer.id} url={layer.url} layerName={layer.layerName} />;
+                                        }
+                                        if (layer.type === 'wfs') {
+                                            return <WFSLayer key={layer.id} url={layer.url} layerName={layer.layerName} />;
+                                        }
+                                        if (layer.type === 'wmts') {
+                                            return <WMTSLayer key={layer.id} url={layer.url} layerName={layer.layerName} />;
+                                        }
+                                        return null;
+                                    })}
                                     </>
                                 )}
                             </Map>
