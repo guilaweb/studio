@@ -146,6 +146,13 @@ const concessionDefaultFields = [
     { key: 'Data de Validade', value: '' },
 ];
 
+const monitoringPointDefaultFields = [
+    { key: 'ID da Estação', value: '' },
+    { key: 'Parâmetros Monitorados', value: '' },
+    { key: 'Frequência de Coleta', value: '' },
+    { key: 'Entidade Responsável', value: '' },
+];
+
 
 export default function WaterResourceReport({ 
     open, 
@@ -220,6 +227,8 @@ export default function WaterResourceReport({
         setCustomFields(treatmentStationDefaultFields);
     } else if (value === 'Concessão / Licença de Uso') {
         setCustomFields(concessionDefaultFields);
+    } else if (value === 'Ponto de Monitoramento de Qualidade') {
+        setCustomFields(monitoringPointDefaultFields);
     } else if (customFields.length === 1 && customFields[0].key === '' && customFields[0].value === '') {
         // do nothing if it's the default empty field
     } else if ([
@@ -227,7 +236,8 @@ export default function WaterResourceReport({
         JSON.stringify(damDefaultFields), 
         JSON.stringify(reservoirDefaultFields), 
         JSON.stringify(treatmentStationDefaultFields),
-        JSON.stringify(concessionDefaultFields)
+        JSON.stringify(concessionDefaultFields),
+        JSON.stringify(monitoringPointDefaultFields)
         ].includes(JSON.stringify(customFields))) {
         setCustomFields([{key: '', value: ''}]);
     }
@@ -333,6 +343,7 @@ export default function WaterResourceReport({
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                                <SelectItem value="Ponto de Monitoramento de Qualidade">Ponto de Monitoramento de Qualidade</SelectItem>
                                 <SelectItem value="Concessão / Licença de Uso">Concessão / Licença de Uso</SelectItem>
                                 <SelectItem value="Barragem">Barragem</SelectItem>
                                 <SelectItem value="Albufeira">Albufeira (Corpo de Água)</SelectItem>
