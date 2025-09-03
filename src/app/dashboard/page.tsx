@@ -23,12 +23,13 @@ import IntelligentAlerts from "@/components/dashboard/intelligent-alerts";
 import { getIntelligentAlerts } from "@/services/alert-service";
 import RecentActivityFeed from "@/components/dashboard/recent-activity-feed";
 import IntelligentSummary from "@/components/dashboard/intelligent-summary";
-import { withAuth } from "@/hooks/use-auth";
+import { withAuth, useAuth } from "@/hooks/use-auth";
 import { formatDistanceStrict } from "date-fns";
 import { pt } from "date-fns/locale";
 import DashboardClusterer from "@/components/dashboard/dashboard-clusterer";
 import HeatmapLayer from "@/components/dashboard/heatmap-layer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { usePublicLayerSettings } from "@/services/settings-service";
 
 
 const chartConfig = {
@@ -66,6 +67,10 @@ const chartConfig = {
   announcement: {
       label: "Anúncios",
       color: "hsl(var(--chart-3))",
+  },
+  croqui: {
+      label: "Croquis",
+      color: "hsl(var(--chart-4))",
   },
   default: {
     label: "Outro",
@@ -133,6 +138,7 @@ const getKPIs = (data: PointOfInterest[]) => {
 
 function DashboardPage() {
   const { allData } = usePoints();
+  const { publicLayers, loading: loadingLayers } = usePublicLayerSettings();
   const router = useRouter();
   const [mapView, setMapView] = React.useState<'heatmap' | 'cluster'>('heatmap');
   const [isClient, setIsClient] = React.useState(false);
@@ -146,13 +152,16 @@ function DashboardPage() {
   const intelligentAlerts = React.useMemo(() => getIntelligentAlerts(allData), [allData]);
 
   const chartData = React.useMemo(() => {
-    if (!allData || allData.length === 0) {
+    if (!allData || allData.length === 0 || !publicLayers) {
         return [];
     }
     const counts: { [key in Layer]?: number } = {};
+    const visibleLayers = Object.entries(publicLayers)
+        .filter(([, isVisible]) => isVisible)
+        .map(([key]) => key);
 
-    for (const key in chartConfig) {
-        if (key !== 'reports' && key !== 'default') {
+    for (const key of visibleLayers) {
+        if (key in chartConfig) {
             counts[key as Layer] = 0;
         }
     }
@@ -168,7 +177,7 @@ function DashboardPage() {
         total,
         fill: `var(--color-${name})`,
     }));
-}, [allData]);
+}, [allData, publicLayers]);
 
 
   const handleViewOnMap = (poiId: string) => {
@@ -182,6 +191,10 @@ function DashboardPage() {
   const avgResolutionTime = isClient && kpis.avgResolutionTimeMs
     ? formatDistanceStrict(new Date(0), new Date(kpis.avgResolutionTimeMs), { locale: pt })
     : 'N/A';
+
+  if (loadingLayers) {
+    return <div className="flex h-screen w-full items-center justify-center">A carregar dashboard...</div>
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -339,3 +352,4 @@ function DashboardPage() {
 }
 
 export default withAuth(DashboardPage, ['Agente Municipal', 'Administrador']);
+
