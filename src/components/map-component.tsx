@@ -225,7 +225,7 @@ const LineRenderer: React.FC<{
     return null;
 }
 
-const WMSLayer = ({ url, layerName }: { url: string, layerName: string }) => {
+export const WMSLayer = ({ url, layerName }: { url: string, layerName: string }) => {
     const map = useMap();
 
     useEffect(() => {
@@ -278,7 +278,7 @@ const WMSLayer = ({ url, layerName }: { url: string, layerName: string }) => {
     return null;
 };
 
-const WMTSLayer = ({ url, layerName }: { url: string; layerName: string }) => {
+export const WMTSLayer = ({ url, layerName }: { url: string; layerName: string }) => {
   const map = useMap();
 
   useEffect(() => {
@@ -316,7 +316,7 @@ const WMTSLayer = ({ url, layerName }: { url: string; layerName: string }) => {
 };
 
 
-const WFSLayer = ({ url, layerName }: { url: string, layerName: string }) => {
+export const WFSLayer = ({ url, layerName }: { url: string, layerName: string }) => {
     const map = useMap();
 
     useEffect(() => {
