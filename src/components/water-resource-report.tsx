@@ -115,6 +115,12 @@ type WaterResourceReportProps = {
 const defaultCenter = { lat: -8.8368, lng: 13.2343 };
 const defaultZoom = 12;
 
+const aquiferDefaultFields = [
+    { key: 'Profundidade (m)', value: '' },
+    { key: 'Vulnerabilidade', value: '' },
+    { key: 'Potencial', value: '' },
+];
+
 export default function WaterResourceReport({ 
     open, 
     onOpenChange, 
@@ -175,6 +181,17 @@ export default function WaterResourceReport({
   const removeCustomField = (index: number) => {
     setCustomFields(customFields.filter((_, i) => i !== index));
   };
+  
+  const handleResourceTypeChange = (value: string) => {
+    form.setValue('title', value);
+    if (value === 'Aquífero') {
+        setCustomFields(aquiferDefaultFields);
+    } else if (customFields.length === 1 && customFields[0].key === '' && customFields[0].value === '') {
+        // do nothing if it's the default empty field
+    } else if (JSON.stringify(customFields) === JSON.stringify(aquiferDefaultFields)) {
+        setCustomFields([{key: '', value: ''}]);
+    }
+  }
 
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -269,7 +286,7 @@ export default function WaterResourceReport({
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Tipo de Recurso</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={(value) => { field.onChange(value); handleResourceTypeChange(value); }} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecione o tipo" />
@@ -278,6 +295,7 @@ export default function WaterResourceReport({
                             <SelectContent>
                                 <SelectItem value="Bacia Hidrográfica">Bacia Hidrográfica</SelectItem>
                                 <SelectItem value="Sub-bacia Hidrográfica">Sub-bacia Hidrográfica</SelectItem>
+                                <SelectItem value="Aquífero">Aquífero</SelectItem>
                                 <SelectItem value="Rio Principal">Rio Principal</SelectItem>
                                 <SelectItem value="Afluente / Riacho">Afluente / Riacho</SelectItem>
                                 <SelectItem value="Lago / Lagoa">Lago / Lagoa</SelectItem>
