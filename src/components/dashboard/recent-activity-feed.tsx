@@ -43,7 +43,7 @@ const RecentActivityFeed = ({ data }: { data: PointOfInterest[] }) => {
                                <div className="flex-1">
                                    <p className="text-sm font-medium leading-none">{point.title}</p>
                                    <p className="text-sm text-muted-foreground">
-                                    {isClient ? `Reportado ${point.lastReported ? formatDistanceToNow(new Date(point.lastReported), { addSuffix: true, locale: pt}) : 'recentemente'}` : 'A carregar...'}
+                                    {isClient && point.lastReported ? `Reportado ${formatDistanceToNow(new Date(point.lastReported), { addSuffix: true, locale: pt})}` : 'A carregar...'}
                                    </p>
                                </div>
                             </div>
