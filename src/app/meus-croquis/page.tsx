@@ -21,10 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import CroquiEditDialog from "@/components/meus-croquis/croqui-edit-dialog";
-import { generateLocationSketch } from "@/ai/flows/generate-location-sketch-flow";
-import { useMapsLibrary } from "@vis.gl/react-google-maps";
 
-const CroquiCard = ({ croqui, onShare, onSelect, isSelected, onEdit, onGenerateDocument, isGeneratingId }: { croqui: PointOfInterest, onShare: (id: string, title: string) => void, onSelect: (id: string, selected: boolean) => void, isSelected: boolean, onEdit: (croqui: PointOfInterest) => void, onGenerateDocument: (croqui: PointOfInterest) => void, isGeneratingId: string | null }) => {
+const CroquiCard = ({ croqui, onShare, onSelect, isSelected, onEdit, onGenerateDocument }: { croqui: PointOfInterest, onShare: (id: string, title: string) => void, onSelect: (id: string, selected: boolean) => void, isSelected: boolean, onEdit: (croqui: PointOfInterest) => void, onGenerateDocument: (croqui: PointOfInterest) => void }) => {
     return (
         <Card className={`transition-colors ${isSelected ? 'bg-primary/10 border-primary' : ''}`}>
             <CardContent className="p-4 flex items-center justify-between">
@@ -49,7 +47,7 @@ const CroquiCard = ({ croqui, onShare, onSelect, isSelected, onEdit, onGenerateD
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-9 w-9">
-                                {isGeneratingId === croqui.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <MoreVertical className="h-4 w-4" />}
+                                <MoreVertical className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -60,8 +58,8 @@ const CroquiCard = ({ croqui, onShare, onSelect, isSelected, onEdit, onGenerateD
                                 <Edit className="mr-2 h-4 w-4" /> Editar / Mover
                             </DropdownMenuItem>
                              <DropdownMenuSeparator />
-                             <DropdownMenuItem onClick={() => onGenerateDocument(croqui)} disabled={isGeneratingId === croqui.id}>
-                                <FileSignature className="mr-2 h-4 w-4" /> Gerar Documento
+                             <DropdownMenuItem onClick={() => onGenerateDocument(croqui)}>
+                                <FileSignature className="mr-2 h-4 w-4" /> Ver Documento
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -78,8 +76,6 @@ function MeusCroquisPage() {
     const { toast } = useToast();
     const [selectedCroquis, setSelectedCroquis] = React.useState<string[]>([]);
     const [croquiToEdit, setCroquiToEdit] = React.useState<PointOfInterest | null>(null);
-    const [isGeneratingId, setIsGeneratingId] = React.useState<string | null>(null);
-    const geometry = useMapsLibrary('geometry');
 
     const userCroquisByCollection = React.useMemo(() => {
         if (!user) return {};
@@ -129,48 +125,8 @@ function MeusCroquisPage() {
         setCroquiToEdit(null);
     };
     
-    const handleGenerateDocument = async (croqui: PointOfInterest) => {
-        if (!croqui.polygon || !croqui.customData) {
-            toast({ variant: "destructive", title: "Dados Insuficientes", description: "O croqui precisa de ter uma área desenhada e dados do requerente para gerar o documento." });
-            return;
-        }
-        setIsGeneratingId(croqui.id);
-        
-        let calculatedArea = croqui.area;
-        if (geometry && croqui.polygon && croqui.polygon.length > 2) {
-            calculatedArea = geometry.spherical.computeArea(croqui.polygon);
-        }
-
-        try {
-            const result = await generateLocationSketch({
-                plot: {
-                    polygon: croqui.polygon,
-                    area: calculatedArea,
-                    plotNumber: croqui.plotNumber,
-                },
-                project: {
-                    requesterName: croqui.customData.requesterName,
-                    municipality: croqui.customData.municipality,
-                    province: croqui.customData.province,
-                    date: new Date().toLocaleDateString('pt-PT'),
-                },
-            });
-            localStorage.setItem('sketchPreview', result.sketchHtml);
-            window.open('/licenca/sketch-preview', '_blank');
-            toast({
-                title: "Croqui de Localização Gerado",
-                description: "O documento foi gerado e aberto numa nova aba.",
-            });
-        } catch (error) {
-            console.error("Failed to generate location sketch:", error);
-            toast({
-                variant: "destructive",
-                title: "Erro ao Gerar Croqui",
-                description: "Não foi possível gerar o documento de localização.",
-            });
-        } finally {
-            setIsGeneratingId(null);
-        }
+    const handleGenerateDocument = (croqui: PointOfInterest) => {
+        router.push(`/croquis/${croqui.id}/documento`);
     };
 
 
@@ -229,7 +185,6 @@ function MeusCroquisPage() {
                                                 isSelected={selectedCroquis.includes(c.id)}
                                                 onEdit={handleEditCroqui}
                                                 onGenerateDocument={handleGenerateDocument}
-                                                isGeneratingId={isGeneratingId}
                                             />
                                         ))}
                                     </CardContent>
