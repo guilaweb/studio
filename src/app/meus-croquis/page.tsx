@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import CroquiEditDialog from "@/components/meus-croquis/croqui-edit-dialog";
 import { generateLocationSketch } from "@/ai/flows/generate-location-sketch-flow";
+import { useMapsLibrary } from "@vis.gl/react-google-maps";
 
 const CroquiCard = ({ croqui, onShare, onSelect, isSelected, onEdit, onGenerateDocument, isGeneratingId }: { croqui: PointOfInterest, onShare: (id: string, title: string) => void, onSelect: (id: string, selected: boolean) => void, isSelected: boolean, onEdit: (croqui: PointOfInterest) => void, onGenerateDocument: (croqui: PointOfInterest) => void, isGeneratingId: string | null }) => {
     return (
@@ -78,6 +79,7 @@ function MeusCroquisPage() {
     const [selectedCroquis, setSelectedCroquis] = React.useState<string[]>([]);
     const [croquiToEdit, setCroquiToEdit] = React.useState<PointOfInterest | null>(null);
     const [isGeneratingId, setIsGeneratingId] = React.useState<string | null>(null);
+    const geometry = useMapsLibrary('geometry');
 
     const userCroquisByCollection = React.useMemo(() => {
         if (!user) return {};
@@ -133,11 +135,17 @@ function MeusCroquisPage() {
             return;
         }
         setIsGeneratingId(croqui.id);
+        
+        let calculatedArea = croqui.area;
+        if (geometry && croqui.polygon && croqui.polygon.length > 2) {
+            calculatedArea = geometry.spherical.computeArea(croqui.polygon);
+        }
+
         try {
             const result = await generateLocationSketch({
                 plot: {
                     polygon: croqui.polygon,
-                    area: croqui.area,
+                    area: calculatedArea,
                     plotNumber: croqui.plotNumber,
                 },
                 project: {
