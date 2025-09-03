@@ -42,14 +42,15 @@ function PublicProfilePage() {
 
     const userContributions = React.useMemo(() => {
         if (!user) return [];
-        return allData.filter(point => point.authorId === user.uid)
+        return allData.filter(point => point && point.authorId === user.uid)
             .sort((a, b) => new Date(b.lastReported!).getTime() - new Date(a.lastReported!).getTime());
     }, [allData, user]);
 
     const userPoints = userContributions.length * 10;
 
     const earnedMedals = React.useMemo(() => {
-        return medals.filter(medal => medal.isAchieved(userContributions));
+        const validContributions = userContributions.filter(Boolean);
+        return medals.filter(medal => medal.isAchieved(validContributions));
     }, [userContributions]);
 
     if (loading) {
