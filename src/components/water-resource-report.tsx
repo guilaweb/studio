@@ -153,6 +153,13 @@ const monitoringPointDefaultFields = [
     { key: 'Entidade Responsável', value: '' },
 ];
 
+const pollutionSourceDefaultFields = [
+    { key: 'Tipo de Fonte', value: '' },
+    { key: 'Nível de Risco', value: '' },
+    { key: 'Poluentes Principais', value: '' },
+    { key: 'Estado da Licença Ambiental', value: '' },
+];
+
 
 export default function WaterResourceReport({ 
     open, 
@@ -229,6 +236,8 @@ export default function WaterResourceReport({
         setCustomFields(concessionDefaultFields);
     } else if (value === 'Ponto de Monitoramento de Qualidade') {
         setCustomFields(monitoringPointDefaultFields);
+    } else if (value === 'Fonte de Poluição Potencial') {
+        setCustomFields(pollutionSourceDefaultFields);
     } else if (customFields.length === 1 && customFields[0].key === '' && customFields[0].value === '') {
         // do nothing if it's the default empty field
     } else if ([
@@ -237,7 +246,8 @@ export default function WaterResourceReport({
         JSON.stringify(reservoirDefaultFields), 
         JSON.stringify(treatmentStationDefaultFields),
         JSON.stringify(concessionDefaultFields),
-        JSON.stringify(monitoringPointDefaultFields)
+        JSON.stringify(monitoringPointDefaultFields),
+        JSON.stringify(pollutionSourceDefaultFields)
         ].includes(JSON.stringify(customFields))) {
         setCustomFields([{key: '', value: ''}]);
     }
@@ -343,6 +353,7 @@ export default function WaterResourceReport({
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                                <SelectItem value="Fonte de Poluição Potencial">Fonte de Poluição Potencial</SelectItem>
                                 <SelectItem value="Ponto de Monitoramento de Qualidade">Ponto de Monitoramento de Qualidade</SelectItem>
                                 <SelectItem value="Concessão / Licença de Uso">Concessão / Licença de Uso</SelectItem>
                                 <SelectItem value="Barragem">Barragem</SelectItem>
