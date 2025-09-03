@@ -42,7 +42,9 @@ function PublicProfilePage() {
 
     const userContributions = React.useMemo(() => {
         if (!user) return [];
-        return allData.filter(point => point && point.authorId === user.uid)
+        return allData
+            .filter(point => point && point.authorId === user.uid)
+            .filter(Boolean) // Ensure no null/undefined points
             .sort((a, b) => new Date(b.lastReported!).getTime() - new Date(a.lastReported!).getTime());
     }, [allData, user]);
 
