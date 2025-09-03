@@ -210,12 +210,12 @@ const ScenarioSimulator = () => {
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="infraestrutura">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="w-full grid md:grid-cols-3">
                         <TabsTrigger value="infraestrutura">Infraestrutura</TabsTrigger>
                         <TabsTrigger value="clima">Clima</TabsTrigger>
                         <TabsTrigger value="uso">Conflitos de Uso</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="infraestrutura" className="pt-4 space-y-4">
+                    <TabsContent value="infraestrutura" className="pt-6 space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="irrigation-slider">Aumentar capacidade de irrigação ({irrigation[0]}%)</Label>
                             <Slider id="irrigation-slider" defaultValue={[5]} max={100} step={5} onValueChange={setIrrigation}/>
@@ -225,13 +225,13 @@ const ScenarioSimulator = () => {
                             <Select disabled><SelectTrigger id="new-dam"><SelectValue placeholder="Selecione um projeto de barragem" /></SelectTrigger></Select>
                         </div>
                     </TabsContent>
-                    <TabsContent value="clima" className="pt-4 space-y-4">
+                    <TabsContent value="clima" className="pt-6 space-y-4">
                          <div className="space-y-2">
                             <Label htmlFor="precipitation-slider">Redução de Precipitação ({precipitation[0]}%)</Label>
                             <Slider id="precipitation-slider" defaultValue={[-10]} min={-50} max={0} step={5} onValueChange={setPrecipitation}/>
                         </div>
                     </TabsContent>
-                    <TabsContent value="uso" className="pt-4 space-y-4">
+                    <TabsContent value="uso" className="pt-6 space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="industrial-slider">Aumentar Procura Industrial ({industrial[0]}%)</Label>
                             <Slider id="industrial-slider" defaultValue={[15]} max={100} step={5} onValueChange={setIndustrial}/>
