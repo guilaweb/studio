@@ -99,7 +99,7 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                 className="max-w-sm h-9"
             />
             <div className="flex gap-2 flex-wrap justify-end flex-1">
-                 {table.getColumn("type") && typeLabelMap && (
+                 {table.getAllColumns().some(c => c.id === 'type') && typeLabelMap && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="h-9">
@@ -125,7 +125,7 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
-                 {table.getColumn("priority") && priorityLabelMap && (
+                 {table.getAllColumns().some(c => c.id === 'priority') && priorityLabelMap && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="h-9">
@@ -151,7 +151,7 @@ export function DataTable<TData extends PointOfInterest, TValue>({
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
-                 {table.getColumn("status") && statusLabelMap && (
+                 {table.getAllColumns().some(c => c.id === 'status') && statusLabelMap && (
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="h-9">
