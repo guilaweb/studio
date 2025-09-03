@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Flow to generate a technical location sketch (Croqui de Localização).
@@ -18,32 +19,50 @@ const prompt = ai.definePrompt({
     input: { schema: GenerateLocationSketchInputSchema },
     prompt: `
         You are an expert topography and GIS system. Your task is to generate the HTML content for a "Croqui de Localização" (Location Sketch) document based on the provided data.
-        The output must be a single, well-structured, and professionally styled HTML document. The theme must be formal and official, mimicking the layout of a technical topography document. Use inline CSS for all styling to ensure maximum compatibility.
+        The output must be a single, well-structured, and professionally styled HTML document. The document must be styled to fit a standard A4 page for printing. Use a <style> tag in the <head> for all CSS.
         The document must be in Portuguese (Portugal).
 
-        **Structure Requirements:**
-        1.  **Header:** A main title "CROQUIS DE LOCALIZAÇÃO".
-        2.  **Map Area:** This section should display a large, high-resolution static Google Maps satellite image centered on the plot's polygon. The polygon should be clearly outlined on the map.
-        3.  **Coordinates Table:** Below the map, create a table with the vertices of the plot. The table must have columns for: "VERT" (Vertex Number), "ESTE (m)", "NORTE (m)", "LATITUDE", and "LONGITUDE". You must calculate the approximate UTM-like coordinates (a plausible mock calculation is acceptable) and format the geographic coordinates.
-        4.  **Footer Area:** This area should contain the project details such as "REQUERENTE", "Província", "Município", "Área", etc., professionally laid out. 
-        5.  **Scale and Seal:** Include a simple graphical scale bar and a placeholder for the MUNITU official seal in the footer. The seal placeholder must be \`<!-- MUNITU_SEAL_PLACEHOLDER -->\`.
+        **Structure & Styling Requirements:**
 
-        **Data Transformation Rules:**
-        -   The center of the map should be the geometric center of the provided polygon.
-        -   The Google Maps Static API requires a center point, zoom level, and path for the polygon. You must construct the URL correctly. The path should have a red outline and a semi-transparent red fill.
-        -   For the coordinates table, you must simulate a plausible conversion from Lat/Lng to a mock UTM-like coordinate system (e.g., adding a base value to the decimal degrees multiplied by a large factor to simulate meters). The goal is to populate the table with realistic-looking numbers, not achieve perfect geodetic accuracy.
-        -   Format Latitude and Longitude in Degrees, Minutes, and Seconds.
-        -   The 'Área' value must be formatted to two decimal places and include 'm²'.
+        1.  **A4 Formatting:**
+            *   Use a \`<style>\` tag in the \`<head>\`.
+            *   Include \`@page { size: A4; margin: 1cm; }\` to set the print size.
+            *   Wrap all content in a \`<div class="page">\`.
+            *   Use a modern, sans-serif font like 'Helvetica' or 'Arial'.
 
-        **Static Map API URL Construction:**
-        -   Example: \`https://maps.googleapis.com/maps/api/staticmap?center=LAT,LNG&zoom=18&size=800x600&maptype=satellite&path=color:0xff0000ff|weight:2|fillcolor:0xff000033|...path_points...\`
-        -   Crucially, you MUST use the placeholder \`YOUR_API_KEY\` for the API key in the URL. It will be replaced later. Do not hardcode any key. The final URL must contain \`&key=YOUR_API_KEY\`.
+        2.  **Layout:**
+            *   Use Flexbox for the main layout (\`display: flex; flex-direction: column;\`) to structure the header, map, table, and footer.
+            *   The main content area (map, table) should expand to fill available space (\`flex-grow: 1;\`).
+
+        3.  **Header:**
+            *   A main title "CROQUIS DE LOCALIZAÇÃO" centered at the top.
+
+        4.  **Map Area:**
+            *   A container \`div\` with a border around the map image.
+            *   The image must be a high-resolution (e.g., 800x600) static Google Maps satellite image centered on the plot's polygon.
+            *   The polygon must be clearly outlined on the map (e.g., red outline).
+            *   You MUST construct the Google Maps Static API URL correctly. The path should have a red outline (\`color:0xff0000ff\`) and a semi-transparent red fill (\`fillcolor:0xff000033\`).
+            *   Crucially, you MUST use the placeholder \`YOUR_API_KEY\` for the API key in the URL. The final URL must contain \`&key=YOUR_API_KEY\`.
+
+        5.  **Coordinates Table:**
+            *   Create a professional table with the vertices of the plot.
+            *   Columns: "VERT.", "COORDENADA ESTE (m)", "COORDENADA NORTE (m)", "LATITUDE", "LONGITUDE".
+            *   You must simulate plausible UTM-like coordinates for "ESTE" and "NORTE". A simple, consistent transformation is fine (e.g., add a large base value and multiply by a factor). The goal is realism, not geodetic accuracy.
+            *   Format Latitude and Longitude in Degrees, Minutes, and Seconds.
+
+        6.  **Footer Area:**
+            *   A container div using flexbox (\`display: flex; justify-content: space-between;\`) for the details.
+            *   Left side: Project details ("REQUERENTE", "Província", "Município", "Área", etc.).
+            *   Right side: The MUNITU seal and the graphical scale.
+            *   The MUNITU seal placeholder must be \`<!-- MUNITU_SEAL_PLACEHOLDER -->\`.
+            *   The 'Área' value must be formatted to two decimal places and include 'm²'.
+            *   **Graphical Scale:** Create a simple visual scale bar using styled divs. It should represent an approximate distance (e.g., 50m).
 
         **Input Data:**
         - Project Data: {{{json project}}}
         - Plot Data: {{{json plot}}}
 
-        Generate the full HTML document now.
+        Generate the full HTML document now, following all instructions precisely.
     `,
 });
 
@@ -61,3 +80,4 @@ const generateLocationSketchFlow = ai.defineFlow(
         };
     }
 );
+
