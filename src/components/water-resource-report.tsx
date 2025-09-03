@@ -139,6 +139,13 @@ const treatmentStationDefaultFields = [
     { key: 'População Servida', value: '' },
 ];
 
+const concessionDefaultFields = [
+    { key: 'Titular da Licença', value: '' },
+    { key: 'Finalidade de Uso', value: '' },
+    { key: 'Caudal Licenciado (m³/h)', value: '' },
+    { key: 'Data de Validade', value: '' },
+];
+
 
 export default function WaterResourceReport({ 
     open, 
@@ -211,9 +218,17 @@ export default function WaterResourceReport({
         setCustomFields(reservoirDefaultFields);
     } else if (value.startsWith('Estação de Tratamento')) {
         setCustomFields(treatmentStationDefaultFields);
+    } else if (value === 'Concessão / Licença de Uso') {
+        setCustomFields(concessionDefaultFields);
     } else if (customFields.length === 1 && customFields[0].key === '' && customFields[0].value === '') {
         // do nothing if it's the default empty field
-    } else if ([JSON.stringify(aquiferDefaultFields), JSON.stringify(damDefaultFields), JSON.stringify(reservoirDefaultFields), JSON.stringify(treatmentStationDefaultFields)].includes(JSON.stringify(customFields))) {
+    } else if ([
+        JSON.stringify(aquiferDefaultFields), 
+        JSON.stringify(damDefaultFields), 
+        JSON.stringify(reservoirDefaultFields), 
+        JSON.stringify(treatmentStationDefaultFields),
+        JSON.stringify(concessionDefaultFields)
+        ].includes(JSON.stringify(customFields))) {
         setCustomFields([{key: '', value: ''}]);
     }
   }
@@ -318,6 +333,7 @@ export default function WaterResourceReport({
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                                <SelectItem value="Concessão / Licença de Uso">Concessão / Licença de Uso</SelectItem>
                                 <SelectItem value="Barragem">Barragem</SelectItem>
                                 <SelectItem value="Albufeira">Albufeira (Corpo de Água)</SelectItem>
                                 <SelectItem value="Estação de Tratamento de Água (ETA)">Estação de Tratamento de Água (ETA)</SelectItem>
