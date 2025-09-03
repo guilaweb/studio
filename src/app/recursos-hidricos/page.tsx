@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Droplets, Database, Activity, GitBranch, BrainCircuit, CheckSquare, Layers, MapPin, Factory, AlertTriangle, CloudRain, Wind, FileSignature, Search, BarChart, FlaskConical, PlusCircle } from "lucide-react";
+import { ArrowLeft, Droplets, Database, Activity, GitBranch, BrainCircuit, CheckSquare, Layers, MapPin, Factory, AlertTriangle, CloudRain, Wind, FileSignature, Search, BarChart, FlaskConical, PlusCircle, Tractor, Zap } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterestMarker } from "@/components/map-component";
@@ -209,7 +209,7 @@ const ScenarioSimulator = () => {
                 <CardDescription>Modele o impacto de diferentes variáveis na bacia hidrográfica selecionada.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Tabs defaultValue="infraestrutura">
+                 <Tabs defaultValue="infraestrutura">
                     <TabsList className="w-full grid md:grid-cols-3">
                         <TabsTrigger value="infraestrutura">Infraestrutura</TabsTrigger>
                         <TabsTrigger value="clima">Clima</TabsTrigger>
@@ -225,13 +225,13 @@ const ScenarioSimulator = () => {
                             <Select disabled><SelectTrigger id="new-dam"><SelectValue placeholder="Selecione um projeto de barragem" /></SelectTrigger></Select>
                         </div>
                     </TabsContent>
-                    <TabsContent value="clima" className="pt-6 space-y-4">
+                    <TabsContent value="clima" className="pt-6 space-y-6">
                          <div className="space-y-2">
                             <Label htmlFor="precipitation-slider">Redução de Precipitação ({precipitation[0]}%)</Label>
                             <Slider id="precipitation-slider" defaultValue={[-10]} min={-50} max={0} step={5} onValueChange={setPrecipitation}/>
                         </div>
                     </TabsContent>
-                    <TabsContent value="uso" className="pt-6 space-y-4">
+                    <TabsContent value="uso" className="pt-6 space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="industrial-slider">Aumentar Procura Industrial ({industrial[0]}%)</Label>
                             <Slider id="industrial-slider" defaultValue={[15]} max={100} step={5} onValueChange={setIndustrial}/>
@@ -239,6 +239,80 @@ const ScenarioSimulator = () => {
                     </TabsContent>
                 </Tabs>
                 <Button className="w-full mt-6" onClick={handleRunSimulation}>Executar Simulação</Button>
+            </CardContent>
+        </Card>
+    );
+};
+
+const PotentialityIdentifier = () => {
+    const { toast } = useToast();
+
+    const handleRunAnalysis = (type: string) => {
+        toast({
+            title: "Análise em Curso (Demonstração)",
+            description: `A análise de ${type} foi iniciada. Em breve, as áreas de maior potencial seriam destacadas no mapa.`,
+        });
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Wind className="h-6 w-6 text-primary" />
+                    Identificação de Potencialidades
+                </CardTitle>
+                <CardDescription>Encontre as melhores áreas para novos projetos de irrigação e hidroelétricos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Tabs defaultValue="irrigation">
+                    <TabsList className="w-full grid grid-cols-2">
+                        <TabsTrigger value="irrigation">Aptidão para Irrigação</TabsTrigger>
+                        <TabsTrigger value="hydro">Potencial Hidroelétrico</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="irrigation" className="pt-6 space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="culture-type">Tipo de Cultura</Label>
+                             <Select>
+                                <SelectTrigger id="culture-type"><SelectValue placeholder="Selecione a cultura" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="milho">Milho</SelectItem>
+                                    <SelectItem value="soja">Soja</SelectItem>
+                                    <SelectItem value="horticolas">Hortícolas</SelectItem>
+                                    <SelectItem value="fruticultura">Fruticultura</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="min-area">Área Mínima (hectares)</Label>
+                            <Input id="min-area" type="number" placeholder="Ex: 500" />
+                        </div>
+                        <Button className="w-full" onClick={() => handleRunAnalysis('Aptidão para Irrigação')}>
+                            <Tractor className="mr-2 h-4 w-4"/>
+                            Analisar Aptidão
+                        </Button>
+                    </TabsContent>
+                    <TabsContent value="hydro" className="pt-6 space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="plant-type">Tipo de Central</Label>
+                            <Select>
+                                <SelectTrigger id="plant-type"><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="pch">PCH (Pequena Central Hidrelétrica)</SelectItem>
+                                    <SelectItem value="mch">MCH (Média Central Hidrelétrica)</SelectItem>
+                                    <SelectItem value="ugh">UGH (Usina Hidrelétrica de Grande Porte)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="min-potential">Potencial Mínimo (MW)</Label>
+                            <Input id="min-potential" type="number" placeholder="Ex: 10" />
+                        </div>
+                        <Button className="w-full" onClick={() => handleRunAnalysis('Potencial Hidroelétrico')}>
+                            <Zap className="mr-2 h-4 w-4"/>
+                            Identificar Locais
+                        </Button>
+                    </TabsContent>
+                </Tabs>
             </CardContent>
         </Card>
     );
@@ -274,6 +348,7 @@ function WaterResourcesPage() {
                     <div className="md:col-span-1 lg:col-span-1 space-y-4">
                         <WaterBalanceDashboard watersheds={watersheds} />
                         <ScenarioSimulator />
+                        <PotentialityIdentifier />
                         <Card>
                              <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
