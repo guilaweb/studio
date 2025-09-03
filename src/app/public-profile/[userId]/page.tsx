@@ -34,6 +34,11 @@ function PublicProfilePage() {
     const userId = params.userId as string;
     const { allData } = usePoints();
     const { user, loading } = useUserProfile(userId);
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const userContributions = React.useMemo(() => {
         if (!user) return [];
@@ -156,7 +161,7 @@ function PublicProfilePage() {
                                                         {point.title}
                                                     </Link>
                                                     <p className="text-xs text-muted-foreground">
-                                                        {formatDistanceToNow(new Date(point.lastReported!), { addSuffix: true, locale: pt })}
+                                                        {isClient && point.lastReported ? formatDistanceToNow(new Date(point.lastReported), { addSuffix: true, locale: pt }) : '...'}
                                                     </p>
                                                 </div>
                                             </div>
