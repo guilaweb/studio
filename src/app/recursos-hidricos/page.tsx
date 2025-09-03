@@ -395,7 +395,7 @@ function WaterResourcesPage() {
                                 defaultCenter={{ lat: -12.5, lng: 18.5 }} // Centered more broadly on Angola
                                 defaultZoom={6}
                                 gestureHandling={'greedy'}
-                                disableDefaultUI={true}
+                                disableDefaultUI={false}
                             >
                                 {waterResources.map(point => (
                                     <PointOfInterestMarker
