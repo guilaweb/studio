@@ -83,15 +83,18 @@ export function DataTable<TData extends PointOfInterest, TValue>({
 
 
   const isFiltered = table.getState().columnFilters.length > 0 || date;
+  
+  // Use the first column as the default for text search
+  const firstColumn = table.getAllColumns()[0];
 
   return (
     <div>
         <div className="flex items-center justify-between py-4 gap-2 flex-wrap">
             <Input
-                placeholder="Filtrar por título..."
-                value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+                placeholder="Filtrar por texto..."
+                value={(firstColumn?.getFilterValue() as string) ?? ""}
                 onChange={(event) =>
-                    table.getColumn("title")?.setFilterValue(event.target.value)
+                    firstColumn?.setFilterValue(event.target.value)
                 }
                 className="max-w-sm h-9"
             />
