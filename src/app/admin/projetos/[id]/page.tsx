@@ -382,7 +382,7 @@ function AdminProjectDetailPage() {
                                                 Ver
                                             </Button>
                                         ) : (
-                                            <Button variant="default" size="sm" className="ml-auto" onClick={handleGenerateSketch} disabled={isGeneratingSketch}>
+                                            <Button variant="default" size="sm" className="ml-auto" onClick={handleGenerateSketch} disabled={isGeneratingSketch || !landPlot}>
                                                 {isGeneratingSketch ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Gerar'}
                                             </Button>
                                         )}

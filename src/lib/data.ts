@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -441,19 +440,22 @@ export const ConversationSchema = z.object({
 });
 export type Conversation = z.infer<typeof ConversationSchema>;
 
+const PlotDataSchema = z.object({
+  polygon: z.array(PositionSchema).describe("The array of coordinates forming the plot's polygon."),
+  area: z.number().optional().describe("The area of the plot in square meters."),
+  plotNumber: z.string().optional().describe("The official number of the plot."),
+});
+
+const ProjectDataSchema = z.object({
+  requesterName: z.string().describe("The name of the person or entity requesting the license."),
+  municipality: z.string().describe("The municipality where the plot is located."),
+  province: z.string().describe("The province where the plot is located."),
+  date: z.string().describe("The date the sketch is generated."),
+});
+
 export const GenerateLocationSketchInputSchema = z.object({
-  plot: z.object({
-    polygon: z.array(PositionSchema).describe("The array of coordinates forming the plot's polygon."),
-    area: z.number().optional().describe("The area of the plot in square meters."),
-    perimeter: z.number().optional().describe("The perimeter of the plot in meters."),
-    plotNumber: z.string().optional().describe("The official number of the plot."),
-  }),
-  project: z.object({
-    requesterName: z.string().describe("The name of the person or entity requesting the license."),
-    municipality: z.string().describe("The municipality where the plot is located."),
-    province: z.string().describe("The province where the plot is located."),
-    date: z.string().describe("The date the sketch is generated."),
-  }),
+  plot: PlotDataSchema,
+  project: ProjectDataSchema,
 });
 export type GenerateLocationSketchInput = z.infer<typeof GenerateLocationSketchInputSchema>;
 
@@ -461,5 +463,3 @@ export const GenerateLocationSketchOutputSchema = z.object({
   sketchHtml: z.string().describe("The full HTML content of the generated location sketch document."),
 });
 export type GenerateLocationSketchOutput = z.infer<typeof GenerateLocationSketchOutputSchema>;
-
-    
