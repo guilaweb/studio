@@ -96,5 +96,3 @@ const EnvironmentalImpactAnalysis: React.FC<EnvironmentalImpactAnalysisProps> = 
 };
 
 export default EnvironmentalImpactAnalysis;
-
-    

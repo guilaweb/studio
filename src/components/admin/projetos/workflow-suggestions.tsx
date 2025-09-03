@@ -1,9 +1,8 @@
 
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { PointOfInterest, SuggestNextStepsOutput, WorkflowStep } from '@/lib/data';
+import { PointOfInterest, WorkflowStep } from '@/lib/data';
 import { suggestNextSteps } from '@/ai/flows/suggest-next-steps-flow';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
