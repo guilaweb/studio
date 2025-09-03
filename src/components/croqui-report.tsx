@@ -45,6 +45,9 @@ const formSchema = z.object({
   title: z.string().min(5, "O nome do croqui é obrigatório."),
   description: z.string().optional(),
   collectionName: z.string().optional(),
+  requesterName: z.string().min(3, "O nome do requerente é obrigatório."),
+  province: z.string().min(3, "A província é obrigatória."),
+  municipality: z.string().min(3, "O município é obrigatório."),
 });
 
 type DrawingMode = 'points' | 'route' | 'polygon' | null;
@@ -117,7 +120,7 @@ const DrawingManager: React.FC<{
 type CroquiReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon'>, propertyIdToLink?: string) => void;
+  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon' | 'customData'>, propertyIdToLink?: string) => void;
   initialCenter: google.maps.LatLngLiteral;
   mapRef?: React.RefObject<google.maps.Map>;
   poiToEdit: PointOfInterest | null;
@@ -153,6 +156,9 @@ export default function CroquiReport({
       title: "",
       description: "",
       collectionName: "",
+      requesterName: "",
+      province: "",
+      municipality: "",
     },
   });
   
@@ -161,6 +167,9 @@ export default function CroquiReport({
       title: "",
       description: "",
       collectionName: "",
+      requesterName: "",
+      province: "",
+      municipality: "",
     });
     setReferencePoints([]);
     setDrawingMode(null);
@@ -181,6 +190,9 @@ export default function CroquiReport({
                 title: editMode === 'divide' ? `${poiToEdit.title} (Cópia)` : poiToEdit.title,
                 description: poiToEdit.description,
                 collectionName: poiToEdit.collectionName || '',
+                requesterName: poiToEdit.customData?.requesterName || '',
+                province: poiToEdit.customData?.province || '',
+                municipality: poiToEdit.customData?.municipality || '',
             });
             setMapCenter(poiToEdit.position);
             setMapZoom(16);
@@ -265,9 +277,16 @@ export default function CroquiReport({
     const finalPosition = mapCenter;
     const routePath = drawnRoute?.getPath().getArray().map(p => p.toJSON());
     const polygonPath = drawnPolygon?.getPath().getArray().map(p => p.toJSON());
+    
+    const customData = {
+        requesterName: values.requesterName,
+        province: values.province,
+        municipality: values.municipality,
+    };
 
     onCroquiSubmit({ 
-        ...values, 
+        ...values,
+        customData,
         position: finalPosition, 
         croquiPoints: referencePoints, 
         croquiRoute: routePath,
@@ -341,6 +360,27 @@ export default function CroquiReport({
                         </FormItem>
                     )}
                  />
+                 <FormField
+                    control={form.control}
+                    name="requesterName"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Nome do Requerente</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Insira o nome completo" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                 />
+                 <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="province" render={({ field }) => (
+                        <FormItem><FormLabel>Província</FormLabel><FormControl><Input placeholder="Ex: Luanda" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="municipality" render={({ field }) => (
+                        <FormItem><FormLabel>Município</FormLabel><FormControl><Input placeholder="Ex: Viana" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                 </div>
                  <FormField
                     control={form.control}
                     name="collectionName"
@@ -444,5 +484,6 @@ export default function CroquiReport({
     </>
   );
 }
+
 
 
