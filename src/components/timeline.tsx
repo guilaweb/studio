@@ -17,6 +17,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const TimelineItem = ({ update, isFirst }: { update: PointOfInterestUpdate, isFirst: boolean }) => {
+    const [isClient, setIsClient] = React.useState(false);
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
+
     let icon = <MessageSquare className="h-4 w-4 text-muted-foreground" />;
     let title = `Comentário de ${update.authorDisplayName || 'um utilizador'}`;
 
@@ -50,7 +55,7 @@ const TimelineItem = ({ update, isFirst }: { update: PointOfInterestUpdate, isFi
                     </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-2">
-                    {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })}
+                    {isClient ? formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt }) : '...'}
                 </p>
             </div>
         </div>
