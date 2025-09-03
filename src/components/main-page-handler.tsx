@@ -12,7 +12,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
-import { PointOfInterest, PointOfInterestUpdate, UserProfile, statusLabelMap, ActiveLayers, QueueTime } from "@/lib/data";
+import { PointOfInterest, PointOfInterestUpdate, UserProfile, statusLabelMap, ActiveLayers, QueueTime, PointOfInterestStatus } from "@/lib/data";
 import { Logo } from "@/components/icons";
 import AppHeader from "@/components/app-header";
 import MapComponent from "@/components/map-component";
@@ -719,16 +719,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       const timestamp = new Date().toISOString();
       let croquiId = `croqui-${Date.now()}`;
       
-      let pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] };
-
-      if (editMode === 'divide' && poiToEdit) {
-          // Keep original author but create new entity
-      } else if (editMode === 'edit' && poiToEdit) {
-           // This case is handled by handleEditCroqui
-           return;
-      }
-
-      pointToAdd = {
+      const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
           id: croquiId,
           type: 'croqui',
           title: data.title,
@@ -1247,7 +1238,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         <CroquiReport
             open={activeSheet === 'croqui'}
             onOpenChange={handleSheetOpenChange}
-            onCroquiSubmit={editMode === 'divide' ? handleAddNewCroqui : handleEditCroqui}
+            onCroquiSubmit={editMode ? handleEditCroqui : handleAddNewCroqui}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
             editMode={editMode}
@@ -1261,10 +1252,3 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       </SidebarProvider>
   );
 }
-
-
-
-
-
-
-
