@@ -6,15 +6,20 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, GitBranch, Layers } from "lucide-react";
+import { ArrowLeft, Layers, AreaChart, Tractor } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { useExternalLayers } from "@/services/external-layers-service";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 function LandUsePage() {
     const { externalLayers, loading } = useExternalLayers();
+    const { toast } = useToast();
     
-    // In a real scenario, you might have a specific way to identify the land cover layer
     const landCoverLayer = React.useMemo(() => {
         return externalLayers.find(l => l.name.toLowerCase().includes('uso do solo'));
     }, [externalLayers]);
@@ -26,6 +31,13 @@ function LandUsePage() {
         { color: 'bg-blue-500', label: 'Corpos de Água' },
         { color: 'bg-gray-400', label: 'Solo Exposto' },
     ];
+    
+    const handleAnalysisStart = (analysisType: string) => {
+        toast({
+            title: "Análise Iniciada (Demonstração)",
+            description: `A sua análise de "${analysisType}" começou. Num ambiente de produção, os resultados seriam agora calculados e exibidos no mapa.`,
+        });
+    }
 
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -60,10 +72,50 @@ function LandUsePage() {
                          <Card>
                             <CardHeader>
                                 <CardTitle>Ferramentas de Análise</CardTitle>
-                                <CardDescription>Funcionalidades em desenvolvimento.</CardDescription>
+                                <CardDescription>Execute análises para identificar mudanças e potencialidades no território.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm text-muted-foreground">Em breve poderá utilizar ferramentas para análise de desflorestação e identificação de terras aráveis.</p>
+                                <Tabs defaultValue="deforestation">
+                                    <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger value="deforestation">Desflorestação</TabsTrigger>
+                                        <TabsTrigger value="arable">Terras Aráveis</TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="deforestation" className="pt-4 space-y-4">
+                                        <div className="space-y-2">
+                                            <Label>Período de Análise</Label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <Select><SelectTrigger><SelectValue placeholder="Ano Inicial"/></SelectTrigger><SelectContent><SelectItem value="2020">2020</SelectItem><SelectItem value="2022">2022</SelectItem></SelectContent></Select>
+                                                <Select><SelectTrigger><SelectValue placeholder="Ano Final"/></SelectTrigger><SelectContent><SelectItem value="2024">2024</SelectItem></SelectContent></Select>
+                                            </div>
+                                        </div>
+                                        <Button className="w-full" onClick={() => handleAnalysisStart('Desflorestação')}>
+                                            <AreaChart className="mr-2 h-4 w-4"/>
+                                            Analisar Desflorestação
+                                        </Button>
+                                    </TabsContent>
+                                    <TabsContent value="arable" className="pt-4 space-y-4">
+                                         <div className="space-y-2">
+                                            <Label htmlFor="culture-type">Tipo de Cultura Potencial</Label>
+                                            <Select>
+                                                <SelectTrigger id="culture-type"><SelectValue placeholder="Selecione a cultura" /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="milho">Milho</SelectItem>
+                                                    <SelectItem value="soja">Soja</SelectItem>
+                                                    <SelectItem value="horticolas">Hortícolas</SelectItem>
+                                                    <SelectItem value="fruticultura">Fruticultura</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="min-area">Área Mínima (hectares)</Label>
+                                            <Input id="min-area" type="number" placeholder="Ex: 500" />
+                                        </div>
+                                        <Button className="w-full" onClick={() => handleAnalysisStart('Identificação de Terras Aráveis')}>
+                                            <Tractor className="mr-2 h-4 w-4"/>
+                                            Identificar Terras Aráveis
+                                        </Button>
+                                    </TabsContent>
+                                </Tabs>
                             </CardContent>
                         </Card>
                     </div>
@@ -75,7 +127,7 @@ function LandUsePage() {
                                 defaultZoom={6}
                                 gestureHandling={'greedy'}
                                 mapTypeId={'satellite'}
-                                disableDefaultUI={false}
+                                disableDefaultUI={true}
                             >
                                 {loading ? <Skeleton className="h-full w-full"/> : (
                                     <>
