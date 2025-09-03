@@ -18,7 +18,7 @@ export const PointOfInterestUpdateSchema = z.object({
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 
-export const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired', 'em_verificacao', 'verificado_ouro', 'verificado_prata', 'informacao_insuficiente', 'Privado', 'level_low', 'level_normal', 'level_flood']);
+export const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired', 'em_verificacao', 'verificado_ouro', 'verificado_prata', 'informacao_insuficiente', 'Privado', 'level_low', 'level_normal', 'level_flood', 'resolved']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
 export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui']);
@@ -212,6 +212,7 @@ export const statusLabelMap: Partial<Record<PointOfInterestStatus, string>> = {
     level_low: "Nível Baixo",
     level_normal: "Nível Normal",
     level_flood: "Nível de Cheia",
+    resolved: "Resolvido",
 };
 
 export const priorityLabelMap: Record<PointOfInterestPriority, string> = {

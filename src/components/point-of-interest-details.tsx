@@ -185,6 +185,40 @@ const SanitationTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInte
     )
 }
 
+const IncidentTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], canUpdate: boolean}) => {
+    
+    if (poi.type !== 'incident' && poi.type !== 'water') return null;
+
+    const getStatusBadge = () => {
+        if (poi.status === 'resolved') return <Badge className="bg-green-500 hover:bg-green-600">Resolvido</Badge>
+        if (poi.status === 'in_progress') return <Badge className="bg-blue-500 hover:bg-blue-600">Em Resolução</Badge>
+        return <Badge variant="secondary">Pendente</Badge>
+    }
+
+    return (
+        <div className="mt-4 space-y-4">
+             <div className="p-4 rounded-lg bg-muted/50">
+                <h3 className="font-semibold mb-2">Estado do Reporte</h3>
+                <div className="flex items-center justify-between mb-4">
+                    {getStatusBadge()}
+                    {getLastReportedTime(poi.lastReported)}
+                </div>
+                 {canUpdate && (
+                    <div className="grid grid-cols-2 gap-2">
+                        <Button variant="outline" className="bg-blue-100 border-blue-500 text-blue-700 hover:bg-blue-200" onClick={() => onPoiStatusChange(poi.id, 'in_progress')}>
+                            <Truck className="mr-2"/> Em Resolução
+                        </Button>
+                        <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => onPoiStatusChange(poi.id, 'resolved')}>
+                            <CheckCircle className="mr-2"/> Marcar como Resolvido
+                        </Button>
+                    </div>
+                 )}
+             </div>
+        </div>
+    )
+}
+
+
 const CommunityWaterMonitor = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], canUpdate: boolean}) => {
     
     if (poi.type !== 'water_resource') return null;
@@ -657,13 +691,14 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
   const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui'].includes(poi.type);
   const isAdmin = profile?.role === 'Administrador';
+  const isAgentOrAdmin = profile?.role === 'Agente Municipal' || isAdmin;
   const isOwner = poi.authorId === user?.uid;
 
   let canEdit = false;
   let canDivide = false;
   // Allow editing for owners or managers, with specific restrictions
   if (user && profile) {
-      if (isAdmin) {
+      if (isAgentOrAdmin) {
         // Managers can edit anything except incidents they don't own
         canEdit = poi.type !== 'incident' || isOwner;
       } else {
@@ -793,9 +828,11 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 
                 {poi.type === 'incident' && <IncidentTags description={poi.description} />}
                 
+                <IncidentTicket poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={isAgentOrAdmin} />
+
                 {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />}
                 
-                {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />}
+                {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={isAgentOrAdmin} />}
                 
                 {poi.type === 'land_plot' && <LandPlotDetails poi={poi} />}
                 
