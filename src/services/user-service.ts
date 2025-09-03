@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -29,7 +30,7 @@ export const useUsers = () => {
                     user.status = user.status || statuses[index % statuses.length];
                     // Location is now sourced from Firestore, updated by the simulation.
                     // If a technician has no location, they won't appear on the map until moved.
-                    user.location = user.location || { lat: -8.82 + (Math.random() * 0.1), lng: 13.23 + (Math.random() * 0.1) };
+                    user.location = user.location;
                     user.team = user.team || teams[index % teams.length];
                     user.vehicle = user.vehicle || { type: 'Carrinha de Manutenção', plate: `LD-${index < 10 ? '0' : ''}${index}-00-AA` };
                     user.currentTask = user.currentTask === undefined ? null : user.currentTask;
@@ -111,5 +112,3 @@ export const useUserProfile = (userId: string | null) => {
 
     return { user, loading, error };
 };
-
-    

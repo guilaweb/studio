@@ -4,7 +4,7 @@
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2 } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2, AlertTriangle } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 import { GenericPolygonsRenderer } from "./generic-polygons-renderer";
@@ -22,51 +22,6 @@ type MapComponentProps = {
   onZoomChanged: (zoom: number) => void;
   onMarkerClick: (pointId: string) => void;
 };
-
-const mapStyles: google.maps.MapTypeStyle[] = [
-  {
-    "elementType": "labels.icon",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.land_parcel",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.neighborhood",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-    {
-    "featureType": "poi",
-    "elementType": "labels.text",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "road",
-    "elementType": "labels",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-];
 
 const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
   const commonClasses = "h-5 w-5";
@@ -92,6 +47,18 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
     default:
       return null;
   }
+};
+
+const getSensorStatus = (point: PointOfInterest) => {
+    if (point.type !== 'water_resource' || !point.customData) {
+        return 'normal';
+    }
+    const ph = parseFloat(point.customData['pH']);
+    if (!isNaN(ph) && (ph < 6 || ph > 8.5)) {
+        return 'critical';
+    }
+    // Add more rules here for other parameters like 'Nível' or 'Caudal'
+    return 'normal';
 };
 
 export const getPinStyle = (point: PointOfInterest) => {
@@ -130,7 +97,17 @@ export const getPinStyle = (point: PointOfInterest) => {
                 return { background: '#a1a1aa', borderColor: '#71717a', glyphColor: '#ffffff' }; // gray
         }
     }
-    if (point.type === 'land_plot' || point.type === 'announcement' || point.type === 'water_resource' || point.type === 'croqui') {
+     if (point.type === 'water_resource') {
+        const sensorStatus = getSensorStatus(point);
+        if (sensorStatus === 'critical') {
+            return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
+        }
+         if (sensorStatus === 'warning') {
+            return { background: '#f97316', borderColor: '#ea580c', glyphColor: '#ffffff' }; // orange
+        }
+        return { background: '#0ea5e9', borderColor: '#0284c7', glyphColor: '#ffffff' }; // default sky blue for water resources
+    }
+    if (point.type === 'land_plot' || point.type === 'announcement' || point.type === 'croqui') {
         switch (point.status) {
             case 'available':
                 return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
@@ -152,6 +129,7 @@ export const getPinStyle = (point: PointOfInterest) => {
 export const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut }: { point: PointOfInterest; onClick: (pointId: string) => void; onMouseOver: (e: google.maps.MapMouseEvent, point: PointOfInterest) => void; onMouseOut: () => void; }) => {
     const [markerRef, marker] = useAdvancedMarkerRef();
     const pinStyle = getPinStyle(point);
+    const sensorStatus = getSensorStatus(point);
 
     if (point.type === 'announcement' && point.status === 'expired') {
         return null;
@@ -166,13 +144,21 @@ export const PointOfInterestMarker = ({ point, onClick, onMouseOver, onMouseOut 
             onMouseOver={(e) => onMouseOver(e, point)}
             onMouseOut={onMouseOut}
         >
-            <Pin
-                background={pinStyle.background}
-                borderColor={pinStyle.borderColor}
-                glyphColor={pinStyle.glyphColor}
-            >
-                <MarkerIcon type={point.type} />
-            </Pin>
+            <div className="relative">
+                <Pin
+                    background={pinStyle.background}
+                    borderColor={pinStyle.borderColor}
+                    glyphColor={pinStyle.glyphColor}
+                >
+                    <MarkerIcon type={point.type} />
+                </Pin>
+                {sensorStatus !== 'normal' && (
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${sensorStatus === 'critical' ? 'bg-red-400' : 'bg-yellow-400'} opacity-75`}></span>
+                        <span className={`relative inline-flex rounded-full h-3 w-3 ${sensorStatus === 'critical' ? 'bg-red-500' : 'bg-yellow-500'}`}></span>
+                    </span>
+                )}
+            </div>
         </AdvancedMarker>
     );
 };
@@ -413,7 +399,6 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                 gestureHandling={"greedy"}
                 disableDefaultUI={false}
                 mapTypeControl={true}
-                styles={mapStyles}
                 onCameraChanged={handleCameraChange}
             >
                 {markerPoints.map((point) => (

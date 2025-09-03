@@ -1,11 +1,12 @@
 
+
 "use client";
 
 import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -496,8 +497,63 @@ const DocumentList = ({poi} : {poi: PointOfInterest}) => {
     )
 }
 
+const SensorDataDetails = ({ poi }: { poi: PointOfInterest }) => {
+    if (poi.type !== 'water_resource' || !poi.customData || Object.keys(poi.customData).length === 0) {
+        return null;
+    }
+
+    const getStatus = (key: string, value: string) => {
+        const numValue = parseFloat(value);
+        if (isNaN(numValue)) return { text: 'N/A', color: 'text-muted-foreground' };
+
+        if (key.toLowerCase() === 'ph') {
+            if (numValue < 6 || numValue > 8.5) return { text: 'Crítico', color: 'text-red-500' };
+            if (numValue < 6.5 || numValue > 8) return { text: 'Alerta', color: 'text-yellow-500' };
+            return { text: 'Normal', color: 'text-green-500' };
+        }
+        // Add more rules for other parameters like Nível, Caudal, etc.
+        return { text: 'Normal', color: 'text-green-500' };
+    };
+
+    const iconMap: { [key: string]: React.ElementType } = {
+        'ph': FlaskConical,
+        'nível': Gauge,
+        'temperatura': Thermometer,
+        'caudal': Droplets,
+    };
+
+    return (
+        <>
+            <Separator />
+            <div className="py-4">
+                <h3 className="font-semibold mb-2">Dados do Sensor (Em Tempo Real)</h3>
+                <div className="space-y-3">
+                    {Object.entries(poi.customData).map(([key, value]) => {
+                        const status = getStatus(key, value);
+                        const Icon = iconMap[key.toLowerCase()] || CheckCircle;
+                        return (
+                            <div key={key} className="flex justify-between items-center text-sm p-3 rounded-md bg-muted/50">
+                                <div className="flex items-center gap-2">
+                                    <Icon className="h-4 w-4 text-muted-foreground" />
+                                    <span className="capitalize">{key}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-semibold">{value}</span>
+                                    <Badge variant={status.color === 'text-red-500' ? 'destructive' : 'secondary'} className={status.color}>{status.text}</Badge>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </>
+    );
+};
+
+
 const CustomDataDetails = ({ poi }: { poi: PointOfInterest }) => {
-    if (!poi.customData || Object.keys(poi.customData).length === 0) {
+    // Hide for water resources as they have a dedicated component now
+    if (!poi.customData || Object.keys(poi.customData).length === 0 || poi.type === 'water_resource') {
         return null;
     }
 
@@ -561,29 +617,6 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const { deletePoint } = usePoints();
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [address, setAddress] = React.useState<string | null>(null);
-  const [loadingAddress, setLoadingAddress] = React.useState(false);
-  const geocoding = useMapsLibrary("geocoding");
-  
-  React.useEffect(() => {
-    if (!poi || !geocoding) {
-        setAddress(null);
-        return;
-    }
-    
-    // setLoadingAddress(true);
-    // const geocoder = new geocoding.Geocoder();
-    // geocoder.geocode({ location: poi.position }, (results, status) => {
-    //     if (status === "OK" && results && results[0]) {
-    //         setAddress(results[0].formatted_address);
-    //     } else {
-    //         console.error(`Geocode was not successful for the following reason: ${status}`);
-    //         setAddress("Endereço não encontrado");
-    //     }
-    //     setLoadingAddress(false);
-    // });
-  }, [poi, geocoding]);
-
 
   if (!poi) return null;
 
@@ -698,11 +731,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             <div className="space-y-4">
                  <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="mr-2 h-4 w-4" />
-                     {loadingAddress ? (
-                         <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> A procurar endereço...</div>
-                     ) : (
-                        <span>{address || 'Detalhes da localização'}</span>
-                     )}
+                    <span>{poi.position.lat.toFixed(5)}, {poi.position.lng.toFixed(5)}</span>
                 </div>
                 {(poi.type === 'construction' || poi.type === 'announcement') && poi.startDate && poi.endDate && (
                     <div className="flex items-center text-sm text-muted-foreground">
@@ -739,6 +768,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 
                 {poi.type === 'construction' && <DocumentList poi={poi} />}
 
+                {poi.type === 'water_resource' && <SensorDataDetails poi={poi} />}
+
                 <CustomDataDetails poi={poi} />
                 
                 {poi.type === 'croqui' && <CroquiActions poi={poi} />}
@@ -772,5 +803,3 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </>
   );
 }
-
-    
