@@ -11,6 +11,10 @@ const getPlotColors = (point: PointOfInterest) => {
     if (point.type === 'announcement' || point.type === 'croqui') {
         return { stroke: 'hsl(var(--primary))', fill: 'hsl(var(--primary))' };
     }
+    
+    if (point.type === 'water_resource') {
+        return { stroke: '#0ea5e9', fill: '#38bdf8' }; // sky blue
+    }
 
     switch (status) {
         case 'available':

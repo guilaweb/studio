@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { PointOfInterest } from "@/lib/data";
 import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { Camera, MapPin, Plus, Trash2, GitMerge } from "lucide-react";
+import { Camera, MapPin, Plus, Trash2, GitMerge, AppWindow } from "lucide-react";
 import Image from "next/image";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
@@ -33,8 +33,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 const DrawingManager: React.FC<{
     onPolylineComplete: (polyline: google.maps.Polyline) => void,
-    drawingMode: 'polyline' | null,
-}> = ({ onPolylineComplete, drawingMode }) => {
+    onPolygonComplete: (polygon: google.maps.Polygon) => void,
+    drawingMode: 'polyline' | 'polygon' | null,
+}> = ({ onPolylineComplete, onPolygonComplete, drawingMode }) => {
     const map = useMap();
     const drawing = useMapsLibrary('drawing');
     const [drawingManager, setDrawingManager] = useState<google.maps.drawing.DrawingManager | null>(null);
@@ -44,6 +45,12 @@ const DrawingManager: React.FC<{
 
         const manager = new drawing.DrawingManager({
             drawingControl: false, // We use our own UI
+            polygonOptions: {
+                fillColor: "hsl(var(--primary) / 0.2)",
+                strokeColor: "hsl(var(--primary))",
+                strokeWeight: 2,
+                editable: true,
+            },
             polylineOptions: {
                 strokeColor: "hsl(var(--primary))",
                 strokeWeight: 4,
@@ -58,9 +65,15 @@ const DrawingManager: React.FC<{
             onPolylineComplete(poly);
             manager.setDrawingMode(null);
         });
+
+        const polygonListener = manager.addListener('polygoncomplete', (poly: google.maps.Polygon) => {
+            onPolygonComplete(poly);
+            manager.setDrawingMode(null);
+        });
         
         return () => {
             polylineListener.remove();
+            polygonListener.remove();
             manager.setMap(null);
         };
 
@@ -71,6 +84,8 @@ const DrawingManager: React.FC<{
         if (drawingManager) {
             if(drawingMode === 'polyline') {
                 drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYLINE);
+            } else if(drawingMode === 'polygon') {
+                 drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
             } else {
                  drawingManager.setDrawingMode(null);
             }
@@ -93,7 +108,7 @@ const formSchema = z.object({
 type WaterResourceReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onWaterResourceSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'polyline'> & { photoDataUri?: string }) => void;
+  onWaterResourceSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'polyline' | 'polygon'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -111,8 +126,9 @@ export default function WaterResourceReport({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [customFields, setCustomFields] = useState([{key: '', value: ''}]);
-  const [drawingMode, setDrawingMode] = useState<'polyline' | null>(null);
+  const [drawingMode, setDrawingMode] = useState<'polyline' | 'polygon' | null>(null);
   const [drawnPolyline, setDrawnPolyline] = useState<google.maps.Polyline | null>(null);
+  const [drawnPolygon, setDrawnPolygon] = useState<google.maps.Polygon | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -131,6 +147,8 @@ export default function WaterResourceReport({
     setDrawingMode(null);
     if(drawnPolyline) drawnPolyline.setMap(null);
     setDrawnPolyline(null);
+    if(drawnPolygon) drawnPolygon.setMap(null);
+    setDrawnPolygon(null);
   }
 
   useEffect(() => {
@@ -182,6 +200,7 @@ export default function WaterResourceReport({
     }, {} as Record<string, any>);
     
     const polylinePath = drawnPolyline?.getPath().getArray().map(p => p.toJSON());
+    const polygonPath = drawnPolygon?.getPath().getArray().map(p => p.toJSON());
 
     const handleSubmission = (photoDataUri?: string) => {
         onWaterResourceSubmit({ 
@@ -190,6 +209,7 @@ export default function WaterResourceReport({
             position: finalPosition,
             customData: customDataObject,
             polyline: polylinePath,
+            polygon: polygonPath,
             photoDataUri 
         });
     };
@@ -218,7 +238,7 @@ export default function WaterResourceReport({
         <SheetHeader className="p-6 pb-2">
           <SheetTitle>Mapear Recurso Hídrico</SheetTitle>
           <SheetDescription>
-            Ajuste o pino no mapa, desenhe o curso do rio (opcional) e adicione detalhes.
+            Ajuste o pino no mapa, desenhe o curso do rio ou a área do lago (opcional) e adicione detalhes.
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -234,6 +254,7 @@ export default function WaterResourceReport({
                 >
                     <DrawingManager 
                         onPolylineComplete={setDrawnPolyline}
+                        onPolygonComplete={setDrawnPolygon}
                         drawingMode={drawingMode}
                     />
                 </Map>
@@ -257,6 +278,8 @@ export default function WaterResourceReport({
                             <SelectContent>
                                 <SelectItem value="Rio Principal">Rio Principal</SelectItem>
                                 <SelectItem value="Afluente / Riacho">Afluente / Riacho</SelectItem>
+                                <SelectItem value="Lago / Lagoa">Lago / Lagoa</SelectItem>
+                                <SelectItem value="Chana / Pântano">Chana / Pântano</SelectItem>
                                 <SelectItem value="Canal de Irrigação">Canal de Irrigação</SelectItem>
                                 <SelectItem value="Canal de Drenagem">Canal de Drenagem</SelectItem>
                                 <SelectItem value="Furo de Água">Furo de Água (Ponto)</SelectItem>
@@ -272,16 +295,35 @@ export default function WaterResourceReport({
                     )}
                 />
                  <div>
-                    <Label>Desenhar Rio/Canal (Opcional)</Label>
-                    <Button 
-                        type="button" 
-                        variant={drawingMode === 'polyline' ? 'secondary' : 'outline'} 
-                        className="w-full mt-2" 
-                        onClick={() => setDrawingMode(prev => prev ? null : 'polyline')}
-                    >
-                        <GitMerge className="mr-2 h-4 w-4" />
-                        {drawnPolyline ? 'Redesenhar Curso do Rio' : 'Desenhar Curso do Rio'}
-                    </Button>
+                    <Label>Ferramentas de Desenho (Opcional)</Label>
+                    <div className="flex gap-2 mt-2">
+                        <Button 
+                            type="button" 
+                            variant={drawingMode === 'polyline' ? 'secondary' : 'outline'} 
+                            className="flex-1" 
+                            onClick={() => {
+                                if(drawnPolygon) drawnPolygon.setMap(null);
+                                setDrawnPolygon(null);
+                                setDrawingMode(prev => prev === 'polyline' ? null : 'polyline');
+                            }}
+                        >
+                            <GitMerge className="mr-2 h-4 w-4" />
+                            {drawnPolyline ? 'Redesenhar Linha' : 'Desenhar Linha'}
+                        </Button>
+                        <Button 
+                            type="button" 
+                            variant={drawingMode === 'polygon' ? 'secondary' : 'outline'} 
+                            className="flex-1" 
+                            onClick={() => {
+                                if(drawnPolyline) drawnPolyline.setMap(null);
+                                setDrawnPolyline(null);
+                                setDrawingMode(prev => prev === 'polygon' ? null : 'polygon');
+                            }}
+                        >
+                            <AppWindow className="mr-2 h-4 w-4" />
+                            {drawnPolygon ? 'Redesenhar Área' : 'Desenhar Área'}
+                        </Button>
+                    </div>
                 </div>
                 <FormField
                 control={form.control}
