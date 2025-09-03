@@ -14,6 +14,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 const features = [
     {
@@ -173,7 +177,7 @@ const WaterBalanceDashboard = ({ watersheds }: { watersheds: any[] }) => {
                         </div>
                         <div className="space-y-2">
                             <Label>Indicador de Stress Hídrico ({stressPercentage.toFixed(0)}%)</Label>
-                            <Progress value={stressPercentage} indicatorClassName={stressColor} />
+                            <Progress value={stressPercentage} className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-green-400 [&>div]:via-yellow-400 [&>div]:to-red-500" />
                         </div>
                     </div>
                 )}
@@ -181,6 +185,65 @@ const WaterBalanceDashboard = ({ watersheds }: { watersheds: any[] }) => {
         </Card>
     )
 }
+
+const ScenarioSimulator = () => {
+    const { toast } = useToast();
+    const [irrigation, setIrrigation] = React.useState([5]);
+    const [precipitation, setPrecipitation] = React.useState([-10]);
+    const [industrial, setIndustrial] = React.useState([15]);
+
+    const handleRunSimulation = () => {
+        toast({
+            title: "Simulação em Curso (Demonstração)",
+            description: "Numa aplicação real, os resultados da simulação seriam agora calculados e exibidos no mapa.",
+        });
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <BrainCircuit className="h-6 w-6 text-primary" />
+                    Simulador de Cenários ('What If?')
+                </CardTitle>
+                <CardDescription>Modele o impacto de diferentes variáveis na bacia hidrográfica selecionada.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Tabs defaultValue="infraestrutura">
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="infraestrutura">Infraestrutura</TabsTrigger>
+                        <TabsTrigger value="clima">Clima</TabsTrigger>
+                        <TabsTrigger value="uso">Conflitos de Uso</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="infraestrutura" className="pt-4 space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="irrigation-slider">Aumentar capacidade de irrigação ({irrigation[0]}%)</Label>
+                            <Slider id="irrigation-slider" defaultValue={[5]} max={100} step={5} onValueChange={setIrrigation}/>
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="new-dam">Adicionar Nova Barragem</Label>
+                            <Select disabled><SelectTrigger id="new-dam"><SelectValue placeholder="Selecione um projeto de barragem" /></SelectTrigger></Select>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="clima" className="pt-4 space-y-4">
+                         <div className="space-y-2">
+                            <Label htmlFor="precipitation-slider">Redução de Precipitação ({precipitation[0]}%)</Label>
+                            <Slider id="precipitation-slider" defaultValue={[-10]} min={-50} max={0} step={5} onValueChange={setPrecipitation}/>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="uso" className="pt-4 space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="industrial-slider">Aumentar Procura Industrial ({industrial[0]}%)</Label>
+                            <Slider id="industrial-slider" defaultValue={[15]} max={100} step={5} onValueChange={setIndustrial}/>
+                        </div>
+                    </TabsContent>
+                </Tabs>
+                <Button className="w-full mt-6" onClick={handleRunSimulation}>Executar Simulação</Button>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 function WaterResourcesPage() {
     const { allData } = usePoints();
@@ -210,6 +273,7 @@ function WaterResourcesPage() {
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
                     <div className="md:col-span-1 lg:col-span-1 space-y-4">
                         <WaterBalanceDashboard watersheds={watersheds} />
+                        <ScenarioSimulator />
                         <Card>
                              <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
