@@ -276,6 +276,8 @@ export default function WaterResourceReport({
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                                <SelectItem value="Bacia Hidrográfica">Bacia Hidrográfica</SelectItem>
+                                <SelectItem value="Sub-bacia Hidrográfica">Sub-bacia Hidrográfica</SelectItem>
                                 <SelectItem value="Rio Principal">Rio Principal</SelectItem>
                                 <SelectItem value="Afluente / Riacho">Afluente / Riacho</SelectItem>
                                 <SelectItem value="Lago / Lagoa">Lago / Lagoa</SelectItem>
