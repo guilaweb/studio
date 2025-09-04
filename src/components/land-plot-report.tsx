@@ -26,7 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { PointOfInterest, PointOfInterestStatus, PointOfInterestUsageType } from "@/lib/data";
 import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { Camera, Trash2 } from "lucide-react";
+import { Camera, Trash2, Locate } from "lucide-react";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -152,6 +152,7 @@ export default function LandPlotReport({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [coords, setCoords] = useState('');
   const { toast } = useToast();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -180,6 +181,7 @@ export default function LandPlotReport({
     setDrawnPolygon(null);
     setPhotoFile(null);
     setPhotoPreview(null);
+    setCoords('');
   }
 
   useEffect(() => {
@@ -230,6 +232,40 @@ export default function LandPlotReport({
         setPhotoPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLocateFromCoords = () => {
+    const dmsToDd = (d: number, m: number, s: number, direction: string) => {
+        let dd = d + m/60 + s/3600;
+        if (direction === 'S' || direction === 'W') {
+            dd = dd * -1;
+        }
+        return dd;
+    };
+
+    const parts = coords.match(/(\d+)°(\d+)'([\d.]+)"([NSEW])/g);
+    if (parts?.length !== 2) {
+        toast({ variant: 'destructive', title: 'Formato Inválido', description: 'Use o formato DD°MM\'SS.S"N DD°MM\'SS.S"E' });
+        return;
+    }
+
+    try {
+        const [latStr, lonStr] = parts;
+        
+        const latParts = latStr.match(/(\d+)°(\d+)'([\d.]+)"([NS])/);
+        const lonParts = lonStr.match(/(\d+)°(\d+)'([\d.]+)"([EW])/);
+        
+        if (!latParts || !lonParts) throw new Error("Invalid format");
+
+        const lat = dmsToDd(parseFloat(latParts[1]), parseFloat(latParts[2]), parseFloat(latParts[3]), latParts[4]);
+        const lng = dmsToDd(parseFloat(lonParts[1]), parseFloat(lonParts[2]), parseFloat(lonParts[3]), lonParts[4]);
+        
+        setMapCenter({ lat, lng });
+        setMapZoom(18); // Zoom in closer for specific coordinates
+        toast({ title: 'Localização Encontrada', description: 'O mapa foi centrado nas coordenadas.' });
+    } catch (e) {
+         toast({ variant: 'destructive', title: 'Erro de Conversão', description: 'Não foi possível converter as coordenadas.' });
     }
   };
 
@@ -289,6 +325,13 @@ export default function LandPlotReport({
             {isEditMode ? 'Altere as informações cadastrais e, se necessário, redesenhe os limites do lote.' : 'Desenhe os limites do seu lote no mapa e preencha as informações que tiver.'}
           </SheetDescription>
         </SheetHeader>
+        <div className="px-6 py-2">
+             <Label htmlFor="coords">Localizar por Coordenadas</Label>
+            <div className="flex gap-2 mt-1">
+                <Input id="coords" placeholder='14°07&#39;51.4"S 14°40&#39;31.4"E' value={coords} onChange={e => setCoords(e.target.value)} />
+                <Button type="button" variant="secondary" onClick={handleLocateFromCoords}><Locate className="h-4 w-4"/></Button>
+            </div>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[35vh] bg-muted">
