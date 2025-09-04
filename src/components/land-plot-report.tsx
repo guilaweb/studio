@@ -236,6 +236,24 @@ export default function LandPlotReport({
   };
 
   const handleLocateFromCoords = () => {
+    const trimmedCoords = coords.trim();
+
+    // Check for Decimal Degrees format (e.g., -14.1309, 14.6753)
+    if (trimmedCoords.includes(',')) {
+        const parts = trimmedCoords.split(',').map(p => p.trim());
+        if (parts.length === 2) {
+            const lat = parseFloat(parts[0]);
+            const lng = parseFloat(parts[1]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                setMapCenter({ lat, lng });
+                setMapZoom(18);
+                toast({ title: 'Localização Encontrada', description: 'O mapa foi centrado nas coordenadas decimais.' });
+                return;
+            }
+        }
+    }
+
+    // Check for DMS format (e.g., 14°07'51.4"S 14°40'31.4"E)
     const dmsToDd = (d: number, m: number, s: number, direction: string) => {
         let dd = d + m/60 + s/3600;
         if (direction === 'S' || direction === 'W') {
@@ -243,31 +261,30 @@ export default function LandPlotReport({
         }
         return dd;
     };
+    
+    const dmsParts = trimmedCoords.match(/(\d+)°(\d+)'([\d.]+)"([NSEW])/g);
+    if (dmsParts?.length === 2) {
+        try {
+            const [latStr, lonStr] = dmsParts;
+            const latParts = latStr.match(/(\d+)°(\d+)'([\d.]+)"([NS])/);
+            const lonParts = lonStr.match(/(\d+)°(\d+)'([\d.]+)"([EW])/);
+            if (!latParts || !lonParts) throw new Error("Formato DMS inválido.");
 
-    const parts = coords.match(/(\d+)°(\d+)'([\d.]+)"([NSEW])/g);
-    if (parts?.length !== 2) {
-        toast({ variant: 'destructive', title: 'Formato Inválido', description: 'Use o formato DD°MM\'SS.S"N DD°MM\'SS.S"E' });
-        return;
+            const lat = dmsToDd(parseFloat(latParts[1]), parseFloat(latParts[2]), parseFloat(latParts[3]), latParts[4]);
+            const lng = dmsToDd(parseFloat(lonParts[1]), parseFloat(lonParts[2]), parseFloat(lonParts[3]), lonParts[4]);
+            
+            setMapCenter({ lat, lng });
+            setMapZoom(18);
+            toast({ title: 'Localização Encontrada', description: 'O mapa foi centrado nas coordenadas DMS.' });
+            return;
+        } catch (e) {
+            // Fall through to error toast
+        }
     }
 
-    try {
-        const [latStr, lonStr] = parts;
-        
-        const latParts = latStr.match(/(\d+)°(\d+)'([\d.]+)"([NS])/);
-        const lonParts = lonStr.match(/(\d+)°(\d+)'([\d.]+)"([EW])/);
-        
-        if (!latParts || !lonParts) throw new Error("Invalid format");
-
-        const lat = dmsToDd(parseFloat(latParts[1]), parseFloat(latParts[2]), parseFloat(latParts[3]), latParts[4]);
-        const lng = dmsToDd(parseFloat(lonParts[1]), parseFloat(lonParts[2]), parseFloat(lonParts[3]), lonParts[4]);
-        
-        setMapCenter({ lat, lng });
-        setMapZoom(18); // Zoom in closer for specific coordinates
-        toast({ title: 'Localização Encontrada', description: 'O mapa foi centrado nas coordenadas.' });
-    } catch (e) {
-         toast({ variant: 'destructive', title: 'Erro de Conversão', description: 'Não foi possível converter as coordenadas.' });
-    }
+    toast({ variant: 'destructive', title: 'Formato de Coordenadas Inválido', description: 'Use o formato "-14.13, 14.67" ou \'14°07..."S 14°40..."E\'' });
   };
+
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     if (!drawnPolygon) {
@@ -328,7 +345,7 @@ export default function LandPlotReport({
         <div className="px-6 py-2">
              <Label htmlFor="coords">Localizar por Coordenadas</Label>
             <div className="flex gap-2 mt-1">
-                <Input id="coords" placeholder='14°07&#39;51.4"S 14°40&#39;31.4"E' value={coords} onChange={e => setCoords(e.target.value)} />
+                <Input id="coords" placeholder='-14.12, 14.67 ou 14°07..."S...' value={coords} onChange={e => setCoords(e.target.value)} />
                 <Button type="button" variant="secondary" onClick={handleLocateFromCoords}><Locate className="h-4 w-4"/></Button>
             </div>
         </div>
