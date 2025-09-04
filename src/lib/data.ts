@@ -156,8 +156,8 @@ export const UserProfileWithStatsSchema = UserProfileSchema.extend({
         contributions: z.number(),
         sanitationReports: z.number(),
         incidentReports: z.number(),
-        completed: z.number(),
-        avgTime: z.string(),
+        completed: z.number().optional(),
+        avgTime: z.string().optional(),
     })
 });
 export type UserProfileWithStats = z.infer<typeof UserProfileWithStatsSchema>;
@@ -463,3 +463,15 @@ export const GenerateLocationSketchOutputSchema = z.object({
   sketchHtml: z.string().describe("The full HTML content of the generated location sketch document."),
 });
 export type GenerateLocationSketchOutput = z.infer<typeof GenerateLocationSketchOutputSchema>;
+
+export const AnalyzeAtmHistoryInputSchema = z.object({
+    updates: z.array(PointOfInterestUpdateSchema).describe('The timeline of updates for a single ATM.'),
+});
+export type AnalyzeAtmHistoryInput = z.infer<typeof AnalyzeAtmHistoryInputSchema>;
+
+export const AnalyzeAtmHistoryOutputSchema = z.object({
+    availableNotesSummary: z.string().describe("A summary of the most commonly available banknotes. Example: 'As notas mais comuns são 2000 Kz e 5000 Kz.'"),
+    queuePatternSummary: z.string().describe("A summary of when queues are most common. Example: 'As filas são mais longas ao final da tarde.'"),
+    restockPatternSummary: z.string().describe("An estimated summary of when the ATM is usually restocked. Example: 'O ATM é reabastecido frequentemente às terças e sextas-feiras de manhã.'"),
+});
+export type AnalyzeAtmHistoryOutput = z.infer<typeof AnalyzeAtmHistoryOutputSchema>;

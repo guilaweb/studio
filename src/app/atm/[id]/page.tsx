@@ -5,47 +5,45 @@ import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { withAuth } from "@/hooks/use-auth";
 import { usePoints } from "@/hooks/use-points";
-import { PointOfInterest, PointOfInterestUpdate, QueueTime, queueTimeLabelMap, statusLabelMap } from "@/lib/data";
+import { PointOfInterest, PointOfInterestUpdate, QueueTime, queueTimeLabelMap, statusLabelMap, AnalyzeAtmHistoryOutput } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle, Clock, ThumbsDown, ThumbsUp, User, Wand2, XCircle, Banknote, HelpCircle, Users } from "lucide-react";
+import { ArrowLeft, CheckCircle, Clock, ThumbsDown, ThumbsUp, User, Wand2, XCircle, Banknote, HelpCircle, Users, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import AtmNoteReport from "@/components/atm-note-report";
+import { analyzeAtmHistoryFlow } from "@/ai/flows/analyze-atm-history-flow";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const NoteAnalysis = ({ poi }: { poi: PointOfInterest }) => {
-    const lastNoteUpdate = poi.updates?.find(u => u.availableNotes && u.availableNotes.length > 0);
-    const lastQueueUpdate = poi.updates?.find(u => u.queueTime);
-    
-    let noteContent;
-    let queueContent;
+    const { toast } = useToast();
+    const [analysis, setAnalysis] = React.useState<AnalyzeAtmHistoryOutput | null>(null);
+    const [loading, setLoading] = React.useState(true);
 
-    if (lastNoteUpdate && lastNoteUpdate.availableNotes) {
-        const sortedNotes = [...lastNoteUpdate.availableNotes].sort((a,b) => a - b);
-        const noteString = sortedNotes.map(n => `${n} Kz`).join(', ');
-        noteContent = (
-             <p className="text-sm text-blue-700 dark:text-blue-400">
-                Últimos reportes indicam disponibilidade de notas de: <span className="font-semibold">{noteString}</span>. (Reportado há {formatDistanceToNow(new Date(lastNoteUpdate.timestamp), { locale: pt })})
-             </p>
-        );
-    } else {
-        noteContent = (
-             <p className="text-sm text-blue-700 dark:text-blue-400">Ainda não há informação sobre as notas disponíveis. Seja o primeiro a contribuir!</p>
-        );
-    }
-
-    if(lastQueueUpdate && lastQueueUpdate.queueTime) {
-        queueContent = (
-            <p className="text-sm text-blue-700 dark:text-blue-400">
-                Nível da Fila: <span className="font-semibold">{queueTimeLabelMap[lastQueueUpdate.queueTime]}</span>. (Reportado há {formatDistanceToNow(new Date(lastQueueUpdate.timestamp), { locale: pt })})
-            </p>
-        )
-    } else {
-        queueContent = (
-             <p className="text-sm text-blue-700 dark:text-blue-400">Ainda não há informação sobre o tempo de fila. Contribua!</p>
-        );
-    }
+    React.useEffect(() => {
+        const fetchAnalysis = async () => {
+            if (!poi.updates || poi.updates.length < 2) {
+                 setLoading(false);
+                 return;
+            }
+            setLoading(true);
+            try {
+                const result = await analyzeAtmHistoryFlow({ updates: poi.updates });
+                setAnalysis(result);
+            } catch (error) {
+                console.error("Failed to fetch ATM analysis:", error);
+                 toast({
+                    variant: "destructive",
+                    title: "Erro de IA",
+                    description: "Não foi possível obter a análise do ATM.",
+                });
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchAnalysis();
+    }, [poi, toast]);
 
 
     return (
@@ -53,7 +51,7 @@ const NoteAnalysis = ({ poi }: { poi: PointOfInterest }) => {
             <CardHeader>
                     <div className="flex items-center gap-3">
                     <Wand2 className="h-6 w-6 text-blue-600" />
-                    <CardTitle className="text-blue-800 dark:text-blue-300">Análise MUNITU</CardTitle>
+                    <CardTitle className="text-blue-800 dark:text-blue-300">Análise MUNITU (IA)</CardTitle>
                     </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -61,21 +59,33 @@ const NoteAnalysis = ({ poi }: { poi: PointOfInterest }) => {
                     <Banknote className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0"/>
                     <div>
                         <h4 className="font-semibold text-blue-800 dark:text-blue-300">Notas Disponíveis (Estimativa)</h4>
-                        {noteContent}
+                         {loading ? <Skeleton className="h-4 w-48 mt-1" /> : (
+                            <p className="text-sm text-blue-700 dark:text-blue-400">
+                                {analysis?.availableNotesSummary || 'Ainda não há informação sobre as notas disponíveis. Contribua!'}
+                            </p>
+                        )}
                     </div>
                 </div>
                  <div className="flex items-start gap-3">
                     <Users className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0"/>
                     <div>
-                        <h4 className="font-semibold text-blue-800 dark:text-blue-300">Movimento Atual (Estimativa)</h4>
-                        {queueContent}
+                        <h4 className="font-semibold text-blue-800 dark:text-blue-300">Padrão de Fila (Estimativa)</h4>
+                        {loading ? <Skeleton className="h-4 w-48 mt-1" /> : (
+                            <p className="text-sm text-blue-700 dark:text-blue-400">
+                                {analysis?.queuePatternSummary || 'Ainda não há informação sobre o tempo de fila. Contribua!'}
+                            </p>
+                        )}
                     </div>
                 </div>
                  <div className="flex items-start gap-3">
                     <HelpCircle className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0"/>
                     <div>
                         <h4 className="font-semibold text-blue-800 dark:text-blue-300">Padrão de Abastecimento</h4>
-                        <p className="text-sm text-blue-700 dark:text-blue-400">Funcionalidade de análise preditiva em desenvolvimento. Volte em breve!</p>
+                         {loading ? <Skeleton className="h-4 w-48 mt-1" /> : (
+                             <p className="text-sm text-blue-700 dark:text-blue-400">
+                                {analysis?.restockPatternSummary || 'Funcionalidade de análise preditiva em desenvolvimento.'}
+                            </p>
+                         )}
                     </div>
                 </div>
             </CardContent>
@@ -135,7 +145,7 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
     return (
         <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:h-full before:w-0.5 before:bg-border before:-translate-x-px md:ml-6">
             {updates.map((update) => {
-                const isAvailable = update.text.includes("Com Dinheiro");
+                const isAvailable = update.text?.includes("Com Dinheiro");
                 const Icon = isAvailable ? CheckCircle : XCircle;
                 const iconColor = isAvailable ? "text-green-500" : "text-red-500";
                 const bgColor = isAvailable ? "bg-green-50" : "bg-red-50";
