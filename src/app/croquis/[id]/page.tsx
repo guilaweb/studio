@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { APIProvider, Map, AdvancedMarker, Pin, useMap } from "@vis.gl/react-google-maps";
 import { Logo } from "@/components/icons";
-import { Compass, MapPin, Share2, Phone } from "lucide-react";
+import { Compass, MapPin, Share2, Phone, FileSignature } from "lucide-react";
 import { GenericPolygonsRenderer } from "@/components/generic-polygons-renderer";
+import Link from "next/link";
 
 const RouteRenderer: React.FC<{
     route: google.maps.LatLngLiteral[];
@@ -88,12 +89,20 @@ export default function PublicCroquiPage() {
                         <Logo className="h-6 w-6 text-primary"/>
                         <span className="font-semibold">{croqui.title}</span>
                     </div>
-                    <Button asChild>
-                        <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
-                            <Compass className="mr-2 h-4 w-4"/>
-                            Navegar até aqui
-                        </a>
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" asChild>
+                           <Link href={`/croquis/${croqui.id}/documento`} target="_blank">
+                                <FileSignature className="mr-2 h-4 w-4"/>
+                                Ver para Impressão
+                            </Link>
+                        </Button>
+                        <Button asChild>
+                            <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
+                                <Compass className="mr-2 h-4 w-4"/>
+                                Navegar até aqui
+                            </a>
+                        </Button>
+                    </div>
                 </header>
                 <div className="flex-1 grid md:grid-cols-3">
                     <aside className="md:col-span-1 p-4 overflow-y-auto border-r">
@@ -160,4 +169,3 @@ export default function PublicCroquiPage() {
         </APIProvider>
     );
 }
-
