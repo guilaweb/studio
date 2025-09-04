@@ -787,7 +787,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
   
-  const handleAddNewWaterResource = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'polyline'> & { photoDataUri?: string }) => {
+  const handleAddNewWaterResource = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'polyline' | 'polygon'> & { photoDataUri?: string }) => {
      if (!user || !profile) {
         toast({
             variant: "destructive",
@@ -810,6 +810,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: data.description,
       position: data.position,
       polyline: data.polyline,
+      polygon: data.polygon,
       customData: data.customData,
       updates: [{
           text: `Recurso Hídrico mapeado: ${data.description}`,
@@ -1238,7 +1239,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         <CroquiReport
             open={activeSheet === 'croqui'}
             onOpenChange={handleSheetOpenChange}
-            onCroquiSubmit={editMode ? handleEditCroqui : handleAddNewCroqui}
+            onCroquiSubmit={handleEditCroqui}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
             editMode={editMode}

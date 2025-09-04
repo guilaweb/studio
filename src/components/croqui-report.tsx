@@ -39,6 +39,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Label } from "./ui/label";
+import { Separator } from "./ui/separator";
 
 
 const formSchema = z.object({
@@ -48,6 +49,9 @@ const formSchema = z.object({
   requesterName: z.string().min(3, "O nome do requerente é obrigatório."),
   province: z.string().min(3, "A província é obrigatória."),
   municipality: z.string().min(3, "O município é obrigatório."),
+  technicianName: z.string().optional(),
+  technicianId: z.string().optional(),
+  surveyDate: z.string().optional(),
 });
 
 type DrawingMode = 'points' | 'route' | 'polygon' | null;
@@ -106,7 +110,7 @@ const DrawingManager: React.FC<{
             if(drawingMode === 'route') {
                 drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYLINE);
             } else if (drawingMode === 'polygon') {
-                drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
+                 drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
             } else {
                  drawingManager.setDrawingMode(null);
             }
@@ -159,6 +163,9 @@ export default function CroquiReport({
       requesterName: "",
       province: "",
       municipality: "",
+      technicianName: "",
+      technicianId: "",
+      surveyDate: "",
     },
   });
   
@@ -170,6 +177,9 @@ export default function CroquiReport({
       requesterName: "",
       province: "",
       municipality: "",
+      technicianName: "",
+      technicianId: "",
+      surveyDate: "",
     });
     setReferencePoints([]);
     setDrawingMode(null);
@@ -193,6 +203,9 @@ export default function CroquiReport({
                 requesterName: poiToEdit.customData?.requesterName || '',
                 province: poiToEdit.customData?.province || '',
                 municipality: poiToEdit.customData?.municipality || '',
+                technicianName: poiToEdit.customData?.technicianName || '',
+                technicianId: poiToEdit.customData?.technicianId || '',
+                surveyDate: poiToEdit.customData?.surveyDate || '',
             });
             setMapCenter(poiToEdit.position);
             setMapZoom(16);
@@ -282,6 +295,9 @@ export default function CroquiReport({
         requesterName: values.requesterName,
         province: values.province,
         municipality: values.municipality,
+        technicianName: values.technicianName,
+        technicianId: values.technicianId,
+        surveyDate: values.surveyDate,
     };
 
     onCroquiSubmit({ 
@@ -394,6 +410,20 @@ export default function CroquiReport({
                         </FormItem>
                     )}
                  />
+                 <Separator />
+                 <h4 className="text-sm font-medium text-foreground">Detalhes Técnicos (Opcional)</h4>
+                 <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="technicianName" render={({ field }) => (
+                        <FormItem><FormLabel>Técnico Responsável</FormLabel><FormControl><Input placeholder="Nome do técnico" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="technicianId" render={({ field }) => (
+                        <FormItem><FormLabel>Nº da Ordem</FormLabel><FormControl><Input placeholder="001234" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                 </div>
+                 <FormField control={form.control} name="surveyDate" render={({ field }) => (
+                        <FormItem><FormLabel>Data do Levantamento</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                 )} />
+
                 <FormField
                 control={form.control}
                 name="description"
@@ -484,6 +514,7 @@ export default function CroquiReport({
     </>
   );
 }
+
 
 
 
