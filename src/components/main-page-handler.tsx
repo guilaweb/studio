@@ -1239,7 +1239,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         <CroquiReport
             open={activeSheet === 'croqui'}
             onOpenChange={handleSheetOpenChange}
-            onCroquiSubmit={handleEditCroqui}
+            onCroquiSubmit={poiToEdit ? handleEditCroqui : handleAddNewCroqui}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
             editMode={editMode}

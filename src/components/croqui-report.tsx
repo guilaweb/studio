@@ -301,7 +301,9 @@ export default function CroquiReport({
     };
 
     onCroquiSubmit({ 
-        ...values,
+        title: values.title,
+        description: values.description,
+        collectionName: values.collectionName,
         customData,
         position: finalPosition, 
         croquiPoints: referencePoints, 
@@ -514,7 +516,3 @@ export default function CroquiReport({
     </>
   );
 }
-
-
-
-
