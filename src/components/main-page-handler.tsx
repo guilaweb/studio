@@ -637,7 +637,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   };
 
   const handleAddNewLandPlot = async (
-    data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'> & { photoDataUri?: string }
+    data: Partial<PointOfInterest> & { polygon: google.maps.LatLngLiteral[] } & { photoDataUri?: string }
   ) => {
     if (!user || !profile) {
         toast({
@@ -670,6 +670,9 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       usageType: data.usageType,
       maxHeight: data.maxHeight,
       buildingRatio: data.buildingRatio,
+      minLotArea: data.minLotArea,
+      roadCession: data.roadCession,
+      greenSpaceCession: data.greenSpaceCession,
       updates: [{
           text: "Registo inicial do lote realizado.",
           authorId: user.uid,
@@ -689,7 +692,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
   const handleEditLandPlot = async (
     poiId: string,
-    data: Pick<PointOfInterest, 'status' | 'plotNumber' | 'registrationCode' | 'zoningInfo' | 'polygon' | 'usageType' | 'maxHeight' | 'buildingRatio'> & { photoDataUri?: string }
+    data: Partial<PointOfInterest> & { polygon: google.maps.LatLngLiteral[] } & { photoDataUri?: string }
   ) => {
     handleSheetOpenChange(false);
 
