@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/icons';
-import { ArrowLeft, Briefcase, Building, DollarSign, Gem, Handshake, Search, Star, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Briefcase, Building, DollarSign, Gem, Handshake, Search, Star, TrendingUp, ShieldCheck, AreaChart, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APIProvider, Map as GoogleMap } from '@vis.gl/react-google-maps';
 
@@ -31,52 +31,62 @@ const mapStyles: google.maps.MapTypeStyle[] = [
 
 const monetizationOptions = [
     {
-        category: "Para o Setor Imobiliário e da Construção",
+        category: "Para o Setor Imobiliário e da Construção (B2C/B2B)",
         features: [
             {
                 icon: Star,
                 title: "Destaque de Anúncios (Featured Listings)",
-                description: "Agentes imobiliários e proprietários podem pagar uma taxa para destacar os seus anúncios de terrenos e imóveis no topo dos resultados de pesquisa no Marketplace, aumentando a visibilidade e acelerando as vendas.",
+                description: "Proprietários e agentes imobiliários pagam uma taxa para que os seus anúncios apareçam no topo dos resultados de pesquisa do Marketplace, aumentando a visibilidade e acelerando as vendas.",
             },
             {
-                icon: Gem,
-                title: "Pacotes de Anúncios Premium",
-                description: "Oferecer pacotes para múltiplos anúncios a um preço reduzido, ideal para agências imobiliárias ou grandes proprietários que necessitam de gerir um portfólio de ativos.",
+                icon: ShieldCheck,
+                title: "Serviço de Verificação Prioritária",
+                description: "Oferecer um serviço 'fast-track' pago para que os proprietários tenham os seus pedidos de verificação de imóveis (Selo Ouro/Prata) analisados com prioridade pelos técnicos municipais.",
             },
             {
-                icon: Search,
-                title: "Acesso a Dados Analíticos do Mercado (Market Insights)",
-                description: "Subscrição de um serviço que fornece acesso a dashboards com dados agregados e anonimizados sobre tendências de preços por zona, tempos médios de venda e procura por tipo de imóvel.",
+                icon: AreaChart,
+                title: "Relatórios de Análise Comparativa de Mercado (IA)",
+                description: "Venda de relatórios detalhados, gerados por IA, com análise de preços por m², tendências de valorização por bairro e perfis de procura, para apoiar decisões de investimento.",
             },
         ]
     },
     {
-        category: "Para Empresas e Serviços Locais",
+        category: "Para Empresas e Serviços Locais (B2B)",
         features: [
+             {
+                icon: Briefcase,
+                title: "Destaque de Prestadores de Serviços",
+                description: "Arquitetos, construtores, topógrafos e outros profissionais podem pagar uma subscrição para aparecerem como 'Prestadores Verificados MUNITU' na plataforma.",
+            },
             {
                 icon: TrendingUp,
                 title: "Publicidade Georreferenciada (Geo-Ads)",
                 description: "Empresas locais (restaurantes, lojas, etc.) podem comprar espaço publicitário no mapa, exibindo um pin especial ou um banner quando um utilizador explora a sua área de negócio.",
             },
             {
-                icon: Briefcase,
-                title: "Integração via API para Logística",
-                description: "Empresas de entregas ou logística podem pagar por um acesso via API para integrar a funcionalidade de criação e gestão de croquis diretamente nos seus sistemas, otimizando as suas rotas.",
+                icon: Zap,
+                title: "Acesso à API para Logística e Entregas",
+                description: "Empresas de entregas ou logística podem pagar por um acesso via API para integrar a funcionalidade de criação e gestão de croquis de localização diretamente nos seus sistemas.",
             },
         ]
     },
     {
-        category: "Para Entidades Governamentais e Parceiros",
+        category: "Para Entidades Governamentais e Grandes Empresas",
         features: [
             {
                 icon: Handshake,
                 title: "Licenciamento da Plataforma (SaaS)",
-                description: "O modelo principal. Os municípios ou entidades governamentais pagam uma taxa de subscrição (anual ou mensal) para utilizar a MUNITU como a sua plataforma oficial de gestão urbana e interação com o cidadão.",
+                description: "O modelo principal. Os municípios ou entidades governamentais pagam uma taxa de subscrição para utilizar a MUNITU como a sua plataforma oficial de gestão urbana e interação com o cidadão.",
             },
             {
+                icon: Gem,
+                title: "Relatórios de Análise de Impacto (IA)",
+                description: "Venda de relatórios de impacto ambiental, conformidade de projetos ou análise de risco para grandes empreendimentos, gerados através dos nossos modelos de IA.",
+            },
+             {
                 icon: Building,
-                title: "Módulos Adicionais e Customização",
-                description: "Desenvolvimento de módulos específicos para as necessidades de uma entidade (ex: gestão de frotas, licenciamento comercial específico) como um serviço de desenvolvimento pago.",
+                title: "Módulos Customizados e Acesso API Premium",
+                description: "Desenvolvimento de módulos específicos (ex: gestão de frotas) ou licenciamento de acesso à API para integração com sistemas de ERP e Business Intelligence.",
             },
         ]
     }
@@ -139,8 +149,8 @@ export default function MonetizationPage() {
                                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                                 {category.features.map((feature, fIndex) => (
                                                     <Card key={fIndex} className="bg-card/90">
-                                                        <CardHeader className="flex flex-row items-center gap-4">
-                                                            <div className="bg-primary/10 p-3 rounded-full">
+                                                        <CardHeader className="flex flex-row items-start gap-4">
+                                                            <div className="bg-primary/10 p-3 rounded-full flex-shrink-0">
                                                                 <feature.icon className="w-6 h-6 text-primary" />
                                                             </div>
                                                             <CardTitle>{feature.title}</CardTitle>
@@ -166,7 +176,7 @@ export default function MonetizationPage() {
                             <Link href="/funcionalidades" className="underline hover:text-primary">Funcionalidades</Link>
                             <Link href="/exemplos-de-uso" className="underline hover:text-primary">Exemplos de Uso</Link>
                             <Link href="/monetizacao" className="underline hover:text-primary">Monetização</Link>
-                            <Link href="/termos-e-condicoes" className="underline hover:text-primary">Termos e Condições</Link>
+                            <Link href="/termos-e-condicoes" className="underline hover:text-primary">Termos e Condicoes</Link>
                             <Link href="/politica-de-privacidade" className="underline hover:text-primary">Política de Privacidade</Link>
                             <Link href="/help" className="underline hover:text-primary">Ajuda</Link>
                         </div>
@@ -183,3 +193,5 @@ export default function MonetizationPage() {
         </APIProvider>
     );
 }
+
+    
