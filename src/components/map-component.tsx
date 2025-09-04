@@ -21,6 +21,7 @@ type MapComponentProps = {
   onCenterChanged: (center: google.maps.LatLngLiteral) => void;
   onZoomChanged: (zoom: number) => void;
   onMarkerClick: (pointId: string) => void;
+  children?: React.ReactNode;
 };
 
 const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
@@ -347,7 +348,7 @@ export const WFSLayer = ({ url, layerName }: { url: string, layerName: string })
 
 
 
-export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick }: MapComponentProps) {
+export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick, children }: MapComponentProps) {
   
     const [infoWindowState, setInfoWindowState] = useState<{ anchor: google.maps.marker.AdvancedMarkerElement | google.maps.LatLngLiteral | null; poi: PointOfInterest | null }>({ anchor: null, poi: null });
     const { externalLayers } = useExternalLayers();
@@ -463,6 +464,7 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                     }
                     return null;
                 })}
+                {children}
             </Map>
         </div>
     );

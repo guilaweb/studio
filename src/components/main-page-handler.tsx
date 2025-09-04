@@ -43,6 +43,7 @@ import ConstructionEdit from "./construction-edit";
 import CroquiReport from "./croqui-report";
 import WaterResourceReport from "./water-resource-report";
 import PollutionReport from "./pollution-report";
+import DirectionsRenderer from "./directions-renderer";
 
 
 type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource' | 'pollution';
@@ -80,6 +81,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     lng: 18.5,
   });
   const [zoom, setZoom] = React.useState(6);
+  const [routeToOptimize, setRouteToOptimize] = React.useState<google.maps.LatLngLiteral[] | null>(null);
   
 
   const [activeSheet, setActiveSheet] = React.useState<ActiveSheet>(null);
@@ -169,6 +171,19 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         const type = hash.substring(8);
         handleStartReporting(type as ActiveSheet);
         window.location.hash = ''; // Clear hash
+    }
+
+    // Handle optimized route requests from session storage
+    const routeData = sessionStorage.getItem('routeToOptimize');
+    if (routeData) {
+        try {
+            const waypoints = JSON.parse(routeData);
+            setRouteToOptimize(waypoints);
+            sessionStorage.removeItem('routeToOptimize');
+        } catch (e) {
+            console.error("Failed to parse route data from session storage", e);
+            sessionStorage.removeItem('routeToOptimize');
+        }
     }
     
   }, [searchParams, allData]);
@@ -1073,7 +1088,9 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                 onCenterChanged={setMapCenter}
                 onZoomChanged={setZoom}
                 onMarkerClick={handleMarkerClick}
-              />
+              >
+                  <DirectionsRenderer waypoints={routeToOptimize} />
+              </MapComponent>
               {user && (
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>

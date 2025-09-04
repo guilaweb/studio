@@ -109,10 +109,19 @@ function MeusCroquisPage() {
     };
 
     const handleOptimizeRoute = () => {
-        toast({
-            title: "Funcionalidade em Desenvolvimento",
-            description: "A otimização de rotas com múltiplos pontos estará disponível em breve.",
-        });
+        const selectedPoints = allData.filter(p => selectedCroquis.includes(p.id));
+        if (selectedPoints.length < 2) {
+            toast({
+                variant: 'destructive',
+                title: "Pontos insuficientes",
+                description: "Selecione pelo menos dois croquis para otimizar uma rota.",
+            });
+            return;
+        }
+
+        const waypoints = selectedPoints.map(p => p.position);
+        sessionStorage.setItem('routeToOptimize', JSON.stringify(waypoints));
+        router.push('/');
     };
 
     const handleEditCroqui = (croqui: PointOfInterest) => {
