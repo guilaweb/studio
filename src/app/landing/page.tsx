@@ -101,7 +101,6 @@ export default function LandingPage() {
                     defaultZoom={13}
                     gestureHandling={'none'}
                     disableDefaultUI={true}
-                    styles={mapStyles}
                     mapId={'landing-map'}
                 />
             </div>

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from 'react';
@@ -72,6 +71,13 @@ const PropertySearch: React.FC<PropertySearchProps> = ({ onSearch, initialFilter
     const handleClear = () => {
         const clearedFilters = {
             ...initialFilters,
+            location: '',
+            area: null,
+            usageType: null,
+            minPrice: null,
+            maxPrice: null,
+            bedrooms: null,
+            bathrooms: null,
             verification: [],
             taxStatus: false
         };
@@ -96,7 +102,7 @@ const PropertySearch: React.FC<PropertySearchProps> = ({ onSearch, initialFilter
             </CardHeader>
             <CardContent className="space-y-4">
                  <div className="space-y-2">
-                    <Label htmlFor="location">Localização (Bairro, Município)</Label>
+                    <Label htmlFor="location">Localização (Título, Descrição)</Label>
                     <Input id="location" name="location" placeholder="Ex: Viana" value={filters.location} onChange={handleInputChange} />
                 </div>
                  <div className="grid grid-cols-2 gap-4">

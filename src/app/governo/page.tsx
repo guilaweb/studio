@@ -62,7 +62,6 @@ export default function GovernmentSolutionsPage() {
                         defaultZoom={13}
                         gestureHandling={'none'}
                         disableDefaultUI={true}
-                        styles={mapStyles}
                         mapId={'govt-solutions-map'}
                     />
                 </div>

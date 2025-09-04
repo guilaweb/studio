@@ -55,7 +55,7 @@ const LandPlotSearch: React.FC<PropertySearchProps> = ({ onSearch, initialFilter
             <CardContent className="p-0">
                 <form onSubmit={handleSearch} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="location">Localização</Label>
+                        <Label htmlFor="location">Localização (Título)</Label>
                         <Input
                             id="location"
                             name="location"

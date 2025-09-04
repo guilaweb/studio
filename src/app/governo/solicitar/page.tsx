@@ -96,7 +96,6 @@ export default function InstitutionalRequestPage() {
                         defaultZoom={13}
                         gestureHandling={'none'}
                         disableDefaultUI={true}
-                        styles={mapStyles}
                         mapId={'institutional-request-map'}
                     />
                 </div>

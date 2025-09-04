@@ -123,7 +123,6 @@ export default function DocsPage() {
                         defaultZoom={13}
                         gestureHandling={'none'}
                         disableDefaultUI={true}
-                        styles={mapStyles}
                         mapId={'docs-map'}
                     />
                 </div>

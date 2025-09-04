@@ -85,7 +85,6 @@ export default function FeaturesPage() {
                         defaultZoom={13}
                         gestureHandling={'none'}
                         disableDefaultUI={true}
-                        styles={mapStyles}
                         mapId={'features-map'}
                     />
                 </div>

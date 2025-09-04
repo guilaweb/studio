@@ -239,7 +239,6 @@ export default function UseCasesPage() {
                         defaultZoom={13}
                         gestureHandling={'none'}
                         disableDefaultUI={true}
-                        styles={mapStyles}
                         mapId={'use-cases-map'}
                     />
                 </div>

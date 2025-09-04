@@ -39,7 +39,6 @@ export default function ScientificArticlePage() {
                         defaultZoom={13}
                         gestureHandling={'none'}
                         disableDefaultUI={true}
-                        styles={mapStyles}
                         mapId={'scientific-article-map'}
                     />
                 </div>

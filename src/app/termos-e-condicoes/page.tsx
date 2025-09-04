@@ -39,7 +39,6 @@ export default function TermsAndConditionsPage() {
                         defaultZoom={13}
                         gestureHandling={'none'}
                         disableDefaultUI={true}
-                        styles={mapStyles}
                         mapId={'terms-map'}
                     />
                 </div>

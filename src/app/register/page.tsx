@@ -214,7 +214,6 @@ export default function RegisterPage() {
                     defaultZoom={13}
                     gestureHandling={'none'}
                     disableDefaultUI={true}
-                    styles={mapStyles}
                     mapId={'auth-map'}
                 />
             </div>

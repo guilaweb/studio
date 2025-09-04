@@ -100,7 +100,6 @@ export default function HelpPage() {
                         defaultZoom={13}
                         gestureHandling={'none'}
                         disableDefaultUI={true}
-                        styles={mapStyles}
                         mapId={'help-map'}
                     />
                 </div>
