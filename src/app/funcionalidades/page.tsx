@@ -186,6 +186,7 @@ export default function FeaturesPage() {
                             <p>&copy; 2024 MUNITU. Todos os direitos reservados.</p>
                             <Link href="/docs" className="underline hover:text-primary">Documentação Técnica</Link>
                             <Link href="/artigo-cientifico" className="underline hover:text-primary">Artigo Científico</Link>
+                            <Link href="/funcionalidades" className="underline hover:text-primary">Funcionalidades</Link>
                             <Link href="/exemplos-de-uso" className="underline hover:text-primary">Exemplos de Uso</Link>
                             <Link href="/monetizacao" className="underline hover:text-primary">Monetização</Link>
                             <Link href="/oportunidades" className="underline hover:text-primary">Oportunidades</Link>
