@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -40,6 +41,7 @@ import {
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { Card } from "./ui/card";
 
 
 const formSchema = z.object({
@@ -132,7 +134,7 @@ const DrawingManager: React.FC<{
 type CroquiReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon' | 'customData' | 'croquiType'>, propertyIdToLink?: string) => void;
+  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiType' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon' | 'customData'>, propertyIdToLink?: string) => void;
   initialCenter: google.maps.LatLngLiteral;
   mapRef?: React.RefObject<google.maps.Map>;
   poiToEdit: PointOfInterest | null;
