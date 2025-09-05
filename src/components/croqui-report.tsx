@@ -480,9 +480,7 @@ export default function CroquiReport({
                             { (croquiType === 'urban' || croquiType === 'rural' || croquiType === 'event') && (
                                 <Button type="button" variant={drawingMode === 'route' ? 'secondary' : 'outline'} size="sm" onClick={handleClearRoute}><Route className="mr-2 h-4 w-4" />{drawnRoute ? 'Redesenhar Rota' : 'Desenhar Rota'}</Button>
                             )}
-                            { (croquiType === 'complex' || croquiType === 'event') && (
-                                <Button type="button" variant={drawingMode === 'polygon' ? 'secondary' : 'outline'} size="sm" onClick={handleClearPolygon}><AppWindow className="mr-2 h-4 w-4" />{drawnPolygon ? 'Redesenhar Área' : 'Desenhar Área'}</Button>
-                            )}
+                            <Button type="button" variant={drawingMode === 'polygon' ? 'secondary' : 'outline'} size="sm" onClick={handleClearPolygon}><AppWindow className="mr-2 h-4 w-4" />{drawnPolygon ? 'Redesenhar Área' : 'Desenhar Área'}</Button>
                         </div>
                         {referencePoints.map((point, index) => (
                             <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md text-sm"><span className="truncate">{point.label}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeReferencePoint(index)}><X className="h-4 w-4"/></Button></div>
@@ -521,4 +519,5 @@ export default function CroquiReport({
     </>
   );
 }
+
 
