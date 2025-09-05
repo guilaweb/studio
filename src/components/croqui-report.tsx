@@ -477,9 +477,7 @@ export default function CroquiReport({
                         <Label>Ferramentas de Desenho</Label>
                         <div className="flex flex-wrap gap-2">
                             <Button type="button" variant={drawingMode === 'points' ? 'secondary' : 'outline'} size="sm" onClick={() => setDrawingMode(prev => prev === 'points' ? null : 'points')}><PlusCircle className="mr-2 h-4 w-4" />Referência</Button>
-                            { (croquiType === 'urban' || croquiType === 'rural' || croquiType === 'event') && (
-                                <Button type="button" variant={drawingMode === 'route' ? 'secondary' : 'outline'} size="sm" onClick={handleClearRoute}><Route className="mr-2 h-4 w-4" />{drawnRoute ? 'Redesenhar Rota' : 'Desenhar Rota'}</Button>
-                            )}
+                            <Button type="button" variant={drawingMode === 'route' ? 'secondary' : 'outline'} size="sm" onClick={handleClearRoute}><Route className="mr-2 h-4 w-4" />{drawnRoute ? 'Redesenhar Rota' : 'Desenhar Rota'}</Button>
                             <Button type="button" variant={drawingMode === 'polygon' ? 'secondary' : 'outline'} size="sm" onClick={handleClearPolygon}><AppWindow className="mr-2 h-4 w-4" />{drawnPolygon ? 'Redesenhar Área' : 'Desenhar Área'}</Button>
                         </div>
                         {referencePoints.map((point, index) => (
@@ -519,5 +517,6 @@ export default function CroquiReport({
     </>
   );
 }
+
 
 
