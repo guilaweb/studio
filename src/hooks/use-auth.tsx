@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -49,22 +48,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (doc.exists()) {
                 setProfile(doc.data() as UserProfile);
             } else {
-                console.warn(`User profile for ${user.uid} not found. Creating default profile.`);
-                const newProfile: UserProfile = {
-                    uid: user.uid,
-                    displayName: user.displayName || user.email || 'Utilizador Anónimo',
-                    email: user.email || '',
-                    role: 'Cidadao',
-                    createdAt: user.metadata.creationTime || new Date().toISOString(),
-                    photoURL: user.photoURL || undefined,
-                    onboardingCompleted: false,
-                };
-                setDoc(userDocRef, newProfile).then(() => {
-                    setProfile(newProfile);
-                }).catch(err => {
-                    console.error("Failed to create default user profile:", err);
-                    setProfile(null); // Fail gracefully
-                });
+                // The profile creation should be handled explicitly on registration
+                // or first Google Sign-in to ensure proper role assignment (especially for admin).
+                // If a user is authenticated but has no profile, they are in an inconsistent state.
+                console.warn(`User profile for ${user.uid} not found.`);
+                setProfile(null);
             }
             setLoading(false);
         }, (error) => {

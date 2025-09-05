@@ -122,7 +122,6 @@ export default function RegisterPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // We will create the user in a transaction to ensure atomicity with profile creation.
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
       
@@ -134,9 +133,9 @@ export default function RegisterPage() {
       
       await runTransaction(db, async (transaction) => {
         const usersCollectionRef = collection(db, "users");
-        // We get the docs within the transaction to ensure atomicity
+        // Check if there are any users already to determine if this is the first one.
         const usersSnapshot = await getDocs(usersCollectionRef);
-        const isFirstUser = usersSnapshot.docs.length === 0;
+        const isFirstUser = usersSnapshot.empty;
 
         transaction.set(userDocRef, {
             uid: user.uid,
