@@ -98,7 +98,7 @@ export default function FeaturesPage() {
                         </Button>
                         <Link href="/" className="flex items-center justify-center gap-2 ml-4" prefetch={false}>
                             <Logo className="h-6 w-6 text-primary" />
-                            <span className="font-semibold text-lg">MUNITU - Funcionalidades</span>
+                            <span className="font-semibold text-lg">MUNITU - Módulos da Plataforma</span>
                         </Link>
                     </header>
 
