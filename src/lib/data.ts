@@ -4,6 +4,14 @@ import { z } from 'zod';
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
 export type QueueTime = z.infer<typeof QueueTimeEnum>;
 
+export const CroquiPointSchema = z.object({
+    position: z.object({ lat: z.number(), lng: z.number() }),
+    label: z.string(),
+    type: z.enum(['munitu', 'custom']),
+});
+export type CroquiPoint = z.infer<typeof CroquiPointSchema>;
+
+
 export const PointOfInterestUpdateSchema = z.object({
   id: z.string(),
   text: z.string().optional().default(''),
@@ -48,12 +56,7 @@ const SustainabilityFeaturesSchema = z.object({
 
 const PositionSchema = z.object({ lat: z.number(), lng: z.number() });
 const FileSchema = z.object({ name: z.string(), url: z.string() });
-const CroquiPointSchema = z.object({
-    position: PositionSchema,
-    label: z.string(),
-    type: z.enum(['munitu', 'custom']),
-});
-export type CroquiPoint = z.infer<typeof CroquiPointSchema>;
+
 
 export const WorkflowStepSchema = z.object({
     id: z.string(),
@@ -108,6 +111,7 @@ export const PointOfInterestSchema = z.object({
   announcementCategory: AnnouncementCategoryEnum.optional(),
   // Croqui Specific
   croquiId: z.string().optional(), // Link to a croqui
+  croquiType: z.enum(['urban', 'rural', 'complex', 'event']).optional(),
   croquiPoints: z.array(CroquiPointSchema).optional(),
   croquiRoute: z.array(PositionSchema).optional(),
   collectionId: z.string().optional(),

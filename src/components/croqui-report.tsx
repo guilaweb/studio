@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { CroquiPoint, PointOfInterest } from "@/lib/data";
 import { Map, AdvancedMarker, Pin, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { MapPin, Share2, PlusCircle, X, Trash2, Locate } from "lucide-react";
+import { MapPin, Share2, PlusCircle, X, Trash2, Locate, Building, Tent, Tractor, Route } from "lucide-react";
 import { Input } from "./ui/input";
 import {
   AlertDialog,
@@ -46,15 +46,23 @@ const formSchema = z.object({
   title: z.string().min(5, "O nome do croqui é obrigatório."),
   description: z.string().optional(),
   collectionName: z.string().optional(),
-  requesterName: z.string().min(3, "O nome do requerente é obrigatório."),
-  province: z.string().min(3, "A província é obrigatória."),
-  municipality: z.string().min(3, "O município é obrigatório."),
+  requesterName: z.string().optional(),
+  province: z.string().optional(),
+  municipality: z.string().optional(),
   technicianName: z.string().optional(),
   technicianId: z.string().optional(),
   surveyDate: z.string().optional(),
 });
 
+type CroquiType = 'urban' | 'rural' | 'complex' | 'event';
 type DrawingMode = 'points' | 'route' | 'polygon' | null;
+
+const croquiTypesConfig = {
+    urban: { icon: Building, label: "Urbano", description: "Para locais em cidades e bairros densos." },
+    rural: { icon: Tractor, label: "Rural", description: "Para sítios, fazendas e locais afastados." },
+    complex: { icon: Building, label: "Grande Complexo", description: "Para shoppings, hospitais, condomínios." },
+    event: { icon: Tent, label: "Evento", description: "Para festivais, feiras ou corridas temporárias." }
+};
 
 const DrawingManager: React.FC<{
     onPolylineComplete: (polyline: google.maps.Polyline) => void,
@@ -124,7 +132,7 @@ const DrawingManager: React.FC<{
 type CroquiReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon' | 'customData'>, propertyIdToLink?: string) => void;
+  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon' | 'customData' | 'croquiType'>, propertyIdToLink?: string) => void;
   initialCenter: google.maps.LatLngLiteral;
   mapRef?: React.RefObject<google.maps.Map>;
   poiToEdit: PointOfInterest | null;
@@ -144,6 +152,8 @@ export default function CroquiReport({
 }: CroquiReportProps) {
   const [mapCenter, setMapCenter] = useState(initialCenter);
   const [mapZoom, setMapZoom] = useState(15);
+  const [step, setStep] = useState(1);
+  const [croquiType, setCroquiType] = useState<CroquiType | null>(null);
   const [referencePoints, setReferencePoints] = useState<CroquiPoint[]>([]);
   const [newReferenceLabel, setNewReferenceLabel] = useState("");
   const [newReferencePosition, setNewReferencePosition] = useState<google.maps.LatLngLiteral | null>(null);
@@ -171,18 +181,10 @@ export default function CroquiReport({
     },
   });
   
-  const clearForm = () => {
-    form.reset({
-      title: "",
-      description: "",
-      collectionName: "",
-      requesterName: "",
-      province: "",
-      municipality: "",
-      technicianName: "",
-      technicianId: "",
-      surveyDate: "",
-    });
+  const resetState = () => {
+    form.reset();
+    setStep(1);
+    setCroquiType(null);
     setReferencePoints([]);
     setDrawingMode(null);
     if (drawnRoute) drawnRoute.setMap(null);
@@ -199,6 +201,8 @@ export default function CroquiReport({
     if (open) {
         setIsEdit(!!poiToEdit);
         if (poiToEdit) {
+             setCroquiType(poiToEdit.croquiType || 'urban');
+             setStep(2); // Go directly to edit form
              form.reset({
                 title: editMode === 'divide' ? `${poiToEdit.title} (Cópia)` : poiToEdit.title,
                 description: poiToEdit.description,
@@ -213,13 +217,10 @@ export default function CroquiReport({
             setMapCenter(poiToEdit.position);
             setMapZoom(16);
             setReferencePoints(poiToEdit.croquiPoints || []);
-            // Note: Re-drawing the route/polygon is complex; for now, we don't pre-populate it on edit.
-            // A more advanced implementation would handle this.
             if(drawnRoute) drawnRoute.setMap(null);
             setDrawnRoute(null);
             if(drawnPolygon) drawnPolygon.setMap(null);
             setDrawnPolygon(null);
-
         } else {
             const poiForCroquiJSON = sessionStorage.getItem('poiForCroqui');
             if (poiForCroquiJSON) {
@@ -234,7 +235,7 @@ export default function CroquiReport({
                 const zoom = isDefaultLocation ? defaultZoom : 15;
                 setMapCenter(center);
                 setMapZoom(zoom);
-                clearForm();
+                resetState();
             }
         }
     }
@@ -292,7 +293,6 @@ export default function CroquiReport({
   const handleLocateFromCoords = () => {
     const trimmedCoords = coords.trim();
 
-    // Check for Decimal Degrees format (e.g., -14.1309, 14.6753)
     if (trimmedCoords.includes(',')) {
         const parts = trimmedCoords.split(',').map(p => p.trim());
         if (parts.length === 2) {
@@ -307,7 +307,6 @@ export default function CroquiReport({
         }
     }
 
-    // Check for DMS format (e.g., 14°07'51.4"S 14°40'31.4"E)
     const dmsToDd = (d: number, m: number, s: number, direction: string) => {
         let dd = d + m/60 + s/3600;
         if (direction === 'S' || direction === 'W') {
@@ -331,15 +330,17 @@ export default function CroquiReport({
             setMapZoom(18);
             toast({ title: 'Localização Encontrada', description: 'O mapa foi centrado nas coordenadas DMS.' });
             return;
-        } catch (e) {
-            // Fall through to error toast
-        }
+        } catch (e) {}
     }
 
     toast({ variant: 'destructive', title: 'Formato de Coordenadas Inválido', description: 'Use o formato "-14.13, 14.67" ou \'14°07..."S 14°40..."E\'' });
   };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!croquiType) {
+        toast({variant: 'destructive', title: "Tipo de Croqui em falta"});
+        return;
+    }
     const finalPosition = mapCenter;
     const routePath = drawnRoute?.getPath().getArray().map(p => p.toJSON());
     const polygonPath = drawnPolygon?.getPath().getArray().map(p => p.toJSON());
@@ -355,6 +356,7 @@ export default function CroquiReport({
 
     onCroquiSubmit({ 
         title: values.title,
+        croquiType: croquiType,
         description: values.description,
         collectionName: values.collectionName,
         customData,
@@ -365,13 +367,13 @@ export default function CroquiReport({
     }, propertyToLink?.id);
   }
 
-  const sheetTitle = isEdit ? (editMode === 'divide' ? 'Dividir Croqui (Criar Cópia)' : 'Editar Croqui') : 'Criar Croqui de Localização';
+  const sheetTitle = isEdit ? (editMode === 'divide' ? 'Dividir Croqui (Criar Cópia)' : 'Editar Croqui') : `Passo ${step}: ${step === 1 ? "Selecione o Tipo de Croqui" : "Detalhes do Croqui"}`;
   const submitButtonText = isEdit ? (editMode === 'divide' ? 'Criar Cópia Editada' : 'Guardar Alterações') : 'Criar e Partilhar';
 
   return (
     <>
     <Sheet open={open} onOpenChange={(isOpen) => {
-        if (!isOpen) clearForm();
+        if (!isOpen) resetState();
         onOpenChange(isOpen);
     }}>
       <SheetContent 
@@ -381,171 +383,119 @@ export default function CroquiReport({
         <SheetHeader className="p-6 pb-2">
           <SheetTitle>{sheetTitle}</SheetTitle>
           <SheetDescription>
-            {propertyToLink ? `A criar um croqui para "${propertyToLink.title}". ` : ''}
-            Arraste o mapa para posicionar o pino principal, adicione pontos de referência e desenhe a rota ou a área.
+            {step === 1 && "Escolha o tipo de localização para aceder às ferramentas mais adequadas."}
+            {step === 2 && "Arraste o mapa, adicione pontos de referência e desenhe rotas ou áreas."}
           </SheetDescription>
         </SheetHeader>
-        <div className="px-6 py-2">
-             <Label htmlFor="coords">Localizar por Coordenadas</Label>
-            <div className="flex gap-2 mt-1">
-                <Input id="coords" placeholder='-14.12, 14.67 ou 14°07..."S...' value={coords} onChange={e => setCoords(e.target.value)} />
-                <Button type="button" variant="secondary" onClick={handleLocateFromCoords}><Locate className="h-4 w-4"/></Button>
-            </div>
-        </div>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
-             <div className="relative h-[40vh] bg-muted">
-                <Map
-                    mapId="croqui-report-map"
-                    center={mapCenter}
-                    zoom={mapZoom}
-                    onCenterChanged={(e) => setMapCenter(e.detail.center)}
-                    onZoomChanged={(e) => setMapZoom(e.detail.zoom)}
-                    gestureHandling={'greedy'}
-                    onClick={handleMapClick}
-                >
-                    <DrawingManager 
-                        onPolylineComplete={setDrawnRoute}
-                        onPolygonComplete={setDrawnPolygon}
-                        drawingMode={drawingMode}
-                    />
-                    {referencePoints.map((point, index) => (
-                         <AdvancedMarker key={index} position={point.position} title={point.label}>
-                            <Pin background={'#FB923C'} borderColor={'#F97316'} glyphColor={'#ffffff'} />
-                         </AdvancedMarker>
-                    ))}
-                    {propertyToLink && (
-                        <AdvancedMarker position={propertyToLink.position} title={propertyToLink.title}>
-                           <Pin background={'hsl(var(--primary))'} borderColor={'hsl(var(--primary))'} glyphColor={'hsl(var(--primary-foreground))'} />
-                        </AdvancedMarker>
-                    )}
-                </Map>
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                    <MapPin className="text-primary h-10 w-10" />
-                 </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                 <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Nome do Croqui</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ex: Casa da Família Santos, Festa do Kito" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                 />
-                 <FormField
-                    control={form.control}
-                    name="requesterName"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Nome do Requerente</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Insira o nome completo" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                 />
-                 <div className="grid grid-cols-2 gap-4">
-                    <FormField control={form.control} name="province" render={({ field }) => (
-                        <FormItem><FormLabel>Província</FormLabel><FormControl><Input placeholder="Ex: Luanda" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="municipality" render={({ field }) => (
-                        <FormItem><FormLabel>Município</FormLabel><FormControl><Input placeholder="Ex: Viana" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                 </div>
-                 <FormField
-                    control={form.control}
-                    name="collectionName"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Coleção (Opcional)</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ex: Meus Clientes, Rede de Postes" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                 />
-                 <Separator />
-                 <h4 className="text-sm font-medium text-foreground">Detalhes Técnicos (Opcional)</h4>
-                 <div className="grid grid-cols-2 gap-4">
-                    <FormField control={form.control} name="technicianName" render={({ field }) => (
-                        <FormItem><FormLabel>Técnico Responsável</FormLabel><FormControl><Input placeholder="Nome do técnico" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="technicianId" render={({ field }) => (
-                        <FormItem><FormLabel>Nº da Ordem</FormLabel><FormControl><Input placeholder="001234" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                 </div>
-                 <FormField control={form.control} name="surveyDate" render={({ field }) => (
-                        <FormItem><FormLabel>Data do Levantamento</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
-                 )} />
-
-                <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Notas Adicionais (Opcional)</FormLabel>
-                    <FormControl>
-                        <Textarea
-                        placeholder="Ex: Tocar a campainha 3 vezes. Procurar pelo portão verde."
-                        {...field}
-                        />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                
-                <div className="space-y-2">
-                    <Label>Ferramentas de Desenho</Label>
-                    <div className="flex flex-wrap gap-2">
-                         <Button type="button" variant={drawingMode === 'points' ? 'secondary' : 'outline'} size="sm" onClick={() => setDrawingMode(prev => prev === 'points' ? null : 'points')}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Adicionar Referência
-                        </Button>
-                        <Button type="button" variant={drawingMode === 'route' ? 'secondary' : 'outline'} size="sm" onClick={handleClearRoute}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            {drawnRoute ? 'Redesenhar Rota' : 'Desenhar Rota'}
-                        </Button>
-                         <Button type="button" variant={drawingMode === 'polygon' ? 'secondary' : 'outline'} size="sm" onClick={handleClearPolygon}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            {drawnPolygon ? 'Redesenhar Área' : 'Desenhar Área'}
-                        </Button>
-                    </div>
-                    
-                    <p className="text-xs text-muted-foreground">
-                        {drawingMode === 'points' && 'Clique no mapa para adicionar um ponto de referência personalizado.'}
-                        {drawingMode === 'route' && 'Clique no mapa para começar a desenhar a rota. Clique duas vezes para terminar.'}
-                        {drawingMode === 'polygon' && 'Clique no mapa para começar a desenhar a área. Clique no primeiro ponto para fechar.'}
-                    </p>
-
-                    {referencePoints.map((point, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md text-sm">
-                            <span>{point.label}</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeReferencePoint(index)}>
-                                <X className="h-4 w-4"/>
-                            </Button>
+        
+        {step === 1 && !isEdit && (
+            <div className="p-6 space-y-4">
+                {Object.entries(croquiTypesConfig).map(([key, {icon: Icon, label, description}]) => (
+                    <Card key={key} className="hover:bg-muted cursor-pointer" onClick={() => { setCroquiType(key as CroquiType); setStep(2); }}>
+                        <div className="p-4 flex items-center gap-4">
+                             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
+                                <Icon className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold">{label}</h3>
+                                <p className="text-sm text-muted-foreground">{description}</p>
+                            </div>
                         </div>
-                    ))}
-                </div>
-
+                    </Card>
+                ))}
             </div>
-            <SheetFooter className="p-6 pt-4 border-t bg-background">
-                <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                <Button type="submit">
-                    <Share2 className="mr-2 h-4 w-4" />
-                    {submitButtonText}
-                </Button>
-            </SheetFooter>
-          </form>
-        </Form>
+        )}
+
+        {step === 2 && (
+        <>
+            <div className="px-6 py-2">
+                <Label htmlFor="coords">Localizar por Coordenadas</Label>
+                <div className="flex gap-2 mt-1">
+                    <Input id="coords" placeholder='-14.12, 14.67 ou 14°07..."S...' value={coords} onChange={e => setCoords(e.target.value)} />
+                    <Button type="button" variant="secondary" onClick={handleLocateFromCoords}><Locate className="h-4 w-4"/></Button>
+                </div>
+            </div>
+            <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
+                <div className="relative h-[40vh] bg-muted">
+                    <Map
+                        mapId="croqui-report-map"
+                        center={mapCenter}
+                        zoom={mapZoom}
+                        onCenterChanged={(e) => setMapCenter(e.detail.center)}
+                        onZoomChanged={(e) => setMapZoom(e.detail.zoom)}
+                        gestureHandling={'greedy'}
+                        onClick={handleMapClick}
+                    >
+                        <DrawingManager 
+                            onPolylineComplete={setDrawnRoute}
+                            onPolygonComplete={setDrawnPolygon}
+                            drawingMode={drawingMode}
+                        />
+                        {referencePoints.map((point, index) => (
+                            <AdvancedMarker key={index} position={point.position} title={point.label}>
+                                <Pin background={'#FB923C'} borderColor={'#F97316'} glyphColor={'#ffffff'} />
+                            </AdvancedMarker>
+                        ))}
+                        {propertyToLink && (
+                            <AdvancedMarker position={propertyToLink.position} title={propertyToLink.title}>
+                            <Pin background={'hsl(var(--primary))'} borderColor={'hsl(var(--primary))'} glyphColor={'hsl(var(--primary-foreground))'} />
+                            </AdvancedMarker>
+                        )}
+                    </Map>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                        <MapPin className="text-primary h-10 w-10" />
+                    </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                    <FormField control={form.control} name="title" render={({ field }) => (
+                        <FormItem><FormLabel>Nome do Croqui</FormLabel><FormControl><Input placeholder="Ex: Casa da Família Santos" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    
+                    {croquiType !== 'complex' && croquiType !== 'event' && (
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField control={form.control} name="province" render={({ field }) => (
+                                <FormItem><FormLabel>Província</FormLabel><FormControl><Input placeholder="Ex: Luanda" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="municipality" render={({ field }) => (
+                                <FormItem><FormLabel>Município</FormLabel><FormControl><Input placeholder="Ex: Viana" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                        </div>
+                    )}
+                    
+                    <FormField control={form.control} name="collectionName" render={({ field }) => (
+                        <FormItem><FormLabel>Coleção (Opcional)</FormLabel><FormControl><Input placeholder="Ex: Meus Clientes" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    
+                    <FormField control={form.control} name="description" render={({ field }) => (
+                        <FormItem><FormLabel>Notas Adicionais (Opcional)</FormLabel><FormControl><Textarea placeholder="Ex: Tocar a campainha 3 vezes." {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    
+                    <div className="space-y-2">
+                        <Label>Ferramentas de Desenho</Label>
+                        <div className="flex flex-wrap gap-2">
+                            <Button type="button" variant={drawingMode === 'points' ? 'secondary' : 'outline'} size="sm" onClick={() => setDrawingMode(prev => prev === 'points' ? null : 'points')}><PlusCircle className="mr-2 h-4 w-4" />Referência</Button>
+                            { (croquiType === 'urban' || croquiType === 'rural' || croquiType === 'event') && (
+                                <Button type="button" variant={drawingMode === 'route' ? 'secondary' : 'outline'} size="sm" onClick={handleClearRoute}><Route className="mr-2 h-4 w-4" />{drawnRoute ? 'Redesenhar Rota' : 'Desenhar Rota'}</Button>
+                            )}
+                            { (croquiType === 'complex' || croquiType === 'event') && (
+                                <Button type="button" variant={drawingMode === 'polygon' ? 'secondary' : 'outline'} size="sm" onClick={handleClearPolygon}><Route className="mr-2 h-4 w-4" />{drawnPolygon ? 'Redesenhar Área' : 'Desenhar Área'}</Button>
+                            )}
+                        </div>
+                        {referencePoints.map((point, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md text-sm"><span className="truncate">{point.label}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeReferencePoint(index)}><X className="h-4 w-4"/></Button></div>
+                        ))}
+                    </div>
+
+                </div>
+                <SheetFooter className="p-6 pt-4 border-t bg-background">
+                    <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                    <Button type="submit"><Share2 className="mr-2 h-4 w-4" />{submitButtonText}</Button>
+                </SheetFooter>
+            </form>
+            </Form>
+        </>
+        )}
       </SheetContent>
     </Sheet>
     
@@ -553,18 +503,11 @@ export default function CroquiReport({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Adicionar Ponto de Referência</AlertDialogTitle>
-          <AlertDialogDescription>
-            Dê um nome a este ponto de referência para ajudar os outros a localizá-lo.
-          </AlertDialogDescription>
+          <AlertDialogDescription>Dê um nome a este ponto de referência.</AlertDialogDescription>
         </AlertDialogHeader>
         <div className="py-2">
             <Label htmlFor="reference-label">Nome da Referência</Label>
-            <Input 
-                id="reference-label"
-                value={newReferenceLabel}
-                onChange={(e) => setNewReferenceLabel(e.target.value)}
-                placeholder="Ex: Mangueira grande, Paragem de táxi"
-            />
+            <Input id="reference-label" value={newReferenceLabel} onChange={(e) => setNewReferenceLabel(e.target.value)} placeholder="Ex: Mangueira grande"/>
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={handleCancelAddReference}>Cancelar</AlertDialogCancel>

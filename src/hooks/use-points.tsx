@@ -1,6 +1,5 @@
 
 
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -81,6 +80,7 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         announcementCategory: data.announcementCategory,
         // Croqui Specific
         croquiId: data.croquiId, // Link to a croqui
+        croquiType: data.croquiType,
         croquiPoints: data.croquiPoints,
         croquiRoute: data.croquiRoute,
         collectionId: data.collectionId,
@@ -303,3 +303,4 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const usePoints = () => useContext(PointsContext);
+
