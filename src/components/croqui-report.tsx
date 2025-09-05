@@ -26,7 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { CroquiPoint, PointOfInterest } from "@/lib/data";
 import { Map, AdvancedMarker, Pin, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { MapPin, Share2, PlusCircle, X, Trash2, Locate, Building, Tent, Tractor, Route } from "lucide-react";
+import { MapPin, Share2, PlusCircle, X, Trash2, Locate, Building, Tent, Tractor, Route, AppWindow } from "lucide-react";
 import { Input } from "./ui/input";
 import {
   AlertDialog,
@@ -481,7 +481,7 @@ export default function CroquiReport({
                                 <Button type="button" variant={drawingMode === 'route' ? 'secondary' : 'outline'} size="sm" onClick={handleClearRoute}><Route className="mr-2 h-4 w-4" />{drawnRoute ? 'Redesenhar Rota' : 'Desenhar Rota'}</Button>
                             )}
                             { (croquiType === 'complex' || croquiType === 'event') && (
-                                <Button type="button" variant={drawingMode === 'polygon' ? 'secondary' : 'outline'} size="sm" onClick={handleClearPolygon}><Route className="mr-2 h-4 w-4" />{drawnPolygon ? 'Redesenhar Área' : 'Desenhar Área'}</Button>
+                                <Button type="button" variant={drawingMode === 'polygon' ? 'secondary' : 'outline'} size="sm" onClick={handleClearPolygon}><AppWindow className="mr-2 h-4 w-4" />{drawnPolygon ? 'Redesenhar Área' : 'Desenhar Área'}</Button>
                             )}
                         </div>
                         {referencePoints.map((point, index) => (
@@ -521,3 +521,4 @@ export default function CroquiReport({
     </>
   );
 }
+
