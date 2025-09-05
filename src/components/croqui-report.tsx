@@ -454,16 +454,14 @@ export default function CroquiReport({
                         <FormItem><FormLabel>Nome do Croqui</FormLabel><FormControl><Input placeholder="Ex: Casa da Família Santos" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                     
-                    {croquiType !== 'complex' && croquiType !== 'event' && (
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField control={form.control} name="province" render={({ field }) => (
-                                <FormItem><FormLabel>Província</FormLabel><FormControl><Input placeholder="Ex: Luanda" {...field} /></FormControl><FormMessage /></FormItem>
-                            )} />
-                            <FormField control={form.control} name="municipality" render={({ field }) => (
-                                <FormItem><FormLabel>Município</FormLabel><FormControl><Input placeholder="Ex: Viana" {...field} /></FormControl><FormMessage /></FormItem>
-                            )} />
-                        </div>
-                    )}
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField control={form.control} name="province" render={({ field }) => (
+                            <FormItem><FormLabel>Província</FormLabel><FormControl><Input placeholder="Ex: Luanda" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="municipality" render={({ field }) => (
+                            <FormItem><FormLabel>Município</FormLabel><FormControl><Input placeholder="Ex: Viana" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                    </div>
                     
                     <FormField control={form.control} name="collectionName" render={({ field }) => (
                         <FormItem><FormLabel>Coleção (Opcional)</FormLabel><FormControl><Input placeholder="Ex: Meus Clientes" {...field} /></FormControl><FormMessage /></FormItem>
@@ -517,6 +515,7 @@ export default function CroquiReport({
     </>
   );
 }
+
 
 
 
