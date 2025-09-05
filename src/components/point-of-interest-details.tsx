@@ -623,6 +623,15 @@ const CustomDataDetails = ({ poi }: { poi: PointOfInterest }) => {
     if (!poi.customData || Object.keys(poi.customData).length === 0 || poi.type === 'water_resource') {
         return null;
     }
+    
+    const labelMap: Record<string, string> = {
+        requesterName: "Requerente",
+        province: "Província",
+        municipality: "Município",
+        technicianName: "Técnico Responsável",
+        technicianId: "Nº Ordem do Técnico",
+        surveyDate: "Data do Levantamento",
+    };
 
     return (
         <>
@@ -632,7 +641,7 @@ const CustomDataDetails = ({ poi }: { poi: PointOfInterest }) => {
                 <div className="space-y-2">
                     {Object.entries(poi.customData).map(([key, value]) => (
                         <div key={key} className="flex justify-between items-center text-sm">
-                            <span className="text-muted-foreground">{key}</span>
+                            <span className="text-muted-foreground">{labelMap[key] || key}</span>
                             <span className="font-medium">{value}</span>
                         </div>
                     ))}
