@@ -7,7 +7,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search, Loader2, Truck, AlertTriangle, Wrench, Fuel } from "lucide-react";
+import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search, Loader2, Truck, AlertTriangle, Wrench, Fuel, Info } from "lucide-react";
 import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { Badge } from "@/components/ui/badge";
 import { TeamMemberMarker } from "@/components/team-management/team-member-marker";
@@ -163,9 +163,13 @@ function TeamManagementPage() {
         const staticAlerts: Alert[] = [
             { id: '1', time: '10:32', description: 'Veículo LD-01-00-AA excedeu 100 km/h na EN-100.', level: 'critical' },
             { id: '2', time: '10:15', description: 'Motorista Demonstração Silva acionou o botão de pânico.', level: 'critical' },
+            { id: '3', time: '09:45', description: "Veículo LD-03-00-AC entrou na zona 'Centro da Cidade'.", level: 'info' },
         ];
         
-        return [...alerts, ...staticAlerts].sort((a,b) => (a.level === 'critical' ? -1 : 1));
+        return [...alerts, ...staticAlerts].sort((a,b) => {
+            const levelOrder = { critical: 0, warning: 1, info: 2 };
+            return levelOrder[a.level] - levelOrder[b.level];
+        });
     }, [teamMembers, maintenancePlans]);
     
     const upcomingMaintenanceCount = React.useMemo(() => {
@@ -484,6 +488,7 @@ function TeamManagementPage() {
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
 
     
+
 
 
 

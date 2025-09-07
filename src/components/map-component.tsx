@@ -9,7 +9,7 @@ import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 import { GenericPolygonsRenderer } from "./generic-polygons-renderer";
 import { useExternalLayers } from "@/services/external-layers-service";
-import { useGeofences } from "@/services/geofence-service";
+import GeofenceRenderer from "./geofence-renderer";
 
 
 type MapComponentProps = {
@@ -118,7 +118,7 @@ export const getPinStyle = (point: PointOfInterest) => {
             case 'active': // for announcements
                 return { background: '#f97316', borderColor: '#ea580c', glyphColor: '#ffffff' }; // orange
             case 'in_dispute':
-                return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
+                return { background: '#dc2626', borderColor: '#ef4444', glyphColor: '#ffffff' }; // red
             case 'protected':
                 return { background: '#0e7490', borderColor: '#155e75', glyphColor: '#ffffff' }; // cyan
             default:
@@ -343,41 +343,6 @@ export const WFSLayer = ({ url, layerName }: { url: string, layerName: string })
             });
         };
     }, [map, url, layerName]);
-
-    return null;
-};
-
-const GeofenceRenderer: React.FC = () => {
-    const map = useMap();
-    const { geofences } = useGeofences();
-    const [polygons, setPolygons] = useState<google.maps.Polygon[]>([]);
-
-    useEffect(() => {
-        if (!map) return;
-
-        // Clean up previous polygons
-        polygons.forEach(p => p.setMap(null));
-
-        const newPolygons = geofences.map(geofence => {
-            return new google.maps.Polygon({
-                paths: geofence.polygon,
-                strokeColor: "hsl(var(--destructive))",
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-                fillColor: "hsl(var(--destructive))",
-                fillOpacity: 0.1,
-                map: map,
-                zIndex: -1, // Keep geofences in the background
-            });
-        });
-
-        setPolygons(newPolygons);
-
-        return () => {
-            newPolygons.forEach(p => p.setMap(null));
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [map, geofences]);
 
     return null;
 };
