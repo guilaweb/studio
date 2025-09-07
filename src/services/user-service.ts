@@ -33,7 +33,8 @@ export const useUsers = () => {
                         type: 'Carrinha de Manutenção', 
                         plate: `LD-${index < 10 ? '0' : ''}${index}-00-AA`, 
                         odometer: 125000 + (index * 5000),
-                        lastServiceDate: new Date(new Date().setMonth(new Date().getMonth() - (index % 6))).toISOString() // Simulate last service from 0-5 months ago
+                        lastServiceDate: new Date(new Date().setMonth(new Date().getMonth() - (index % 6))).toISOString(), // Simulate last service from 0-5 months ago
+                        lastServiceOdometer: 120000 + (index * 4000),
                     };
                     
                     // Simulate current task with a planned path for the first technician

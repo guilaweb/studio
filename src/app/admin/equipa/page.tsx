@@ -24,8 +24,10 @@ import { useToast } from "@/hooks/use-toast";
 import { suggestTechnicianFlow } from "@/ai/flows/suggest-technician-flow";
 import { SuggestionBadge } from "@/components/team-management/suggestion-badge";
 import DashboardClusterer from "@/components/dashboard/dashboard-clusterer";
-import RecentAlerts from "@/components/team-management/recent-alerts";
+import RecentAlerts, { Alert } from "@/components/team-management/recent-alerts";
 import { useFuelEntries } from "@/services/fuel-service";
+import { useMaintenancePlans } from "@/services/maintenance-service";
+import { differenceInDays, addMonths } from "date-fns";
 
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
@@ -34,6 +36,7 @@ function TeamManagementPage() {
     const { users, loading: loadingUsers, updateUserProfile } = useUsers();
     const { allData: allPoints, loading: loadingPoints } = usePoints();
     const { fuelEntries, loading: loadingFuel } = useFuelEntries();
+    const { maintenancePlans, loading: loadingPlans } = useMaintenancePlans();
     const [selectedMember, setSelectedMember] = React.useState<UserProfile | null>(null);
     const [searchQuery, setSearchQuery] = React.useState('');
     const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('Todos');
@@ -113,6 +116,61 @@ function TeamManagementPage() {
         return `${avgConsumption.toFixed(2)} km/L`;
 
     }, [fuelEntries]);
+    
+    const maintenanceAlerts = React.useMemo(() => {
+        const alerts: Alert[] = [];
+        const now = new Date();
+        const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        teamMembers.forEach(member => {
+            if (!member.vehicle || !member.vehicle.maintenancePlanIds) return;
+
+            member.vehicle.maintenancePlanIds.forEach(planId => {
+                const plan = maintenancePlans.find(p => p.id === planId);
+                if (!plan) return;
+                
+                if (plan.type === 'distance' && member.vehicle.odometer && member.vehicle.lastServiceOdometer) {
+                    const nextServiceOdometer = member.vehicle.lastServiceOdometer + plan.interval;
+                    const kmRemaining = nextServiceOdometer - member.vehicle.odometer;
+                    
+                    if (kmRemaining <= 1000) { // Alert if within 1000km
+                        alerts.push({
+                            id: `${member.uid}-${plan.id}`,
+                            time: now.toISOString(),
+                            description: `Manutenção "${plan.name}" para ${member.vehicle!.plate} vence em ${kmRemaining > 0 ? kmRemaining : 0} km.`,
+                            level: kmRemaining <= 0 ? 'critical' : 'warning',
+                        });
+                    }
+                } else if (plan.type === 'time' && member.vehicle.lastServiceDate) {
+                    const lastServiceDate = new Date(member.vehicle.lastServiceDate);
+                    const nextServiceDate = addMonths(lastServiceDate, plan.interval);
+                    const daysRemaining = differenceInDays(nextServiceDate, now);
+
+                    if (daysRemaining <= 7) { // Alert if within 7 days
+                         alerts.push({
+                            id: `${member.uid}-${plan.id}`,
+                            time: now.toISOString(),
+                            description: `Manutenção "${plan.name}" para ${member.vehicle!.plate} vence em ${daysRemaining > 0 ? daysRemaining : 0} dias.`,
+                            level: daysRemaining <= 0 ? 'critical' : 'warning',
+                        });
+                    }
+                }
+            });
+        });
+        
+        // This is a simplified version; a real system would have more complex alerts.
+        // For demonstration, let's add some static alerts as well.
+        const staticAlerts: Alert[] = [
+            { id: '1', time: '10:32', description: 'Veículo LD-01-00-AA excedeu 100 km/h na EN-100.', level: 'critical' },
+            { id: '2', time: '10:15', description: 'Motorista Demonstração Silva acionou o botão de pânico.', level: 'critical' },
+        ];
+        
+        return [...alerts, ...staticAlerts].sort((a,b) => (a.level === 'critical' ? -1 : 1));
+    }, [teamMembers, maintenancePlans]);
+    
+    const upcomingMaintenanceCount = React.useMemo(() => {
+        return maintenanceAlerts.filter(a => a.level === 'warning' || a.level === 'critical').length;
+    }, [maintenanceAlerts]);
 
     const handleAssignTask = (task: PointOfInterest) => {
         if (!suggestedTechnicians.length) {
@@ -190,7 +248,7 @@ function TeamManagementPage() {
     };
 
 
-     if (loadingUsers || loadingPoints || loadingFuel) {
+     if (loadingUsers || loadingPoints || loadingFuel || loadingPlans) {
         return <div>A carregar dados da equipa...</div>;
     }
 
@@ -216,11 +274,11 @@ function TeamManagementPage() {
                         </Card>
                          <Card>
                             <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Alertas do Dia</CardTitle><AlertTriangle className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">7</div><p className="text-xs text-muted-foreground">5 excessos de velocidade</p></CardContent>
+                            <CardContent><div className="text-2xl font-bold">{maintenanceAlerts.filter(a => a.level === 'critical').length}</div><p className="text-xs text-muted-foreground">{maintenanceAlerts.length} alertas no total</p></CardContent>
                         </Card>
                          <Card>
                             <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Manutenções</CardTitle><Wrench className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">3</div><p className="text-xs text-muted-foreground">Vencem esta semana</p></CardContent>
+                            <CardContent><div className="text-2xl font-bold">{upcomingMaintenanceCount}</div><p className="text-xs text-muted-foreground">Vencem esta semana</p></CardContent>
                         </Card>
                          <Card>
                             <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Consumo Médio</CardTitle><Fuel className="h-4 w-4 text-muted-foreground"/></CardHeader>
@@ -314,7 +372,7 @@ function TeamManagementPage() {
                                     ))}
                                 </CardContent>
                             </Card>
-                            <RecentAlerts />
+                            <RecentAlerts alerts={maintenanceAlerts} />
                         </div>
                         <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className={`transition-all duration-300 ${selectedMember ? 'md:col-span-2' : 'md:col-span-3'}`}>

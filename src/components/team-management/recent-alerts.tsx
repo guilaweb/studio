@@ -6,21 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AlertTriangle, Bell, Info } from 'lucide-react';
 import { Button } from '../ui/button';
 
-interface Alert {
+export interface Alert {
     id: string;
     time: string;
     description: string;
     level: 'critical' | 'warning' | 'info';
 }
-
-const placeholderAlerts: Alert[] = [
-    { id: '1', time: '10:32', description: 'Veículo LD-01-00-AA excedeu 100 km/h na EN-100.', level: 'critical' },
-    { id: '2', time: '10:15', description: 'Motorista Demonstração Silva acionou o botão de pânico.', level: 'critical' },
-    { id: '3', time: '09:50', description: 'Veículo LD-02-00-AA saiu da rota planejada.', level: 'warning' },
-    { id: '4', time: '09:45', description: 'Veículo LD-03-00-AA com ignição ligada e parado há 15 min.', level: 'info' },
-    { id: '5', time: '09:30', description: 'Frenagem brusca detetada no veículo LD-01-00-AA.', level: 'warning' },
-    { id: '6', time: '09:25', description: 'Manutenção "Troca de Óleo" para LD-02-00-AA vence em 3 dias.', level: 'info' },
-];
 
 const alertConfig = {
     critical: { icon: AlertTriangle, color: 'text-red-500' },
@@ -28,7 +19,7 @@ const alertConfig = {
     info: { icon: Info, color: 'text-blue-500' },
 };
 
-const RecentAlerts: React.FC = () => {
+const RecentAlerts: React.FC<{ alerts: Alert[] }> = ({ alerts }) => {
     return (
         <Card>
             <CardHeader>
@@ -39,18 +30,22 @@ const RecentAlerts: React.FC = () => {
                 <CardDescription>Últimos eventos importantes da frota.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 max-h-[30vh] overflow-auto">
-               {placeholderAlerts.map(alert => {
+               {alerts.length === 0 ? (
+                    <p className="text-sm text-center text-muted-foreground py-4">Nenhum alerta para mostrar.</p>
+               ) : (
+                alerts.map(alert => {
                    const config = alertConfig[alert.level];
                    return (
                         <div key={alert.id} className="flex items-start gap-3 p-2 rounded-md border bg-background">
                             <config.icon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${config.color}`} />
                             <div>
                                 <p className="text-sm font-medium">{alert.description}</p>
-                                <p className="text-xs text-muted-foreground">{alert.time}</p>
+                                <p className="text-xs text-muted-foreground">{new Date(alert.time).toLocaleTimeString('pt-PT')}</p>
                             </div>
                         </div>
                    )
-               })}
+               }))
+               }
             </CardContent>
         </Card>
     );

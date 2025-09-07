@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -157,6 +158,7 @@ export const UserProfileSchema = z.object({
         plate: z.string(),
         odometer: z.number().optional(),
         lastServiceDate: z.string().optional(),
+        lastServiceOdometer: z.number().optional(),
         maintenancePlanIds: z.array(z.string()).optional(),
     }).optional(),
     currentTask: PointOfInterestSchema.optional().nullable(),
