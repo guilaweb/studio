@@ -250,8 +250,8 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         
         const cleanedData = removeUndefinedFields(otherUpdates);
 
-        // Check if we are updating workflow steps, if not, add a general update log
-        if (!cleanedData.workflowSteps) {
+        // Check if we are updating workflow steps or collection name, if not, add a general update log
+        if (!cleanedData.workflowSteps && !cleanedData.hasOwnProperty('collectionName')) {
             const editUpdate: Omit<PointOfInterestUpdate, 'id'> = {
                 text: `Detalhes do item atualizados por ${profile.displayName}.`,
                 authorId: user.uid,
@@ -305,6 +305,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 export const usePoints = () => useContext(PointsContext);
 
     
+
 
 
 

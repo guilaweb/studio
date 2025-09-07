@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React from 'react';
@@ -52,9 +53,9 @@ export default function CroquiEditDialog({ open, onOpenChange, croqui, onSave }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Editar Croqui</DialogTitle>
+          <DialogTitle>Editar Croqui/POI</DialogTitle>
           <DialogDescription>
-            Altere o nome do seu croqui ou mova-o para outra coleção alterando o nome da mesma.
+            Altere o nome do seu item ou mova-o para outra coleção.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -64,7 +65,7 @@ export default function CroquiEditDialog({ open, onOpenChange, croqui, onSave }:
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Título do Croqui</FormLabel>
+                  <FormLabel>Título do Croqui/POI</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>

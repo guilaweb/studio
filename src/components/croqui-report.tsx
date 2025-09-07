@@ -45,7 +45,7 @@ import { Card } from "./ui/card";
 
 
 const formSchema = z.object({
-  title: z.string().min(5, "O nome do croqui é obrigatório."),
+  title: z.string().min(3, "O nome do croqui/POI é obrigatório."),
   description: z.string().optional(),
   collectionName: z.string().optional(),
   requesterName: z.string().optional(),
@@ -369,7 +369,7 @@ export default function CroquiReport({
     }, propertyToLink?.id);
   }
 
-  const sheetTitle = isEdit ? (editMode === 'divide' ? 'Dividir Croqui (Criar Cópia)' : 'Editar Croqui') : `Passo ${step}: ${step === 1 ? "Selecione o Tipo de Croqui" : "Detalhes do Croqui"}`;
+  const sheetTitle = isEdit ? (editMode === 'divide' ? 'Dividir Croqui (Criar Cópia)' : 'Editar Croqui/POI') : `Passo ${step}: ${step === 1 ? "Selecione o Tipo de Local" : "Detalhes do Local"}`;
   const submitButtonText = isEdit ? (editMode === 'divide' ? 'Criar Cópia Editada' : 'Guardar Alterações') : 'Criar e Partilhar';
 
   return (
@@ -451,20 +451,11 @@ export default function CroquiReport({
                 </div>
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
                     <FormField control={form.control} name="title" render={({ field }) => (
-                        <FormItem><FormLabel>Nome do Croqui</FormLabel><FormControl><Input placeholder="Ex: Casa da Família Santos" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Nome do Local/POI</FormLabel><FormControl><Input placeholder="Ex: Casa da Família Santos, Cliente XPTO" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                     
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormField control={form.control} name="province" render={({ field }) => (
-                            <FormItem><FormLabel>Província</FormLabel><FormControl><Input placeholder="Ex: Luanda" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name="municipality" render={({ field }) => (
-                            <FormItem><FormLabel>Município</FormLabel><FormControl><Input placeholder="Ex: Viana" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                    </div>
-                    
                     <FormField control={form.control} name="collectionName" render={({ field }) => (
-                        <FormItem><FormLabel>Coleção (Opcional)</FormLabel><FormControl><Input placeholder="Ex: Meus Clientes" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Coleção (Opcional)</FormLabel><FormControl><Input placeholder="Ex: Meus Clientes, Fornecedores" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                     
                     <FormField control={form.control} name="description" render={({ field }) => (
@@ -515,7 +506,3 @@ export default function CroquiReport({
     </>
   );
 }
-
-
-
-
