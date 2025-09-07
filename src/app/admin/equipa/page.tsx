@@ -23,6 +23,7 @@ import { usePoints } from "@/hooks/use-points";
 import { useToast } from "@/hooks/use-toast";
 import { suggestTechnicianFlow } from "@/ai/flows/suggest-technician-flow";
 import { SuggestionBadge } from "@/components/team-management/suggestion-badge";
+import DashboardClusterer from "@/components/dashboard/dashboard-clusterer";
 
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
@@ -262,28 +263,7 @@ function TeamManagementPage() {
                                     gestureHandling={'greedy'}
                                     disableDefaultUI={true}
                                 >
-                                    {filteredMembers.map(member => {
-                                        const suggestion = suggestedTechnicians.find(s => s.technicianId === member.uid);
-                                        return member.location && (
-                                            <AdvancedMarker
-                                                key={member.uid}
-                                                position={member.location}
-                                                title={member.displayName}
-                                                onClick={() => setSelectedMember(member)}
-                                                draggable={true}
-                                                onDragEnd={(e) => handleMarkerDragEnd(member.uid, e)}
-                                            >
-                                                <div className="relative">
-                                                    <TeamMemberMarker 
-                                                            name={member.displayName}
-                                                            photoURL={member.photoURL}
-                                                            status={member.status || 'Offline'}
-                                                        />
-                                                    {suggestion && <SuggestionBadge rank={suggestion.rank} />}
-                                                </div>
-                                            </AdvancedMarker>
-                                        )
-                                    })}
+                                    <DashboardClusterer points={filteredMembers.map(m => ({...m, type: 'atm'}))} />
                                     {localTasks.map(task => (
                                             <AdvancedMarker key={task.id} position={task.position} title={task.title} onClick={() => handleTaskSelect(task)}>
                                                 <Pin background={'#F97316'} borderColor={'#EA580C'} glyphColor={'#ffffff'}>
@@ -379,5 +359,7 @@ function TeamManagementPage() {
 }
 
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
+
+    
 
     
