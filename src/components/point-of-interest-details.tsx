@@ -24,6 +24,7 @@ import DeleteConfirmationDialog from "./delete-confirmation-dialog";
 import AtmNoteReport from "./atm-note-report";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import Timeline from "./timeline";
 
 type PointOfInterestDetailsProps = {
   poi: PointOfInterest | null;
@@ -251,173 +252,8 @@ const CommunityWaterMonitor = ({poi, onPoiStatusChange, canUpdate}: {poi: PointO
     )
 }
 
-const Timeline = ({poi, onAddUpdate}: {poi: PointOfInterest, onAddUpdate: PointOfInterestDetailsProps['onAddUpdate']}) => {
-    const [updateText, setUpdateText] = React.useState("");
-    const [updatePhoto, setUpdatePhoto] = React.useState<File | null>(null);
-    const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
-    const [isGenerating, setIsGenerating] = React.useState(false);
-    const { toast } = useToast();
-    const { user, profile } = useAuth();
-    
-    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setUpdatePhoto(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPhotoPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const clearForm = () => {
-        setUpdateText("");
-        setUpdatePhoto(null);
-        setPhotoPreview(null);
-    }
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!updateText.trim()) return;
-
-        const processSubmit = (photoDataUri?: string) => {
-            onAddUpdate(poi.id, updateText, photoDataUri);
-            clearForm();
-        }
-
-        if (updatePhoto) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                processSubmit(reader.result as string);
-            };
-            reader.readAsDataURL(updatePhoto);
-        } else {
-            processSubmit();
-        }
-    }
-
-    const handleGenerateResponse = async () => {
-        const lastCitizenUpdate = poi.updates?.find(u => u.authorId !== user?.uid);
-        if (!lastCitizenUpdate) {
-            toast({
-                variant: "destructive",
-                title: "Não há contribuições para responder",
-                description: "A IA só pode gerar respostas para contribuições de cidadãos.",
-            });
-            return;
-        }
-
-        setIsGenerating(true);
-        try {
-            const result = await generateOfficialResponse({
-                citizenContribution: lastCitizenUpdate.text || '',
-                projectName: poi.title || '',
-            });
-            setUpdateText(result.response);
-        } catch (error) {
-            console.error("Error generating AI response:", error);
-            toast({
-                variant: "destructive",
-                title: "Erro ao gerar resposta",
-                description: "Não foi possível gerar uma resposta com IA. Tente novamente.",
-            });
-        } finally {
-            setIsGenerating(false);
-        }
-    }
-    
-    const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
-    const canAddUpdate = user; // Any logged in user can add an update now
-
-    const canGenerateAiResponse = isManager && poi.type === 'construction' && poi.updates && poi.updates.length > 0 && poi.updates[0].authorId !== user?.uid;
-
-    const sortedUpdates = React.useMemo(() => {
-        if (!poi.updates) return [];
-        return [...poi.updates].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-    }, [poi.updates]);
-
-    return (
-        <div className="mt-4">
-            <Separator />
-            <div className="py-4">
-                <h3 className="font-semibold mb-4">Linha do Tempo e Comentários</h3>
-                
-                 { canAddUpdate && (
-                    <form onSubmit={handleSubmit} className="mb-6 space-y-4">
-                        <Textarea 
-                            placeholder={isManager ? "Escreva uma resposta oficial ou adicione uma atualização sobre o progresso..." : "Tem alguma dúvida? Deixe aqui o seu comentário..."}
-                            value={updateText}
-                            onChange={(e) => setUpdateText(e.target.value)}
-                        />
-                         <div>
-                            <Label htmlFor="update-photo" className="text-sm font-medium">
-                                <div className="flex items-center gap-2 cursor-pointer">
-                                    <Camera className="mr-2 h-4 w-4" />
-                                    Anexar Fotografia (Opcional)
-                                </div>
-                            </Label>
-                            <Input id="update-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="mt-2 h-auto p-1"/>
-                        </div>
-                        {photoPreview && <Image src={photoPreview} alt="Pré-visualização da fotografia" width={200} height={150} className="rounded-md object-cover" />}
-
-                        <div className="flex flex-wrap gap-2">
-                            <Button type="submit" size="sm" disabled={!updateText.trim()}>
-                                <MessageSquarePlus className="mr-2 h-4 w-4" />
-                                Adicionar Comentário
-                            </Button>
-                             {canGenerateAiResponse && (
-                                <Button type="button" size="sm" variant="outline" onClick={handleGenerateResponse} disabled={isGenerating}>
-                                    <Wand2 className="mr-2 h-4 w-4" />
-                                    {isGenerating ? "A gerar..." : "Gerar Resposta com IA"}
-                                </Button>
-                             )}
-                        </div>
-                    </form>
-                 )}
-
-                <div className="space-y-4">
-                    {sortedUpdates.length > 0 ? (
-                        sortedUpdates.map((update, index) => {
-                            const isOriginalReport = index === 0;
-                            return (
-                                <div key={update.id} className="p-3 rounded-lg bg-muted/50 text-sm">
-                                   {isOriginalReport ? (
-                                        <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                                           {`Reportado por ${update.authorDisplayName || 'um cidadão'}`}
-                                        </p>
-                                   ) : (
-                                        <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                                            {update.text?.startsWith('**RELATÓRIO DE VISTORIA**') ? `Vistoria por ${update.authorDisplayName || 'um fiscal'}` : `Comentário de ${update.authorDisplayName || 'um utilizador'}`}
-                                        </p>
-                                   )}
-                                   <p className="whitespace-pre-wrap">{update.text}</p>
-                                   {update.photoDataUri && (
-                                        <div className="mt-2">
-                                            <a href={update.photoDataUri} target="_blank" rel="noopener noreferrer">
-                                                <Image src={update.photoDataUri} alt="Prova de execução ou foto do incidente" width={200} height={150} className="rounded-md object-cover" />
-                                            </a>
-                                        </div>
-                                   )}
-                                   <p className="text-xs text-muted-foreground mt-2">
-                                        {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })}
-                                   </p>
-                                </div>
-                            )
-                        })
-                    ) : (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                           Ainda não há comentários ou atualizações.
-                        </p>
-                    )}
-                </div>
-            </div>
-        </div>
-    )
-}
-
-const LandPlotDetails = ({ poi }: { poi: PointOfInterest }) => {
-    if (poi.type !== 'land_plot') return null;
+const LandPlotDetails = ({ plot }: { plot: PointOfInterest | null }) => {
+    if (!plot) return null;
 
     const usageTypeMap: Record<string, string> = {
         residential: "Residencial",
@@ -427,9 +263,8 @@ const LandPlotDetails = ({ poi }: { poi: PointOfInterest }) => {
         other: "Outro",
     }
     
-    const hasZoningInfo = poi.usageType || poi.maxHeight !== undefined || poi.buildingRatio !== undefined;
-    const hasLoteamentoInfo = poi.minLotArea !== undefined || poi.roadCession !== undefined || poi.greenSpaceCession !== undefined;
-
+    const hasZoningInfo = plot.usageType || plot.maxHeight !== undefined || plot.buildingRatio !== undefined;
+    const hasLoteamentoInfo = plot.minLotArea !== undefined || plot.roadCession !== undefined || plot.greenSpaceCession !== undefined;
 
     return (
         <div className="space-y-4">
@@ -439,25 +274,25 @@ const LandPlotDetails = ({ poi }: { poi: PointOfInterest }) => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                         <p className="text-muted-foreground">Estado</p>
-                        <p className="font-medium">{poi.status ? statusLabelMap[poi.status] : "N/A"}</p>
+                        <p className="font-medium">{plot.status ? statusLabelMap[plot.status] : "N/A"}</p>
                     </div>
-                     {poi.plotNumber && (
+                     {plot.plotNumber && (
                         <div>
                             <p className="text-muted-foreground">Nº do Lote</p>
-                            <p className="font-medium">{poi.plotNumber}</p>
+                            <p className="font-medium">{plot.plotNumber}</p>
                         </div>
                     )}
-                    {poi.registrationCode && (
+                    {plot.registrationCode && (
                         <div>
                             <p className="text-muted-foreground">Registo Predial</p>
-                            <p className="font-medium">{poi.registrationCode}</p>
+                            <p className="font-medium">{plot.registrationCode}</p>
                         </div>
                     )}
                 </div>
-                {poi.zoningInfo && (
+                {plot.zoningInfo && (
                     <div className="mt-4">
                         <p className="text-muted-foreground text-sm">Notas Gerais</p>
-                        <p className="text-sm font-medium whitespace-pre-wrap">{poi.zoningInfo}</p>
+                        <p className="text-sm font-medium whitespace-pre-wrap">{plot.zoningInfo}</p>
                     </div>
                 )}
             </div>
@@ -468,22 +303,22 @@ const LandPlotDetails = ({ poi }: { poi: PointOfInterest }) => {
                     <div className="py-4">
                         <h3 className="font-semibold mb-2">Informação de Zoneamento</h3>
                         <div className="grid grid-cols-2 gap-4 text-sm">
-                             {poi.usageType && (
+                             {plot.usageType && (
                                 <div>
                                     <p className="text-muted-foreground">Uso Permitido</p>
-                                    <p className="font-medium">{usageTypeMap[poi.usageType]}</p>
+                                    <p className="font-medium">{usageTypeMap[plot.usageType]}</p>
                                 </div>
                             )}
-                            {poi.maxHeight !== undefined && (
+                            {plot.maxHeight !== undefined && (
                                 <div>
                                     <p className="text-muted-foreground">Altura Máx. (Pisos)</p>
-                                    <p className="font-medium">{poi.maxHeight}</p>
+                                    <p className="font-medium">{plot.maxHeight}</p>
                                 </div>
                             )}
-                            {poi.buildingRatio !== undefined && (
+                            {plot.buildingRatio !== undefined && (
                                  <div>
                                     <p className="text-muted-foreground">Índice Construção</p>
-                                    <p className="font-medium">{poi.buildingRatio}%</p>
+                                    <p className="font-medium">{plot.buildingRatio}%</p>
                                 </div>
                             )}
                         </div>
@@ -496,30 +331,30 @@ const LandPlotDetails = ({ poi }: { poi: PointOfInterest }) => {
                     <div className="py-4">
                         <h3 className="font-semibold mb-2">Regras de Loteamento</h3>
                         <div className="grid grid-cols-2 gap-4 text-sm">
-                             {poi.minLotArea !== undefined && (
+                             {plot.minLotArea !== undefined && (
                                 <div className="flex items-center gap-2">
                                     <Fence className="h-4 w-4 text-muted-foreground"/>
                                     <div>
                                         <p className="text-muted-foreground">Área Mín. Lote</p>
-                                        <p className="font-medium">{poi.minLotArea} m²</p>
+                                        <p className="font-medium">{plot.minLotArea} m²</p>
                                     </div>
                                 </div>
                             )}
-                            {poi.roadCession !== undefined && (
+                            {plot.roadCession !== undefined && (
                                 <div className="flex items-center gap-2">
                                     <Waypoints className="h-4 w-4 text-muted-foreground"/>
                                     <div>
                                         <p className="text-muted-foreground">Cedência para Vias</p>
-                                        <p className="font-medium">{poi.roadCession}%</p>
+                                        <p className="font-medium">{plot.roadCession}%</p>
                                     </div>
                                 </div>
                             )}
-                            {poi.greenSpaceCession !== undefined && (
+                            {plot.greenSpaceCession !== undefined && (
                                  <div className="flex items-center gap-2">
                                     <Trees className="h-4 w-4 text-muted-foreground"/>
                                     <div>
                                         <p className="text-muted-foreground">Cedência p/ Esp. Verdes</p>
-                                        <p className="font-medium">{poi.greenSpaceCession}%</p>
+                                        <p className="font-medium">{plot.greenSpaceCession}%</p>
                                     </div>
                                 </div>
                             )}
@@ -617,21 +452,20 @@ const SensorDataDetails = ({ poi }: { poi: PointOfInterest }) => {
     );
 };
 
+const labelMap: Record<string, string> = {
+    requesterName: "Requerente",
+    province: "Província",
+    municipality: "Município",
+    technicianName: "Técnico Responsável",
+    technicianId: "Nº Ordem do Técnico",
+    surveyDate: "Data do Levantamento",
+};
 
 const CustomDataDetails = ({ poi }: { poi: PointOfInterest }) => {
     // Hide for water resources as they have a dedicated component now
     if (!poi.customData || Object.keys(poi.customData).length === 0 || poi.type === 'water_resource') {
         return null;
     }
-    
-    const labelMap: Record<string, string> = {
-        requesterName: "Requerente",
-        province: "Província",
-        municipality: "Município",
-        technicianName: "Técnico Responsável",
-        technicianId: "Nº Ordem do Técnico",
-        surveyDate: "Data do Levantamento",
-    };
 
     return (
         <>
@@ -690,7 +524,7 @@ const CroquiActions = ({ poi }: { poi: PointOfInterest }) => {
 
 export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiStatusChange, onAddUpdate, onEdit }: PointOfInterestDetailsProps) {
   const { user, profile } = useAuth();
-  const { deletePoint } = usePoints();
+  const { allData, deletePoint } = usePoints();
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
@@ -702,6 +536,13 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const isAdmin = profile?.role === 'Administrador';
   const isAgentOrAdmin = profile?.role === 'Agente Municipal' || isAdmin;
   const isOwner = poi.authorId === user?.uid;
+  
+  const landPlotForCroqui = React.useMemo(() => {
+    if (poi.type === 'croqui' && poi.landPlotId) {
+        return allData.find(p => p.id === poi.landPlotId) || null;
+    }
+    return null;
+  }, [poi, allData]);
 
   let canEdit = false;
   let canDivide = false;
@@ -709,7 +550,11 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   if (user && profile) {
       if (isAgentOrAdmin) {
         // Managers can edit anything except incidents they don't own
-        canEdit = poi.type !== 'incident' || isOwner;
+        if (poi.type === 'incident') {
+            canEdit = isOwner;
+        } else {
+            canEdit = true;
+        }
       } else {
         // Regular users can only edit what they own, and only specific types
         canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement' || poi.type === 'croqui');
@@ -843,7 +688,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 
                 {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={isAgentOrAdmin} />}
                 
-                {poi.type === 'land_plot' && <LandPlotDetails poi={poi} />}
+                <LandPlotDetails plot={poi.type === 'land_plot' ? poi : landPlotForCroqui} />
                 
                 {poi.type === 'construction' && <DocumentList poi={poi} />}
 
