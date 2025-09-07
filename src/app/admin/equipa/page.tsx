@@ -25,6 +25,7 @@ import { suggestTechnicianFlow } from "@/ai/flows/suggest-technician-flow";
 import { SuggestionBadge } from "@/components/team-management/suggestion-badge";
 import DashboardClusterer from "@/components/dashboard/dashboard-clusterer";
 import RecentAlerts from "@/components/team-management/recent-alerts";
+import { useFuelEntries } from "@/services/fuel-service";
 
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
@@ -32,6 +33,7 @@ type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 function TeamManagementPage() {
     const { users, loading: loadingUsers, updateUserProfile } = useUsers();
     const { allData: allPoints, loading: loadingPoints } = usePoints();
+    const { fuelEntries, loading: loadingFuel } = useFuelEntries();
     const [selectedMember, setSelectedMember] = React.useState<UserProfile | null>(null);
     const [searchQuery, setSearchQuery] = React.useState('');
     const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('Todos');
@@ -80,6 +82,36 @@ function TeamManagementPage() {
         const ocupado = teamMembers.filter(m => m.status === 'Ocupado').length;
         return { total, emRota, disponivel, ocupado };
     }, [teamMembers]);
+
+    const fleetConsumption = React.useMemo(() => {
+        if (!fuelEntries || fuelEntries.length < 2) return 'N/A';
+
+        const consumptions: number[] = [];
+        const entriesByVehicle = fuelEntries.reduce((acc, entry) => {
+            if (!acc[entry.vehicleId]) {
+                acc[entry.vehicleId] = [];
+            }
+            acc[entry.vehicleId].push(entry);
+            return acc;
+        }, {} as Record<string, typeof fuelEntries>);
+        
+        for (const vehicleId in entriesByVehicle) {
+            const vehicleEntries = entriesByVehicle[vehicleId].sort((a,b) => a.odometer - b.odometer);
+            for (let i = 1; i < vehicleEntries.length; i++) {
+                const prevEntry = vehicleEntries[i-1];
+                const currentEntry = vehicleEntries[i];
+                const distance = currentEntry.odometer - prevEntry.odometer;
+                if (distance > 0 && currentEntry.liters > 0) {
+                    consumptions.push(distance / currentEntry.liters);
+                }
+            }
+        }
+        
+        if (consumptions.length === 0) return 'N/A';
+        const avgConsumption = consumptions.reduce((acc, c) => acc + c, 0) / consumptions.length;
+        return `${avgConsumption.toFixed(2)} km/L`;
+
+    }, [fuelEntries]);
 
     const handleAssignTask = (task: PointOfInterest) => {
         if (!suggestedTechnicians.length) {
@@ -157,7 +189,7 @@ function TeamManagementPage() {
     };
 
 
-     if (loadingUsers || loadingPoints) {
+     if (loadingUsers || loadingPoints || loadingFuel) {
         return <div>A carregar dados da equipa...</div>;
     }
 
@@ -191,7 +223,7 @@ function TeamManagementPage() {
                         </Card>
                          <Card>
                             <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Consumo Médio</CardTitle><Fuel className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">8.5 km/L</div><p className="text-xs text-muted-foreground">Média da frota (demonstrativo)</p></CardContent>
+                            <CardContent><div className="text-2xl font-bold">{fleetConsumption}</div><p className="text-xs text-muted-foreground">Média da frota</p></CardContent>
                         </Card>
                     </div>
 
@@ -393,4 +425,5 @@ function TeamManagementPage() {
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
 
     
+
 
