@@ -18,6 +18,8 @@ const placeholderAlerts: Alert[] = [
     { id: '2', time: '10:15', description: 'Motorista Demonstração Silva acionou o botão de pânico.', level: 'critical' },
     { id: '3', time: '09:50', description: 'Veículo LD-02-00-AA saiu da rota planejada.', level: 'warning' },
     { id: '4', time: '09:45', description: 'Veículo LD-03-00-AA com ignição ligada e parado há 15 min.', level: 'info' },
+    { id: '5', time: '09:30', description: 'Frenagem brusca detetada no veículo LD-01-00-AA.', level: 'warning' },
+    { id: '6', time: '09:25', description: 'Manutenção "Troca de Óleo" para LD-02-00-AA vence em 3 dias.', level: 'info' },
 ];
 
 const alertConfig = {
