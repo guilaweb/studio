@@ -244,7 +244,7 @@ function TeamManagementPage() {
                                         {filteredMembers.map(member => (
                                             <div key={member.uid} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted", selectedMember?.uid === member.uid ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
                                                 <div className="flex items-center gap-3">
-                                                    <User className="h-5 w-5 text-primary"/>
+                                                    <TeamMemberMarker {...member} />
                                                     <div>
                                                         <p className="font-semibold text-sm">{member.displayName}</p>
                                                         {member.status && (

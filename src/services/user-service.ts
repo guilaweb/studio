@@ -29,7 +29,7 @@ export const useUsers = () => {
                     user.status = user.status || statuses[index % statuses.length];
                     user.location = user.location || { lat: -8.82 + (index * 0.02), lng: 13.23 + (index * 0.02) };
                     user.team = user.team || teams[index % teams.length];
-                    user.vehicle = user.vehicle || { type: 'Carrinha de Manutenção', plate: `LD-${index < 10 ? '0' : ''}${index}-00-AA` };
+                    user.vehicle = user.vehicle || { type: 'Carrinha de Manutenção', plate: `LD-${index < 10 ? '0' : ''}${index}-00-AA`, odometer: 125000 + (index * 5000) };
                     
                     // Simulate current task with a planned path for the first technician
                     if (index === 0 && !user.currentTask) {
