@@ -3,9 +3,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useMap } from '@vis.gl/react-google-maps';
+import { PointOfInterest } from '@/lib/data';
 
 interface DirectionsRendererProps {
-    waypoints: google.maps.LatLngLiteral[] | null;
+    waypoints: PointOfInterest[] | null;
 }
 
 const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints }) => {
@@ -27,11 +28,19 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints }) =>
             }
             return;
         };
+        
+        // Sort waypoints by priority: high -> medium -> low -> undefined
+        const sortedWaypoints = [...waypoints].sort((a, b) => {
+            const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+            const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+            const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+            return priorityB - priorityA;
+        });
 
-        const origin = waypoints[0];
-        const destination = waypoints[waypoints.length - 1];
-        const intermediateWaypoints = waypoints.slice(1, -1).map(location => ({
-            location,
+        const origin = sortedWaypoints[0].position;
+        const destination = sortedWaypoints[sortedWaypoints.length - 1].position;
+        const intermediateWaypoints = sortedWaypoints.slice(1, -1).map(point => ({
+            location: point.position,
             stopover: true,
         }));
 

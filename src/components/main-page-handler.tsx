@@ -80,7 +80,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     lng: 18.5,
   });
   const [zoom, setZoom] = React.useState(6);
-  const [routeToOptimize, setRouteToOptimize] = React.useState<google.maps.LatLngLiteral[] | null>(null);
+  const [routeToOptimize, setRouteToOptimize] = React.useState<PointOfInterest[] | null>(null);
   
 
   const [activeSheet, setActiveSheet] = React.useState<ActiveSheet>(null);
@@ -1273,4 +1273,3 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       </SidebarProvider>
   );
 }
-
