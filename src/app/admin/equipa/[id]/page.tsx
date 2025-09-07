@@ -67,7 +67,7 @@ function VehicleDetailPage() {
             }
         }
         
-        const avgConsumption = consumptions.length > 0 ? consumptions.reduce((acc, c) => acc + c.consumption, 0) / consumptions.length : 0;
+        const avgConsumption = consumptions.length > 0 ? consumptions.reduce((acc, c) => acc + c, 0) / consumptions.length : 0;
         
         return { totalDistance, avgConsumption, consumptionData: consumptions };
 
@@ -79,8 +79,11 @@ function VehicleDetailPage() {
         { month: "Abr", score: 86 }, { month: "Mai", score: 90 }, { month: "Jun", score: 92 },
     ];
     const telemetriaAlerts = [
-        { date: "2024-07-29", time: "14:32", event: "Excesso de Velocidade", details: "115 km/h na EN-100" },
-        { date: "2024-07-28", time: "09:15", event: "Travagem Brusca", details: "Redução de 80 para 20 km/h em 2s" },
+      { date: "2024-07-29", time: "14:32", event: "Excesso de Velocidade", details: "115 km/h na EN-100 (Limite: 80 km/h)" },
+      { date: "2024-07-28", time: "09:15", event: "Travagem Brusca", details: "Redução de 80 para 20 km/h em 2s" },
+      { date: "2024-07-27", time: "11:05", event: "Aceleração Brusca", details: "Aumento de 0 para 50 km/h em 3s" },
+      { date: "2024-07-27", time: "16:20", event: "Curva Perigosa", details: "Curva a 70 km/h na saída para o Zango" },
+      { date: "2024-07-26", time: "13:00", event: "Tempo de Inatividade Excessivo", details: "Motor ligado por 25 min sem movimento" },
     ];
 
     const maintenanceHistory = React.useMemo(() => {
@@ -207,18 +210,19 @@ function VehicleDetailPage() {
                      <div className="space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Alertas de Telemetria</CardTitle>
+                                <CardTitle>Eventos de Condução (Telemetria)</CardTitle>
                             </CardHeader>
                             <CardContent>
                                <Table>
                                     <TableHeader>
-                                        <TableRow><TableHead>Data</TableHead><TableHead>Evento</TableHead></TableRow>
+                                        <TableRow><TableHead>Data</TableHead><TableHead>Evento</TableHead><TableHead>Detalhes</TableHead></TableRow>
                                     </TableHeader>
                                     <TableBody>
                                     {telemetriaAlerts.map((alert, i) => (
                                         <TableRow key={i}>
                                             <TableCell>{format(new Date(alert.date), "dd/MM/yy")}</TableCell>
                                             <TableCell>{alert.event}</TableCell>
+                                            <TableCell className="text-xs">{alert.details}</TableCell>
                                         </TableRow>
                                     ))}
                                     </TableBody>
