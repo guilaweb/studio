@@ -83,7 +83,6 @@ function AdminPropertyVerificationPage() {
                         <DataTable 
                             columns={columns} 
                             data={propertiesToVerify} 
-                            onUpdateProjectStatus={() => Promise.resolve()} // Not needed here
                         />
                     </CardContent>
                 </Card>

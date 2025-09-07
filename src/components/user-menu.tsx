@@ -136,7 +136,7 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <DropdownMenuItem asChild><Link href="/admin/projetos"><Briefcase className="mr-2 h-4 w-4" />Gerir Projetos</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/verificacao"><ShieldCheck className="mr-2 h-4 w-4" />Verificação de Imóveis</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/fiscalizacao-ambiental"><Waves className="mr-2 h-4 w-4" />Fiscalização Ambiental</Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/inspecao"><ScanLine className="mr-2 h-4 w-4" />Inspeção de Obra</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/inspecao"><ScanLine className="mr-2 h-4 w-4" />Prova de Visita</Link></DropdownMenuItem>
                             </DropdownMenuSubContent>
                         </DropdownMenuSub>
 
@@ -192,4 +192,3 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
     )
   }
 
-    

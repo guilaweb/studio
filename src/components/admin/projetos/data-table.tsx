@@ -30,7 +30,7 @@ import { PointOfInterest } from "@/lib/data"
 interface ProjectDataTableProps {
   columns: ColumnDef<PointOfInterest>[],
   data: PointOfInterest[],
-  onUpdateProjectStatus: (projectId: string, status: PointOfInterest['status']) => Promise<void>
+  onUpdateProjectStatus?: (projectId: string, status: PointOfInterest['status']) => Promise<void>
 }
 
 export function DataTable({
