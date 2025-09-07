@@ -9,6 +9,7 @@ import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 import { GenericPolygonsRenderer } from "./generic-polygons-renderer";
 import { useExternalLayers } from "@/services/external-layers-service";
+import { useGeofences } from "@/services/geofence-service";
 
 
 type MapComponentProps = {
@@ -346,6 +347,41 @@ export const WFSLayer = ({ url, layerName }: { url: string, layerName: string })
     return null;
 };
 
+const GeofenceRenderer: React.FC = () => {
+    const map = useMap();
+    const { geofences } = useGeofences();
+    const [polygons, setPolygons] = useState<google.maps.Polygon[]>([]);
+
+    useEffect(() => {
+        if (!map) return;
+
+        // Clean up previous polygons
+        polygons.forEach(p => p.setMap(null));
+
+        const newPolygons = geofences.map(geofence => {
+            return new google.maps.Polygon({
+                paths: geofence.polygon,
+                strokeColor: "hsl(var(--destructive))",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: "hsl(var(--destructive))",
+                fillOpacity: 0.1,
+                map: map,
+                zIndex: -1, // Keep geofences in the background
+            });
+        });
+
+        setPolygons(newPolygons);
+
+        return () => {
+            newPolygons.forEach(p => p.setMap(null));
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [map, geofences]);
+
+    return null;
+};
+
 
 
 export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick, children }: MapComponentProps) {
@@ -424,6 +460,8 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                     points={polylinePoints}
                     onPolylineClick={onMarkerClick}
                 />
+                
+                <GeofenceRenderer />
 
                 {infoWindowState.anchor && infoWindowState.poi && (
                     <InfoWindow

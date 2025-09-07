@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, EyeOff, Eye, Globe, Plus, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, EyeOff, Eye, Globe, Plus, Loader2, Trash2, MapPin } from "lucide-react";
 import { usePublicLayerSettings, updatePublicLayerSettings } from "@/services/settings-service";
 import type { ActiveLayers, Layer } from "@/lib/data";
 import { Switch } from "@/components/ui/switch";
@@ -18,6 +18,9 @@ import { useExternalLayers, addExternalLayer, deleteExternalLayer, updateExterna
 import DeleteConfirmationDialog from "@/components/delete-confirmation-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ExternalLayer } from "@/services/external-layers-service";
+import { useGeofences, deleteGeofence } from "@/services/geofence-service";
+import type { Geofence } from "@/services/geofence-service";
+import GeofenceEditorDialog from "@/components/geofence-editor-dialog";
 
 const layerConfig = [
   { id: "atm", label: "Caixas Eletrônicos", Icon: Landmark },
@@ -33,12 +36,21 @@ function AdminSettingsPage() {
     const { publicLayers, loading: loadingPublicLayers } = usePublicLayerSettings();
     const [localLayers, setLocalLayers] = React.useState<ActiveLayers | null>(null);
     const { externalLayers, loading: loadingExternalLayers } = useExternalLayers();
+    const { geofences, loading: loadingGeofences } = useGeofences();
+    
+    // State for External Layers
     const [newLayerName, setNewLayerName] = React.useState("");
     const [newLayerUrl, setNewLayerUrl] = React.useState("");
     const [newLayerType, setNewLayerType] = React.useState<ExternalLayer['type']>('wms');
     const [newLayerServiceName, setNewLayerServiceName] = React.useState("");
     const [isAddingLayer, setIsAddingLayer] = React.useState(false);
     const [layerToDelete, setLayerToDelete] = React.useState<string | null>(null);
+
+    // State for Geofences
+    const [isGeofenceEditorOpen, setIsGeofenceEditorOpen] = React.useState(false);
+    const [geofenceToEdit, setGeofenceToEdit] = React.useState<Geofence | null>(null);
+    const [geofenceToDelete, setGeofenceToDelete] = React.useState<string | null>(null);
+    
     const { toast } = useToast();
     
     React.useEffect(() => {
@@ -112,9 +124,25 @@ function AdminSettingsPage() {
              toast({ variant: "destructive", title: "Erro", description: "Não foi possível remover a camada."});
         }
     };
+    
+    const handleOpenGeofenceEditor = (geofence: Geofence | null) => {
+        setGeofenceToEdit(geofence);
+        setIsGeofenceEditorOpen(true);
+    };
+
+    const handleDeleteGeofence = async () => {
+        if (!geofenceToDelete) return;
+        try {
+            await deleteGeofence(geofenceToDelete);
+            toast({ title: "Cerca Virtual Removida"});
+            setGeofenceToDelete(null);
+        } catch (error) {
+             toast({ variant: "destructive", title: "Erro", description: "Não foi possível remover a cerca virtual."});
+        }
+    }
 
 
-    if (loadingPublicLayers || !localLayers || loadingExternalLayers) {
+    if (loadingPublicLayers || !localLayers || loadingExternalLayers || loadingGeofences) {
         return (
             <div className="flex min-h-screen w-full flex-col bg-muted/40 p-6">
                 <Card>
@@ -145,37 +173,69 @@ function AdminSettingsPage() {
                     </h1>
                 </header>
                 <main className="grid flex-1 items-start gap-6 p-4 sm:px-6 sm:py-6 md:grid-cols-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Visibilidade Pública das Camadas</CardTitle>
-                            <CardDescription>
-                                Controle quais camadas de informação são visíveis para os utilizadores com o perfil "Cidadao".
-                                As alterações são guardadas automaticamente.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                           {layerConfig.map(({ id, label, Icon }) => (
-                                <div key={id} className="flex items-center justify-between rounded-lg border p-4">
-                                    <Label htmlFor={id} className="flex items-center gap-3 cursor-pointer">
-                                        <Icon className="h-5 w-5 text-muted-foreground" />
-                                        <span className="font-medium">{label}</span>
-                                    </Label>
-                                    <div className="flex items-center gap-2">
-                                         <span className="text-sm text-muted-foreground flex items-center gap-1">
-                                            {localLayers[id as Layer] ? <Eye className="h-4 w-4 text-green-500" /> : <EyeOff className="h-4 w-4 text-red-500" />}
-                                            {localLayers[id as Layer] ? 'Público' : 'Privado'}
-                                         </span>
-                                        <Switch
-                                            id={id}
-                                            checked={localLayers[id as Layer]}
-                                            onCheckedChange={() => handleTogglePublicLayer(id as Layer)}
-                                            aria-label={`Toggle ${label} layer`}
-                                        />
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Visibilidade Pública das Camadas</CardTitle>
+                                <CardDescription>
+                                    Controle quais camadas de informação são visíveis para os utilizadores com o perfil "Cidadao".
+                                    As alterações são guardadas automaticamente.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                            {layerConfig.map(({ id, label, Icon }) => (
+                                    <div key={id} className="flex items-center justify-between rounded-lg border p-4">
+                                        <Label htmlFor={id} className="flex items-center gap-3 cursor-pointer">
+                                            <Icon className="h-5 w-5 text-muted-foreground" />
+                                            <span className="font-medium">{label}</span>
+                                        </Label>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-muted-foreground flex items-center gap-1">
+                                                {localLayers[id as Layer] ? <Eye className="h-4 w-4 text-green-500" /> : <EyeOff className="h-4 w-4 text-red-500" />}
+                                                {localLayers[id as Layer] ? 'Público' : 'Privado'}
+                                            </span>
+                                            <Switch
+                                                id={id}
+                                                checked={localLayers[id as Layer]}
+                                                onCheckedChange={() => handleTogglePublicLayer(id as Layer)}
+                                                aria-label={`Toggle ${label} layer`}
+                                            />
+                                        </div>
                                     </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Gestão de Cercas Virtuais (Geofencing)</CardTitle>
+                                <CardDescription>Crie e gira áreas no mapa para monitorizar a entrada e saída de veículos.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                 <Button onClick={() => handleOpenGeofenceEditor(null)}>
+                                    <Plus className="mr-2 h-4 w-4" /> Adicionar Nova Cerca
+                                </Button>
+                                <div className="space-y-2">
+                                    {geofences.map(geofence => (
+                                        <div key={geofence.id} className="flex items-center justify-between rounded-lg border p-3">
+                                            <div className="flex items-center gap-3">
+                                                <MapPin className="h-5 w-5 text-muted-foreground" />
+                                                <span className="font-medium text-sm">{geofence.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Button variant="outline" size="sm" onClick={() => handleOpenGeofenceEditor(geofence)}>Editar</Button>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setGeofenceToDelete(geofence.id)}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {geofences.length === 0 && (
+                                        <p className="text-sm text-muted-foreground text-center py-4">Nenhuma cerca virtual criada.</p>
+                                    )}
                                 </div>
-                            ))}
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    </div>
                     <Card>
                         <CardHeader>
                             <CardTitle>Gestão de Camadas Externas</CardTitle>
@@ -245,9 +305,19 @@ function AdminSettingsPage() {
                 </main>
             </div>
              <DeleteConfirmationDialog 
-                open={!!layerToDelete}
-                onOpenChange={(open) => !open && setLayerToDelete(null)}
-                onConfirm={handleDeleteLayer}
+                open={!!layerToDelete || !!geofenceToDelete}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setLayerToDelete(null);
+                        setGeofenceToDelete(null);
+                    }
+                }}
+                onConfirm={layerToDelete ? handleDeleteLayer : handleDeleteGeofence}
+            />
+            <GeofenceEditorDialog
+                open={isGeofenceEditorOpen}
+                onOpenChange={setIsGeofenceEditorOpen}
+                geofenceToEdit={geofenceToEdit}
             />
         </>
     );
