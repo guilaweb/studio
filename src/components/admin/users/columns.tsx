@@ -125,7 +125,7 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
     cell: ({ row }) => {
       const user = row.original;
       return (
-        <Link href={`/public-profile/${user.uid}`} className="flex items-center gap-3 pl-4 group hover:underline">
+        <Link href={`/admin/equipa/${user.uid}`} className="flex items-center gap-3 pl-4 group hover:underline">
           <Avatar className="h-9 w-9">
             <AvatarImage src={user.photoURL || undefined} alt={user.displayName} />
             <AvatarFallback>{user.displayName.charAt(0).toUpperCase()}</AvatarFallback>
@@ -204,11 +204,14 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
                             Ver Perfil Público
                         </Link>
                     </DropdownMenuItem>
+                     <DropdownMenuItem asChild>
+                        <Link href={`/admin/equipa/${user.uid}`}>
+                            Ver Dashboard do Veículo
+                        </Link>
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         )
     }
   }
 ];
-
-    
