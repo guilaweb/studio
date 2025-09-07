@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -14,7 +15,7 @@ import { ArrowLeft } from "lucide-react";
 
 
 function AdminUsersPage() {
-    const { users, loading: loadingUsers, error, updateUserRole } = useUsers();
+    const { users, loading: loadingUsers, error, updateUserRole, updateUserProfile } = useUsers();
     const { allData: allPoints, loading: loadingPoints } = usePoints();
 
 
@@ -53,7 +54,7 @@ function AdminUsersPage() {
                     </Link>
                 </Button>
                 <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                    Gestão de Utilizadores
+                    Gestão de Equipa e Motoristas
                 </h1>
             </header>
             <main className="flex-1 p-4 sm:px-6 sm:py-6">
@@ -61,11 +62,15 @@ function AdminUsersPage() {
                     <CardHeader>
                         <CardTitle>Todos os Utilizadores</CardTitle>
                         <CardDescription>
-                            Veja, gira e defina as permissões de todos os utilizadores registados na plataforma.
+                            Veja, gira e defina as permissões e equipas de todos os utilizadores registados na plataforma.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserDataTable data={usersWithStats} onUpdateUserRole={updateUserRole} />
+                        <UserDataTable 
+                            data={usersWithStats} 
+                            onUpdateUserRole={updateUserRole}
+                            onUpdateUserProfile={updateUserProfile}
+                        />
                     </CardContent>
                 </Card>
             </main>

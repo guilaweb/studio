@@ -20,8 +20,11 @@ import {
 import * as React from "react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
+import { useUsers } from "@/services/user-service";
 
 type RoleUpdateHandler = (uid: string, role: UserProfile['role']) => Promise<void>;
+type UserUpdateHandler = (uid: string, data: Partial<UserProfile>) => Promise<void>;
+
 
 const RoleSelector = ({ user, onUpdateUserRole }: { user: UserProfile, onUpdateUserRole: RoleUpdateHandler }) => {
     const [currentRole, setCurrentRole] = React.useState(user.role);
@@ -65,6 +68,49 @@ const RoleSelector = ({ user, onUpdateUserRole }: { user: UserProfile, onUpdateU
     );
 };
 
+const TeamSelector = ({ user, onUpdateUserProfile }: { user: UserProfile, onUpdateUserProfile: UserUpdateHandler }) => {
+    const [currentTeam, setCurrentTeam] = React.useState(user.team);
+    const { toast } = useToast();
+
+    const handleTeamChange = async (newTeam: UserProfile['team']) => {
+        if (newTeam === currentTeam) return;
+        try {
+            await onUpdateUserProfile(user.uid, { team: newTeam });
+            setCurrentTeam(newTeam);
+            toast({
+                title: "Equipa atualizada!",
+                description: `${user.displayName} foi movido para a equipa de ${newTeam}.`,
+            });
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Erro ao atualizar equipa",
+                description: "Não foi possível alterar a equipa do utilizador.",
+            });
+        }
+    };
+    
+    if (user.role !== 'Agente Municipal') return null;
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                 <Button variant="outline" className="w-40 justify-between">
+                    {currentTeam || 'Sem Equipa'}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                <DropdownMenuRadioGroup value={currentTeam} onValueChange={(value) => handleTeamChange(value as UserProfile['team'])}>
+                     <DropdownMenuRadioItem value="Saneamento">Saneamento</DropdownMenuRadioItem>
+                     <DropdownMenuRadioItem value="Eletricidade">Eletricidade</DropdownMenuRadioItem>
+                     <DropdownMenuRadioItem value="Geral">Geral</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+};
+
 
 export const columns: ColumnDef<UserProfileWithStats>[] = [
   {
@@ -98,6 +144,15 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
         const user = row.original;
         const { onUpdateUserRole } = table.options.meta as any;
         return <RoleSelector user={user} onUpdateUserRole={onUpdateUserRole} />
+    }
+  },
+  {
+    accessorKey: "team",
+    header: "Equipa",
+    cell: ({ row, table }) => {
+        const user = row.original;
+        const { onUpdateUserProfile } = table.options.meta as any;
+        return <TeamSelector user={user} onUpdateUserProfile={onUpdateUserProfile} />
     }
   },
   {

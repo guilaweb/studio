@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import * as React from "react"
@@ -30,12 +31,14 @@ import { columns } from "./columns"
 
 interface UserDataTableProps {
   data: UserProfileWithStats[],
-  onUpdateUserRole: (uid: string, role: UserProfile['role']) => Promise<void>
+  onUpdateUserRole: (uid: string, role: UserProfile['role']) => Promise<void>,
+  onUpdateUserProfile: (uid: string, data: Partial<UserProfile>) => Promise<void>,
 }
 
 export function UserDataTable({
   data,
-  onUpdateUserRole
+  onUpdateUserRole,
+  onUpdateUserProfile
 }: UserDataTableProps) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -54,7 +57,8 @@ export function UserDataTable({
             columnFilters,
         },
         meta: {
-            onUpdateUserRole
+            onUpdateUserRole,
+            onUpdateUserProfile,
         }
     });
 
