@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { suggestTechnicianFlow } from "@/ai/flows/suggest-technician-flow";
 import { SuggestionBadge } from "@/components/team-management/suggestion-badge";
 import DashboardClusterer from "@/components/dashboard/dashboard-clusterer";
+import RecentAlerts from "@/components/team-management/recent-alerts";
 
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
@@ -280,6 +281,7 @@ function TeamManagementPage() {
                                     ))}
                                 </CardContent>
                             </Card>
+                            <RecentAlerts />
                         </div>
                         <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className={`transition-all duration-300 ${selectedMember ? 'md:col-span-2' : 'md:col-span-3'}`}>
