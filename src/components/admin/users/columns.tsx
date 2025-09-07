@@ -90,7 +90,7 @@ const TeamSelector = ({ user, onUpdateUserProfile }: { user: UserProfile, onUpda
         }
     };
     
-    if (user.role !== 'Agente Municipal') return null;
+    if (user.role !== 'Agente Municipal') return <div className="text-center text-muted-foreground">-</div>;
 
     return (
         <DropdownMenu>

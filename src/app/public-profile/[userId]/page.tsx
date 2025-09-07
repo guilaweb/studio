@@ -7,12 +7,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Award, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, Droplets, Share2 } from "lucide-react";
+import { ArrowLeft, Award, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, Droplets, Share2, Phone, Briefcase, Car } from "lucide-react";
 import { useUserProfile } from "@/services/user-service";
 import { medals } from "@/lib/medals";
 import { useParams, useRouter } from "next/navigation";
 import { PointOfInterest, typeLabelMap } from "@/lib/data";
-import { formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
 
 const layerIcons: { [key in PointOfInterest['type']]: React.ElementType } = {
@@ -95,7 +95,7 @@ function PublicProfilePage() {
                     <span className="sr-only">Voltar</span>
                 </Button>
                 <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                    Perfil Público do Cidadão
+                    Perfil Público
                 </h1>
             </header>
             <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 md:gap-8">
@@ -182,7 +182,7 @@ function PublicProfilePage() {
                  <div className="grid auto-rows-max items-start gap-4 md:gap-8">
                      <Card>
                         <CardHeader>
-                            <CardTitle>Informações do Cidadão</CardTitle>
+                            <CardTitle>Informações do Utilizador</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-center gap-4">
@@ -193,11 +193,41 @@ function PublicProfilePage() {
                                 <div className="grid gap-1">
                                     <p className="text-lg font-semibold">{user.displayName}</p>
                                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                                     <p className="text-xs text-primary font-semibold">{user.role}</p>
                                     <p className="text-xs text-muted-foreground">Membro desde: {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-PT') : 'N/A'}</p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
+                    {user.role === 'Agente Municipal' && (
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Dados do Motorista</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <Briefcase className="h-4 w-4 text-muted-foreground" />
+                                    <span className="font-semibold">Equipa:</span>
+                                    <span>{user.team || 'Não atribuída'}</span>
+                                </div>
+                                 <div className="flex items-center gap-2">
+                                    <Car className="h-4 w-4 text-muted-foreground" />
+                                    <span className="font-semibold">Veículo:</span>
+                                    <span>{user.vehicle?.plate || 'Não atribuído'}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Award className="h-4 w-4 text-muted-foreground" />
+                                    <span className="font-semibold">CNH:</span>
+                                    <span>{user.cnhCategory ? `${user.cnhCategory}, vence em ${user.cnhExpiration}` : 'Não registada'}</span>
+                                </div>
+                                 <div className="flex items-center gap-2">
+                                    <Phone className="h-4 w-4 text-muted-foreground" />
+                                    <span className="font-semibold">Emergência:</span>
+                                    <span>{user.emergencyContactName ? `${user.emergencyContactName} (${user.emergencyContactPhone})` : 'Não registado'}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </main>
         </div>

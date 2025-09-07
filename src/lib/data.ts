@@ -1,4 +1,5 @@
 
+
       
 import { z } from 'zod';
 
@@ -144,6 +145,11 @@ export const UserProfileSchema = z.object({
     createdAt: z.string().optional(),
     onboardingCompleted: z.boolean().optional(),
     phoneNumber: z.string().optional(),
+    // Driver-specific fields
+    cnhCategory: z.string().optional(),
+    cnhExpiration: z.string().optional(),
+    emergencyContactName: z.string().optional(),
+    emergencyContactPhone: z.string().optional(),
     // Real-time status fields from the mobile app
     location: PositionSchema.optional(),
     status: z.enum(['Disponível', 'Em Rota', 'Ocupado', 'Offline']).optional(),
