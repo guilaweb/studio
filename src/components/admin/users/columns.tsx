@@ -6,7 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { UserProfile, UserProfileWithStats } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, ChevronsUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, ChevronsUpDown, MoreHorizontal, TrendingUp } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -166,6 +166,25 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
     cell: ({ row }) => {
         const stats = row.original.stats;
         return <div className="text-center font-medium">{stats.contributions}</div>
+    }
+  },
+  {
+    accessorKey: "stats.performanceScore",
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Pontuação
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+        const score = row.original.stats.performanceScore;
+        const colorClass = score && score >= 90 ? 'text-green-500' : score && score >= 70 ? 'text-yellow-500' : 'text-red-500';
+        return (
+            <div className={`text-center font-bold flex items-center justify-center gap-1 ${colorClass}`}>
+                <TrendingUp className="h-4 w-4" />
+                {score || 'N/A'}
+            </div>
+        )
     }
   },
   {

@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -174,6 +173,7 @@ export const UserProfileWithStatsSchema = UserProfileSchema.extend({
         incidentReports: z.number(),
         completed: z.number().optional(),
         avgTime: z.string().optional(),
+        performanceScore: z.number().optional(),
     })
 });
 export type UserProfileWithStats = z.infer<typeof UserProfileWithStatsSchema>;

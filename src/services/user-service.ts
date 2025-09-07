@@ -51,7 +51,7 @@ export const useUsers = () => {
                     }
 
                     user.taskQueue = user.taskQueue || [];
-                    user.stats = user.stats || { completed: Math.floor(Math.random() * 5), avgTime: `${20 + Math.floor(Math.random() * 20)} min` };
+                    user.stats = user.stats || { completed: Math.floor(Math.random() * 5), avgTime: `${20 + Math.floor(Math.random() * 20)} min`, performanceScore: 75 + Math.floor(Math.random() * 20) };
                     // Real path (historical)
                     user.path = user.path || [
                         { lat: -8.82 + (index * 0.02) - 0.005, lng: 13.23 + (index * 0.02) - 0.005 },

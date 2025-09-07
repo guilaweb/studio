@@ -27,6 +27,7 @@ function AdminUsersPage() {
             return {
                 ...user,
                 stats: {
+                    ...user.stats,
                     contributions: contributions.length,
                     sanitationReports: contributions.filter(c => c.type === 'sanitation').length,
                     incidentReports: contributions.filter(c => c.type === 'incident').length,
@@ -54,7 +55,7 @@ function AdminUsersPage() {
                     </Link>
                 </Button>
                 <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                    Gestão de Equipa e Motoristas
+                    Gestão de Equipa e Desempenho
                 </h1>
             </header>
             <main className="flex-1 p-4 sm:px-6 sm:py-6">
