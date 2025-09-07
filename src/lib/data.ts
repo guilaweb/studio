@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -12,6 +11,13 @@ export const CroquiPointSchema = z.object({
 });
 export type CroquiPoint = z.infer<typeof CroquiPointSchema>;
 
+export const UsedPartSchema = z.object({
+    partId: z.string(),
+    name: z.string(),
+    quantity: z.number(),
+});
+export type UsedPart = z.infer<typeof UsedPartSchema>;
+
 
 export const PointOfInterestUpdateSchema = z.object({
   id: z.string(),
@@ -22,6 +28,7 @@ export const PointOfInterestUpdateSchema = z.object({
   photoDataUri: z.string().optional(),
   availableNotes: z.array(z.number()).optional(),
   queueTime: QueueTimeEnum.optional(),
+  partsUsed: z.array(UsedPartSchema).optional(),
 });
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
@@ -197,6 +204,16 @@ export const FuelEntrySchema = z.object({
     createdAt: z.string(),
 });
 export type FuelEntry = z.infer<typeof FuelEntrySchema>;
+
+// Schema for Inventory Part
+export const InventoryPartSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    stock: z.number(),
+    createdAt: z.string(),
+});
+export type InventoryPart = z.infer<typeof InventoryPartSchema>;
+
 
 
 // Label Mappings

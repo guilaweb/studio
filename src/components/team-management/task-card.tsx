@@ -22,6 +22,9 @@ import {
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { usePoints } from '@/hooks/use-points';
+import { useInventory, updatePartStock } from '@/services/inventory-service';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
 
 // Task is now a PointOfInterest
@@ -34,9 +37,12 @@ interface TaskCardProps {
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
     const { toast } = useToast();
-    const { updatePointDetails } = usePoints();
+    const { updatePointDetails, addUpdateToPoint } = usePoints();
+    const { inventory, loading: loadingInventory } = useInventory();
     const [isCostDialogOpen, setIsCostDialogOpen] = useState(false);
     const [cost, setCost] = useState<number | string>('');
+    const [partsUsed, setPartsUsed] = useState<Record<string, number>>({}); // { partId: quantity }
+    const [popoverOpen, setPopoverOpen] = useState(false);
 
     const priorityVariant = {
         'high': 'destructive',
@@ -61,13 +67,45 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
     };
     
     const handleCostConfirm = async () => {
+        const updatePromises = [];
+        
         if (cost) {
-            await updatePointDetails(task.id, { cost: Number(cost) });
+            updatePromises.push(updatePointDetails(task.id, { cost: Number(cost) }));
         }
-        onStatusChange(task.id, 'collected');
-        toast({ title: "Tarefa Concluída com Custo!", description: `${task.title} - Custo: AOA ${cost}` });
-        setIsCostDialogOpen(false);
-        setCost('');
+
+        const partsUsedArray = Object.entries(partsUsed).map(([partId, quantity]) => {
+            const part = inventory.find(p => p.id === partId);
+            if (part) {
+                updatePromises.push(updatePartStock(partId, part.stock - quantity));
+            }
+            return { partId, name: part?.name, quantity };
+        });
+
+        const updateText = `Tarefa concluída. Custo: AOA ${cost || 0}. Peças usadas: ${partsUsedArray.map(p => `${p.quantity}x ${p.name}`).join(', ') || 'Nenhuma'}`;
+        updatePromises.push(addUpdateToPoint(task.id, {
+            text: updateText,
+            authorId: '', // System or logged in user would go here
+            authorDisplayName: 'Sistema',
+            timestamp: new Date().toISOString(),
+            partsUsed: partsUsedArray,
+        }));
+
+
+        try {
+            await Promise.all(updatePromises);
+            onStatusChange(task.id, 'collected');
+            toast({ title: "Tarefa Concluída com Custo e Peças!", description: `${task.title}` });
+        } catch(error) {
+             toast({ variant: "destructive", title: "Erro ao atualizar", description: "Não foi possível guardar todas as alterações." });
+        } finally {
+            setIsCostDialogOpen(false);
+            setCost('');
+            setPartsUsed({});
+        }
+    };
+    
+     const handlePartQuantityChange = (partId: string, quantity: number) => {
+        setPartsUsed(prev => ({...prev, [partId]: Math.max(0, quantity)}));
     };
 
     return (
@@ -113,31 +151,79 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
                 </Card>
             </Collapsible>
              <AlertDialog open={isCostDialogOpen} onOpenChange={setIsCostDialogOpen}>
-                <AlertDialogContent>
+                <AlertDialogContent className="sm:max-w-md">
                     <AlertDialogHeader>
-                    <AlertDialogTitle>Registar Custo da Manutenção</AlertDialogTitle>
+                    <AlertDialogTitle>Concluir Ordem de Serviço</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Insira o custo total (peças e mão de obra) para esta ordem de serviço. Pode deixar em branco se não houver custo.
+                        Registe o custo total e as peças utilizadas nesta manutenção.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <div className="py-2">
-                        <Label htmlFor="maintenance-cost">Custo Total (AOA)</Label>
-                        <Input 
-                            id="maintenance-cost" 
-                            type="number" 
-                            value={cost} 
-                            onChange={(e) => setCost(e.target.value)} 
-                            placeholder="Ex: 15000"
-                        />
+                    <div className="py-2 space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="maintenance-cost">Custo Total (AOA)</Label>
+                            <Input 
+                                id="maintenance-cost" 
+                                type="number" 
+                                value={cost} 
+                                onChange={(e) => setCost(e.target.value)} 
+                                placeholder="Ex: 15000"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                             <Label>Peças Utilizadas</Label>
+                             <div className="space-y-2">
+                                 {Object.entries(partsUsed).map(([partId, quantity]) => {
+                                     const part = inventory.find(p => p.id === partId);
+                                     return (
+                                        <div key={partId} className="flex items-center gap-2">
+                                            <span className="flex-1 text-sm">{part?.name}</span>
+                                             <Input 
+                                                type="number" 
+                                                className="w-20 h-8"
+                                                value={quantity}
+                                                onChange={(e) => handlePartQuantityChange(partId, Number(e.target.value))}
+                                                min="1"
+                                            />
+                                        </div>
+                                     )
+                                 })}
+                             </div>
+                             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" role="combobox" aria-expanded={popoverOpen} className="w-full justify-start mt-2">
+                                        Adicionar Peça...
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[300px] p-0">
+                                     <Command>
+                                        <CommandInput placeholder="Pesquisar peça..." />
+                                        <CommandList>
+                                            <CommandEmpty>Nenhuma peça encontrada.</CommandEmpty>
+                                            <CommandGroup>
+                                                {inventory.map((part) => (
+                                                <CommandItem
+                                                    key={part.id}
+                                                    onSelect={() => {
+                                                        handlePartQuantityChange(part.id, (partsUsed[part.id] || 0) + 1);
+                                                        setPopoverOpen(false);
+                                                    }}
+                                                >
+                                                    {part.name} (Stock: {part.stock})
+                                                </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
                     </div>
                     <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setCost('')}>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleCostConfirm}>Confirmar e Concluir Tarefa</AlertDialogAction>
+                    <AlertDialogCancel onClick={() => { setCost(''); setPartsUsed({}); }}>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleCostConfirm}>Confirmar e Concluir</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
         </>
     );
 };
-
-    
