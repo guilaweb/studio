@@ -101,8 +101,9 @@ function TeamManagementPage() {
                 const prevEntry = vehicleEntries[i-1];
                 const currentEntry = vehicleEntries[i];
                 const distance = currentEntry.odometer - prevEntry.odometer;
-                if (distance > 0 && currentEntry.liters > 0) {
-                    consumptions.push(distance / currentEntry.liters);
+                // Use the liters from the *previous* fill-up to calculate consumption for the distance traveled.
+                if (distance > 0 && prevEntry.liters > 0) {
+                    consumptions.push(distance / prevEntry.liters);
                 }
             }
         }
@@ -425,5 +426,6 @@ function TeamManagementPage() {
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
 
     
+
 
 
