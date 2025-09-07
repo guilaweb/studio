@@ -189,3 +189,4 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
         </DropdownMenu>
     )
   }
+

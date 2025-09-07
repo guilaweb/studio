@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React from "react";
@@ -46,7 +47,7 @@ const TimelineItem = ({ update, isFirst }: { update: PointOfInterestUpdate, isFi
                  <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
                     {title}
                 </p>
-                <p className="text-sm whitespace-pre-wrap">{update.text}</p>
+                <p className="text-sm whitespace-pre-wrap">{update.text?.replace(/\*\*(.*?)\*\*/g, '').trim()}</p>
                 {update.photoDataUri && (
                     <div className="mt-2">
                         <a href={update.photoDataUri} target="_blank" rel="noopener noreferrer">

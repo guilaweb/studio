@@ -155,7 +155,7 @@ const SanitationTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInte
         if (poi.status === 'collected') return <Badge className="bg-green-500 hover:bg-green-600">Recolhido</Badge>
         if (poi.status === 'in_progress') return <Badge className="bg-blue-500 hover:bg-blue-600">Em Resolução</Badge>
         return <Badge variant="secondary">Não Reportado</Badge>
-    }
+    };
 
     return (
         <div className="mt-4 space-y-4">
@@ -683,7 +683,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 
                 {poi.type === 'incident' && <IncidentTags description={poi.description} />}
                 
-                <IncidentTicket poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={isAgentOrAdmin} />
+                <IncidentTicket poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={isAgentOrAdmin} />
 
                 {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />}
                 
