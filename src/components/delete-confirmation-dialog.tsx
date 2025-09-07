@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from 'react';
@@ -19,12 +18,14 @@ interface DeleteConfirmationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  itemType?: string;
 }
 
 const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   open,
   onOpenChange,
   onConfirm,
+  itemType = 'item'
 }) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -33,7 +34,7 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
           <AlertDialogTitle>Tem a certeza absoluta?</AlertDialogTitle>
           <AlertDialogDescription>
             Esta ação não pode ser revertida. Isto irá eliminar permanentemente
-            o item e remover os seus dados dos nossos servidores.
+            o/a {itemType} e remover os seus dados dos nossos servidores.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

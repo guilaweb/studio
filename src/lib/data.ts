@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -153,7 +152,12 @@ export const UserProfileSchema = z.object({
     // Real-time status fields from the mobile app
     location: PositionSchema.optional(),
     status: z.enum(['Disponível', 'Em Rota', 'Ocupado', 'Offline']).optional(),
-    vehicle: z.object({ type: z.string(), plate: z.string() }).optional(),
+    vehicle: z.object({ 
+        type: z.string(), 
+        plate: z.string(),
+        odometer: z.number().optional(),
+        lastServiceDate: z.string().optional(),
+    }).optional(),
     currentTask: PointOfInterestSchema.optional().nullable(),
     taskQueue: z.array(PointOfInterestSchema).optional(),
     stats: z.object({ completed: z.number(), avgTime: z.string() }).optional(),
