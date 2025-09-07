@@ -152,7 +152,7 @@ export const UserProfileSchema = z.object({
     uid: z.string(),
     displayName: z.string(),
     email: z.string(),
-    photoURL: z.string().optional(),
+    photoURL: z.string().optional().nullable(),
     role: z.enum(['Cidadao', 'Agente Municipal', 'Administrador']),
     team: z.enum(['Saneamento', 'Eletricidade', 'Geral']).optional(),
     createdAt: z.string().optional(),
@@ -217,6 +217,34 @@ export const InventoryPartSchema = z.object({
 });
 export type InventoryPart = z.infer<typeof InventoryPartSchema>;
 
+
+// Schemas for Chat / Inbox
+export const MessageSchema = z.object({
+  id: z.string(),
+  senderId: z.string(),
+  senderDisplayName: z.string(),
+  text: z.string(),
+  timestamp: z.string(),
+  readBy: z.array(z.string()).default([]),
+});
+export type Message = z.infer<typeof MessageSchema>;
+
+export const ConversationSchema = z.object({
+  id: z.string(), // e.g., `${propertyId}-${buyerId}`
+  propertyId: z.string(),
+  propertyTitle: z.string(),
+  propertyImage: z.string().optional(),
+  participants: z.array(z.string()), // [sellerId, buyerId]
+  participantDetails: z.array(z.object({
+      uid: z.string(),
+      displayName: z.string(),
+      photoURL: z.string().optional().nullable(),
+  })),
+  lastMessage: MessageSchema.optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type Conversation = z.infer<typeof ConversationSchema>;
 
 
 // Label Mappings
@@ -467,35 +495,6 @@ export const SuggestTechnicianOutputSchema = z.object({
     })).describe("An ordered list of the top 3 technician suggestions."),
 });
 export type SuggestTechnicianOutput = z.infer<typeof SuggestTechnicianOutputSchema>;
-
-
-// Schemas for Chat / Inbox
-export const MessageSchema = z.object({
-  id: z.string(),
-  senderId: z.string(),
-  senderDisplayName: z.string(),
-  text: z.string(),
-  timestamp: z.string(),
-  readBy: z.array(z.string()).default([]),
-});
-export type Message = z.infer<typeof MessageSchema>;
-
-export const ConversationSchema = z.object({
-  id: z.string(), // e.g., `${propertyId}-${buyerId}`
-  propertyId: z.string(),
-  propertyTitle: z.string(),
-  propertyImage: z.string().optional(),
-  participants: z.array(z.string()), // [sellerId, buyerId]
-  participantDetails: z.array(z.object({
-      uid: z.string(),
-      displayName: z.string(),
-      photoURL: z.string().optional(),
-  })),
-  lastMessage: MessageSchema.optional(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-export type Conversation = z.infer<typeof ConversationSchema>;
 
 const PlotDataSchema = z.object({
   polygon: z.array(PositionSchema).describe("The array of coordinates forming the plot's polygon."),
