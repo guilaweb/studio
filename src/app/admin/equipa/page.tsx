@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -300,7 +301,8 @@ function TeamManagementPage() {
                                                     </Pin>
                                             </AdvancedMarker>
                                         ))}
-                                        {selectedMember && selectedMember.path && <TeamMemberPath path={selectedMember.path} />}
+                                        {selectedMember && selectedMember.path && <TeamMemberPath path={selectedMember.path} color="#22c55e" />}
+                                        {selectedMember && selectedMember.currentTask && selectedMember.currentTask.path && <TeamMemberPath path={selectedMember.currentTask.path} color="#3b82f6" />}
                                     </Map>
                                 </Card>
                             </div>

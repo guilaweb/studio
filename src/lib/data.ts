@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -73,6 +74,7 @@ export const PointOfInterestSchema = z.object({
   position: PositionSchema,
   polygon: z.array(PositionSchema).optional(),
   polyline: z.array(PositionSchema).optional(),
+  path: z.array(PositionSchema).optional(),
   title: z.string().optional(),
   description: z.string(),
   status: PointOfInterestStatusEnum.optional(),
