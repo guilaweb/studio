@@ -23,6 +23,7 @@ import type { Geofence } from "@/services/geofence-service";
 import GeofenceEditorDialog from "@/components/geofence-editor-dialog";
 import { useMaintenancePlans, addMaintenancePlan, deleteMaintenancePlan } from "@/services/maintenance-service";
 import type { MaintenancePlan } from "@/services/maintenance-service";
+import { APIProvider } from "@vis.gl/react-google-maps";
 
 const layerConfig = [
   { id: "atm", label: "Caixas Eletrônicos", Icon: Landmark },
@@ -206,7 +207,7 @@ function AdminSettingsPage() {
     }
 
     return (
-        <>
+        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
                  <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
                     <Button size="icon" variant="outline" asChild>
@@ -420,7 +421,7 @@ function AdminSettingsPage() {
                 onOpenChange={setIsGeofenceEditorOpen}
                 geofenceToEdit={geofenceToEdit}
             />
-        </>
+        </APIProvider>
     );
 }
 
