@@ -5,7 +5,7 @@
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { usePoints } from "@/hooks/use-points";
-import { PointOfInterest } from "@/lib/data";
+import { PointOfInterest, statusLabelMap } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
@@ -29,6 +29,12 @@ export default function CroquiDocumentPage() {
             setCroqui(found || null);
         }
     }, [allData, croquiId]);
+
+    const landPlot = React.useMemo(() => {
+        if (!croqui || !croqui.landPlotId) return null;
+        return allData.find(p => p.id === croqui.landPlotId);
+    }, [croqui, allData]);
+
 
     if (loading) {
         return <div className="flex min-h-screen items-center justify-center">A carregar croqui...</div>;
@@ -68,6 +74,13 @@ export default function CroquiDocumentPage() {
     }
     
     const mapContainerClass = "w-full h-[45vh] border rounded-md overflow-hidden print:h-[25vh] print:break-inside-avoid";
+    const usageTypeMap: Record<string, string> = {
+        residential: "Residencial",
+        commercial: "Comercial",
+        industrial: "Industrial",
+        mixed: "Misto",
+        other: "Outro",
+    }
 
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -144,6 +157,21 @@ export default function CroquiDocumentPage() {
                         </TableBody>
                     </Table>
                 </div>
+                
+                 {landPlot && (
+                    <div className="print:break-inside-avoid mt-6">
+                        <h2 className="text-lg font-semibold mb-2">Informação do Lote de Terreno Associado</h2>
+                        <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-xs border p-4 rounded-md">
+                             <div><strong className="text-muted-foreground">Estado:</strong> {landPlot.status ? statusLabelMap[landPlot.status] : "N/A"}</div>
+                             <div><strong className="text-muted-foreground">Uso Permitido:</strong> {landPlot.usageType ? usageTypeMap[landPlot.usageType] : 'N/A'}</div>
+                             <div><strong className="text-muted-foreground">Nº Lote:</strong> {landPlot.plotNumber || 'N/A'}</div>
+                             <div><strong className="text-muted-foreground">Registo Predial:</strong> {landPlot.registrationCode || 'N/A'}</div>
+                             <div><strong className="text-muted-foreground">Altura Máx.:</strong> {landPlot.maxHeight ? `${landPlot.maxHeight} pisos` : 'N/A'}</div>
+                             <div><strong className="text-muted-foreground">Índice Construção:</strong> {landPlot.buildingRatio ? `${landPlot.buildingRatio}%` : 'N/A'}</div>
+                        </div>
+                    </div>
+                )}
+
 
                 <footer className="mt-8 pt-4 border-t grid grid-cols-3 gap-4 text-xs print:break-inside-avoid">
                     <div className="space-y-1">
@@ -153,7 +181,7 @@ export default function CroquiDocumentPage() {
                         <p><strong>Município:</strong> {croqui.customData?.municipality || 'N/A'}</p>
                     </div>
                     <div className="space-y-1">
-                        <h4 className="font-semibold mb-1">Detalhes do Lote</h4>
+                        <h4 className="font-semibold mb-1">Detalhes do Croqui</h4>
                         {calculatedArea && <p><strong>Área:</strong> {calculatedArea.toFixed(2)} m²</p>}
                         {calculatedPerimeter > 0 && <p><strong>Perímetro:</strong> {calculatedPerimeter.toFixed(2)} m</p>}
                     </div>
