@@ -44,15 +44,41 @@ export const columns: ColumnDef<CostItem>[] = [
     accessorKey: "description",
     header: "Descrição",
   },
-  {
-    accessorKey: "cost",
+   {
+    accessorKey: "partsCost",
     header: ({ column }) => (
       <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Custo (AOA) <ArrowUpDown className="ml-2 h-4 w-4" />
+        Custo Peças (AOA) <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => (
       <div className="text-right font-mono">
+        {row.original.partsCost?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}
+      </div>
+    ),
+  },
+    {
+    accessorKey: "laborCost",
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Mão de Obra (AOA) <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right font-mono">
+        {row.original.laborCost?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "cost",
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Custo Total (AOA) <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right font-mono font-bold">
         {row.original.cost.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}
       </div>
     ),

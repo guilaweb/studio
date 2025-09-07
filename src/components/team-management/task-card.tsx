@@ -40,7 +40,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
     const { updatePointDetails, addUpdateToPoint } = usePoints();
     const { inventory, loading: loadingInventory } = useInventory();
     const [isCostDialogOpen, setIsCostDialogOpen] = useState(false);
-    const [cost, setCost] = useState<number | string>('');
+    const [partsCost, setPartsCost] = useState<number | string>('');
+    const [laborCost, setLaborCost] = useState<number | string>('');
     const [partsUsed, setPartsUsed] = useState<Record<string, number>>({}); // { partId: quantity }
     const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -67,11 +68,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
     };
     
     const handleCostConfirm = async () => {
-        const updatePromises = [];
-        
-        if (cost) {
-            updatePromises.push(updatePointDetails(task.id, { cost: Number(cost) }));
-        }
+        const pCost = Number(partsCost) || 0;
+        const lCost = Number(laborCost) || 0;
+
+        const updatePromises = [
+            updatePointDetails(task.id, { 
+                partsCost: pCost,
+                laborCost: lCost,
+                cost: pCost + lCost 
+            })
+        ];
 
         const partsUsedArray = Object.entries(partsUsed).map(([partId, quantity]) => {
             const part = inventory.find(p => p.id === partId);
@@ -81,7 +87,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
             return { partId, name: part?.name, quantity };
         });
 
-        const updateText = `Tarefa concluída. Custo: AOA ${cost || 0}. Peças usadas: ${partsUsedArray.map(p => `${p.quantity}x ${p.name}`).join(', ') || 'Nenhuma'}`;
+        const updateText = `Tarefa concluída. Custo Peças: AOA ${pCost.toFixed(2)}. Custo Mão-de-Obra: AOA ${lCost.toFixed(2)}. Peças usadas: ${partsUsedArray.map(p => `${p.quantity}x ${p.name}`).join(', ') || 'Nenhuma'}`;
         updatePromises.push(addUpdateToPoint(task.id, {
             text: updateText,
             authorId: '', // System or logged in user would go here
@@ -99,7 +105,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
              toast({ variant: "destructive", title: "Erro ao atualizar", description: "Não foi possível guardar todas as alterações." });
         } finally {
             setIsCostDialogOpen(false);
-            setCost('');
+            setPartsCost('');
+            setLaborCost('');
             setPartsUsed({});
         }
     };
@@ -155,19 +162,31 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
                     <AlertDialogHeader>
                     <AlertDialogTitle>Concluir Ordem de Serviço</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Registe o custo total e as peças utilizadas nesta manutenção.
+                        Registe os custos e as peças utilizadas nesta manutenção.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="py-2 space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="maintenance-cost">Custo Total (AOA)</Label>
-                            <Input 
-                                id="maintenance-cost" 
-                                type="number" 
-                                value={cost} 
-                                onChange={(e) => setCost(e.target.value)} 
-                                placeholder="Ex: 15000"
-                            />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="parts-cost">Custo das Peças (AOA)</Label>
+                                <Input 
+                                    id="parts-cost" 
+                                    type="number" 
+                                    value={partsCost} 
+                                    onChange={(e) => setPartsCost(e.target.value)} 
+                                    placeholder="Ex: 5500.00"
+                                />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="labor-cost">Custo Mão-de-Obra (AOA)</Label>
+                                <Input 
+                                    id="labor-cost" 
+                                    type="number" 
+                                    value={laborCost} 
+                                    onChange={(e) => setLaborCost(e.target.value)} 
+                                    placeholder="Ex: 10000.00"
+                                />
+                            </div>
                         </div>
                         <div className="space-y-2">
                              <Label>Peças Utilizadas</Label>
@@ -219,7 +238,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
                         </div>
                     </div>
                     <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => { setCost(''); setPartsUsed({}); }}>Cancelar</AlertDialogCancel>
+                    <AlertDialogCancel onClick={() => { setPartsCost(''); setLaborCost(''); setPartsUsed({}); }}>Cancelar</AlertDialogCancel>
                     <AlertDialogAction onClick={handleCostConfirm}>Confirmar e Concluir</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

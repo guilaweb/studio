@@ -22,6 +22,8 @@ export interface CostItem {
     type: 'Combustível' | 'Manutenção';
     description: string;
     cost: number;
+    partsCost?: number;
+    laborCost?: number;
 }
 
 function FinancialReportsPage() {
@@ -39,10 +41,12 @@ function FinancialReportsPage() {
             type: 'Combustível',
             description: `${e.liters.toFixed(2)} L @ AOA ${(e.cost / e.liters).toFixed(2)}/L`,
             cost: e.cost,
+            partsCost: 0,
+            laborCost: 0,
         }));
 
         const maintenanceCosts: CostItem[] = allPoints
-            .filter(p => p.type === 'incident' && p.maintenanceId && p.status === 'collected' && p.cost)
+            .filter(p => p.type === 'incident' && p.maintenanceId && p.status === 'collected')
             .map(p => ({
                 id: p.id,
                 date: p.lastReported!,
@@ -51,7 +55,9 @@ function FinancialReportsPage() {
                 driverName: p.authorDisplayName!,
                 type: 'Manutenção',
                 description: p.title.split(' - ')[0],
-                cost: p.cost!,
+                cost: (p.partsCost || 0) + (p.laborCost || 0),
+                partsCost: p.partsCost || 0,
+                laborCost: p.laborCost || 0,
             }));
 
         return [...fuelCosts, ...maintenanceCosts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

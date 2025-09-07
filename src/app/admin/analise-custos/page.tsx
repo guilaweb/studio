@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { ArrowLeft, DollarSign, Fuel, Wrench } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 function CostAnalysisPage() {
     const { fuelEntries, loading: loadingFuel } = useFuelEntries();
@@ -20,13 +21,15 @@ function CostAnalysisPage() {
     const { users, loading: loadingUsers } = useUsers();
 
     const costData = React.useMemo(() => {
-        const fuelCosts = fuelEntries.map(e => ({ ...e, type: 'Combustível' }));
+        const fuelCosts = fuelEntries.map(e => ({ ...e, type: 'Combustível', partsCost: 0, laborCost: 0, cost: e.cost }));
         const maintenanceCosts = allPoints
-            .filter(p => p.type === 'incident' && p.maintenanceId && p.status === 'collected' && p.cost)
+            .filter(p => p.type === 'incident' && p.maintenanceId && p.status === 'collected')
             .map(p => ({
                 id: p.id,
                 date: p.lastReported,
-                cost: p.cost!,
+                cost: (p.partsCost || 0) + (p.laborCost || 0),
+                partsCost: p.partsCost || 0,
+                laborCost: p.laborCost || 0,
                 type: 'Manutenção',
                 description: p.title,
                 vehiclePlate: users.find(u => u.uid === p.authorId)?.vehicle?.plate || 'N/A',
@@ -35,22 +38,26 @@ function CostAnalysisPage() {
         const allCosts = [...fuelCosts, ...maintenanceCosts].sort((a, b) => new Date(b.date!).getTime() - new Date(a.date!).getTime());
         
         const totalFuelCost = fuelCosts.reduce((acc, curr) => acc + curr.cost, 0);
-        const totalMaintenanceCost = maintenanceCosts.reduce((acc, curr) => acc + curr.cost, 0);
+        const totalPartsCost = maintenanceCosts.reduce((acc, curr) => acc + curr.partsCost, 0);
+        const totalLaborCost = maintenanceCosts.reduce((acc, curr) => acc + curr.laborCost, 0);
+        const totalMaintenanceCost = totalPartsCost + totalLaborCost;
         const totalCost = totalFuelCost + totalMaintenanceCost;
 
         const costByUser = users.filter(u => u.vehicle).map(user => {
             const userFuel = fuelEntries.filter(f => f.vehicleId === user.uid).reduce((sum, f) => sum + f.cost, 0);
-            const userMaint = allPoints.filter(p => p.authorId === user.uid && p.maintenanceId && p.cost).reduce((sum, p) => sum + p.cost!, 0);
+            const userParts = allPoints.filter(p => p.authorId === user.uid && p.maintenanceId && p.partsCost).reduce((sum, p) => sum + p.partsCost!, 0);
+            const userLabor = allPoints.filter(p => p.authorId === user.uid && p.maintenanceId && p.laborCost).reduce((sum, p) => sum + p.laborCost!, 0);
             return {
                 name: user.displayName,
                 Combustível: userFuel,
-                Manutenção: userMaint,
-                Total: userFuel + userMaint,
+                Peças: userParts,
+                'Mão de Obra': userLabor,
+                Total: userFuel + userParts + userLabor,
             }
         }).filter(u => u.Total > 0).sort((a,b) => b.Total - a.Total);
 
 
-        return { allCosts, totalFuelCost, totalMaintenanceCost, totalCost, costByUser };
+        return { allCosts, totalFuelCost, totalMaintenanceCost, totalPartsCost, totalLaborCost, totalCost, costByUser };
 
     }, [fuelEntries, allPoints, users]);
     
@@ -107,7 +114,8 @@ function CostAnalysisPage() {
                                     <RechartsTooltip formatter={(value: number) => `AOA ${value.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`} />
                                     <Legend />
                                     <Bar dataKey="Combustível" stackId="a" fill="hsl(var(--chart-1))" />
-                                    <Bar dataKey="Manutenção" stackId="a" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} />
+                                    <Bar dataKey="Peças" stackId="a" fill="hsl(var(--chart-2))" />
+                                    <Bar dataKey="Mão de Obra" stackId="a" fill="hsl(var(--chart-3))" radius={[0, 4, 4, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </CardContent>
@@ -147,5 +155,3 @@ function CostAnalysisPage() {
 }
 
 export default withAuth(CostAnalysisPage, ['Agente Municipal', 'Administrador']);
-
-    

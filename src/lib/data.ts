@@ -87,7 +87,6 @@ export const PointOfInterestSchema = z.object({
   status: PointOfInterestStatusEnum.optional(),
   priority: PointOfInterestPriorityEnum.optional(),
   price: z.number().optional(),
-  cost: z.number().optional(), // Added for maintenance cost tracking
   propertyTaxStatus: PropertyTaxStatusEnum.optional(),
   lastReported: z.string().optional(),
   incidentDate: z.string().optional(),
@@ -135,6 +134,8 @@ export const PointOfInterestSchema = z.object({
   // Maintenance
   maintenanceId: z.string().optional(),
   cost: z.number().optional(),
+  partsCost: z.number().optional(),
+  laborCost: z.number().optional(),
 });
 
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
