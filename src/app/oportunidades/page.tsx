@@ -42,7 +42,7 @@ const opportunities = [
             {
                 icon: Users,
                 title: "Agregador de Prestadores de Serviços Verificados",
-                details: "Um marketplace onde arquitetos, engenheiros, eletricistas e outros profissionais podem pagar uma subscrição para serem listados como 'Prestadores Verificados MUNITU', ganhando credibilidade e sendo recomendados para resolver os problemas reportados pelos cidadãos."
+                details: "Um marketplace onde arquitetos, engenheiros, eletricistas, oficinas e outros profissionais podem pagar uma subscrição para serem listados como 'Prestadores Verificados MUNITU', ganhando credibilidade e sendo recomendados para resolver os problemas reportados."
             },
             {
                 icon: Route,

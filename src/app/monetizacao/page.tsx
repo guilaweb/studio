@@ -55,8 +55,8 @@ const monetizationOptions = [
         features: [
              {
                 icon: Briefcase,
-                title: "Destaque de Prestadores de Serviços",
-                description: "Arquitetos, construtores, topógrafos e outros profissionais podem pagar uma subscrição para aparecerem como 'Prestadores Verificados MUNITU' na plataforma.",
+                title: "Portal de Fornecedores Verificados",
+                description: "Oficinas, arquitetos e outros profissionais podem pagar uma subscrição para aparecerem como 'Prestadores Verificados MUNITU', ganhando acesso a pedidos de cotação de frotas e outros clientes.",
             },
             {
                 icon: TrendingUp,
@@ -194,5 +194,3 @@ export default function MonetizationPage() {
         </APIProvider>
     );
 }
-
-    
