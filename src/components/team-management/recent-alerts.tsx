@@ -1,22 +1,24 @@
 
+
 "use client";
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, Bell, Info } from 'lucide-react';
+import { AlertTriangle, Bell, Info, BrainCircuit } from 'lucide-react';
 import { Button } from '../ui/button';
 
 export interface Alert {
     id: string;
     time: string;
     description: string;
-    level: 'critical' | 'warning' | 'info';
+    level: 'critical' | 'warning' | 'info' | 'predictive';
 }
 
 const alertConfig = {
     critical: { icon: AlertTriangle, color: 'text-red-500' },
     warning: { icon: AlertTriangle, color: 'text-yellow-500' },
     info: { icon: Info, color: 'text-blue-500' },
+    predictive: { icon: BrainCircuit, color: 'text-purple-500' },
 };
 
 const RecentAlerts: React.FC<{ alerts: Alert[] }> = ({ alerts }) => {

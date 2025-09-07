@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -531,3 +532,23 @@ export const AnalyzeAtmHistoryOutputSchema = z.object({
     restockPatternSummary: z.string().describe("An estimated summary of when the ATM is usually restocked. Example: 'O ATM é reabastecido frequentemente às terças e sextas-feiras de manhã.'"),
 });
 export type AnalyzeAtmHistoryOutput = z.infer<typeof AnalyzeAtmHistoryOutputSchema>;
+
+
+export const PredictMaintenanceInputSchema = z.object({
+    vehicleType: z.string().describe("The type of vehicle (e.g., 'Carrinha de Manutenção', 'Carro Patrulha')."),
+    mileage: z.number().describe("The current odometer reading in kilometers."),
+    ageInYears: z.number().describe("The age of the vehicle in years."),
+    telemetryEvents: z.array(z.string()).describe("A list of recent notable driving events (e.g., 'Excesso de Velocidade', 'Travagem Brusca')."),
+});
+export type PredictMaintenanceInput = z.infer<typeof PredictMaintenanceInputSchema>;
+
+export const PredictedTaskSchema = z.object({
+    taskDescription: z.string().describe("A clear, concise description of the predicted maintenance task."),
+    reason: z.string().describe("The justification for why this maintenance is predicted to be necessary."),
+    priority: PointOfInterestPriorityEnum.describe("The recommended priority for this predictive task."),
+});
+
+export const PredictMaintenanceOutputSchema = z.object({
+    predictions: z.array(PredictedTaskSchema).describe("A list of predicted maintenance tasks."),
+});
+export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
