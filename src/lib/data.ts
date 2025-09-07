@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -179,6 +178,21 @@ export const UserProfileWithStatsSchema = UserProfileSchema.extend({
     })
 });
 export type UserProfileWithStats = z.infer<typeof UserProfileWithStatsSchema>;
+
+// Schema for Fuel Entry
+export const FuelEntrySchema = z.object({
+    id: z.string(),
+    vehicleId: z.string(), // Corresponds to user.uid for the agent
+    vehiclePlate: z.string(),
+    driverName: z.string(),
+    date: z.string(),
+    odometer: z.number(),
+    liters: z.number(),
+    cost: z.number(),
+    createdAt: z.string(),
+});
+export type FuelEntry = z.infer<typeof FuelEntrySchema>;
+
 
 // Label Mappings
 export const typeLabelMap: Record<PointOfInterestType, string> = {
@@ -493,5 +507,3 @@ export const AnalyzeAtmHistoryOutputSchema = z.object({
     restockPatternSummary: z.string().describe("An estimated summary of when the ATM is usually restocked. Example: 'O ATM é reabastecido frequentemente às terças e sextas-feiras de manhã.'"),
 });
 export type AnalyzeAtmHistoryOutput = z.infer<typeof AnalyzeAtmHistoryOutputSchema>;
-
-    

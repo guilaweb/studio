@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { User } from "firebase/auth";
@@ -8,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, Users2, ListTodo, Route, HardHat, Waves } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, Users2, ListTodo, Route, HardHat, Waves, Fuel } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -112,18 +111,18 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <span>Painel Municipal</span>
                             </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link href="/admin/equipa">
+                        
+                        <DropdownMenuSub>
+                             <DropdownMenuSubTrigger>
                                 <Users2 className="mr-2 h-4 w-4" />
                                 <span>Gestão de Equipa</span>
-                            </Link>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem asChild>
-                            <Link href="/equipa/minhas-tarefas">
-                                <ListTodo className="mr-2 h-4 w-4" />
-                                <span>Minhas Tarefas</span>
-                            </Link>
-                        </DropdownMenuItem>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                 <DropdownMenuItem asChild><Link href="/admin/equipa"><Users2 className="mr-2 h-4 w-4" />Monitorizar Equipa</Link></DropdownMenuItem>
+                                 <DropdownMenuItem asChild><Link href="/equipa/minhas-tarefas"><ListTodo className="mr-2 h-4 w-4" />Minhas Tarefas</Link></DropdownMenuItem>
+                                 <DropdownMenuItem asChild><Link href="/admin/abastecimento"><Fuel className="mr-2 h-4 w-4" />Registar Abastecimento</Link></DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
                         
                         <DropdownMenuSub>
                             <DropdownMenuSubTrigger>
@@ -189,4 +188,3 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
         </DropdownMenu>
     )
   }
-
