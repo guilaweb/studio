@@ -84,7 +84,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
             if (part) {
                 updatePromises.push(updatePartStock(partId, part.stock - quantity));
             }
-            return { partId, name: part?.name, quantity };
+            return { partId, name: part?.name || 'Peça Desconhecida', quantity };
         });
 
         const updateText = `Tarefa concluída. Custo Peças: AOA ${pCost.toFixed(2)}. Custo Mão-de-Obra: AOA ${lCost.toFixed(2)}. Peças usadas: ${partsUsedArray.map(p => `${p.quantity}x ${p.name}`).join(', ') || 'Nenhuma'}`;
