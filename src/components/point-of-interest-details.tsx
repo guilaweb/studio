@@ -528,6 +528,14 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
+  const landPlotForCroqui = React.useMemo(() => {
+    if (poi?.type === 'croqui' && poi.landPlotId) {
+        return allData.find(p => p.id === poi.landPlotId) || null;
+    }
+    return null;
+  }, [poi, allData]);
+
+
   if (!poi) return null;
 
   const config = layerConfig[poi.type];
@@ -537,13 +545,6 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const isAgentOrAdmin = profile?.role === 'Agente Municipal' || isAdmin;
   const isOwner = poi.authorId === user?.uid;
   
-  const landPlotForCroqui = React.useMemo(() => {
-    if (poi.type === 'croqui' && poi.landPlotId) {
-        return allData.find(p => p.id === poi.landPlotId) || null;
-    }
-    return null;
-  }, [poi, allData]);
-
   let canEdit = false;
   let canDivide = false;
   // Allow editing for owners or managers, with specific restrictions
