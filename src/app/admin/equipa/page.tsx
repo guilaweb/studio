@@ -7,7 +7,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search, Loader2 } from "lucide-react";
+import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search, Loader2, Truck, AlertTriangle, Wrench, Fuel } from "lucide-react";
 import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { Badge } from "@/components/ui/badge";
 import { TeamMemberMarker } from "@/components/team-management/team-member-marker";
@@ -71,6 +71,14 @@ function TeamManagementPage() {
             return nameMatch && statusMatch && teamMatch;
         });
     }, [teamMembers, searchQuery, statusFilter, teamFilter]);
+
+    const kpis = React.useMemo(() => {
+        const total = teamMembers.length;
+        const emRota = teamMembers.filter(m => m.status === 'Em Rota').length;
+        const disponivel = teamMembers.filter(m => m.status === 'Disponível').length;
+        const ocupado = teamMembers.filter(m => m.status === 'Ocupado').length;
+        return { total, emRota, disponivel, ocupado };
+    }, [teamMembers]);
 
     const handleAssignTask = (task: PointOfInterest) => {
         if (!suggestedTechnicians.length) {
@@ -166,191 +174,212 @@ function TeamManagementPage() {
                         Gestão de Equipa e Despacho
                     </h1>
                 </header>
-                <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
-                    <div className="md:col-span-1 lg:col-span-1 space-y-4">
+                <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-4">
+                     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Equipa Ativa</CardTitle>
-                                <CardDescription>Localização e estado dos técnicos.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="relative">
-                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        type="search"
-                                        placeholder="Pesquisar por nome..."
-                                        className="pl-8"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                     <div className="grid grid-cols-2 gap-2">
-                                        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Filtrar por estado" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="Todos">Todos os Estados</SelectItem>
-                                                <SelectItem value="Disponível">Disponível</SelectItem>
-                                                <SelectItem value="Em Rota">Em Rota</SelectItem>
-                                                <SelectItem value="Ocupado">Ocupado</SelectItem>
-                                                <SelectItem value="Offline">Offline</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <Select value={teamFilter} onValueChange={setTeamFilter}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Filtrar por equipa" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="Todos">Todas as Equipas</SelectItem>
-                                                <SelectItem value="Saneamento">Saneamento</SelectItem>
-                                                <SelectItem value="Eletricidade">Eletricidade</SelectItem>
-                                                <SelectItem value="Geral">Geral</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                     </div>
-                                </div>
-                                <div className="space-y-3 max-h-[40vh] overflow-y-auto">
-                                    {filteredMembers.map(member => (
-                                        <div key={member.uid} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted", selectedMember?.uid === member.uid ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
-                                            <div className="flex items-center gap-3">
-                                                <User className="h-5 w-5 text-primary"/>
-                                                <div>
-                                                    <p className="font-semibold text-sm">{member.displayName}</p>
-                                                    {member.status && (
-                                                        <Badge variant="secondary" className={statusBadgeVariant(member.status)}>
-                                                            {member.status}
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                <MapPin className="h-4 w-4 text-muted-foreground" />
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Veículos em Rota</CardTitle><Truck className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">{kpis.emRota}</div><p className="text-xs text-muted-foreground">de {kpis.total} veículos totais</p></CardContent>
                         </Card>
-                        <Card>
-                             <CardHeader>
-                                <CardTitle>Tarefas Não Atribuídas</CardTitle>
-                                <CardDescription>Clique numa tarefa para ver sugestões.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3 max-h-[30vh] overflow-auto">
-                               {localTasks.map(task => (
-                                    <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background cursor-grab active:cursor-grabbing hover:bg-muted" onClick={() => handleTaskSelect(task)}>
-                                        <div className="flex items-center gap-3">
-                                            {isSuggesting === task.id ? <Loader2 className="h-5 w-5 text-muted-foreground animate-spin"/> : <Package className="h-5 w-5 text-muted-foreground"/>}
-                                            <p className="font-semibold text-sm">{task.title}</p>
-                                        </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleAssignTask(task); }}>
-                                            <Send className="h-4 w-4 text-muted-foreground" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </CardContent>
+                         <Card>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Alertas do Dia</CardTitle><AlertTriangle className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">7</div><p className="text-xs text-muted-foreground">5 excessos de velocidade</p></CardContent>
+                        </Card>
+                         <Card>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Manutenções</CardTitle><Wrench className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">3</div><p className="text-xs text-muted-foreground">Vencem esta semana</p></CardContent>
+                        </Card>
+                         <Card>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Consumo Médio</CardTitle><Fuel className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">8.5 km/L</div><p className="text-xs text-muted-foreground">Média da frota (demonstrativo)</p></CardContent>
                         </Card>
                     </div>
-                    <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-                         <div className={`transition-all duration-300 ${selectedMember ? 'md:col-span-2' : 'md:col-span-3'}`}>
-                             <Card className="h-[calc(100vh-10rem)]">
-                                <Map
-                                    mapId="team-management-map"
-                                    defaultCenter={{ lat: -12.5, lng: 18.5 }}
-                                    defaultZoom={6}
-                                    gestureHandling={'greedy'}
-                                    disableDefaultUI={true}
-                                >
-                                    <DashboardClusterer points={filteredMembers.map(m => ({...m, type: 'atm'}))} />
-                                    {localTasks.map(task => (
-                                            <AdvancedMarker key={task.id} position={task.position} title={task.title} onClick={() => handleTaskSelect(task)}>
-                                                <Pin background={'#F97316'} borderColor={'#EA580C'} glyphColor={'#ffffff'}>
-                                                    <Package />
-                                                </Pin>
-                                        </AdvancedMarker>
+
+                    <div className="grid flex-1 items-start gap-4 md:grid-cols-3 lg:grid-cols-4">
+                        <div className="md:col-span-1 lg:col-span-1 space-y-4">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Equipa Ativa</CardTitle>
+                                    <CardDescription>Localização e estado dos técnicos.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="relative">
+                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            type="search"
+                                            placeholder="Pesquisar por nome..."
+                                            className="pl-8"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Filtrar por estado" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Todos">Todos os Estados</SelectItem>
+                                                    <SelectItem value="Disponível">Disponível</SelectItem>
+                                                    <SelectItem value="Em Rota">Em Rota</SelectItem>
+                                                    <SelectItem value="Ocupado">Ocupado</SelectItem>
+                                                    <SelectItem value="Offline">Offline</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <Select value={teamFilter} onValueChange={setTeamFilter}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Filtrar por equipa" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Todos">Todas as Equipas</SelectItem>
+                                                    <SelectItem value="Saneamento">Saneamento</SelectItem>
+                                                    <SelectItem value="Eletricidade">Eletricidade</SelectItem>
+                                                    <SelectItem value="Geral">Geral</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3 max-h-[40vh] overflow-y-auto">
+                                        {filteredMembers.map(member => (
+                                            <div key={member.uid} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted", selectedMember?.uid === member.uid ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
+                                                <div className="flex items-center gap-3">
+                                                    <User className="h-5 w-5 text-primary"/>
+                                                    <div>
+                                                        <p className="font-semibold text-sm">{member.displayName}</p>
+                                                        {member.status && (
+                                                            <Badge variant="secondary" className={statusBadgeVariant(member.status)}>
+                                                                {member.status}
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Tarefas Não Atribuídas</CardTitle>
+                                    <CardDescription>Clique numa tarefa para ver sugestões.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-3 max-h-[30vh] overflow-auto">
+                                {localTasks.map(task => (
+                                        <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background cursor-grab active:cursor-grabbing hover:bg-muted" onClick={() => handleTaskSelect(task)}>
+                                            <div className="flex items-center gap-3">
+                                                {isSuggesting === task.id ? <Loader2 className="h-5 w-5 text-muted-foreground animate-spin"/> : <Package className="h-5 w-5 text-muted-foreground"/>}
+                                                <p className="font-semibold text-sm">{task.title}</p>
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleAssignTask(task); }}>
+                                                <Send className="h-4 w-4 text-muted-foreground" />
+                                            </Button>
+                                        </div>
                                     ))}
-                                    {selectedMember && selectedMember.path && <TeamMemberPath path={selectedMember.path} />}
-                                </Map>
+                                </CardContent>
                             </Card>
                         </div>
-                        {selectedMember && (
-                             <div className="md:col-span-1 space-y-4 animate-in fade-in-50">
-                                <Card>
-                                     <CardHeader>
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-12 w-12">
-                                                    <AvatarImage src={selectedMember.photoURL || undefined} alt={selectedMember.displayName} />
-                                                    <AvatarFallback>{selectedMember.displayName.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <CardTitle className="text-lg">{selectedMember.displayName}</CardTitle>
-                                                    <CardDescription>ID: {selectedMember.uid}</CardDescription>
-                                                </div>
-                                            </div>
-                                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSelectedMember(null)}><X className="h-4 w-4" /></Button>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4 text-sm">
-                                        <div className="space-y-2">
-                                            <h4 className="font-semibold text-xs text-muted-foreground">Tarefa Atual</h4>
-                                            {selectedMember.currentTask ? (
-                                                <p className="font-medium p-2 bg-muted rounded-md">{selectedMember.currentTask.title}</p>
-                                            ) : (
-                                                <p className="text-muted-foreground p-2 bg-muted rounded-md">Nenhuma tarefa ativa.</p>
-                                            )}
-                                        </div>
-                                        <div className="space-y-2">
-                                            <h4 className="font-semibold text-xs text-muted-foreground">Fila de Tarefas ({selectedMember.taskQueue?.length || 0})</h4>
-                                             <div className="space-y-1">
-                                                {selectedMember.taskQueue && selectedMember.taskQueue.length > 0 ? selectedMember.taskQueue.map(task => (
-                                                    <div key={task.id} className="flex items-center gap-2 p-1.5 rounded bg-muted">
-                                                        <ListTodo className="h-4 w-4 text-muted-foreground" />
-                                                        <span className="text-xs">{task.title}</span>
-                                                    </div>
-                                                )) : <p className="text-xs text-muted-foreground">Fila vazia.</p>}
-                                             </div>
-                                        </div>
-                                        <Separator />
-                                        <div className="space-y-2">
-                                            <h4 className="font-semibold text-xs text-muted-foreground">Veículo</h4>
-                                             {selectedMember.vehicle ? (
-                                                <div className="flex items-center gap-2">
-                                                   <Car className="h-4 w-4 text-muted-foreground" />
-                                                   <div>
-                                                     <p className="font-medium text-xs">{selectedMember.vehicle.type}</p>
-                                                     <p className="text-xs text-muted-foreground">{selectedMember.vehicle.plate}</p>
-                                                   </div>
-                                                </div>
-                                             ) : <p className="text-xs text-muted-foreground">Nenhum veículo atribuído.</p>}
-                                        </div>
-                                         <Separator />
-                                         <div className="space-y-2">
-                                            <h4 className="font-semibold text-xs text-muted-foreground">Desempenho (Hoje)</h4>
-                                            <div className="flex items-center gap-2">
-                                                <Check className="h-4 w-4 text-muted-foreground" />
-                                                <p className="text-xs">{selectedMember.stats?.completed || 0} tarefas concluídas</p>
-                                            </div>
-                                         </div>
-                                         <Separator />
-                                        <div className="flex gap-2 pt-2">
-                                             <Button variant="outline" size="sm" className="flex-1" asChild>
-                                                <a href={`tel:${selectedMember.phoneNumber}`}>
-                                                    <Phone className="mr-2 h-4 w-4" /> Ligar
-                                                </a>
-                                            </Button>
-                                            <Button variant="outline" size="sm" className="flex-1" asChild>
-                                                <a href={`https://wa.me/${selectedMember.phoneNumber}`} target="_blank" rel="noopener noreferrer">
-                                                    <MessageSquare className="mr-2 h-4 w-4" /> WhatsApp
-                                                </a>
-                                            </Button>
-                                        </div>
-                                    </CardContent>
+                        <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className={`transition-all duration-300 ${selectedMember ? 'md:col-span-2' : 'md:col-span-3'}`}>
+                                <Card className="h-[calc(100vh-16rem)]">
+                                    <Map
+                                        mapId="team-management-map"
+                                        defaultCenter={{ lat: -12.5, lng: 18.5 }}
+                                        defaultZoom={6}
+                                        gestureHandling={'greedy'}
+                                        disableDefaultUI={true}
+                                    >
+                                        <DashboardClusterer points={filteredMembers.map(m => ({...m, type: 'atm'}))} />
+                                        {localTasks.map(task => (
+                                                <AdvancedMarker key={task.id} position={task.position} title={task.title} onClick={() => handleTaskSelect(task)}>
+                                                    <Pin background={'#F97316'} borderColor={'#EA580C'} glyphColor={'#ffffff'}>
+                                                        <Package />
+                                                    </Pin>
+                                            </AdvancedMarker>
+                                        ))}
+                                        {selectedMember && selectedMember.path && <TeamMemberPath path={selectedMember.path} />}
+                                    </Map>
                                 </Card>
                             </div>
-                        )}
+                            {selectedMember && (
+                                <div className="md:col-span-1 space-y-4 animate-in fade-in-50">
+                                    <Card>
+                                        <CardHeader>
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-12 w-12">
+                                                        <AvatarImage src={selectedMember.photoURL || undefined} alt={selectedMember.displayName} />
+                                                        <AvatarFallback>{selectedMember.displayName.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <CardTitle className="text-lg">{selectedMember.displayName}</CardTitle>
+                                                        <CardDescription>ID: {selectedMember.uid}</CardDescription>
+                                                    </div>
+                                                </div>
+                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSelectedMember(null)}><X className="h-4 w-4" /></Button>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4 text-sm">
+                                            <div className="space-y-2">
+                                                <h4 className="font-semibold text-xs text-muted-foreground">Tarefa Atual</h4>
+                                                {selectedMember.currentTask ? (
+                                                    <p className="font-medium p-2 bg-muted rounded-md">{selectedMember.currentTask.title}</p>
+                                                ) : (
+                                                    <p className="text-muted-foreground p-2 bg-muted rounded-md">Nenhuma tarefa ativa.</p>
+                                                )}
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h4 className="font-semibold text-xs text-muted-foreground">Fila de Tarefas ({selectedMember.taskQueue?.length || 0})</h4>
+                                                <div className="space-y-1">
+                                                    {selectedMember.taskQueue && selectedMember.taskQueue.length > 0 ? selectedMember.taskQueue.map(task => (
+                                                        <div key={task.id} className="flex items-center gap-2 p-1.5 rounded bg-muted">
+                                                            <ListTodo className="h-4 w-4 text-muted-foreground" />
+                                                            <span className="text-xs">{task.title}</span>
+                                                        </div>
+                                                    )) : <p className="text-xs text-muted-foreground">Fila vazia.</p>}
+                                                </div>
+                                            </div>
+                                            <Separator />
+                                            <div className="space-y-2">
+                                                <h4 className="font-semibold text-xs text-muted-foreground">Veículo</h4>
+                                                {selectedMember.vehicle ? (
+                                                    <div className="flex items-center gap-2">
+                                                    <Car className="h-4 w-4 text-muted-foreground" />
+                                                    <div>
+                                                        <p className="font-medium text-xs">{selectedMember.vehicle.type}</p>
+                                                        <p className="text-xs text-muted-foreground">{selectedMember.vehicle.plate}</p>
+                                                    </div>
+                                                    </div>
+                                                ) : <p className="text-xs text-muted-foreground">Nenhum veículo atribuído.</p>}
+                                            </div>
+                                            <Separator />
+                                            <div className="space-y-2">
+                                                <h4 className="font-semibold text-xs text-muted-foreground">Desempenho (Hoje)</h4>
+                                                <div className="flex items-center gap-2">
+                                                    <Check className="h-4 w-4 text-muted-foreground" />
+                                                    <p className="text-xs">{selectedMember.stats?.completed || 0} tarefas concluídas</p>
+                                                </div>
+                                            </div>
+                                            <Separator />
+                                            <div className="flex gap-2 pt-2">
+                                                <Button variant="outline" size="sm" className="flex-1" asChild>
+                                                    <a href={`tel:${selectedMember.phoneNumber}`}>
+                                                        <Phone className="mr-2 h-4 w-4" /> Ligar
+                                                    </a>
+                                                </Button>
+                                                <Button variant="outline" size="sm" className="flex-1" asChild>
+                                                    <a href={`https://wa.me/${selectedMember.phoneNumber}`} target="_blank" rel="noopener noreferrer">
+                                                        <MessageSquare className="mr-2 h-4 w-4" /> WhatsApp
+                                                    </a>
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </main>
             </div>
