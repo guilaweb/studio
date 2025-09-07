@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Droplets, Database, Activity, GitBranch, BrainCircuit, CheckSquare, Layers, MapPin, Factory, AlertTriangle, CloudRain, Wind, FileSignature, Search, BarChart, FlaskConical, PlusCircle, Tractor, Zap } from "lucide-react";
+import { ArrowLeft, Droplets, Database, Activity, GitBranch, BrainCircuit, CheckSquare, Layers, MapPin, Factory, AlertTriangle, CloudRain, Wind, FileSignature, Search, BarChart, FlaskConical, PlusCircle, Tractor, Zap, Thermometer, Sun, Cloud, CloudSun } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterestMarker } from "@/components/map-component";
@@ -109,6 +109,58 @@ const features = [
         ]
     }
 ];
+
+const WeatherForecast = () => {
+    const forecastData = [
+        { day: 'SEG', Icon: Sun, max: 32, min: 20 },
+        { day: 'TER', Icon: CloudSun, max: 31, min: 21 },
+        { day: 'QUA', Icon: Sun, max: 33, min: 22 },
+        { day: 'QUI', Icon: Cloud, max: 30, min: 20 },
+        { day: 'SEX', Icon: CloudRain, max: 28, min: 19 },
+    ];
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Previsão Meteorológica</CardTitle>
+                <CardDescription>Condições para Luanda, Angola</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="flex items-center justify-between border-b pb-4">
+                    <div>
+                        <p className="text-5xl font-bold">31°C</p>
+                        <p className="text-muted-foreground">Céu limpo</p>
+                    </div>
+                    <Sun className="h-16 w-16 text-yellow-400" />
+                </div>
+                <div className="grid grid-cols-3 gap-4 pt-4 text-sm">
+                    <div className="flex items-center gap-2">
+                        <Thermometer className="h-4 w-4 text-muted-foreground" />
+                        <span>Sensação: 34°C</span>
+                    </div>
+                     <div className="flex items-center gap-2">
+                        <Droplets className="h-4 w-4 text-muted-foreground" />
+                        <span>Humidade: 65%</span>
+                    </div>
+                     <div className="flex items-center gap-2">
+                        <Wind className="h-4 w-4 text-muted-foreground" />
+                        <span>Vento: 12 km/h</span>
+                    </div>
+                </div>
+                <div className="mt-6 flex justify-between">
+                    {forecastData.map(day => (
+                        <div key={day.day} className="flex flex-col items-center gap-1">
+                            <p className="text-xs font-semibold text-muted-foreground">{day.day}</p>
+                            <day.Icon className="h-6 w-6 text-yellow-400" />
+                            <p className="text-sm font-bold">{day.max}°</p>
+                            <p className="text-xs text-muted-foreground">{day.min}°</p>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
 
 const WaterBalanceDashboard = ({ watersheds }: { watersheds: any[] }) => {
     const [selectedWatershed, setSelectedWatershed] = React.useState<any | null>(null);
@@ -346,6 +398,7 @@ function WaterResourcesPage() {
                 </header>
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
                     <div className="md:col-span-1 lg:col-span-1 space-y-4">
+                        <WeatherForecast />
                         <WaterBalanceDashboard watersheds={watersheds} />
                         <ScenarioSimulator />
                         <PotentialityIdentifier />
