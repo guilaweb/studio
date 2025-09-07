@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
+import { usePoints } from "@/hooks/use-points";
 
 const fuelConsumptionChartConfig = {
   consumption: { label: "Km/L", color: "hsl(var(--chart-1))" },
@@ -38,6 +39,7 @@ function VehicleDetailPage() {
 
     const { user, loading: loadingUser } = useUserProfile(vehicleId);
     const { fuelEntries, loading: loadingFuel } = useFuelEntries();
+    const { allData: allPoints, loading: loadingPoints } = usePoints();
 
     const vehicleFuelEntries = React.useMemo(() => {
         return fuelEntries.filter(entry => entry.vehicleId === vehicleId);
@@ -71,7 +73,7 @@ function VehicleDetailPage() {
 
     }, [vehicleFuelEntries]);
     
-    // Mock data for other charts and tables
+    // Mock data for other charts
     const performanceData = [
         { month: "Jan", score: 82 }, { month: "Fev", score: 85 }, { month: "Mar", score: 88 },
         { month: "Abr", score: 86 }, { month: "Mai", score: 90 }, { month: "Jun", score: 92 },
@@ -80,13 +82,16 @@ function VehicleDetailPage() {
         { date: "2024-07-29", time: "14:32", event: "Excesso de Velocidade", details: "115 km/h na EN-100" },
         { date: "2024-07-28", time: "09:15", event: "Travagem Brusca", details: "Redução de 80 para 20 km/h em 2s" },
     ];
-    const maintenanceHistory = [
-        { date: "2024-06-15", service: "Troca de Óleo e Filtros", cost: "25.000 AOA" },
-        { date: "2024-03-10", service: "Troca de Pneus", cost: "120.000 AOA" },
-    ]
+
+    const maintenanceHistory = React.useMemo(() => {
+        return allPoints.filter(p => 
+            p.maintenanceId?.startsWith(vehicleId) && 
+            p.status === 'collected'
+        );
+    }, [allPoints, vehicleId]);
 
 
-    if (loadingUser || loadingFuel) {
+    if (loadingUser || loadingFuel || loadingPoints) {
         return <div className="flex h-screen w-full items-center justify-center">A carregar detalhes do veículo...</div>
     }
 
@@ -227,17 +232,19 @@ function VehicleDetailPage() {
                             <CardContent>
                                  <Table>
                                     <TableHeader>
-                                        <TableRow><TableHead>Data</TableHead><TableHead>Serviço</TableHead></TableRow>
+                                        <TableRow><TableHead>Data</TableHead><TableHead>Serviço</TableHead><TableHead className="text-right">Custo</TableHead></TableRow>
                                     </TableHeader>
                                     <TableBody>
                                     {maintenanceHistory.map((maint, i) => (
                                         <TableRow key={i}>
-                                            <TableCell>{format(new Date(maint.date), "dd/MM/yyyy")}</TableCell>
-                                            <TableCell>{maint.service}</TableCell>
+                                            <TableCell>{format(new Date(maint.lastReported!), "dd/MM/yyyy")}</TableCell>
+                                            <TableCell>{maint.title}</TableCell>
+                                            <TableCell className="text-right">{maint.cost ? `AOA ${maint.cost.toFixed(2)}` : '-'}</TableCell>
                                         </TableRow>
                                     ))}
                                     </TableBody>
                                 </Table>
+                                 {maintenanceHistory.length === 0 && <p className="text-center text-sm text-muted-foreground py-4">Nenhuma manutenção concluída registada.</p>}
                             </CardContent>
                         </Card>
                     </div>
