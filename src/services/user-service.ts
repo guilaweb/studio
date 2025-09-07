@@ -1,4 +1,5 @@
 
+      
 
 "use client";
 
@@ -112,3 +113,5 @@ export const useUserProfile = (userId: string | null) => {
 
     return { user, loading, error };
 };
+
+    

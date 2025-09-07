@@ -1,4 +1,5 @@
 
+      
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -479,3 +480,5 @@ export const AnalyzeAtmHistoryOutputSchema = z.object({
     restockPatternSummary: z.string().describe("An estimated summary of when the ATM is usually restocked. Example: 'O ATM é reabastecido frequentemente às terças e sextas-feiras de manhã.'"),
 });
 export type AnalyzeAtmHistoryOutput = z.infer<typeof AnalyzeAtmHistoryOutputSchema>;
+
+    
