@@ -3,7 +3,7 @@
 "use client";
 
 import * as React from "react";
-import { withAuth } from "@/hooks/use-auth";
+import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -34,7 +34,7 @@ type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
 function TeamManagementPage() {
     const { users, loading: loadingUsers, updateUserProfile } = useUsers();
-    const { allData: allPoints, loading: loadingPoints } = usePoints();
+    const { allData: allPoints, loading: loadingPoints, addPoint } = usePoints();
     const { fuelEntries, loading: loadingFuel } = useFuelEntries();
     const { maintenancePlans, loading: loadingPlans } = useMaintenancePlans();
     const [selectedMember, setSelectedMember] = React.useState<UserProfile | null>(null);
@@ -45,6 +45,8 @@ function TeamManagementPage() {
     const [suggestedTechnicians, setSuggestedTechnicians] = React.useState<SuggestTechnicianOutput['suggestions']>([]);
     const [isSuggesting, setIsSuggesting] = React.useState<string | null>(null); // Holds the ID of the task being analyzed
     const { toast } = useToast();
+    const { user: currentUser, profile: currentProfile } = useAuth();
+
 
     // Filter for technicians from the user list
     const teamMembers = React.useMemo(() => {
@@ -120,7 +122,6 @@ function TeamManagementPage() {
     const maintenanceAlerts = React.useMemo(() => {
         const alerts: Alert[] = [];
         const now = new Date();
-        const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
         teamMembers.forEach(member => {
             if (!member.vehicle || !member.vehicle.maintenancePlanIds) return;
@@ -129,37 +130,65 @@ function TeamManagementPage() {
                 const plan = maintenancePlans.find(p => p.id === planId);
                 if (!plan) return;
                 
+                let isDue = false;
+                let dueDateInfo = '';
+
                 if (plan.type === 'distance' && member.vehicle.odometer && member.vehicle.lastServiceOdometer) {
                     const nextServiceOdometer = member.vehicle.lastServiceOdometer + plan.interval;
                     const kmRemaining = nextServiceOdometer - member.vehicle.odometer;
-                    
-                    if (kmRemaining <= 1000) { // Alert if within 1000km
-                        alerts.push({
-                            id: `${member.uid}-${plan.id}`,
-                            time: now.toISOString(),
-                            description: `Manutenção "${plan.name}" para ${member.vehicle!.plate} vence em ${kmRemaining > 0 ? kmRemaining : 0} km.`,
-                            level: kmRemaining <= 0 ? 'critical' : 'warning',
-                        });
+                    if (kmRemaining <= 1000) { 
+                        isDue = true;
+                        dueDateInfo = `vence em ${kmRemaining > 0 ? kmRemaining : 0} km`;
                     }
                 } else if (plan.type === 'time' && member.vehicle.lastServiceDate) {
                     const lastServiceDate = new Date(member.vehicle.lastServiceDate);
                     const nextServiceDate = addMonths(lastServiceDate, plan.interval);
                     const daysRemaining = differenceInDays(nextServiceDate, now);
-
-                    if (daysRemaining <= 7) { // Alert if within 7 days
-                         alerts.push({
-                            id: `${member.uid}-${plan.id}`,
-                            time: now.toISOString(),
-                            description: `Manutenção "${plan.name}" para ${member.vehicle!.plate} vence em ${daysRemaining > 0 ? daysRemaining : 0} dias.`,
-                            level: daysRemaining <= 0 ? 'critical' : 'warning',
-                        });
+                    if (daysRemaining <= 7) { 
+                        isDue = true;
+                        dueDateInfo = `vence em ${daysRemaining > 0 ? daysRemaining : 0} dias`;
                     }
+                }
+
+                if (isDue) {
+                    const maintenanceId = `${member.uid}-${plan.id}`;
+                    // Check if a task for this maintenance already exists
+                    const taskExists = allPoints.some(p => p.maintenanceId === maintenanceId && p.status !== 'collected');
+
+                    if (!taskExists) {
+                         const newTask = {
+                            id: `maintenance-${Date.now()}-${Math.random().toString(36).substring(2,9)}`,
+                            maintenanceId: maintenanceId,
+                            type: 'incident' as const,
+                            title: `Manutenção: ${plan.name} - ${member.vehicle!.plate}`,
+                            description: `Manutenção preventiva "${plan.name}" necessária para o veículo ${member.vehicle!.plate}. ${dueDateInfo}.`,
+                            position: member.location || { lat: -8.83, lng: 13.23 }, // Fallback position
+                            authorId: currentUser!.uid,
+                            authorDisplayName: currentProfile!.displayName,
+                            lastReported: new Date().toISOString(),
+                            status: 'unknown' as const,
+                            priority: 'medium' as const,
+                            updates: [{
+                                id: `update-${Date.now()}`,
+                                text: `Ordem de serviço gerada automaticamente pelo sistema de manutenção preventiva.`,
+                                authorId: currentUser!.uid,
+                                authorDisplayName: 'Sistema MUNITU',
+                                timestamp: new Date().toISOString()
+                            }]
+                        };
+                        addPoint(newTask as any);
+                    }
+                    
+                    alerts.push({
+                        id: maintenanceId,
+                        time: now.toISOString(),
+                        description: `Manutenção "${plan.name}" para ${member.vehicle!.plate} ${dueDateInfo}.`,
+                        level: 'warning',
+                    });
                 }
             });
         });
         
-        // This is a simplified version; a real system would have more complex alerts.
-        // For demonstration, let's add some static alerts as well.
         const staticAlerts: Alert[] = [
             { id: '1', time: '10:32', description: 'Veículo LD-01-00-AA excedeu 100 km/h na EN-100.', level: 'critical' },
             { id: '2', time: '10:15', description: 'Motorista Demonstração Silva acionou o botão de pânico.', level: 'critical' },
@@ -170,7 +199,7 @@ function TeamManagementPage() {
             const levelOrder = { critical: 0, warning: 1, info: 2 };
             return levelOrder[a.level] - levelOrder[b.level];
         });
-    }, [teamMembers, maintenancePlans]);
+    }, [teamMembers, maintenancePlans, allPoints, addPoint, currentUser, currentProfile]);
     
     const upcomingMaintenanceCount = React.useMemo(() => {
         return maintenanceAlerts.filter(a => a.level === 'warning' || a.level === 'critical').length;
@@ -488,6 +517,7 @@ function TeamManagementPage() {
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
 
     
+
 
 
 

@@ -124,6 +124,8 @@ export const PointOfInterestSchema = z.object({
   // Sustainability
   sustainableSeal: z.boolean().optional(),
   sustainabilityFeatures: SustainabilityFeaturesSchema,
+  // Maintenance
+  maintenanceId: z.string().optional(), // e.g., `${vehicleId}-${planId}`
 });
 
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
