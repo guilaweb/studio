@@ -6,7 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { UserProfile, UserProfileWithStats } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, ChevronsUpDown, MoreHorizontal, TrendingUp } from "lucide-react";
+import { ArrowUpDown, ChevronsUpDown, MoreHorizontal, TrendingUp, Wrench } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useUsers } from "@/services/user-service";
+import MaintenancePlanSelector from "./maintenance-plan-selector";
 
 type RoleUpdateHandler = (uid: string, role: UserProfile['role']) => Promise<void>;
 type UserUpdateHandler = (uid: string, data: Partial<UserProfile>) => Promise<void>;
@@ -155,17 +156,14 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
         return <TeamSelector user={user} onUpdateUserProfile={onUpdateUserProfile} />
     }
   },
-  {
-    accessorKey: "stats.contributions",
-    header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Contribuições
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => {
-        const stats = row.original.stats;
-        return <div className="text-center font-medium">{stats.contributions}</div>
+   {
+    accessorKey: "vehicle.maintenancePlanIds",
+    header: "Planos de Manutenção",
+    cell: ({ row, table }) => {
+        const user = row.original;
+        if (user.role !== 'Agente Municipal') return <div className="text-center text-muted-foreground">-</div>;
+        const { onUpdateUserProfile } = table.options.meta as any;
+        return <MaintenancePlanSelector user={user} onUpdateUserProfile={onUpdateUserProfile} />
     }
   },
   {
@@ -186,20 +184,6 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
             </div>
         )
     }
-  },
-  {
-    accessorKey: "createdAt",
-    header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Membro Desde
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => {
-      const date = row.original.createdAt;
-      if (!date) return <div className="text-center">-</div>;
-      return <div className="text-center">{new Date(date).toLocaleDateString('pt-PT')}</div>;
-    },
   },
   {
     id: "actions",
