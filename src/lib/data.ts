@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -43,7 +42,7 @@ export type PointOfInterestPriority = z.infer<typeof PointOfInterestPriorityEnum
 export const PointOfInterestUsageTypeEnum = z.enum(['residential', 'commercial', 'industrial', 'mixed', 'other']);
 export type PointOfInterestUsageType = z.infer<typeof PointOfInterestUsageTypeEnum>;
 
-export const AnnouncementCategoryEnum = z.enum(['general', 'traffic', 'event', 'public_works', 'security', 'other']);
+export const AnnouncementCategoryEnum = z.enum(['general', 'traffic', 'event', 'public_works', 'security', 'flood_warning', 'drought_warning', 'other']);
 export type AnnouncementCategory = z.infer<typeof AnnouncementCategoryEnum>;
 
 export const PropertyTypeEnum = z.enum(['land', 'house', 'apartment', 'villa', 'farm', 'commercial']);
@@ -287,6 +286,8 @@ export const announcementCategoryMap: Record<AnnouncementCategory, string> = {
     event: 'Evento',
     public_works: 'Obras Públicas',
     security: 'Segurança',
+    flood_warning: 'Alerta de Cheia',
+    drought_warning: 'Alerta de Seca',
     other: 'Outro'
 };
 

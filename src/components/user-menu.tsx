@@ -181,6 +181,12 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                             <span>Fiscalização Ambiental</span>
                                         </Link>
                                     </DropdownMenuItem>
+                                     <DropdownMenuItem asChild>
+                                        <Link href="/admin/definicoes">
+                                            <Settings className="mr-2 h-4 w-4" />
+                                            <span>Definições</span>
+                                        </Link>
+                                    </DropdownMenuItem>
                                 </DropdownMenuSubContent>
                             </DropdownMenuSub>
                         )}

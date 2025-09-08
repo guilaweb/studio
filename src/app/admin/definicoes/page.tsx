@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -6,7 +7,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, EyeOff, Eye, Globe, Plus, Loader2, Trash2, MapPin, Wrench } from "lucide-react";
+import { ArrowLeft, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, EyeOff, Eye, Globe, Plus, Loader2, Trash2, MapPin, Wrench, Fuel } from "lucide-react";
 import { usePublicLayerSettings, updatePublicLayerSettings } from "@/services/settings-service";
 import type { ActiveLayers, Layer } from "@/lib/data";
 import { Switch } from "@/components/ui/switch";
@@ -31,8 +32,9 @@ const layerConfig = [
   { id: "sanitation", label: "Saneamento", Icon: Trash },
   { id: "construction", label: "Obras e Projetos", Icon: Construction },
   { id: "announcement", label: "Anúncios", Icon: Megaphone },
-  { id: "water", label: "Rede de Água", Icon: Droplet },
+  { id: "water", label: "Fugas de Água", Icon: Droplet },
   { id: "land_plot", label: "Lotes de Terreno", Icon: Square },
+  { id: "fuel_station", label: "Postos de Combustível", Icon: Fuel },
 ];
 
 function AdminSettingsPage() {
