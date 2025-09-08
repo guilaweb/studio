@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Layers, AreaChart, Tractor } from "lucide-react";
+import { ArrowLeft, Layers, AreaChart, Tractor, Zap } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { useExternalLayers } from "@/services/external-layers-service";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +20,7 @@ import { WMSLayer, WFSLayer, WMTSLayer } from "@/components/map-component";
 function LandUsePage() {
     const { externalLayers, loading } = useExternalLayers();
     const { toast } = useToast();
+    const [analysisCrop, setAnalysisCrop] = React.useState('Milho');
     
     const landCoverLayers = React.useMemo(() => {
         return externalLayers.filter(l => l.name.toLowerCase().includes('uso do solo') && l.visible);
@@ -97,13 +98,24 @@ function LandUsePage() {
                                     <TabsContent value="arable" className="pt-6 space-y-6">
                                          <div className="space-y-2">
                                             <Label htmlFor="culture-type">Tipo de Cultura Potencial</Label>
-                                            <Select>
-                                                <SelectTrigger id="culture-type"><SelectValue placeholder="Selecione a cultura" /></SelectTrigger>
+                                            <Select onValueChange={setAnalysisCrop} defaultValue={analysisCrop}>
+                                                <SelectTrigger id="culture-type"><SelectValue /></SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="milho">Milho</SelectItem>
-                                                    <SelectItem value="soja">Soja</SelectItem>
-                                                    <SelectItem value="horticolas">Hortícolas</SelectItem>
-                                                    <SelectItem value="fruticultura">Fruticultura</SelectItem>
+                                                    <SelectItem value="Milho">Milho</SelectItem>
+                                                    <SelectItem value="Soja">Soja</SelectItem>
+                                                    <SelectItem value="Hortícolas">Hortícolas</SelectItem>
+                                                    <SelectItem value="Fruticultura">Fruticultura</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="production-potential">Potencial de Produção</Label>
+                                            <Select defaultValue="normal">
+                                                <SelectTrigger id="production-potential"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="normal">Normal</SelectItem>
+                                                    <SelectItem value="above_average">Acima da Média</SelectItem>
+                                                    <SelectItem value="high">Elevado</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -111,9 +123,9 @@ function LandUsePage() {
                                             <Label htmlFor="min-area">Área Mínima (hectares)</Label>
                                             <Input id="min-area" type="number" placeholder="Ex: 500" />
                                         </div>
-                                        <Button className="w-full" onClick={() => handleAnalysisStart('Identificação de Terras Aráveis')}>
-                                            <Tractor className="mr-2 h-4 w-4"/>
-                                            Identificar Terras Aráveis
+                                        <Button className="w-full" onClick={() => handleAnalysisStart(`Potencial para ${analysisCrop}`)}>
+                                            <Zap className="mr-2 h-4 w-4"/>
+                                            Analisar Potencial para {analysisCrop}
                                         </Button>
                                     </TabsContent>
                                 </Tabs>
