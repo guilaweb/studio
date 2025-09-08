@@ -12,10 +12,10 @@ import { Input } from "@/components/ui/input";
 import { UserProfile } from '@/lib/data';
 import { Loader2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Calendar } from '../ui/calendar';
+import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
