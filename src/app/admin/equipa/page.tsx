@@ -29,6 +29,7 @@ import { useFuelEntries } from "@/services/fuel-service";
 import { useMaintenancePlans } from "@/services/maintenance-service";
 import { differenceInDays, addMonths } from "date-fns";
 import DirectionsRenderer from "@/components/directions-renderer";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
@@ -47,6 +48,7 @@ function TeamManagementPage() {
     const [isSuggesting, setIsSuggesting] = React.useState<string | null>(null);
     const [routeToDisplay, setRouteToDisplay] = React.useState<PointOfInterest[] | null>(null);
     const [simulateBadWeather, setSimulateBadWeather] = React.useState(false);
+    const [selectedTasks, setSelectedTasks] = React.useState<string[]>([]);
     const { toast } = useToast();
     const { user: currentUser, profile: currentProfile } = useAuth();
 
@@ -289,6 +291,21 @@ function TeamManagementPage() {
         updateUserProfile(memberId, { location: newLocation });
     };
 
+    const handleTaskCheckboxChange = (taskId: string, checked: boolean) => {
+        setSelectedTasks(prev => 
+            checked ? [...prev, taskId] : prev.filter(id => id !== taskId)
+        );
+    };
+
+    const handleOptimizeRoute = () => {
+        const tasksToOptimize = localTasks.filter(task => selectedTasks.includes(task.id));
+        setRouteToDisplay(tasksToOptimize);
+        toast({
+            title: 'Rota Otimizada',
+            description: `A melhor rota para ${tasksToOptimize.length} tarefas está a ser exibida no mapa.`,
+        });
+    };
+
 
      if (loadingUsers || loadingPoints || loadingFuel || loadingPlans) {
         return <div>A carregar dados da equipa...</div>;
@@ -396,16 +413,25 @@ function TeamManagementPage() {
                                 </CardContent>
                             </Card>
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Tarefas Não Atribuídas</CardTitle>
-                                    <CardDescription>Clique numa tarefa para ver sugestões.</CardDescription>
+                                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                    <div>
+                                        <CardTitle>Tarefas Não Atribuídas</CardTitle>
+                                        <CardDescription>Clique numa tarefa para ver sugestões.</CardDescription>
+                                    </div>
+                                    <Button size="sm" onClick={handleOptimizeRoute} disabled={selectedTasks.length < 2}>
+                                        <Route className="mr-2 h-4 w-4" />
+                                        Otimizar ({selectedTasks.length})
+                                    </Button>
                                 </CardHeader>
                                 <CardContent className="space-y-3 max-h-[30vh] overflow-auto">
                                 {localTasks.map(task => (
-                                        <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background cursor-grab active:cursor-grabbing hover:bg-muted" onClick={() => handleTaskSelect(task)}>
-                                            <div className="flex items-center gap-3">
-                                                {isSuggesting === task.id ? <Loader2 className="h-5 w-5 text-muted-foreground animate-spin"/> : <Package className="h-5 w-5 text-muted-foreground"/>}
-                                                <p className="font-semibold text-sm">{task.title}</p>
+                                        <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background hover:bg-muted">
+                                             <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                                                <Checkbox id={`task-${task.id}`} onCheckedChange={(checked) => handleTaskCheckboxChange(task.id, !!checked)} />
+                                                <div className="flex-1 cursor-pointer" onClick={() => handleTaskSelect(task)}>
+                                                    {isSuggesting === task.id ? <Loader2 className="h-5 w-5 text-muted-foreground animate-spin"/> : <Package className="h-5 w-5 text-muted-foreground inline-block" />}
+                                                    <p className="font-semibold text-sm inline-block ml-2 truncate">{task.title}</p>
+                                                </div>
                                             </div>
                                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleAssignTask(task); }}>
                                                 <Send className="h-4 w-4 text-muted-foreground" />
@@ -529,6 +555,7 @@ function TeamManagementPage() {
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
 
     
+
 
 
 

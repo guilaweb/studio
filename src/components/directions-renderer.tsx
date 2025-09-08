@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -18,13 +19,26 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoi
     useEffect(() => {
         if (!map) return;
         setDirectionsService(new google.maps.DirectionsService());
-        setDirectionsRenderer(new google.maps.DirectionsRenderer({ map }));
+        // Initialize renderer without a map initially to avoid flicker
+        setDirectionsRenderer(new google.maps.DirectionsRenderer({
+             suppressMarkers: true, // We use our own markers
+             polylineOptions: {
+                 strokeColor: 'hsl(var(--primary))',
+                 strokeOpacity: 0.8,
+                 strokeWeight: 5,
+             }
+        }));
     }, [map]);
+
+    useEffect(() => {
+        if (!directionsRenderer) return;
+        directionsRenderer.setMap(map); // Attach renderer to map when it's ready
+    }, [directionsRenderer, map])
 
     useEffect(() => {
         if (!directionsService || !directionsRenderer || !waypoints || waypoints.length < 2) {
             if(directionsRenderer) {
-                directionsRenderer.setDirections({routes: []});
+                directionsRenderer.setDirections({routes: []}); // Clear previous routes
             }
             return;
         };
@@ -53,6 +67,12 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoi
                 lng: intermediateWaypoints[0].location.lng + 0.005
             };
             intermediateWaypoints.splice(0, 0, { location: detourPoint, stopover: true });
+        } else if (avoidBadWeather && waypoints.length >= 2) {
+             const detourPoint = {
+                lat: (waypoints[0].position.lat + waypoints[1].position.lat) / 2 + 0.005,
+                lng: (waypoints[0].position.lng + waypoints[1].position.lng) / 2 + 0.005,
+            };
+            intermediateWaypoints.push({ location: detourPoint, stopover: true });
         }
         // --- End of Simulation Logic ---
 
