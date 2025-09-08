@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -21,6 +22,11 @@ export const PointOfInterestUpdateSchema = z.object({
   photoDataUri: z.string().optional(),
   availableNotes: z.array(z.number()).optional(),
   queueTime: QueueTimeEnum.optional(),
+  partsUsed: z.array(z.object({
+      partId: z.string(),
+      name: z.string(),
+      quantity: z.number(),
+  })).optional(),
 });
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
@@ -122,6 +128,11 @@ export const PointOfInterestSchema = z.object({
   // Sustainability
   sustainableSeal: z.boolean().optional(),
   sustainabilityFeatures: SustainabilityFeaturesSchema,
+   // Maintenance
+  maintenanceId: z.string().optional(),
+  cost: z.number().optional(),
+  partsCost: z.number().optional(),
+  laborCost: z.number().optional(),
 });
 
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
@@ -138,10 +149,35 @@ export const UserProfileSchema = z.object({
     uid: z.string(),
     displayName: z.string(),
     email: z.string(),
-    photoURL: z.string().optional(),
+    photoURL: z.string().nullable().optional(),
     role: z.enum(['Cidadao', 'Agente Municipal', 'Administrador']),
     createdAt: z.string().optional(),
     onboardingCompleted: z.boolean().optional(),
+    // Team management fields
+    status: z.enum(['Disponível', 'Em Rota', 'Ocupado', 'Offline']).optional(),
+    location: PositionSchema.optional().nullable(),
+    team: z.enum(['Saneamento', 'Eletricidade', 'Geral']).optional(),
+    currentTask: PointOfInterestSchema.nullable().optional(),
+    taskQueue: z.array(PointOfInterestSchema).optional(),
+    path: z.array(PositionSchema).optional(),
+    phoneNumber: z.string().optional(),
+    cnhCategory: z.string().optional(),
+    cnhExpiration: z.string().optional(),
+    emergencyContactName: z.string().optional(),
+    emergencyContactPhone: z.string().optional(),
+    stats: z.object({
+        completed: z.number().optional(),
+        avgTime: z.string().optional(),
+        performanceScore: z.number().optional(),
+    }).optional(),
+    vehicle: z.object({
+        type: z.string().optional(),
+        plate: z.string().optional(),
+        odometer: z.number().optional(),
+        maintenancePlanIds: z.array(z.string()).optional(),
+        lastServiceDate: z.string().optional(), // ISO string
+        lastServiceOdometer: z.number().optional(),
+    }).optional(),
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 
@@ -150,9 +186,38 @@ export const UserProfileWithStatsSchema = UserProfileSchema.extend({
         contributions: z.number(),
         sanitationReports: z.number(),
         incidentReports: z.number(),
+        // include all from UserProfile stats too
+        completed: z.number().optional(),
+        avgTime: z.string().optional(),
+        performanceScore: z.number().optional(),
     })
 });
 export type UserProfileWithStats = z.infer<typeof UserProfileWithStatsSchema>;
+
+export const FuelEntrySchema = z.object({
+    id: z.string(),
+    vehicleId: z.string(),
+    driverName: z.string(),
+    vehiclePlate: z.string(),
+    date: z.string(), // ISO string
+    odometer: z.number(),
+    liters: z.number(),
+    cost: z.number(),
+    createdAt: z.string().optional(),
+});
+export type FuelEntry = z.infer<typeof FuelEntrySchema>;
+
+export const InventoryPartSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    sku: z.string().optional(),
+    stock: z.number(),
+    cost: z.number(),
+    supplier: z.string().optional(),
+    createdAt: z.string(),
+});
+export type InventoryPart = z.infer<typeof InventoryPartSchema>;
+
 
 
 
@@ -229,6 +294,27 @@ export const queueTimeLabelMap: Record<QueueTime, string> = {
     medium: 'Média (5-10 pessoas)',
     long: 'Longa (+10 pessoas)',
 };
+
+export interface Conversation {
+  id: string;
+  participants: string[];
+  participantDetails: { uid: string; displayName: string; photoURL?: string | null; }[];
+  propertyId: string;
+  propertyTitle: string;
+  propertyImage?: string;
+  lastMessage?: Message;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Message {
+  id: string;
+  senderId: string;
+  senderDisplayName: string;
+  text: string;
+  timestamp: string;
+  readBy: string[];
+}
 
 
 // Schemas for AI Flows
@@ -346,3 +432,101 @@ export const GenerateLicenseOutputSchema = z.object({
   licenseHtml: z.string().describe("The full HTML content of the generated license."),
 });
 export type GenerateLicenseOutput = z.infer<typeof GenerateLicenseOutputSchema>;
+
+
+export const AnalyzeAtmHistoryInputSchema = z.object({
+  updates: z.array(PointOfInterestUpdateSchema).describe("An array of status updates for a single ATM."),
+});
+export type AnalyzeAtmHistoryInput = z.infer<typeof AnalyzeAtmHistoryInputSchema>;
+
+export const AnalyzeAtmHistoryOutputSchema = z.object({
+  availableNotesSummary: z.string().describe("A summary of the most frequently reported available banknotes."),
+  queuePatternSummary: z.string().describe("A summary of observed queue patterns based on timestamps."),
+  restockPatternSummary: z.string().describe("An inferred summary of the ATM's restocking schedule."),
+});
+export type AnalyzeAtmHistoryOutput = z.infer<typeof AnalyzeAtmHistoryOutputSchema>;
+
+
+export const AnalyzeEnvironmentalImpactInputSchema = z.object({
+    projectDescription: z.string(),
+    projectType: z.string().optional(),
+    area: z.number().optional(),
+});
+export type AnalyzeEnvironmentalImpactInput = z.infer<typeof AnalyzeEnvironmentalImpactInputSchema>;
+
+export const AnalyzeEnvironmentalImpactOutputSchema = z.object({
+    drainageAnalysis: z.string().describe("Feedback on drainage and water management."),
+    heatIslandAnalysis: z.string().describe("Feedback on mitigating the heat island effect."),
+    energyEfficiencyAnalysis: z.string().describe("Feedback on energy efficiency and ventilation."),
+});
+export type AnalyzeEnvironmentalImpactOutput = z.infer<typeof AnalyzeEnvironmentalImpactOutputSchema>;
+
+export const AnalyzePropertyDocumentInputSchema = z.object({
+    documentDataUri: z.string().describe("An image of a property document, as a data URI."),
+});
+export type AnalyzePropertyDocumentInput = z.infer<typeof AnalyzePropertyDocumentInputSchema>;
+
+export const AnalyzePropertyDocumentOutputSchema = z.object({
+    ownerName: z.string().describe("The full name of the property owner."),
+    registrationNumber: z.string().describe("The official registration number of the property."),
+    plotArea: z.number().optional().describe("The total area of the plot in square meters."),
+    summary: z.string().describe("A one-sentence summary of the document's nature."),
+    confidenceScore: z.number().describe("A confidence score (0-100) on the document's authenticity."),
+    redFlags: z.array(z.string()).describe("A list of observed potential issues or red flags."),
+});
+export type AnalyzePropertyDocumentOutput = z.infer<typeof AnalyzePropertyDocumentOutputSchema>;
+
+
+export const GenerateLocationSketchInputSchema = z.object({
+  plot: PointOfInterestSchema,
+  project: PointOfInterestSchema,
+});
+export type GenerateLocationSketchInput = z.infer<typeof GenerateLocationSketchInputSchema>;
+
+export const GenerateLocationSketchOutputSchema = z.object({
+  sketchHtml: z.string().describe("The full HTML content of the generated location sketch."),
+});
+export type GenerateLocationSketchOutput = z.infer<typeof GenerateLocationSketchOutputSchema>;
+
+export const SuggestTechnicianInputSchema = z.object({
+    task: z.object({
+        id: z.string(),
+        title: z.string(),
+        location: PositionSchema,
+    }),
+    technicians: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        location: PositionSchema,
+        status: z.enum(['Disponível', 'Em Rota', 'Ocupado', 'Offline']),
+        skills: z.array(z.string()),
+        taskQueueSize: z.number(),
+    })),
+});
+export type SuggestTechnicianInput = z.infer<typeof SuggestTechnicianInputSchema>;
+
+export const SuggestTechnicianOutputSchema = z.object({
+    suggestions: z.array(z.object({
+        technicianId: z.string(),
+        rank: z.number(),
+        reason: z.string(),
+    })),
+});
+export type SuggestTechnicianOutput = z.infer<typeof SuggestTechnicianOutputSchema>;
+
+export const PredictMaintenanceInputSchema = z.object({
+    vehicleType: z.string().describe("E.g., 'Carrinha de Manutenção', 'Carro de Patrulha'"),
+    mileage: z.number().describe("Current odometer reading in kilometers."),
+    ageInYears: z.number().describe("Age of the vehicle in years."),
+    telemetryEvents: z.array(z.string()).describe("List of recent driving events like 'Travagem Brusca'."),
+});
+export type PredictMaintenanceInput = z.infer<typeof PredictMaintenanceInputSchema>;
+
+export const PredictMaintenanceOutputSchema = z.object({
+    predictions: z.array(z.object({
+        taskDescription: z.string().describe("The specific maintenance task predicted."),
+        reason: z.string().describe("The justification for the prediction based on the data."),
+        priority: PointOfInterestPriorityEnum.describe("The priority of the task."),
+    })),
+});
+export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
