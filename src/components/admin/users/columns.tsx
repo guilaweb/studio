@@ -6,7 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { UserProfile, UserProfileWithStats } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, ChevronsUpDown, MoreHorizontal, Link as LinkIcon } from "lucide-react";
+import { ArrowUpDown, ChevronsUpDown, MoreHorizontal, Link as LinkIcon, Wrench, Car } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -148,6 +148,24 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
         const user = row.original;
         const { onUpdateUserProfile } = table.options.meta as any;
         return <TeamSelector user={user} onUpdateUserProfile={onUpdateUserProfile} />
+    }
+  },
+   {
+    accessorKey: "vehicle",
+    header: "Veículo",
+    cell: ({ row, table }) => {
+        const user = row.original;
+        const { onEditVehicle } = table.options.meta as any;
+        if (user.role !== 'Agente Municipal') return <div className="text-center text-muted-foreground">-</div>;
+        
+        return (
+            <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => onEditVehicle(user)}>
+                    <Car className="mr-2 h-4 w-4" />
+                    {user.vehicle?.plate || 'Gerir Veículo'}
+                </Button>
+            </div>
+        )
     }
   },
   {

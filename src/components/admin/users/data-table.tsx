@@ -34,13 +34,15 @@ interface UserDataTableProps {
   data: UserProfileWithStats[],
   onUpdateUserRole: (uid: string, role: UserProfile['role']) => Promise<void>,
   onUpdateUserProfile: (uid: string, data: Partial<UserProfile>) => Promise<void>,
+  onEditVehicle: (user: UserProfile) => void;
 }
 
 export function UserDataTable({
   columns,
   data,
   onUpdateUserRole,
-  onUpdateUserProfile
+  onUpdateUserProfile,
+  onEditVehicle
 }: UserDataTableProps) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -61,6 +63,7 @@ export function UserDataTable({
         meta: {
             onUpdateUserRole,
             onUpdateUserProfile,
+            onEditVehicle,
         }
     });
 
@@ -141,4 +144,3 @@ export function UserDataTable({
     </div>
   )
 }
-

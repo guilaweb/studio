@@ -16,57 +16,10 @@ export const useUsers = () => {
         const usersCollectionRef = collection(db, 'users');
         const unsubscribe = onSnapshot(usersCollectionRef, (snapshot) => {
             const usersData = snapshot.docs.map((doc, index) => {
-                const user = {
+                return {
                     uid: doc.id,
                     ...doc.data()
                 } as UserProfile;
-
-                // This section simulates real-time data that would come from a mobile app
-                if (user.role === 'Agente Municipal') {
-                    const statuses: UserProfile['status'][] = ['Disponível', 'Em Rota', 'Ocupado', 'Offline'];
-                    const teams: UserProfile['team'][] = ['Eletricidade', 'Saneamento', 'Geral'];
-                    
-                    user.status = user.status || statuses[index % statuses.length];
-                    user.location = user.location || { lat: -8.82 + (index * 0.02), lng: 13.23 + (index * 0.02) };
-                    user.team = user.team || teams[index % teams.length];
-                    user.vehicle = user.vehicle || { 
-                        type: 'Carrinha de Manutenção', 
-                        plate: `LD-${index < 10 ? '0' : ''}${index}-00-AA`, 
-                        odometer: 125000 + (index * 5000),
-                        lastServiceDate: new Date(new Date().setMonth(new Date().getMonth() - (index % 6))).toISOString(), // Simulate last service from 0-5 months ago
-                        lastServiceOdometer: 120000 + (index * 4000),
-                    };
-                    
-                    // Simulate current task with a planned path for the first technician
-                    if (index === 0 && !user.currentTask) {
-                        user.currentTask = {
-                            id: 'task-demo-1',
-                            type: 'incident',
-                            title: 'Reparar semáforo no centro',
-                            description: 'Semáforo do cruzamento principal está offline.',
-                            position: { lat: -8.814, lng: 13.23 },
-                             path: [
-                                { lat: -8.82, lng: 13.23 },
-                                { lat: -8.818, lng: 13.235 },
-                                { lat: -8.815, lng: 13.232 },
-                                { lat: -8.814, lng: 13.23 }
-                            ]
-                        } as PointOfInterest
-                    } else {
-                       user.currentTask = user.currentTask === undefined ? null : user.currentTask;
-                    }
-
-                    user.taskQueue = user.taskQueue || [];
-                    user.stats = user.stats || { completed: Math.floor(Math.random() * 5), avgTime: `${20 + Math.floor(Math.random() * 20)} min`, performanceScore: 75 + Math.floor(Math.random() * 20) };
-                    // Real path (historical)
-                    user.path = user.path || [
-                        { lat: -8.82 + (index * 0.02) - 0.005, lng: 13.23 + (index * 0.02) - 0.005 },
-                        { lat: -8.82 + (index * 0.02) - 0.002, lng: 13.23 + (index * 0.02) + 0.002 },
-                        { lat: -8.82 + (index * 0.02), lng: 13.23 + (index * 0.02) }
-                    ];
-                    user.phoneNumber = user.phoneNumber || `92300000${index}`;
-                }
-                return user;
             });
             setUsers(usersData);
             setLoading(false);

@@ -13,11 +13,13 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { columns } from "@/components/admin/users/columns";
+import VehicleEditorDialog from "@/components/admin/users/vehicle-editor-dialog";
 
 
 function AdminUsersPage() {
     const { users, loading: loadingUsers, error, updateUserRole, updateUserProfile } = useUsers();
     const { allData: allPoints, loading: loadingPoints } = usePoints();
+    const [userToEditVehicle, setUserToEditVehicle] = React.useState<UserProfile | null>(null);
 
 
     const usersWithStats: UserProfileWithStats[] = React.useMemo(() => {
@@ -47,37 +49,46 @@ function AdminUsersPage() {
     }
 
     return (
-        <div className="flex min-h-screen w-full flex-col bg-muted/40">
-             <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-                <Button size="icon" variant="outline" asChild>
-                    <Link href="/">
-                        <ArrowLeft className="h-5 w-5" />
-                        <span className="sr-only">Voltar</span>
-                    </Link>
-                </Button>
-                <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                    Gestão de Equipa e Desempenho
-                </h1>
-            </header>
-            <main className="flex-1 p-4 sm:px-6 sm:py-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Todos os Utilizadores</CardTitle>
-                        <CardDescription>
-                            Veja, gira e defina as permissões e equipas de todos os utilizadores registados na plataforma.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <UserDataTable 
-                            columns={columns} 
-                            data={usersWithStats} 
-                            onUpdateUserRole={updateUserRole}
-                            onUpdateUserProfile={updateUserProfile}
-                        />
-                    </CardContent>
-                </Card>
-            </main>
-        </div>
+        <>
+            <div className="flex min-h-screen w-full flex-col bg-muted/40">
+                <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+                    <Button size="icon" variant="outline" asChild>
+                        <Link href="/">
+                            <ArrowLeft className="h-5 w-5" />
+                            <span className="sr-only">Voltar</span>
+                        </Link>
+                    </Button>
+                    <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+                        Gestão de Utilizadores e Frota
+                    </h1>
+                </header>
+                <main className="flex-1 p-4 sm:px-6 sm:py-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Todos os Utilizadores</CardTitle>
+                            <CardDescription>
+                                Gira as permissões, equipas e veículos de todos os utilizadores registados na plataforma.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <UserDataTable 
+                                columns={columns} 
+                                data={usersWithStats} 
+                                onUpdateUserRole={updateUserRole}
+                                onUpdateUserProfile={updateUserProfile}
+                                onEditVehicle={setUserToEditVehicle}
+                            />
+                        </CardContent>
+                    </Card>
+                </main>
+            </div>
+            <VehicleEditorDialog
+                user={userToEditVehicle}
+                open={!!userToEditVehicle}
+                onOpenChange={(isOpen) => !isOpen && setUserToEditVehicle(null)}
+                onSave={updateUserProfile}
+            />
+        </>
     );
 }
 
