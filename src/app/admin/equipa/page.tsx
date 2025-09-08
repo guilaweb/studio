@@ -94,7 +94,7 @@ function TeamManagementPage() {
         return teamMembers.filter(member => {
             const nameMatch = member.displayName.toLowerCase().includes(searchQuery.toLowerCase());
             const statusMatch = statusFilter === 'Todos' || member.status === statusFilter;
-            const teamMatch = teamFilter === 'Todos' || member.team === teamMatch;
+            const teamMatch = teamFilter === 'Todos' || member.team === teamFilter;
             return nameMatch && statusMatch && teamMatch;
         });
     }, [teamMembers, searchQuery, statusFilter, teamFilter]);
@@ -430,7 +430,7 @@ function TeamManagementPage() {
                                                     <div>
                                                         <p className="font-semibold text-sm">{member.displayName}</p>
                                                         {member.status && (
-                                                            <Badge variant="secondary" className={statusBadgeVariant(member.status)}>
+                                                            <Badge variant="secondary" className={cn(statusBadgeVariant(member.status), 'text-white')}>
                                                                 {member.status}
                                                             </Badge>
                                                         )}

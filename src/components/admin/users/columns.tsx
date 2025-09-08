@@ -64,6 +64,7 @@ const RoleSelector = ({ user, onUpdateUserRole }: { user: UserProfile, onUpdateU
                      <DropdownMenuRadioItem value="Cidadao">Cidadao</DropdownMenuRadioItem>
                      <DropdownMenuRadioItem value="Agente Municipal">Agente Municipal</DropdownMenuRadioItem>
                      <DropdownMenuRadioItem value="Administrador">Administrador</DropdownMenuRadioItem>
+                     <DropdownMenuRadioItem value="Epidemiologista">Epidemiologista</DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -169,7 +170,7 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
     }
   },
   {
-    accessorKey: "vehicle.maintenancePlanIds",
+    id: "maintenance",
     header: "Manutenção",
     cell: ({ row, table }) => {
         const user = row.original;
@@ -215,4 +216,3 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
   }
 ];
 
-    

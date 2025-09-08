@@ -26,7 +26,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { UserProfile, UserProfileWithStats } from "@/lib/data"
-import { columns } from "./columns"
 
 
 interface UserDataTableProps {
