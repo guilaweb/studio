@@ -95,6 +95,12 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         cost: data.cost,
         partsCost: data.partsCost,
         laborCost: data.laborCost,
+        // Health
+        healthServices: data.healthServices,
+        healthInspections: data.healthInspections,
+        licensingStatus: data.licensingStatus,
+        lastInspectionDate: data.lastInspectionDate,
+        capacity: data.capacity,
     };
 };
 
@@ -307,14 +313,3 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const usePoints = () => useContext(PointsContext);
-
-    
-
-
-
-
-
-
-
-
-

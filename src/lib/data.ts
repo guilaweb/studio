@@ -550,5 +550,3 @@ export const PredictMaintenanceOutputSchema = z.object({
     })),
 });
 export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
-
-    
