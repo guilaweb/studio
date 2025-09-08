@@ -45,7 +45,10 @@ export const predictMaintenanceFlow = ai.defineFlow(
     },
     async (input: PredictMaintenanceInput): Promise<PredictMaintenanceOutput> => {
         const { output } = await prompt({input});
-        return output!;
+        if (!output) {
+            return { predictions: [] };
+        }
+        return output;
     }
 );
 
