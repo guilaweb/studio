@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -310,3 +309,12 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 export const usePoints = () => useContext(PointsContext);
 
     
+
+
+
+
+
+
+
+
+
