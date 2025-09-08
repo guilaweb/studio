@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import Timeline from "@/components/timeline";
+import { Input } from "@/components/ui/input";
 
 const InspectionControl = ({ unit, addUpdateToPoint }: { unit: PointOfInterest, addUpdateToPoint: any }) => {
     const { profile } = useAuth();
