@@ -244,6 +244,22 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
   }
 
+  const handleAddUpdate = (pointId: string, updateText: string, photoDataUri?: string) => {
+    if (!user || !profile) {
+        toast({ variant: "destructive", title: "Erro", description: "Precisa de estar autenticado." });
+        return;
+    }
+    const newUpdate: Omit<PointOfInterestUpdate, 'id'> = {
+      text: updateText,
+      authorId: user.uid,
+      authorDisplayName: profile.displayName,
+      timestamp: new Date().toISOString(),
+      photoDataUri: photoDataUri,
+    };
+    addUpdateToPoint(pointId, newUpdate);
+    toast({ title: 'Comentário Adicionado!' });
+  };
+
   const handleAddNewIncident = async (
     newIncidentData: Omit<PointOfInterest, 'id' | 'authorId' | 'updates' | 'type' | 'status'> & { photoDataUri?: string }
   ) => {
@@ -917,21 +933,24 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
 
     const isOwner = poi.authorId === user.uid;
-    const isManager = profile.role === 'Agente Municipal' || profile.role === 'Administrador';
+    const canManage = profile.role === 'Agente Municipal' || profile.role === 'Administrador';
     
     let canEdit = false;
-    if (isManager) {
-        // Managers can edit anything except incidents they don't own to preserve citizen authorship
-        if (poi.type === 'incident') {
-            canEdit = isOwner;
+    
+    if (canManage) {
+        // Managers can edit most things, but not the content of incidents they don't own.
+        if (poi.type === 'incident' && !isOwner) {
+            // A manager can still change status or priority, but not edit the core report.
+            // This logic is handled in the details panel, not the edit sheet.
+            canEdit = false;
         } else {
             canEdit = true;
         }
     } else {
-        // Regular users can only edit what they own, and only specific types
-        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement' || poi.type === 'croqui');
+        // Regular users can only edit what they own, and only specific types.
+        canEdit = isOwner && ['incident', 'atm', 'croqui'].includes(poi.type);
     }
-
+    
     if (!canEdit) {
         toast({
             variant: "destructive",
@@ -942,9 +961,21 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
     
     setPoiToEdit(poi);
-    setSelectedPoi(null); // Close details sheet
+    setSelectedPoi(null);
     setEditMode(mode);
-    setActiveSheet(poi.type === 'construction' ? 'construction_edit' : (poi.type as ActiveSheet));
+
+    // Determine which sheet to open
+    const sheetTypeMap: Record<string, ActiveSheet> = {
+        'incident': 'incident',
+        'atm': 'atm',
+        'construction': 'construction_edit',
+        'land_plot': 'land_plot',
+        'announcement': 'announcement',
+        'croqui': 'croqui',
+    };
+
+    const sheet = sheetTypeMap[poi.type] || 'incident'; // Fallback to incident, though should be covered by canEdit
+    setActiveSheet(sheet);
   }
 
   const handleMarkerClick = (poiId: string) => {
@@ -1199,7 +1230,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             }
             }}
             onPoiStatusChange={handlePoiStatusChange}
-            onAddUpdate={addUpdateToPoint}
+            onAddUpdate={handleAddUpdate}
             onEdit={handleStartEditing}
         />
         <IncidentReport 

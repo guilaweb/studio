@@ -48,5 +48,3 @@ const generateDashboardSummaryFlow = ai.defineFlow(
         return output!;
     }
 );
-
-    
