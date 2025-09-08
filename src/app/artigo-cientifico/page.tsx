@@ -57,7 +57,7 @@ export default function ScientificArticlePage() {
                     <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-6">
                         <Card className="prose prose-sm md:prose-base dark:prose-invert max-w-full">
                             <CardHeader>
-                                <CardTitle>MUNITU: Uma Plataforma Geoespacial Colaborativa para a Governança Urbana Digital em Angola</CardTitle>
+                                <CardTitle>MUNITU: Uma Plataforma Geoespacial Colaborativa para a Governação Urbana Digital em Angola</CardTitle>
                                 <CardDescription>
                                     <strong>Autores:</strong> Dianguila Empreendimentos, (SU), Lda. | <strong>Data:</strong> Julho 2024
                                 </CardDescription>
