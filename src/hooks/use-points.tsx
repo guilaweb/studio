@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -259,19 +260,25 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
         const { photoDataUri, ...otherUpdates } = updates as any;
         
         const cleanedData = removeUndefinedFields(otherUpdates);
+        
+        const editUpdate: Omit<PointOfInterestUpdate, 'id'> = {
+            text: `Detalhes do item atualizados por ${profile.displayName}.`,
+            authorId: user.uid,
+            authorDisplayName: profile.displayName,
+            timestamp: new Date().toISOString(),
+            photoDataUri: photoDataUri,
+        };
 
-        // Check if we are updating workflow steps or collection name, if not, add a general update log
+        // If there's a new photo, it should be part of the new update entry
+        if(photoDataUri) {
+            editUpdate.photoDataUri = photoDataUri;
+        }
+        
+        // Add a general update to the timeline unless it's a workflow step change
         if (!cleanedData.workflowSteps && !cleanedData.hasOwnProperty('collectionName')) {
-            const editUpdate: Omit<PointOfInterestUpdate, 'id'> = {
-                text: `Detalhes do item atualizados por ${profile.displayName}.`,
-                authorId: user.uid,
-                authorDisplayName: profile.displayName,
-                timestamp: new Date().toISOString(),
-            };
             const editUpdateWithId = {...editUpdate, id: `upd-${pointId}-${Date.now()}-${Math.random()}`};
             cleanedData.updates = arrayUnion(removeUndefinedFields(editUpdateWithId));
         }
-
 
         if (Object.keys(cleanedData).length > 0) {
              await updateDoc(pointRef, cleanedData);

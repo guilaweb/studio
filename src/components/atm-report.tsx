@@ -86,8 +86,8 @@ export default function AtmReport({
         setIsEditMode(isEditing);
 
         if (isEditing) {
-            form.setValue("title", poiToEdit.title);
-            form.setValue("description", poiToEdit.description);
+            form.setValue("title", poiToEdit.title || '');
+            form.setValue("description", poiToEdit.description || '');
             setMapCenter(poiToEdit.position);
             setMapZoom(16);
 
@@ -227,5 +227,3 @@ export default function AtmReport({
     </Sheet>
   );
 }
-
-    
