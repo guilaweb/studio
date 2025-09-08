@@ -131,7 +131,7 @@ export const PointOfInterestSchema = z.object({
   // Sustainability
   sustainableSeal: z.boolean().optional(),
   sustainabilityFeatures: SustainabilityFeaturesSchema,
-  // Maintenance
+   // Maintenance
   maintenanceId: z.string().optional(),
   cost: z.number().optional(),
   partsCost: z.number().optional(),
