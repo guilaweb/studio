@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -21,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -45,9 +46,10 @@ import PollutionReport from "./pollution-report";
 import DirectionsRenderer from "./directions-renderer";
 import { Separator } from "./ui/separator";
 import CompetitorAnalysis from "./competitor-analysis";
+import FuelStationReport from "./fuel-station-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource' | 'pollution';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource' | 'pollution' | 'fuel_station';
 type EditMode = 'edit' | 'divide' | null;
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
@@ -62,6 +64,7 @@ const defaultActiveLayers: ActiveLayers = {
     announcement: true,
     water_resource: true,
     croqui: true,
+    fuel_station: true,
 };
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -652,6 +655,48 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: "As suas alterações foram guardadas com sucesso.",
     });
   };
+  
+  const handleAddNewFuelStation = async (
+    newPointData: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData'> & { photoDataUri?: string }
+  ) => {
+    if (!user || !profile) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para mapear um posto.",
+        });
+        return;
+    }
+    handleSheetOpenChange(false);
+    const timestamp = new Date().toISOString();
+
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `fuel_station-${Date.now()}`,
+      type: 'fuel_station',
+      title: newPointData.title,
+      authorId: user.uid,
+      authorDisplayName: profile.displayName,
+      lastReported: timestamp,
+      status: 'available',
+      description: newPointData.description,
+      position: newPointData.position,
+      customData: newPointData.customData,
+      updates: [{
+          text: `Posto mapeado: ${newPointData.description}`,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+          photoDataUri: newPointData.photoDataUri,
+      }]
+    };
+    
+    addPoint(pointToAdd as any);
+
+    toast({
+      title: "Posto de Combustível mapeado!",
+      description: "Obrigado pela sua contribuição.",
+    });
+  }
 
   const handleAddNewLandPlot = async (
     data: Partial<PointOfInterest> & { polygon: google.maps.LatLngLiteral[] } & { photoDataUri?: string }
@@ -1005,6 +1050,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <Share2 className="mr-2 h-4 w-4" />
                             Criar Croqui de Localização
                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => handleStartReporting('fuel_station')}>
+                            <Fuel className="mr-2 h-4 w-4" />
+                            Mapear Posto de Combustível
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStartReporting('incident')}>
                             <Siren className="mr-2 h-4 w-4" />
                             Reportar Incidente
@@ -1115,6 +1164,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         <DropdownMenuItem onClick={() => handleStartReporting('croqui')}>
                             <Share2 className="mr-2 h-4 w-4" />
                             Criar Croqui
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStartReporting('fuel_station')}>
+                            <Fuel className="mr-2 h-4 w-4" />
+                            Mapear Posto de Combustível
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStartReporting('incident')}>
                             <Siren className="mr-2 h-4 w-4" />
@@ -1231,6 +1284,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             onAtmEdit={handleEditAtmPoint}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
+        />
+         <FuelStationReport
+            open={activeSheet === 'fuel_station'}
+            onOpenChange={handleSheetOpenChange}
+            onFuelStationSubmit={handleAddNewFuelStation}
+            initialCenter={mapCenter}
         />
         <WaterLeakReport
             open={activeSheet === 'water_leak'}

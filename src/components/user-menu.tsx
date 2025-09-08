@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { User } from "firebase/auth";
@@ -7,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, AreaChart } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, AreaChart, Fuel } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -141,8 +142,10 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <span>Planeamento e Território</span>
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent>
+                                <DropdownMenuItem asChild><Link href="/admin/planeamento-3d">Planeamento Urbano 3D</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/recursos-hidricos">Recursos Hídricos</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/analise-territorio">Análise de Território</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/cobertura-do-solo">Cobertura do Solo</Link></DropdownMenuItem>
                             </DropdownMenuSubContent>
                         </DropdownMenuSub>
 
