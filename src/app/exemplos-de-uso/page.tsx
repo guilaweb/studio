@@ -215,8 +215,7 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     {
       featureType: "water",
       elementType: "geometry",
-      stylers: [{ color: "#17263c" }],
-    },
+      stylers: [{ color: "#17263c" }] },
     {
       featureType: "water",
       elementType: "labels.text.fill",
