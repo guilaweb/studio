@@ -68,7 +68,7 @@ export const columns: ColumnDef<CostItem>[] = [
     ),
     cell: ({ row }) => (
       <div className="text-right font-mono">
-        {row.original.partsCost?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}
+        {(row.original.partsCost ?? 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}
       </div>
     ),
   },
@@ -81,7 +81,7 @@ export const columns: ColumnDef<CostItem>[] = [
     ),
     cell: ({ row }) => (
       <div className="text-right font-mono">
-        {row.original.laborCost?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}
+        {(row.original.laborCost ?? 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}
       </div>
     ),
   },

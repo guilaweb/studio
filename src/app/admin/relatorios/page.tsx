@@ -33,7 +33,7 @@ function FinancialReportsPage() {
 
     const costData = React.useMemo(() => {
         const fuelCosts: CostItem[] = fuelEntries.map(e => ({
-            id: e.id,
+            id: e.id!,
             date: e.date,
             vehicleId: e.vehicleId,
             vehiclePlate: e.vehiclePlate,
