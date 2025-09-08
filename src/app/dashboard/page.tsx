@@ -14,7 +14,7 @@ import { Layer, PointOfInterest } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDown, Map as MapIcon } from "lucide-react";
 import { DataTable } from "@/components/dashboard/data-table";
 import { columns } from "@/components/dashboard/columns";
 import { useRouter } from "next/navigation";
@@ -30,6 +30,8 @@ import DashboardClusterer from "@/components/dashboard/dashboard-clusterer";
 import HeatmapLayer from "@/components/dashboard/heatmap-layer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePublicLayerSettings } from "@/services/settings-service";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { nightMapStyle, logisticsMapStyle } from "@/lib/map-styles";
 
 
 const chartConfig = {
@@ -132,11 +134,14 @@ const getKPIs = (data: PointOfInterest[]) => {
     }
 }
 
+type MapStyle = 'default' | 'night' | 'logistics';
+
 function DashboardPage() {
   const { allData } = usePoints();
   const { publicLayers, loading: loadingLayers } = usePublicLayerSettings();
   const router = useRouter();
   const [mapView, setMapView] = React.useState<'heatmap' | 'cluster'>('heatmap');
+  const [mapStyle, setMapStyle] = React.useState<MapStyle>('default');
   const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
@@ -186,6 +191,13 @@ function DashboardPage() {
   const avgResolutionTime = isClient && kpis.avgResolutionTimeMs
     ? formatDistanceStrict(new Date(0), new Date(kpis.avgResolutionTimeMs), { locale: pt })
     : 'N/A';
+
+  const mapStyleOptions: { key: MapStyle, label: string, styles?: google.maps.MapTypeStyle[] }[] = [
+      { key: 'default', label: 'Padrão' },
+      { key: 'night', label: 'Noturno', styles: nightMapStyle },
+      { key: 'logistics', label: 'Logística', styles: logisticsMapStyle },
+  ];
+  const currentMapStyle = mapStyleOptions.find(s => s.key === mapStyle)?.styles;
 
   if (loadingLayers) {
     return <div className="flex h-screen w-full items-center justify-center">A carregar dashboard...</div>
@@ -264,10 +276,27 @@ function DashboardPage() {
                                     Alterne entre a visualização de pontos quentes e agrupamentos.
                                 </CardDescription>
                             </div>
+                            <div className="flex items-center gap-2">
                                 <TabsList>
-                                <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
-                                <TabsTrigger value="cluster">Clusters</TabsTrigger>
-                            </TabsList>
+                                    <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+                                    <TabsTrigger value="cluster">Clusters</TabsTrigger>
+                                </TabsList>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="icon">
+                                            <MapIcon className="h-4 w-4" />
+                                            <span className="sr-only">Estilo do Mapa</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        {mapStyleOptions.map(option => (
+                                            <DropdownMenuItem key={option.key} onClick={() => setMapStyle(option.key)}>
+                                                {option.label}
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </CardHeader>
                         <CardContent className="h-[500px] p-0">
                             <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -277,6 +306,7 @@ function DashboardPage() {
                                     defaultZoom={6}
                                     gestureHandling={'greedy'}
                                     disableDefaultUI={true}
+                                    styles={currentMapStyle}
                                 >
                                     {mapView === 'heatmap' && <HeatmapLayer data={mapData} />}
                                     {mapView === 'cluster' && <DashboardClusterer points={allData.filter(p => p.type !== 'land_plot')} />}
