@@ -22,6 +22,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { usePoints } from "@/hooks/use-points";
+import PredictiveMaintenanceAnalysis from "@/components/team-management/predictive-maintenance-analysis";
 
 const fuelConsumptionChartConfig = {
   consumption: { label: "Km/L", color: "hsl(var(--chart-1))" },
@@ -253,11 +254,10 @@ function VehicleDetailPage() {
                         </Card>
                     </div>
                 </div>
+                {user && <PredictiveMaintenanceAnalysis user={user} />}
             </main>
         </div>
     );
 }
 
 export default withAuth(VehicleDetailPage, ['Agente Municipal', 'Administrador']);
-
-    
