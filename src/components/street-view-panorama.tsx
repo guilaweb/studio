@@ -21,6 +21,7 @@ const StreetViewPanorama: React.FC<StreetViewPanoramaProps> = ({ location }) => 
         return;
     }
     
+    // Always create a new panorama instance when location or library changes.
     const panoramaInstance = new google.maps.StreetViewPanorama(streetViewRef.current, {
         position: location,
         pov: { heading: 165, pitch: 0 },
@@ -34,8 +35,6 @@ const StreetViewPanorama: React.FC<StreetViewPanoramaProps> = ({ location }) => 
         fullscreenControl: false,
     });
     
-    setPanorama(panoramaInstance);
-
     const service = new google.maps.StreetViewService();
     service.getPanorama({ location, radius: 50 }, (data, stat) => {
         if (stat === 'OK') {
@@ -48,6 +47,7 @@ const StreetViewPanorama: React.FC<StreetViewPanoramaProps> = ({ location }) => 
         }
     });
 
+    setPanorama(panoramaInstance);
 
   }, [streetview, location]);
 
