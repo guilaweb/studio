@@ -36,8 +36,7 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     {
       featureType: "road",
       elementType: "geometry",
-      stylers: [{ color: "#38414e" }],
-    },
+      stylers: [{ color: "#38414e" }] },
     {
       featureType: "road",
       elementType: "geometry.stroke",

@@ -26,8 +26,7 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     {
       featureType: "poi.park",
       elementType: "geometry",
-      stylers: [{ color: "#263c3f" }],
-    },
+      stylers: [{ color: "#263c3f" }] },
     {
       featureType: "poi.park",
       elementType: "labels.text.fill",
