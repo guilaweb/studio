@@ -94,8 +94,8 @@ const getKPIs = (data: PointOfInterest[]) => {
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     const newReports = data.filter(p => {
-        const reportDate = p.updates?.[p.updates.length - 1]?.timestamp || p.lastReported;
-        return reportDate && new Date(reportDate) > twentyFourHoursAgo;
+        // Use lastReported as it is updated with every new update.
+        return p.lastReported && new Date(p.lastReported) > twentyFourHoursAgo;
     });
 
     // --- Sanitation KPIs ---
@@ -108,9 +108,9 @@ const getKPIs = (data: PointOfInterest[]) => {
 
         const sortedUpdates = [...p.updates].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
         const creationUpdate = sortedUpdates[0];
-        const resolutionUpdate = sortedUpdates[sortedUpdates.length - 1]; // Last update is resolution
+        const resolutionUpdate = sortedUpdates[sortedUpdates.length - 1]; 
 
-        if (creationUpdate && resolutionUpdate) {
+        if (creationUpdate && resolutionUpdate && resolutionUpdate.text?.includes('Recolhido')) {
             const creationTime = new Date(creationUpdate.timestamp).getTime();
             const resolutionTime = new Date(resolutionUpdate.timestamp).getTime();
             acc.push(resolutionTime - creationTime);
@@ -124,7 +124,13 @@ const getKPIs = (data: PointOfInterest[]) => {
     }
 
     // --- General KPIs ---
-    const activeReports = data.filter(p => p.status !== 'collected' && p.status !== 'available').length;
+    const activeReports = data.filter(p => 
+        p.status !== 'collected' && 
+        p.status !== 'available' && 
+        p.status !== 'approved' &&
+        p.status !== 'rejected' &&
+        p.status !== 'resolved'
+    ).length;
 
     return {
         newReportsCount: newReports.length,
@@ -378,5 +384,7 @@ function DashboardPage() {
 
 export default withAuth(DashboardPage, ['Agente Municipal', 'Administrador']);
 
+
+    
 
     

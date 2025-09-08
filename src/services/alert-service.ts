@@ -51,25 +51,31 @@ export const getIntelligentAlerts = (
     });
 
 
-    // Cluster Alerts
+    // Cluster Alerts for traffic-related incidents
+    const trafficIncidents = incidents.filter(p => 
+        p.title === 'Colisão Ligeira' ||
+        p.title === 'Colisão Grave' ||
+        p.title === 'Atropelamento' ||
+        p.title === 'Acidente de Moto'
+    );
     const clusters: PointOfInterest[][] = [];
     const visited = new Set<string>();
 
-    for (let i = 0; i < incidents.length; i++) {
-        if (visited.has(incidents[i].id)) continue;
+    for (let i = 0; i < trafficIncidents.length; i++) {
+        if (visited.has(trafficIncidents[i].id)) continue;
 
-        const currentCluster: PointOfInterest[] = [incidents[i]];
-        visited.add(incidents[i].id);
+        const currentCluster: PointOfInterest[] = [trafficIncidents[i]];
+        visited.add(trafficIncidents[i].id);
 
-        for (let j = i + 1; j < incidents.length; j++) {
-            if (visited.has(incidents[j].id)) continue;
+        for (let j = i + 1; j < trafficIncidents.length; j++) {
+            if (visited.has(trafficIncidents[j].id)) continue;
             
-            const distance = getDistance(incidents[i].position, incidents[j].position);
-            const timeDiff = Math.abs(new Date(incidents[i].lastReported!).getTime() - new Date(incidents[j].lastReported!).getTime());
+            const distance = getDistance(trafficIncidents[i].position, trafficIncidents[j].position);
+            const timeDiff = Math.abs(new Date(trafficIncidents[i].lastReported!).getTime() - new Date(trafficIncidents[j].lastReported!).getTime());
             
             if (distance <= distanceThreshold && timeDiff <= timeThreshold) {
-                currentCluster.push(incidents[j]);
-                visited.add(incidents[j].id);
+                currentCluster.push(trafficIncidents[j]);
+                visited.add(trafficIncidents[j].id);
             }
         }
         
@@ -86,8 +92,8 @@ export const getIntelligentAlerts = (
 
         alerts.push({
             id: `cluster-${index}`,
-            title: `Cluster de ${cluster.length} Incidentes`,
-            description: `${cluster.length} incidentes reportados numa área de ${distanceThreshold}m nas últimas ${timeFrameHours} horas.`,
+            title: `Cluster de ${cluster.length} Acidentes de Trânsito`,
+            description: `${cluster.length} acidentes reportados numa área de ${distanceThreshold}m nas últimas ${timeFrameHours} horas.`,
             location: { lat: centerLat, lng: centerLng },
             incidentCount: cluster.length,
             incidentIds: cluster.map(p => p.id),
@@ -98,3 +104,5 @@ export const getIntelligentAlerts = (
 
     return alerts.sort((a, b) => (a.priority === 'high' ? -1 : 1));
 };
+
+    
