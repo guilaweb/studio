@@ -1,9 +1,10 @@
 
+
 "use client";
 
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, Droplets, Share2, Fuel } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, Droplets, Share2, Fuel, Hospital } from "lucide-react";
 import type { ActiveLayers, Layer } from "@/lib/data";
 
 type LayerControlsProps = {
@@ -13,6 +14,7 @@ type LayerControlsProps = {
 
 const layerConfig = [
   { id: "atm", label: "Caixas Eletrônicos", Icon: Landmark },
+  { id: "health_unit", label: "Unidades Sanitárias", Icon: Hospital },
   { id: "construction", label: "Obras e Projetos", Icon: Construction },
   { id: "incident", label: "Incidentes", Icon: Siren },
   { id: "sanitation", label: "Saneamento", Icon: Trash },

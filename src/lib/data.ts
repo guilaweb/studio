@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -33,7 +34,7 @@ export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 export const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired', 'em_verificacao', 'verificado_ouro', 'verificado_prata', 'informacao_insuficiente', 'Privado', 'level_low', 'level_normal', 'level_flood', 'resolved']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
-export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui', 'fuel_station']);
+export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui', 'fuel_station', 'health_unit']);
 export type PointOfInterestType = z.infer<typeof PointOfInterestTypeEnum>;
 
 export const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
@@ -132,12 +133,19 @@ export const PointOfInterestSchema = z.object({
   cost: z.number().optional(),
   partsCost: z.number().optional(),
   laborCost: z.number().optional(),
+  // Health
+  healthServices: z.array(z.string()).optional(),
+  capacity: z.object({
+      beds: z.number().optional(),
+      icu_beds: z.number().optional(),
+      daily_capacity: z.number().optional(),
+  }).optional(),
 });
 
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 
 
-export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource' | 'croqui' | 'fuel_station';
+export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource' | 'croqui' | 'fuel_station' | 'health_unit';
 
 export type ActiveLayers = {
   [key in Layer]: boolean;
@@ -233,6 +241,7 @@ export const typeLabelMap: Record<PointOfInterestType, string> = {
     water_resource: "Recurso Hídrico",
     croqui: "Croqui de Localização",
     fuel_station: "Posto de Combustível",
+    health_unit: "Unidade Sanitária",
 };
 
 export const propertyTypeLabelMap: Record<PropertyType, string> = {

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -21,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -46,9 +47,10 @@ import DirectionsRenderer from "./directions-renderer";
 import { Separator } from "./ui/separator";
 import CompetitorAnalysis from "./competitor-analysis";
 import FuelStationReport from "./fuel-station-report";
+import HealthUnitReport from "./health-unit-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource' | 'pollution' | 'fuel_station';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource' | 'pollution' | 'fuel_station' | 'health_unit';
 type EditMode = 'edit' | 'divide' | null;
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
@@ -64,6 +66,7 @@ const defaultActiveLayers: ActiveLayers = {
     water_resource: true,
     croqui: true,
     fuel_station: true,
+    health_unit: true,
 };
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -909,6 +912,45 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: "Obrigado por ajudar a construir o cadastro nacional de águas.",
     });
   }
+  
+  const handleAddNewHealthUnit = async (
+    data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'healthServices' | 'capacity'> & { photoDataUri?: string }
+  ) => {
+    if (!user || !profile) {
+        toast({ variant: "destructive", title: "Ação necessária", description: "Por favor, faça login para mapear uma unidade sanitária." });
+        return;
+    }
+    handleSheetOpenChange(false);
+    const timestamp = new Date().toISOString();
+
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `health_unit-${Date.now()}`,
+      type: 'health_unit',
+      title: data.title,
+      description: data.description,
+      healthServices: data.healthServices,
+      capacity: data.capacity,
+      authorId: user.uid,
+      authorDisplayName: profile.displayName,
+      position: data.position,
+      lastReported: timestamp,
+      status: 'active', // or 'unknown'
+      updates: [{
+          text: `Unidade sanitária mapeada: ${data.description}`,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+          photoDataUri: data.photoDataUri,
+      }]
+    };
+    
+    addPoint(pointToAdd as any);
+
+    toast({
+      title: "Unidade Sanitária Mapeada!",
+      description: "Obrigado por ajudar a construir o cadastro nacional de saúde.",
+    });
+  }
 
 
   const handleStartReporting = (type: ActiveSheet) => {
@@ -972,6 +1014,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         'land_plot': 'land_plot',
         'announcement': 'announcement',
         'croqui': 'croqui',
+        'health_unit': 'health_unit',
     };
 
     const sheet = sheetTypeMap[poi.type] || 'incident'; // Fallback to incident, though should be covered by canEdit
@@ -1040,6 +1083,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="right" align="start">
+                        <DropdownMenuItem onClick={() => handleStartReporting('health_unit')}>
+                            <Hospital className="mr-2 h-4 w-4" />
+                            Mapear Unidade Sanitária
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStartReporting('croqui')}>
                             <Share2 className="mr-2 h-4 w-4" />
                             Criar Croqui de Localização
@@ -1155,6 +1202,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="top" align="start">
+                        <DropdownMenuItem onClick={() => handleStartReporting('health_unit')}>
+                            <Hospital className="mr-2 h-4 w-4" />
+                            Mapear Unidade Sanitária
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStartReporting('croqui')}>
                             <Share2 className="mr-2 h-4 w-4" />
                             Criar Croqui
@@ -1331,6 +1382,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             open={activeSheet === 'water_resource'}
             onOpenChange={handleSheetOpenChange}
             onWaterResourceSubmit={handleAddNewWaterResource}
+            initialCenter={mapCenter}
+        />
+        <HealthUnitReport
+            open={activeSheet === 'health_unit'}
+            onOpenChange={handleSheetOpenChange}
+            onHealthUnitSubmit={handleAddNewHealthUnit}
             initialCenter={mapCenter}
         />
       </SidebarProvider>

@@ -1,9 +1,10 @@
 
+
 "use client";
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2, AlertTriangle, Fuel } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2, AlertTriangle, Fuel, Hospital } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 import { GenericPolygonsRenderer } from "./generic-polygons-renderer";
@@ -49,6 +50,8 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
         return <Share2 className={commonClasses} />;
     case "fuel_station":
         return <Fuel className={commonClasses} />;
+    case "health_unit":
+        return <Hospital className={commonClasses} />;
     default:
       return null;
   }
@@ -69,6 +72,9 @@ const getSensorStatus = (point: PointOfInterest) => {
 export const getPinStyle = (point: PointOfInterest) => {
     if (point.type === 'fuel_station') {
         return { background: '#6d28d9', borderColor: '#5b21b6', glyphColor: '#ffffff' }; // purple
+    }
+    if (point.type === 'health_unit') {
+        return { background: '#1d4ed8', borderColor: '#1e40af', glyphColor: '#ffffff' }; // blue
     }
     if (point.type === 'atm') {
         switch (point.status) {
