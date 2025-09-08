@@ -13,12 +13,12 @@ interface DirectionsRendererProps {
 
 const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoidBadWeather = false }) => {
     const map = useMap();
-    const routes = useMapsLibrary('routes');
+    const routesLibrary = useMapsLibrary('routes');
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
 
     useEffect(() => {
-        if (!map || !routes) return;
-        setDirectionsRenderer(new routes.DirectionsRenderer({
+        if (!map || !routesLibrary) return;
+        setDirectionsRenderer(new routesLibrary.DirectionsRenderer({
              suppressMarkers: true, // We use our own markers
              polylineOptions: {
                  strokeColor: 'hsl(var(--primary))',
@@ -26,7 +26,7 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoi
                  strokeWeight: 5,
              }
         }));
-    }, [map, routes]);
+    }, [map, routesLibrary]);
 
     useEffect(() => {
         if (!directionsRenderer) return;
@@ -34,14 +34,14 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoi
     }, [directionsRenderer, map])
 
     useEffect(() => {
-        if (!routes || !directionsRenderer || !waypoints || waypoints.length < 2) {
+        if (!routesLibrary || !directionsRenderer || !waypoints || waypoints.length < 2) {
             if(directionsRenderer) {
                 directionsRenderer.setDirections({routes: []}); // Clear previous routes
             }
             return;
         };
         
-        const directionsService = new routes.DirectionsService();
+        const directionsService = new routesLibrary.DirectionsService();
 
         const sortedWaypoints = [...waypoints].sort((a, b) => {
             const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
@@ -53,31 +53,26 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoi
         const origin = sortedWaypoints[0].position;
         const destination = sortedWaypoints[sortedWaypoints.length - 1].position;
         
-        let intermediateWaypoints = sortedWaypoints.slice(1, -1).map(point => ({
+        const intermediateWaypoints = sortedWaypoints.slice(1, -1).map(point => ({
             location: point.position,
             stopover: true,
         }));
         
         // --- Weather Simulation Logic ---
-        if (avoidBadWeather && intermediateWaypoints.length > 0) {
-            const detourPoint = { 
-                lat: intermediateWaypoints[0].location.lat + 0.005, 
-                lng: intermediateWaypoints[0].location.lng + 0.005
+        if (avoidBadWeather) {
+            // Add a fictional detour point to simulate a route change due to weather
+            const detourPoint = {
+                lat: (origin.lat + destination.lat) / 2 + 0.05, // Offset to create a visible detour
+                lng: (origin.lng + destination.lng) / 2 + 0.05,
             };
-            intermediateWaypoints.splice(0, 0, { location: detourPoint, stopover: true });
-        } else if (avoidBadWeather && waypoints.length >= 2) {
-             const detourPoint = {
-                lat: (waypoints[0].position.lat + waypoints[1].position.lat) / 2 + 0.005,
-                lng: (waypoints[0].position.lng + waypoints[1].position.lng) / 2 + 0.005,
-            };
-            intermediateWaypoints.push({ location: detourPoint, stopover: true });
+            intermediateWaypoints.unshift({ location: detourPoint, stopover: false });
         }
         // --- End of Simulation Logic ---
 
 
         const request: google.maps.DirectionsRequest = {
-            origin,
-            destination,
+            origin: { location: origin },
+            destination: { location: destination },
             waypoints: intermediateWaypoints,
             travelMode: google.maps.TravelMode.DRIVING,
             optimizeWaypoints: true,
@@ -91,10 +86,11 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoi
             }
         });
 
-    }, [routes, directionsRenderer, waypoints, avoidBadWeather]);
+    }, [routesLibrary, directionsRenderer, waypoints, avoidBadWeather]);
 
     return null;
 };
 
 export default DirectionsRenderer;
+
 
