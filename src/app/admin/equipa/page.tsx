@@ -30,6 +30,7 @@ import { useMaintenancePlans } from "@/services/maintenance-service";
 import { differenceInDays, addMonths } from "date-fns";
 import DirectionsRenderer from "@/components/directions-renderer";
 import { Checkbox } from "@/components/ui/checkbox";
+import GeofenceRenderer from "@/components/geofence-renderer";
 
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
@@ -464,6 +465,7 @@ function TeamManagementPage() {
                                         {selectedMember && selectedMember.path && <TeamMemberPath path={selectedMember.path} color="#22c55e" />}
                                         {selectedMember && selectedMember.currentTask && selectedMember.currentTask.path && <TeamMemberPath path={selectedMember.currentTask.path} color="#3b82f6" />}
                                         <DirectionsRenderer waypoints={routeToDisplay} avoidBadWeather={simulateBadWeather} />
+                                        <GeofenceRenderer />
                                     </Map>
                                 </Card>
                             </div>
