@@ -72,7 +72,7 @@ function CostAnalysisPage() {
         }).filter(d => d.totalDistance > 0);
 
 
-        return { allCosts, totalFuelCost, totalMaintenanceCost, totalCost, fleetPerformance };
+        return { allCosts, totalFuelCost, totalMaintenanceCost, totalCost, fleetPerformance, totalPartsCost, totalLaborCost };
 
     }, [fuelEntries, allPoints, users]);
     
@@ -95,7 +95,7 @@ function CostAnalysisPage() {
                 </h1>
             </header>
             <main className="grid flex-1 items-start gap-6 p-4 sm:px-6 sm:py-6">
-                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-5">
                         <Card>
                             <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Custo Total da Frota</CardTitle><DollarSign className="h-4 w-4 text-muted-foreground"/></CardHeader>
                             <CardContent><div className="text-2xl font-bold">AOA {costData.totalCost.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</div></CardContent>
@@ -106,11 +106,15 @@ function CostAnalysisPage() {
                         </Card>
                          <Card>
                             <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Custo Manutenção</CardTitle><Wrench className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">AOA {costData.totalMaintenanceCost.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</div></CardContent>
+                             <CardContent><div className="text-2xl font-bold">AOA {costData.totalMaintenanceCost.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</div></CardContent>
                         </Card>
-                          <Card>
-                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Custo Médio / Veículo</CardTitle><DollarSign className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">AOA {(costData.totalCost / (costData.fleetPerformance.length || 1)).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</div></CardContent>
+                        <Card>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Custo Peças</CardTitle><Wrench className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">AOA {costData.totalPartsCost.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</div></CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Custo Mão de Obra</CardTitle><Wrench className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">AOA {costData.totalLaborCost.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</div></CardContent>
                         </Card>
                 </div>
 
@@ -195,5 +199,3 @@ function CostAnalysisPage() {
 }
 
 export default withAuth(CostAnalysisPage, ['Agente Municipal', 'Administrador']);
-
-      

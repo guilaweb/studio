@@ -17,6 +17,21 @@ export const columns: ColumnDef<CostItem>[] = [
       </Button>
     ),
     cell: ({ row }) => format(new Date(row.original.date), "dd/MM/yyyy"),
+    filterFn: (row, id, value) => {
+        const date = new Date(row.getValue(id));
+        const [start, end] = value as [Date, Date];
+        const startDate = start ? new Date(start.setHours(0,0,0,0)) : null;
+        const endDate = end ? new Date(end.setHours(23,59,59,999)) : null;
+
+        if (startDate && !endDate) {
+            return date >= startDate;
+        } else if (!startDate && endDate) {
+            return date <= endDate;
+        } else if (startDate && endDate) {
+            return date >= startDate && date <= endDate;
+        }
+        return true;
+    },
   },
   {
     accessorKey: "vehiclePlate",

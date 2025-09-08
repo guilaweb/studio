@@ -49,11 +49,7 @@ export function ReportsDataTable({ columns, data }: ReportsDataTableProps) {
     });
     
     React.useEffect(() => {
-        if (date?.from && date?.to) {
-            table.getColumn('date')?.setFilterValue([date.from.toISOString(), date.to.toISOString()]);
-        } else {
-            table.getColumn('date')?.setFilterValue(undefined);
-        }
+        table.getColumn('date')?.setFilterValue(date ? [date.from, date.to] : undefined);
     }, [date, table]);
     
     const csvData = React.useMemo(() => {
@@ -67,6 +63,8 @@ export function ReportsDataTable({ columns, data }: ReportsDataTableProps) {
         { label: "Tipo", key: "type" },
         { label: "Descrição", key: "description" },
         { label: "Custo (AOA)", key: "cost" },
+        { label: "Custo Peças (AOA)", key: "partsCost"},
+        { label: "Custo Mão de Obra (AOA)", key: "laborCost"},
     ];
     
     const isFiltered = table.getState().columnFilters.length > 0;

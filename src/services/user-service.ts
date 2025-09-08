@@ -51,7 +51,7 @@ export const useUsers = () => {
                                 { lat: -8.815, lng: 13.232 },
                                 { lat: -8.814, lng: 13.23 }
                             ]
-                        }
+                        } as PointOfInterest
                     } else {
                        user.currentTask = user.currentTask === undefined ? null : user.currentTask;
                     }
@@ -136,5 +136,3 @@ export const useUserProfile = (userId: string | null) => {
 
     return { user, loading, error };
 };
-
-    
