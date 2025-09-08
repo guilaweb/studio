@@ -22,20 +22,23 @@ const prompt = ai.definePrompt({
 
         **Primary Ranking Criteria (in order of importance):**
         1.  **Availability:** Technicians with status 'Disponível' are the only ones eligible. Filter out all others immediately.
-        2.  **Proximity:** Technicians closer to the task location are strongly preferred. Calculate the straight-line distance.
-        3.  **Workload:** Technicians with a smaller 'taskQueueSize' are preferred as they can respond faster.
+        2.  **Assigned Team:** If an 'assignedTeam' is provided, you MUST prioritize technicians belonging to that team. Proximity and workload become secondary factors for ranking within that team. If no technician from the assigned team is available, you can then suggest others, but mention this in the reason.
+        3.  **Proximity:** Technicians closer to the task location are strongly preferred. Calculate the straight-line distance.
+        4.  **Workload:** Technicians with a smaller 'taskQueueSize' are preferred as they can respond faster.
 
         **Secondary Criteria:**
         -   **Skills:** (If provided) Ensure the technician has the required skills for the task.
 
         **Output Requirements:**
         -   Provide a ranked list of up to 3 suggestions.
-        -   For each suggestion, include the 'technicianId', its 'rank' (1, 2, 3), and a brief 'reason' for your choice, mentioning at least two criteria (e.g., "Mais próximo e com a menor fila de espera.").
+        -   For each suggestion, include the 'technicianId', its 'rank' (1, 2, 3), and a brief 'reason' for your choice, mentioning at least two criteria (e.g., "Membro da equipa designada e mais próximo.").
 
         **Input Data:**
 
         New Task:
         "{{{json task}}}"
+        
+        Assigned Team for this Zone (if any): {{{assignedTeam}}}
 
         Available Technicians:
         "{{{json technicians}}}"

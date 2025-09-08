@@ -267,7 +267,7 @@ function TeamManagementPage() {
     const handleTaskSelect = async (task: PointOfInterest) => {
         setIsSuggesting(task.id);
         setSuggestedTechnicians([]);
-        setAssignedTeamForTask(null);
+        let teamForTask: UserProfile['team'] | undefined = undefined;
 
         // Check for geofence assignment
         if (geometry) {
@@ -276,7 +276,8 @@ function TeamManagementPage() {
                 if (geofence.assignedTeam) {
                      const polygon = new google.maps.Polygon({ paths: geofence.polygon });
                      if(geometry.poly.containsLocation(taskPosition, polygon)) {
-                         setAssignedTeamForTask(geofence.assignedTeam);
+                         teamForTask = geofence.assignedTeam;
+                         setAssignedTeamForTask(teamForTask);
                          break; // Stop at first match
                      }
                 }
@@ -298,7 +299,9 @@ function TeamManagementPage() {
                     status: t.status!,
                     skills: t.skills || [],
                     taskQueueSize: t.taskQueue?.length || 0,
-                }))
+                    team: t.team
+                })),
+                assignedTeam: teamForTask,
             });
             setSuggestedTechnicians(result.suggestions);
             if(result.suggestions.length === 0) {

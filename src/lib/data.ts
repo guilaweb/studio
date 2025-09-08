@@ -504,7 +504,9 @@ export const SuggestTechnicianInputSchema = z.object({
         status: z.enum(['Disponível', 'Em Rota', 'Ocupado', 'Offline']),
         skills: z.array(z.string()),
         taskQueueSize: z.number(),
+        team: z.enum(['Saneamento', 'Eletricidade', 'Geral']).optional(),
     })),
+    assignedTeam: z.enum(['Saneamento', 'Eletricidade', 'Geral']).optional().describe("The specific team assigned to the geofence where the task is located."),
 });
 export type SuggestTechnicianInput = z.infer<typeof SuggestTechnicianInputSchema>;
 
