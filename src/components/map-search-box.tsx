@@ -13,22 +13,25 @@ interface MapSearchBoxProps {
 export default function MapSearchBox({ onPlaceSelect }: MapSearchBoxProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const places = useMapsLibrary('places');
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   useEffect(() => {
     if (!places || !inputRef.current) return;
 
-    const autocomplete = new places.Autocomplete(inputRef.current, {
-        fields: ["geometry", "name", "formatted_address"],
-    });
+    if (!autocompleteRef.current) {
+        autocompleteRef.current = new places.Autocomplete(inputRef.current, {
+            fields: ["geometry", "name", "formatted_address"],
+        });
+    }
 
-    autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace();
+    const listener = autocompleteRef.current.addListener('place_changed', () => {
+      const place = autocompleteRef.current!.getPlace();
       onPlaceSelect(place);
     });
 
     return () => {
-        if (google && google.maps && google.maps.event) {
-            google.maps.event.clearInstanceListeners(autocomplete);
+        if (listener) {
+            listener.remove();
         }
     }
   }, [places, onPlaceSelect]);
