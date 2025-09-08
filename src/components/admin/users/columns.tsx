@@ -6,7 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { UserProfile, UserProfileWithStats } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, ChevronsUpDown, MoreHorizontal, TrendingUp, Wrench } from "lucide-react";
+import { ArrowUpDown, ChevronsUpDown, MoreHorizontal, TrendingUp } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -124,9 +124,8 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
     ),
     cell: ({ row }) => {
       const user = row.original;
-      const link = user.role === 'Agente Municipal' ? `/admin/equipa/${user.uid}` : `/public-profile/${user.uid}`;
       return (
-        <Link href={link} className="flex items-center gap-3 pl-4 group hover:underline">
+        <Link href={`/public-profile/${user.uid}`} className="flex items-center gap-3 pl-4 group hover:underline">
           <Avatar className="h-9 w-9">
             <AvatarImage src={user.photoURL || undefined} alt={user.displayName} />
             <AvatarFallback>{user.displayName.charAt(0).toUpperCase()}</AvatarFallback>
@@ -157,7 +156,7 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
         return <TeamSelector user={user} onUpdateUserProfile={onUpdateUserProfile} />
     }
   },
-   {
+  {
     accessorKey: "vehicle.maintenancePlanIds",
     header: "Planos de Manutenção",
     cell: ({ row, table }) => {
@@ -190,7 +189,6 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
     id: "actions",
     cell: ({ row }) => {
         const user = row.original;
-        const link = user.role === 'Agente Municipal' ? `/admin/equipa/${user.uid}` : `/public-profile/${user.uid}`;
         return (
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -202,11 +200,6 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
                     <DropdownMenuItem asChild>
-                        <Link href={link}>
-                            Ver Detalhes
-                        </Link>
-                    </DropdownMenuItem>
-                     <DropdownMenuItem asChild>
                         <Link href={`/public-profile/${user.uid}`}>
                             Ver Perfil Público
                         </Link>

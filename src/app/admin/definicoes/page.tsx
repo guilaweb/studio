@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, EyeOff, Eye, Globe, Plus, Loader2, Trash2, MapPin, Wrench, Package } from "lucide-react";
+import { ArrowLeft, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, EyeOff, Eye, Globe, Plus, Loader2, Trash2, MapPin, Wrench } from "lucide-react";
 import { usePublicLayerSettings, updatePublicLayerSettings } from "@/services/settings-service";
 import type { ActiveLayers, Layer } from "@/lib/data";
 import { Switch } from "@/components/ui/switch";
@@ -24,8 +24,6 @@ import GeofenceEditorDialog from "@/components/geofence-editor-dialog";
 import { useMaintenancePlans, addMaintenancePlan, deleteMaintenancePlan } from "@/services/maintenance-service";
 import type { MaintenancePlan } from "@/services/maintenance-service";
 import { APIProvider } from "@vis.gl/react-google-maps";
-import { useInventory, addInventoryPart, deleteInventoryPart } from "@/services/inventory-service";
-import type { InventoryPart } from "@/services/inventory-service";
 
 const layerConfig = [
   { id: "atm", label: "Caixas Eletrônicos", Icon: Landmark },
@@ -43,7 +41,6 @@ function AdminSettingsPage() {
     const { externalLayers, loading: loadingExternalLayers } = useExternalLayers();
     const { geofences, loading: loadingGeofences } = useGeofences();
     const { maintenancePlans, loading: loadingMaintenancePlans } = useMaintenancePlans();
-    const { inventory, loading: loadingInventory } = useInventory();
     
     // State for External Layers
     const [newLayerName, setNewLayerName] = React.useState("");
@@ -64,12 +61,6 @@ function AdminSettingsPage() {
     const [newPlanInterval, setNewPlanInterval] = React.useState<number | "">("");
     const [isAddingPlan, setIsAddingPlan] = React.useState(false);
     const [planToDelete, setPlanToDelete] = React.useState<string | null>(null);
-
-    // State for Inventory Parts
-    const [newPartName, setNewPartName] = React.useState("");
-    const [newPartStock, setNewPartStock] = React.useState<number | "">("");
-    const [isAddingPart, setIsAddingPart] = React.useState(false);
-    const [partToDelete, setPartToDelete] = React.useState<string | null>(null);
 
     
     const { toast } = useToast();
@@ -191,47 +182,16 @@ function AdminSettingsPage() {
              toast({ variant: "destructive", title: "Erro", description: "Não foi possível remover o plano."});
         }
     };
-    
-    const handleAddPart = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newPartName || newPartStock === "" || newPartStock < 0) {
-            toast({ variant: "destructive", title: "Dados Inválidos", description: "Preencha o nome e um stock válido (0 ou mais)."});
-            return;
-        }
-        setIsAddingPart(true);
-        try {
-            await addInventoryPart({ name: newPartName, stock: Number(newPartStock) });
-            toast({ title: "Peça Adicionada", description: `A peça "${newPartName}" foi adicionada ao inventário.`});
-            setNewPartName("");
-            setNewPartStock("");
-        } catch (error) {
-            toast({ variant: "destructive", title: "Erro ao Adicionar", description: "Não foi possível adicionar a peça."});
-        } finally {
-            setIsAddingPart(false);
-        }
-    };
-
-    const handleDeletePart = async () => {
-        if (!partToDelete) return;
-        try {
-            await deleteInventoryPart(partToDelete);
-            toast({ title: "Peça Removida"});
-            setPartToDelete(null);
-        } catch (error) {
-             toast({ variant: "destructive", title: "Erro", description: "Não foi possível remover a peça."});
-        }
-    };
 
     const getThingToDelete = () => {
         if (layerToDelete) return { type: 'Camada Externa', action: handleDeleteLayer };
         if (geofenceToDelete) return { type: 'Cerca Virtual', action: handleDeleteGeofence };
         if (planToDelete) return { type: 'Plano de Manutenção', action: handleDeletePlan };
-        if (partToDelete) return { type: 'Peça do Inventário', action: handleDeletePart };
         return null;
     }
     const thingToDelete = getThingToDelete();
 
-    if (loadingPublicLayers || !localLayers || loadingExternalLayers || loadingGeofences || loadingMaintenancePlans || loadingInventory) {
+    if (loadingPublicLayers || !localLayers || loadingExternalLayers || loadingGeofences || loadingMaintenancePlans) {
         return (
             <div className="flex min-h-screen w-full flex-col bg-muted/40 p-6">
                 <Card>
@@ -296,7 +256,7 @@ function AdminSettingsPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Planos de Manutenção Preventiva</CardTitle>
-                                <CardDescription>Crie planos de manutenção baseados em distância ou tempo.</CardDescription>
+                                <CardDescription>Crie planos de manutenção baseados em distância ou tempo para a sua frota.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <form onSubmit={handleAddMaintenancePlan} className="space-y-4 rounded-lg border p-4">
@@ -341,50 +301,6 @@ function AdminSettingsPage() {
                                     ))}
                                     {maintenancePlans.length === 0 && (
                                         <p className="text-sm text-muted-foreground text-center py-4">Nenhum plano de manutenção criado.</p>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Gestão de Inventário de Peças</CardTitle>
-                                <CardDescription>Gira o stock de peças de reposição para a frota.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <form onSubmit={handleAddPart} className="space-y-4 rounded-lg border p-4">
-                                    <h4 className="text-sm font-medium">Adicionar Nova Peça</h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="new-part-name">Nome da Peça</Label>
-                                            <Input id="new-part-name" value={newPartName} onChange={(e) => setNewPartName(e.target.value)} placeholder="Ex: Filtro de Óleo" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="new-part-stock">Stock Inicial</Label>
-                                            <Input id="new-part-stock" type="number" value={newPartStock} onChange={(e) => setNewPartStock(e.target.value ? Number(e.target.value) : "")} placeholder="Ex: 50" />
-                                        </div>
-                                    </div>
-                                    <Button type="submit" disabled={isAddingPart}>
-                                        {isAddingPart ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Plus className="mr-2 h-4 w-4"/>}
-                                        Adicionar Peça
-                                    </Button>
-                                </form>
-                                <div className="space-y-2">
-                                    {inventory.map(part => (
-                                        <div key={part.id} className="flex items-center justify-between rounded-lg border p-3">
-                                            <div className="flex items-center gap-3">
-                                                <Package className="h-5 w-5 text-muted-foreground" />
-                                                <span className="font-medium text-sm">{part.name}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Badge variant="secondary">Stock: {part.stock}</Badge>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setPartToDelete(part.id)}>
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {inventory.length === 0 && (
-                                        <p className="text-sm text-muted-foreground text-center py-4">Nenhuma peça no inventário.</p>
                                     )}
                                 </div>
                             </CardContent>
@@ -496,7 +412,6 @@ function AdminSettingsPage() {
                         setLayerToDelete(null);
                         setGeofenceToDelete(null);
                         setPlanToDelete(null);
-                        setPartToDelete(null);
                     }
                 }}
                 onConfirm={thingToDelete?.action || (() => {})}
@@ -512,3 +427,5 @@ function AdminSettingsPage() {
 }
 
 export default withAuth(AdminSettingsPage, ['Administrador']);
+
+    

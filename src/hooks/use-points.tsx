@@ -91,6 +91,11 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         // Sustainability
         sustainableSeal: data.sustainableSeal,
         sustainabilityFeatures: data.sustainabilityFeatures,
+         // Maintenance
+        maintenanceId: data.maintenanceId,
+        cost: data.cost,
+        partsCost: data.partsCost,
+        laborCost: data.laborCost,
     };
 };
 
@@ -305,13 +310,3 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 export const usePoints = () => useContext(PointsContext);
 
     
-
-
-
-
-
-
-
-
-
-

@@ -119,7 +119,11 @@ export const useUserProfile = (userId: string | null) => {
         const userDocRef = doc(db, 'users', userId);
         const unsubscribe = onSnapshot(userDocRef, (doc) => {
             if (doc.exists()) {
-                setUser({ uid: doc.id, ...doc.data() } as UserProfile);
+                const userData = { uid: doc.id, ...doc.data() } as UserProfile;
+                 if (userData.role === 'Agente Municipal' && !userData.vehicle?.maintenancePlanIds) {
+                    userData.vehicle = { ...userData.vehicle, maintenancePlanIds: [] } as any;
+                }
+                setUser(userData);
             } else {
                 setError("User not found.");
                 setUser(null);
@@ -136,3 +140,5 @@ export const useUserProfile = (userId: string | null) => {
 
     return { user, loading, error };
 };
+
+    

@@ -194,7 +194,6 @@ export const UserProfileWithStatsSchema = UserProfileSchema.extend({
 });
 export type UserProfileWithStats = z.infer<typeof UserProfileWithStatsSchema>;
 
-// Schema for Fuel Entry
 export const FuelEntrySchema = z.object({
     id: z.string(),
     vehicleId: z.string(), // Corresponds to user.uid for the agent
@@ -207,16 +206,6 @@ export const FuelEntrySchema = z.object({
     createdAt: z.string(),
 });
 export type FuelEntry = z.infer<typeof FuelEntrySchema>;
-
-// Schema for Inventory Part
-export const InventoryPartSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    stock: z.number(),
-    createdAt: z.string(),
-});
-export type InventoryPart = z.infer<typeof InventoryPartSchema>;
-
 
 // Schemas for Chat / Inbox
 export const MessageSchema = z.object({
@@ -551,3 +540,5 @@ export const PredictMaintenanceOutputSchema = z.object({
     predictions: z.array(PredictedTaskSchema).describe("A list of predicted maintenance tasks."),
 });
 export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
+
+    
