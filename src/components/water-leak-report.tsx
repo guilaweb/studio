@@ -26,11 +26,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { PointOfInterest, PointOfInterestPriority } from "@/lib/data";
 import { Map } from "@vis.gl/react-google-maps";
-import { Camera, MapPin } from "lucide-react";
+import { Camera, MapPin, Locate } from "lucide-react";
 import Image from "next/image";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 const currentYear = new Date().getFullYear();
 
@@ -72,6 +73,8 @@ export default function WaterLeakReport({
   const [mapZoom, setMapZoom] = useState(15);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [coords, setCoords] = useState('');
+  const { toast } = useToast();
   
   const now = new Date();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -96,6 +99,7 @@ export default function WaterLeakReport({
     });
     setPhotoFile(null);
     setPhotoPreview(null);
+    setCoords('');
   }
 
   useEffect(() => {
@@ -108,6 +112,52 @@ export default function WaterLeakReport({
         clearForm();
     }
   }, [open, initialCenter, form]);
+  
+  const handleLocateFromCoords = () => {
+    const trimmedCoords = coords.trim();
+
+    if (trimmedCoords.includes(',')) {
+        const parts = trimmedCoords.split(',').map(p => p.trim());
+        if (parts.length === 2) {
+            const lat = parseFloat(parts[0]);
+            const lng = parseFloat(parts[1]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                setMapCenter({ lat, lng });
+                setMapZoom(18);
+                toast({ title: 'Localização Encontrada', description: 'O mapa foi centrado nas coordenadas decimais.' });
+                return;
+            }
+        }
+    }
+
+    const dmsToDd = (d: number, m: number, s: number, direction: string) => {
+        let dd = d + m/60 + s/3600;
+        if (direction === 'S' || direction === 'W') {
+            dd = dd * -1;
+        }
+        return dd;
+    };
+    
+    const dmsParts = trimmedCoords.match(/(\d+)°(\d+)'([\d.]+)"([NSEW])/g);
+    if (dmsParts?.length === 2) {
+        try {
+            const [latStr, lonStr] = dmsParts;
+            const latParts = latStr.match(/(\d+)°(\d+)'([\d.]+)"([NS])/);
+            const lonParts = lonStr.match(/(\d+)°(\d+)'([\d.]+)"([EW])/);
+            if (!latParts || !lonParts) throw new Error("Formato DMS inválido.");
+
+            const lat = dmsToDd(parseFloat(latParts[1]), parseFloat(latParts[2]), parseFloat(latParts[3]), latParts[4]);
+            const lng = dmsToDd(parseFloat(lonParts[1]), parseFloat(lonParts[2]), parseFloat(lonParts[3]), lonParts[4]);
+            
+            setMapCenter({ lat, lng });
+            setMapZoom(18);
+            toast({ title: 'Localização Encontrada', description: 'O mapa foi centrado nas coordenadas DMS.' });
+            return;
+        } catch (e) {}
+    }
+
+    toast({ variant: 'destructive', title: 'Formato de Coordenadas Inválido', description: 'Use o formato "-14.13, 14.67" ou \'14°07..."S 14°40..."E\'' });
+  };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -163,6 +213,13 @@ export default function WaterLeakReport({
             Ajuste o pino no mapa para a localização exata da fuga, descreva o problema e anexe uma foto se possível.
           </SheetDescription>
         </SheetHeader>
+         <div className="px-6 py-2">
+            <Label htmlFor="coords">Localizar por Coordenadas</Label>
+            <div className="flex gap-2 mt-1">
+                <Input id="coords" placeholder='-14.12, 14.67 ou 14°07..."S...' value={coords} onChange={e => setCoords(e.target.value)} />
+                <Button type="button" variant="secondary" onClick={handleLocateFromCoords}><Locate className="h-4 w-4"/></Button>
+            </div>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[35vh] bg-muted">

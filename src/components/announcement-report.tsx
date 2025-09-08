@@ -27,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { PointOfInterest, PointOfInterestUpdate, announcementCategoryMap, AnnouncementCategoryEnum } from "@/lib/data";
 import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { Trash2, Calendar as CalendarIcon, Send } from "lucide-react";
+import { Trash2, Calendar as CalendarIcon, Send, Locate } from "lucide-react";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +37,7 @@ import { cn } from "@/lib/utils";
 import { addDays, format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
+import { Label } from "./ui/label";
 
 // Component to handle the drawing functionality on the map
 const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon) => void, initialPolygonPath?: google.maps.LatLngLiteral[] | null, clearTrigger: boolean }> = ({onPolygonComplete, initialPolygonPath, clearTrigger}) => {
@@ -159,6 +160,7 @@ export default function AnnouncementReport({
   const [clearPolygonTrigger, setClearPolygonTrigger] = useState(false);
   const { toast } = useToast();
   const { user, profile } = useAuth();
+  const [coords, setCoords] = useState('');
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -183,6 +185,7 @@ export default function AnnouncementReport({
     });
     setDrawnPolygon(null);
     setClearPolygonTrigger(val => !val);
+    setCoords('');
   }, [form]);
 
   useEffect(() => {
@@ -212,6 +215,51 @@ export default function AnnouncementReport({
     }
   }, [poiToEdit, open, form, initialCenter, clearForm]);
   
+  const handleLocateFromCoords = () => {
+    const trimmedCoords = coords.trim();
+
+    if (trimmedCoords.includes(',')) {
+        const parts = trimmedCoords.split(',').map(p => p.trim());
+        if (parts.length === 2) {
+            const lat = parseFloat(parts[0]);
+            const lng = parseFloat(parts[1]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                setMapCenter({ lat, lng });
+                setMapZoom(18);
+                toast({ title: 'Localização Encontrada', description: 'O mapa foi centrado nas coordenadas decimais.' });
+                return;
+            }
+        }
+    }
+
+    const dmsToDd = (d: number, m: number, s: number, direction: string) => {
+        let dd = d + m/60 + s/3600;
+        if (direction === 'S' || direction === 'W') {
+            dd = dd * -1;
+        }
+        return dd;
+    };
+    
+    const dmsParts = trimmedCoords.match(/(\d+)°(\d+)'([\d.]+)"([NSEW])/g);
+    if (dmsParts?.length === 2) {
+        try {
+            const [latStr, lonStr] = dmsParts;
+            const latParts = latStr.match(/(\d+)°(\d+)'([\d.]+)"([NS])/);
+            const lonParts = lonStr.match(/(\d+)°(\d+)'([\d.]+)"([EW])/);
+            if (!latParts || !lonParts) throw new Error("Formato DMS inválido.");
+
+            const lat = dmsToDd(parseFloat(latParts[1]), parseFloat(latParts[2]), parseFloat(latParts[3]), latParts[4]);
+            const lng = dmsToDd(parseFloat(lonParts[1]), parseFloat(lonParts[2]), parseFloat(lonParts[3]), lonParts[4]);
+            
+            setMapCenter({ lat, lng });
+            setMapZoom(18);
+            toast({ title: 'Localização Encontrada', description: 'O mapa foi centrado nas coordenadas DMS.' });
+            return;
+        } catch (e) {}
+    }
+
+    toast({ variant: 'destructive', title: 'Formato de Coordenadas Inválido', description: 'Use o formato "-14.13, 14.67" ou \'14°07..."S 14°40..."E\'' });
+  };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
      if (!drawnPolygon) {
@@ -287,6 +335,13 @@ export default function AnnouncementReport({
             {isEditMode ? 'Altere as informações e a área do anúncio.' : 'Escreva a sua mensagem e desenhe a área no mapa para notificar os cidadãos.'}
           </SheetDescription>
         </SheetHeader>
+        <div className="px-6 py-2">
+            <Label htmlFor="coords">Localizar por Coordenadas</Label>
+            <div className="flex gap-2 mt-1">
+                <Input id="coords" placeholder='-14.12, 14.67 ou 14°07..."S...' value={coords} onChange={e => setCoords(e.target.value)} />
+                <Button type="button" variant="secondary" onClick={handleLocateFromCoords}><Locate className="h-4 w-4"/></Button>
+            </div>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[40vh] bg-muted">
