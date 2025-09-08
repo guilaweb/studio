@@ -1,5 +1,4 @@
 
-      
 "use client";
 
 import React from 'react';
@@ -26,5 +25,3 @@ export const SuggestionBadge: React.FC<SuggestionBadgeProps> = ({ rank }) => {
     </div>
   );
 };
-
-    

@@ -392,7 +392,8 @@ function TeamManagementPage() {
                                     </div>
                                     <div className="space-y-3 max-h-[40vh] overflow-y-auto">
                                         {filteredMembers.map(member => (
-                                            <div key={member.uid} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted", selectedMember?.uid === member.uid ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
+                                            <div key={member.uid} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted relative", selectedMember?.uid === member.uid ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
+                                                {suggestedTechnicians.find(s => s.technicianId === member.uid) && <SuggestionBadge rank={suggestedTechnicians.find(s => s.technicianId === member.uid)!.rank} />}
                                                 <div className="flex items-center gap-3">
                                                     <TeamMemberMarker {...member} />
                                                     <div>
@@ -555,10 +556,3 @@ function TeamManagementPage() {
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
 
     
-
-
-
-
-
-
-
