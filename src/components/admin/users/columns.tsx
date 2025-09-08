@@ -124,8 +124,9 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
     ),
     cell: ({ row }) => {
       const user = row.original;
+      const link = user.role === 'Agente Municipal' ? `/admin/equipa/${user.uid}` : `/public-profile/${user.uid}`;
       return (
-        <Link href={`/admin/equipa/${user.uid}`} className="flex items-center gap-3 pl-4 group hover:underline">
+        <Link href={link} className="flex items-center gap-3 pl-4 group hover:underline">
           <Avatar className="h-9 w-9">
             <AvatarImage src={user.photoURL || undefined} alt={user.displayName} />
             <AvatarFallback>{user.displayName.charAt(0).toUpperCase()}</AvatarFallback>
@@ -189,6 +190,7 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
     id: "actions",
     cell: ({ row }) => {
         const user = row.original;
+        const link = user.role === 'Agente Municipal' ? `/admin/equipa/${user.uid}` : `/public-profile/${user.uid}`;
         return (
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -200,13 +202,13 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
                     <DropdownMenuItem asChild>
-                        <Link href={`/public-profile/${user.uid}`}>
-                            Ver Perfil Público
+                        <Link href={link}>
+                            Ver Detalhes
                         </Link>
                     </DropdownMenuItem>
                      <DropdownMenuItem asChild>
-                        <Link href={`/admin/equipa/${user.uid}`}>
-                            Ver Dashboard do Veículo
+                        <Link href={`/public-profile/${user.uid}`}>
+                            Ver Perfil Público
                         </Link>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -215,3 +217,5 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
     }
   }
 ];
+
+    

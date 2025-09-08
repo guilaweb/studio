@@ -259,3 +259,5 @@ function VehicleDetailPage() {
 }
 
 export default withAuth(VehicleDetailPage, ['Agente Municipal', 'Administrador']);
+
+    
