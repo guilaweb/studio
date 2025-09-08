@@ -393,7 +393,7 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
 
 
     return (
-        <div style={{ height: "100%", width: "100%" }}>
+        <div style={{ height: "100%", width: "100%", minHeight: "200px" }}>
             <Map
                 mapId="jango-digital-map"
                 center={center}
