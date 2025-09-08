@@ -118,8 +118,7 @@ function MeusCroquisPage() {
             return;
         }
 
-        const waypoints = selectedPoints.map(p => p.position);
-        sessionStorage.setItem('routeToOptimize', JSON.stringify(waypoints));
+        sessionStorage.setItem('routeToOptimize', JSON.stringify(selectedPoints));
         router.push('/');
     };
 

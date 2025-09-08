@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -8,10 +7,9 @@ import { PointOfInterest } from '@/lib/data';
 
 interface DirectionsRendererProps {
     waypoints: PointOfInterest[] | null;
-    avoidBadWeather?: boolean; // New prop for simulation
 }
 
-const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoidBadWeather = false }) => {
+const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints }) => {
     const map = useMap();
     const routesLibrary = useMapsLibrary('routes');
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
@@ -58,18 +56,6 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoi
             stopover: true,
         }));
         
-        // --- Weather Simulation Logic ---
-        if (avoidBadWeather) {
-            // Add a fictional detour point to simulate a route change due to weather
-            const detourPoint = {
-                lat: (origin.lat + destination.lat) / 2 + 0.05, // Offset to create a visible detour
-                lng: (origin.lng + destination.lng) / 2 + 0.05,
-            };
-            intermediateWaypoints.unshift({ location: detourPoint, stopover: false });
-        }
-        // --- End of Simulation Logic ---
-
-
         const request: google.maps.DirectionsRequest = {
             origin: { location: origin },
             destination: { location: destination },
@@ -86,11 +72,10 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoi
             }
         });
 
-    }, [routesLibrary, directionsRenderer, waypoints, avoidBadWeather]);
+    }, [routesLibrary, directionsRenderer, waypoints]);
 
     return null;
 };
 
 export default DirectionsRenderer;
-
 

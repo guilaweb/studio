@@ -328,7 +328,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       potentialDuplicateOfId: potentialDuplicateOfId || undefined,
     };
     
-    addPoint(incidentToAdd);
+    addPoint(incidentToAdd as any);
 
     toast({
       title: potentialDuplicateOfId ? "Potencial Duplicado" : "Incidência reportada!",
@@ -383,7 +383,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       }]
     };
     
-    addPoint(pointToAdd);
+    addPoint(pointToAdd as any);
 
     toast({
       title: "Contentor mapeado!",
@@ -439,7 +439,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       }]
     };
     
-    addPoint(pointToAdd);
+    addPoint(pointToAdd as any);
 
     toast({
       title: "Reporte recebido!",
@@ -482,7 +482,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       }]
     };
     
-    addPoint(pointToAdd);
+    addPoint(pointToAdd as any);
 
     toast({
       title: "Reporte de Fuga de Água Recebido!",
@@ -525,7 +525,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       }]
     };
     
-    addPoint(pointToAdd);
+    addPoint(pointToAdd as any);
 
     toast({
       title: "Reporte de Poluição Recebido!",
@@ -580,7 +580,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       }]
     };
     
-    addPoint(pointToAdd);
+    addPoint(pointToAdd as any);
 
     toast({
       title: "Obra mapeada!",
@@ -633,7 +633,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       }]
     };
     
-    addPoint(pointToAdd);
+    addPoint(pointToAdd as any);
 
     toast({
       title: "Caixa Eletrónico mapeado!",
@@ -699,7 +699,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       }]
     };
     
-    addPoint(pointToAdd);
+    addPoint(pointToAdd as any);
 
     toast({
       title: "Lote de Terreno Mapeado!",
@@ -763,7 +763,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           }]
       };
       
-      await addPoint(pointToAdd, propertyIdToLink);
+      await addPoint(pointToAdd as any, propertyIdToLink);
       
       toast({
           title: "Croqui Criado!",
@@ -842,7 +842,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       }]
     };
     
-    addPoint(pointToAdd);
+    addPoint(pointToAdd as any);
 
     toast({
       title: "Recurso Hídrico Mapeado!",
@@ -1183,7 +1183,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             }
             }}
             onPoiStatusChange={handlePoiStatusChange}
-            onAddUpdate={handleAddUpdate}
+            onAddUpdate={onAddUpdate}
             onEdit={handleStartEditing}
         />
         <IncidentReport 
