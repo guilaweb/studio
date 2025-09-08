@@ -48,6 +48,7 @@ function TeamManagementPage() {
     const [suggestedTechnicians, setSuggestedTechnicians] = React.useState<SuggestTechnicianOutput['suggestions']>([]);
     const [isSuggesting, setIsSuggesting] = React.useState<string | null>(null);
     const [routeToDisplay, setRouteToDisplay] = React.useState<PointOfInterest[] | null>(null);
+    const [snappedPath, setSnappedPath] = React.useState<google.maps.LatLngLiteral[] | null>(null);
     const [simulateBadWeather, setSimulateBadWeather] = React.useState(false);
     const [selectedTasks, setSelectedTasks] = React.useState<string[]>([]);
     const { toast } = useToast();
@@ -68,6 +69,7 @@ function TeamManagementPage() {
      React.useEffect(() => {
         // When selected member changes, clear the route display
         setRouteToDisplay(null);
+        setSnappedPath(null);
         setSimulateBadWeather(false);
     }, [selectedMember]);
 
@@ -301,6 +303,7 @@ function TeamManagementPage() {
     const handleOptimizeRoute = () => {
         const tasksToOptimize = localTasks.filter(task => selectedTasks.includes(task.id));
         setRouteToDisplay(tasksToOptimize);
+        setSnappedPath(tasksToOptimize.map(t => t.position));
         toast({
             title: 'Rota Otimizada',
             description: `A melhor rota para ${tasksToOptimize.length} tarefas está a ser exibida no mapa.`,
@@ -464,7 +467,7 @@ function TeamManagementPage() {
                                         ))}
                                         {selectedMember && selectedMember.path && <TeamMemberPath path={selectedMember.path} color="#22c55e" />}
                                         {selectedMember && selectedMember.currentTask && selectedMember.currentTask.path && <TeamMemberPath path={selectedMember.currentTask.path} color="#3b82f6" />}
-                                        <DirectionsRenderer waypoints={routeToDisplay} avoidBadWeather={simulateBadWeather} />
+                                        <DirectionsRenderer waypoints={routeToDisplay} path={snappedPath} avoidBadWeather={simulateBadWeather} />
                                         <GeofenceRenderer />
                                     </Map>
                                 </Card>
@@ -500,7 +503,7 @@ function TeamManagementPage() {
                                                 </div>
                                                 {selectedMember.taskQueue && selectedMember.taskQueue.length > 1 && (
                                                      <div className="flex gap-2 pt-2">
-                                                        <Button variant="outline" size="sm" className="flex-1" onClick={() => setRouteToDisplay(selectedMember.taskQueue || [])}>
+                                                        <Button variant="outline" size="sm" className="flex-1" onClick={() => { setRouteToDisplay(selectedMember.taskQueue || []); setSnappedPath(null); }}>
                                                             <Route className="mr-2 h-4 w-4" /> Otimizar Rota
                                                         </Button>
                                                         <Button variant="secondary" size="sm" onClick={() => setSimulateBadWeather(prev => !prev)} disabled={!routeToDisplay}>
