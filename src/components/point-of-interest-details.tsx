@@ -25,6 +25,7 @@ import AtmNoteReport from "./atm-note-report";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import Timeline from "./timeline";
+import StreetViewPanorama from "./street-view-panorama";
 
 type PointOfInterestDetailsProps = {
   poi: PointOfInterest | null;
@@ -652,6 +653,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
             </div>
             </SheetHeader>
             <div className="space-y-4">
+                <StreetViewPanorama location={poi.position} />
+
                  <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="mr-2 h-4 w-4" />
                     <span>{poi.position.lat.toFixed(5)}, {poi.position.lng.toFixed(5)}</span>
