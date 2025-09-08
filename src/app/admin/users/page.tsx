@@ -8,10 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { UserDataTable } from "@/components/admin/users/data-table";
 import { useUsers } from "@/services/user-service";
 import { usePoints } from "@/hooks/use-points";
-import { UserProfileWithStats } from "@/lib/data";
+import { UserProfile, UserProfileWithStats } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { columns } from "@/components/admin/users/columns";
 
 
 function AdminUsersPage() {
@@ -68,6 +69,7 @@ function AdminUsersPage() {
                     </CardHeader>
                     <CardContent>
                         <UserDataTable 
+                            columns={columns} 
                             data={usersWithStats} 
                             onUpdateUserRole={updateUserRole}
                             onUpdateUserProfile={updateUserProfile}
@@ -81,3 +83,4 @@ function AdminUsersPage() {
 
 
 export default withAuth(AdminUsersPage, ['Administrador']);
+

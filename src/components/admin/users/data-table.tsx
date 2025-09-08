@@ -30,12 +30,14 @@ import { columns } from "./columns"
 
 
 interface UserDataTableProps {
+  columns: ColumnDef<UserProfileWithStats>[],
   data: UserProfileWithStats[],
   onUpdateUserRole: (uid: string, role: UserProfile['role']) => Promise<void>,
   onUpdateUserProfile: (uid: string, data: Partial<UserProfile>) => Promise<void>,
 }
 
 export function UserDataTable({
+  columns,
   data,
   onUpdateUserRole,
   onUpdateUserProfile
@@ -139,3 +141,4 @@ export function UserDataTable({
     </div>
   )
 }
+
