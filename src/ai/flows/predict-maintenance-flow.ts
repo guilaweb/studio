@@ -7,7 +7,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { PredictMaintenanceInputSchema, PredictMaintenanceOutputSchema } from '@/lib/data';
+import { PredictMaintenanceInput, PredictMaintenanceInputSchema, PredictMaintenanceOutput, PredictMaintenanceOutputSchema } from '@/lib/data';
 
 const prompt = ai.definePrompt({
     name: 'predictMaintenancePrompt',
@@ -43,7 +43,7 @@ export const predictMaintenanceFlow = ai.defineFlow(
         inputSchema: PredictMaintenanceInputSchema,
         outputSchema: PredictMaintenanceOutputSchema,
     },
-    async (input) => {
+    async (input: PredictMaintenanceInput): Promise<PredictMaintenanceOutput> => {
         const { output } = await prompt({input});
         return output!;
     }
