@@ -80,10 +80,10 @@ const NoteAnalysis = ({ poi }: { poi: PointOfInterest }) => {
                  <div className="flex items-start gap-3">
                     <HelpCircle className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0"/>
                     <div>
-                        <h4 className="font-semibold text-blue-800 dark:text-blue-300">Padrão de Abastecimento</h4>
+                        <h4 className="font-semibold text-blue-800 dark:text-blue-300">Padrão de Reabastecimento</h4>
                          {loading ? <Skeleton className="h-4 w-48 mt-1" /> : (
                              <p className="text-sm text-blue-700 dark:text-blue-400">
-                                {analysis?.restockPatternSummary || 'Funcionalidade de análise preditiva em desenvolvimento.'}
+                                {analysis?.restockPatternSummary || 'Não há dados suficientes para estimar o padrão.'}
                             </p>
                          )}
                     </div>
@@ -252,5 +252,3 @@ function AtmHistoryPage() {
 }
 
 export default withAuth(AtmHistoryPage);
-
-    

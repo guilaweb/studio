@@ -30,6 +30,8 @@ const prompt = ai.definePrompt({
         
         If there is not enough data for a particular analysis, provide a neutral, informative message saying so.
 
+        **IMPORTANT**: Provide a concrete analysis for 'restockPatternSummary'. Do not say it's under development. Analyze the transitions from 'unavailable' to 'available' in the data.
+
         ATM Update History:
         "{{{json updates}}}"
     `,
