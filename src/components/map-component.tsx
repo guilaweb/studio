@@ -180,29 +180,33 @@ const LineRenderer: React.FC<{
 
         const newPolylines = points.map(point => {
             let options: google.maps.PolylineOptions = {};
-            if (point.type === 'water_resource') {
+            let path: google.maps.LatLngLiteral[] | undefined;
+
+            if (point.type === 'water_resource' && point.polyline) {
+                path = point.polyline;
                 options = {
-                    strokeColor: '#0077be',
+                    strokeColor: '#0ea5e9',
                     strokeOpacity: 0.8,
                     strokeWeight: 4,
                 };
             } else if (point.type === 'croqui' && point.croquiRoute) {
+                 path = point.croquiRoute;
                  options = {
                     strokeColor: 'hsl(var(--accent))',
                     strokeOpacity: 0.9,
                     strokeWeight: 5,
                     icons: [{
-                        icon: {
-                            path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
-                        },
+                        icon: { path: google.maps.SymbolPath.FORWARD_OPEN_ARROW },
                         offset: '100%',
                         repeat: '50px'
                     }]
                 };
             }
 
+            if (!path) return null;
+
             const polyline = new google.maps.Polyline({
-                path: point.polyline || point.croquiRoute,
+                path: path,
                 geodesic: true,
                 map: map,
                 ...options
@@ -212,7 +216,7 @@ const LineRenderer: React.FC<{
                 onPolylineClick(point.id);
             });
             return polyline;
-        });
+        }).filter((p): p is google.maps.Polyline => p !== null);
 
         setPolylines(newPolylines);
 
