@@ -11,7 +11,7 @@ import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/da
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck, Download, ExternalLink, Leaf, Map as MapIcon } from "lucide-react";
+import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck, Download, ExternalLink, Leaf, Map as MapIcon, Sun, Cloud, CloudRain, Wind } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -27,6 +27,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import EnvironmentalImpactAnalysis from "@/components/admin/projetos/environmental-impact-analysis";
 import { generateLocationSketch } from "@/ai/flows/generate-location-sketch-flow";
+import WeatherForecastWidget from "@/components/admin/projetos/weather-forecast-widget";
 
 const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
     if (isFirst) {
@@ -293,6 +294,7 @@ function AdminProjectDetailPage() {
                 </header>
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
                     <div className="grid auto-rows-max items-start gap-4 md:col-span-2 lg:col-span-3">
+                        {isManager && <WeatherForecastWidget />}
                         {isManager && <WorkflowSuggestions project={project} />}
                         {isManager && <EnvironmentalImpactAnalysis project={project} />}
                         <Card>
