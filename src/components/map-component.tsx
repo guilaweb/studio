@@ -16,6 +16,7 @@ type MapComponentProps = {
   data: PointOfInterest[];
   userPosition: google.maps.LatLngLiteral | null;
   searchedPlace: google.maps.LatLngLiteral | null;
+  placesResults?: google.maps.places.PlaceResult[];
   center: google.maps.LatLngLiteral;
   zoom: number;
   onCenterChanged: (center: google.maps.LatLngLiteral) => void;
@@ -353,7 +354,7 @@ export const WFSLayer = ({ url, layerName }: { url: string, layerName: string })
 
 
 
-export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick, children, styles }: MapComponentProps) {
+export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, placesResults, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick, children, styles }: MapComponentProps) {
   
     const [infoWindowState, setInfoWindowState] = useState<{ anchor: google.maps.marker.AdvancedMarkerElement | google.maps.LatLngLiteral | null; poi: PointOfInterest | null }>({ anchor: null, poi: null });
     const { externalLayers } = useExternalLayers();
@@ -459,6 +460,17 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                         </Pin>
                     </AdvancedMarker>
                 )}
+                
+                {placesResults && placesResults.map((place, index) => (
+                     place.geometry?.location && (
+                        <AdvancedMarker key={place.place_id || index} position={place.geometry.location} title={place.name}>
+                            <Pin background={'#FBBC04'} borderColor={'#FBBC04'} glyphColor={'#000000'}>
+                                <Search className="h-5 w-5"/>
+                            </Pin>
+                        </AdvancedMarker>
+                     )
+                ))}
+
 
                 {externalLayers.filter(l => l.visible).map(layer => {
                     if (layer.type === 'wms') {

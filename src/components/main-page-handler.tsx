@@ -43,6 +43,8 @@ import CroquiReport from "./croqui-report";
 import WaterResourceReport from "./water-resource-report";
 import PollutionReport from "./pollution-report";
 import DirectionsRenderer from "./directions-renderer";
+import { Separator } from "./ui/separator";
+import CompetitorAnalysis from "./competitor-analysis";
 
 
 type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource' | 'pollution';
@@ -81,6 +83,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   });
   const [zoom, setZoom] = React.useState(6);
   const [routeToOptimize, setRouteToOptimize] = React.useState<PointOfInterest[] | null>(null);
+  const [placesResults, setPlacesResults] = React.useState<google.maps.places.PlaceResult[]>([]);
   
 
   const [activeSheet, setActiveSheet] = React.useState<ActiveSheet>(null);
@@ -981,6 +984,12 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             </SidebarHeader>
             <SidebarContent>
               <LayerControls activeLayers={finalActiveLayers} onLayerChange={setActiveLayers} />
+              {isManager && (
+                <>
+                  <Separator />
+                  <CompetitorAnalysis onResults={setPlacesResults} map={null} />
+                </>
+              )}
             </SidebarContent>
             <SidebarFooter className="space-y-2">
               {user && (
@@ -1083,6 +1092,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                 data={allData}
                 userPosition={userPosition}
                 searchedPlace={searchedPlace?.geometry?.location?.toJSON()}
+                placesResults={placesResults}
                 center={mapCenter}
                 zoom={zoom}
                 onCenterChanged={setMapCenter}
