@@ -165,6 +165,7 @@ export const UserProfileSchema = z.object({
     cnhExpiration: z.string().optional(),
     emergencyContactName: z.string().optional(),
     emergencyContactPhone: z.string().optional(),
+    skills: z.array(z.string()).optional(),
     stats: z.object({
         completed: z.number().optional(),
         avgTime: z.string().optional(),
