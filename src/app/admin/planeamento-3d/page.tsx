@@ -15,7 +15,7 @@ function UrbanPlanning3DPage() {
     const [map, setMap] = React.useState<google.maps.Map | null>(null);
 
     return (
-        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!} libraries={['places', 'geometry', 'three']}>
+        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!} libraries={['places', 'geometry', 'three', 'solar']}>
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
                 <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
                     <Button size="icon" variant="outline" asChild>
@@ -66,3 +66,5 @@ function UrbanPlanning3DPage() {
 }
 
 export default withAuth(UrbanPlanning3DPage, ['Agente Municipal', 'Administrador']);
+
+    

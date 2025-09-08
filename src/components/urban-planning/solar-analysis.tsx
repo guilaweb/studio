@@ -100,3 +100,4 @@ export function SolarAnalysis({ map }: { map: google.maps.Map | null }) {
     );
 }
 
+    

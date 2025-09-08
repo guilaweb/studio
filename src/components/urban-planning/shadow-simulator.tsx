@@ -96,3 +96,5 @@ export default function ShadowSimulator({ map }: { map: google.maps.Map | null }
         </>
     );
 }
+
+    
