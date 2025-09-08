@@ -17,6 +17,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Trash2 } from 'lucide-react';
 import { Map, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Geofence, saveGeofence } from '@/services/geofence-service';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { UserProfile } from '@/lib/data';
 
 // DrawingManager Component (similar to the one in LandPlotReport)
 const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon) => void, initialPolygonPath?: google.maps.LatLngLiteral[] | null}> = ({onPolygonComplete, initialPolygonPath}) => {
@@ -106,6 +108,7 @@ interface GeofenceEditorDialogProps {
 
 const GeofenceEditorDialog: React.FC<GeofenceEditorDialogProps> = ({ open, onOpenChange, geofenceToEdit }) => {
     const [name, setName] = useState('');
+    const [assignedTeam, setAssignedTeam] = useState<UserProfile['team'] | undefined>();
     const [drawnPolygon, setDrawnPolygon] = useState<google.maps.Polygon | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const { toast } = useToast();
@@ -113,9 +116,11 @@ const GeofenceEditorDialog: React.FC<GeofenceEditorDialogProps> = ({ open, onOpe
     useEffect(() => {
         if (open && geofenceToEdit) {
             setName(geofenceToEdit.name);
+            setAssignedTeam(geofenceToEdit.assignedTeam);
         } else if (!open) {
             // Reset state when dialog closes
             setName('');
+            setAssignedTeam(undefined);
             setDrawnPolygon(null);
         }
     }, [open, geofenceToEdit]);
@@ -137,6 +142,7 @@ const GeofenceEditorDialog: React.FC<GeofenceEditorDialogProps> = ({ open, onOpe
                 ...(geofenceToEdit && { id: geofenceToEdit.id }),
                 name,
                 polygon: polygonPath,
+                assignedTeam,
             });
             toast({ title: 'Cerca Virtual Guardada', description: `A cerca "${name}" foi guardada com sucesso.` });
             onOpenChange(false);
@@ -153,13 +159,28 @@ const GeofenceEditorDialog: React.FC<GeofenceEditorDialogProps> = ({ open, onOpe
                 <DialogHeader>
                     <DialogTitle>{geofenceToEdit ? 'Editar Cerca Virtual' : 'Nova Cerca Virtual'}</DialogTitle>
                     <DialogDescription>
-                        Desenhe uma área no mapa e defina um nome para criar uma nova cerca virtual.
+                        Desenhe uma área no mapa, dê-lhe um nome e atribua uma equipa responsável.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="geofence-name">Nome da Cerca</Label>
-                        <Input id="geofence-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Centro da Cidade, Cliente XPTO" />
+                     <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="geofence-name">Nome da Cerca</Label>
+                            <Input id="geofence-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Zona de Responsabilidade Norte" />
+                        </div>
+                        <div className="space-y-2">
+                             <Label htmlFor="assigned-team">Equipa Responsável</Label>
+                             <Select value={assignedTeam} onValueChange={(v) => setAssignedTeam(v as any)}>
+                                <SelectTrigger id="assigned-team">
+                                    <SelectValue placeholder="Selecione uma equipa" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Saneamento">Saneamento</SelectItem>
+                                    <SelectItem value="Eletricidade">Eletricidade</SelectItem>
+                                    <SelectItem value="Geral">Geral</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                      <div className="relative h-[50vh] w-full bg-muted rounded-md overflow-hidden">
                         <Map

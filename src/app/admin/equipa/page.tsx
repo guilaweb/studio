@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -7,8 +6,8 @@ import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search, Loader2, Truck, AlertTriangle, Wrench, Fuel, Info, Route, CloudRain } from "lucide-react";
-import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
+import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search, Loader2, Truck, AlertTriangle, Wrench, Fuel, Info, Route, CloudRain, Group } from "lucide-react";
+import { APIProvider, Map, AdvancedMarker, Pin, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Badge } from "@/components/ui/badge";
 import { TeamMemberMarker } from "@/components/team-management/team-member-marker";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -31,6 +30,7 @@ import { differenceInDays, addMonths } from "date-fns";
 import DirectionsRenderer from "@/components/directions-renderer";
 import { Checkbox } from "@/components/ui/checkbox";
 import GeofenceRenderer from "@/components/geofence-renderer";
+import { useGeofences } from "@/services/geofence-service";
 
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
@@ -40,6 +40,9 @@ function TeamManagementPage() {
     const { allData: allPoints, loading: loadingPoints, addPoint } = usePoints();
     const { fuelEntries, loading: loadingFuel } = useFuelEntries();
     const { maintenancePlans, loading: loadingPlans } = useMaintenancePlans();
+    const { geofences, loading: loadingGeofences } = useGeofences();
+    const geometry = useMapsLibrary('geometry');
+
     const [selectedMember, setSelectedMember] = React.useState<UserProfile | null>(null);
     const [searchQuery, setSearchQuery] = React.useState('');
     const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('Todos');
@@ -51,6 +54,8 @@ function TeamManagementPage() {
     const [snappedPath, setSnappedPath] = React.useState<google.maps.LatLngLiteral[] | null>(null);
     const [simulateBadWeather, setSimulateBadWeather] = React.useState(false);
     const [selectedTasks, setSelectedTasks] = React.useState<string[]>([]);
+    const [assignedTeamForTask, setAssignedTeamForTask] = React.useState<UserProfile['team'] | null>(null);
+
     const { toast } = useToast();
     const { user: currentUser, profile: currentProfile } = useAuth();
 
@@ -250,6 +255,7 @@ function TeamManagementPage() {
         // Remove task from local list of unassigned tasks
         setLocalTasks(prev => prev.filter(t => t.id !== task.id));
         setSuggestedTechnicians([]); // Clear suggestions after assignment
+        setAssignedTeamForTask(null);
         setIsSuggesting(null);
 
         toast({
@@ -260,7 +266,24 @@ function TeamManagementPage() {
     
     const handleTaskSelect = async (task: PointOfInterest) => {
         setIsSuggesting(task.id);
-        setSuggestedTechnicians([]); // Clear previous suggestions
+        setSuggestedTechnicians([]);
+        setAssignedTeamForTask(null);
+
+        // Check for geofence assignment
+        if (geometry) {
+            const taskPosition = new google.maps.LatLng(task.position.lat, task.position.lng);
+            for (const geofence of geofences) {
+                if (geofence.assignedTeam) {
+                     const polygon = new google.maps.Polygon({ paths: geofence.polygon });
+                     if(geometry.poly.containsLocation(taskPosition, polygon)) {
+                         setAssignedTeamForTask(geofence.assignedTeam);
+                         break; // Stop at first match
+                     }
+                }
+            }
+        }
+
+
         try {
             const result = await suggestTechnicianFlow({
                 task: {
@@ -311,12 +334,12 @@ function TeamManagementPage() {
     };
 
 
-     if (loadingUsers || loadingPoints || loadingFuel || loadingPlans) {
+     if (loadingUsers || loadingPoints || loadingFuel || loadingPlans || loadingGeofences) {
         return <div>A carregar dados da equipa...</div>;
     }
 
     return (
-        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!} libraries={['geometry']}>
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
                 <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
                     <Button size="icon" variant="outline" asChild>
@@ -429,6 +452,11 @@ function TeamManagementPage() {
                                     </Button>
                                 </CardHeader>
                                 <CardContent className="space-y-3 max-h-[30vh] overflow-auto">
+                                {isSuggesting === null && assignedTeamForTask && (
+                                    <div className="p-2 text-sm text-center bg-blue-50 border border-blue-200 text-blue-800 rounded-md">
+                                        Equipa recomendada para esta zona: <span className="font-bold">{assignedTeamForTask}</span>
+                                    </div>
+                                )}
                                 {localTasks.map(task => (
                                         <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background hover:bg-muted">
                                              <div className="flex items-center gap-3 flex-1 overflow-hidden">
@@ -559,4 +587,3 @@ function TeamManagementPage() {
 }
 
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
-

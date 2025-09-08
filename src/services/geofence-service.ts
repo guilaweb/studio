@@ -4,15 +4,14 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/data';
 
 export interface Geofence {
     id: string;
     name: string;
     polygon: google.maps.LatLngLiteral[];
     createdAt: string;
-    // Future rule fields
-    // alertOn: 'entry' | 'exit' | 'both';
-    // usersToNotify: string[];
+    assignedTeam?: UserProfile['team']; // Saneamento, Eletricidade, Geral
 }
 
 // Hook to get all geofences in real-time
@@ -53,12 +52,14 @@ export const saveGeofence = async (geofence: Omit<Geofence, 'id' | 'createdAt'> 
             await updateDoc(geofenceDocRef, {
                 name: geofence.name,
                 polygon: geofence.polygon,
+                assignedTeam: geofence.assignedTeam || null,
             });
         } else {
             // Add new
             await addDoc(collection(db, 'geofences'), {
                 name: geofence.name,
                 polygon: geofence.polygon,
+                assignedTeam: geofence.assignedTeam || null,
                 createdAt: new Date().toISOString(),
             });
         }
