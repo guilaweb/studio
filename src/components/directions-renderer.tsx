@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useMap } from '@vis.gl/react-google-maps';
+import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { PointOfInterest } from '@/lib/data';
 
 interface DirectionsRendererProps {
@@ -13,14 +13,12 @@ interface DirectionsRendererProps {
 
 const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoidBadWeather = false }) => {
     const map = useMap();
-    const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
+    const routes = useMapsLibrary('routes');
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
 
     useEffect(() => {
-        if (!map) return;
-        setDirectionsService(new google.maps.DirectionsService());
-        // Initialize renderer without a map initially to avoid flicker
-        setDirectionsRenderer(new google.maps.DirectionsRenderer({
+        if (!map || !routes) return;
+        setDirectionsRenderer(new routes.DirectionsRenderer({
              suppressMarkers: true, // We use our own markers
              polylineOptions: {
                  strokeColor: 'hsl(var(--primary))',
@@ -28,7 +26,7 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoi
                  strokeWeight: 5,
              }
         }));
-    }, [map]);
+    }, [map, routes]);
 
     useEffect(() => {
         if (!directionsRenderer) return;
@@ -36,13 +34,15 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoi
     }, [directionsRenderer, map])
 
     useEffect(() => {
-        if (!directionsService || !directionsRenderer || !waypoints || waypoints.length < 2) {
+        if (!routes || !directionsRenderer || !waypoints || waypoints.length < 2) {
             if(directionsRenderer) {
                 directionsRenderer.setDirections({routes: []}); // Clear previous routes
             }
             return;
         };
         
+        const directionsService = new routes.DirectionsService();
+
         const sortedWaypoints = [...waypoints].sort((a, b) => {
             const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
             const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
@@ -59,8 +59,6 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoi
         }));
         
         // --- Weather Simulation Logic ---
-        // If avoidBadWeather is true and we have waypoints, add a slight detour.
-        // This simulates having to go around a flooded area.
         if (avoidBadWeather && intermediateWaypoints.length > 0) {
             const detourPoint = { 
                 lat: intermediateWaypoints[0].location.lat + 0.005, 
@@ -93,9 +91,10 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, avoi
             }
         });
 
-    }, [directionsService, directionsRenderer, waypoints, avoidBadWeather]);
+    }, [routes, directionsRenderer, waypoints, avoidBadWeather]);
 
     return null;
 };
 
 export default DirectionsRenderer;
+
