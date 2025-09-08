@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Flow to suggest the best technician for a given task.
@@ -6,7 +7,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { Suggestion, SuggestTechnicianInputSchema, SuggestTechnicianOutputSchema } from '@/lib/data';
+import { Suggestion, SuggestionSchema, SuggestTechnicianInputSchema, SuggestTechnicianOutputSchema } from '@/lib/data';
 import { z } from 'zod';
 
 const prompt = ai.definePrompt({
