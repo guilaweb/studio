@@ -7,13 +7,13 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { SuggestTechnicianInputSchema, SuggestTechnicianOutputSchema } from '@/lib/data';
+import { Suggestion, SuggestTechnicianInputSchema, SuggestTechnicianOutputSchema } from '@/lib/data';
 import { z } from 'zod';
 
 const prompt = ai.definePrompt({
     name: 'suggestTechnicianPrompt',
     input: { schema: SuggestTechnicianInputSchema },
-    output: { schema: SuggestTechnicianOutputSchema },
+    output: { schema: z.object({ suggestions: z.array(SuggestionSchema) }) },
     prompt: `
         You are an expert logistics and dispatch coordinator for a municipal services company.
         Your task is to analyze a new task and a list of available field technicians to recommend the best candidates for the job.

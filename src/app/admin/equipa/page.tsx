@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import TeamMemberPath from "@/components/team-management/team-member-path";
 import { useUsers } from "@/services/user-service";
-import { PointOfInterest, SuggestTechnicianOutput, UserProfile } from "@/lib/data";
+import { PointOfInterest, Suggestion, UserProfile } from "@/lib/data";
 import { usePoints } from "@/hooks/use-points";
 import { useToast } from "@/hooks/use-toast";
 import { suggestTechnicianFlow } from "@/ai/flows/suggest-technician-flow";
@@ -48,7 +48,7 @@ function TeamManagementPage() {
     const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('Todos');
     const [teamFilter, setTeamFilter] = React.useState('Todos');
     const [localTasks, setLocalTasks] = React.useState<PointOfInterest[]>([]);
-    const [suggestedTechnicians, setSuggestedTechnicians] = React.useState<SuggestTechnicianOutput['suggestions']>([]);
+    const [suggestedTechnicians, setSuggestedTechnicians] = React.useState<Suggestion[]>([]);
     const [isSuggesting, setIsSuggesting] = React.useState<string | null>(null);
     const [routeToDisplay, setRouteToDisplay] = React.useState<PointOfInterest[] | null>(null);
     const [snappedPath, setSnappedPath] = React.useState<google.maps.LatLngLiteral[] | null>(null);
@@ -267,6 +267,7 @@ function TeamManagementPage() {
     const handleTaskSelect = async (task: PointOfInterest) => {
         setIsSuggesting(task.id);
         setSuggestedTechnicians([]);
+        setAssignedTeamForTask(null);
         let teamForTask: UserProfile['team'] | undefined = undefined;
 
         // Check for geofence assignment

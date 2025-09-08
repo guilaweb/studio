@@ -491,6 +491,13 @@ export const GenerateLocationSketchOutputSchema = z.object({
 });
 export type GenerateLocationSketchOutput = z.infer<typeof GenerateLocationSketchOutputSchema>;
 
+export const SuggestionSchema = z.object({
+  technicianId: z.string(),
+  rank: z.number(),
+  reason: z.string(),
+});
+export type Suggestion = z.infer<typeof SuggestionSchema>;
+
 export const SuggestTechnicianInputSchema = z.object({
     task: z.object({
         id: z.string(),
@@ -511,11 +518,7 @@ export const SuggestTechnicianInputSchema = z.object({
 export type SuggestTechnicianInput = z.infer<typeof SuggestTechnicianInputSchema>;
 
 export const SuggestTechnicianOutputSchema = z.object({
-    suggestions: z.array(z.object({
-        technicianId: z.string(),
-        rank: z.number(),
-        reason: z.string(),
-    })),
+    suggestions: z.array(SuggestionSchema),
 });
 export type SuggestTechnicianOutput = z.infer<typeof SuggestTechnicianOutputSchema>;
 
