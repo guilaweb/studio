@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -34,7 +33,7 @@ export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 export const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired', 'em_verificacao', 'verificado_ouro', 'verificado_prata', 'informacao_insuficiente', 'Privado', 'level_low', 'level_normal', 'level_flood', 'resolved']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
-export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui', 'fuel_station', 'health_unit']);
+export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui', 'fuel_station', 'health_unit', 'health_case']);
 export type PointOfInterestType = z.infer<typeof PointOfInterestTypeEnum>;
 
 export const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
@@ -135,6 +134,9 @@ export const PointOfInterestSchema = z.object({
   laborCost: z.number().optional(),
   // Health
   healthServices: z.array(z.string()).optional(),
+  healthInspections: z.array(PointOfInterestUpdateSchema).optional(),
+  licensingStatus: z.enum(['licensed', 'pending', 'expired', 'non_compliant']).optional(),
+  lastInspectionDate: z.string().optional(),
   capacity: z.object({
       beds: z.number().optional(),
       icu_beds: z.number().optional(),
@@ -145,7 +147,7 @@ export const PointOfInterestSchema = z.object({
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 
 
-export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource' | 'croqui' | 'fuel_station' | 'health_unit';
+export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource' | 'croqui' | 'fuel_station' | 'health_unit' | 'health_case';
 
 export type ActiveLayers = {
   [key in Layer]: boolean;
@@ -157,7 +159,7 @@ export const UserProfileSchema = z.object({
     displayName: z.string(),
     email: z.string(),
     photoURL: z.string().nullable().optional(),
-    role: z.enum(['Cidadao', 'Agente Municipal', 'Administrador']),
+    role: z.enum(['Cidadao', 'Agente Municipal', 'Administrador', 'Epidemiologista']),
     createdAt: z.string().optional(),
     onboardingCompleted: z.boolean().optional(),
     // Team management fields
@@ -242,6 +244,7 @@ export const typeLabelMap: Record<PointOfInterestType, string> = {
     croqui: "Croqui de Localização",
     fuel_station: "Posto de Combustível",
     health_unit: "Unidade Sanitária",
+    health_case: "Caso Clínico",
 };
 
 export const propertyTypeLabelMap: Record<PropertyType, string> = {
@@ -547,3 +550,5 @@ export const PredictMaintenanceOutputSchema = z.object({
     })),
 });
 export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
+
+    
