@@ -11,23 +11,56 @@ import { APIProvider, Map as GoogleMap } from '@vis.gl/react-google-maps';
 
 const pointOfInterestExample = `
 {
+  // Campos Comuns
   "id": "incident-1754013627883",
-  "type": "incident",
+  "type": "incident", // incident, construction, sanitation, atm, land_plot, etc.
   "position": { "lat": -8.8368, "lng": 13.2343 },
-  "title": "Colisão Grave",
-  "description": "Acidente entre dois veículos no cruzamento principal.",
-  "status": "unknown",
-  "priority": "high",
-  "lastReported": "2024-05-26T12:40:27.883Z",
+  "title": "Colisão Grave na Avenida Principal",
+  "description": "Acidente entre dois veículos no cruzamento principal, com um capotamento. #transito_cortado",
+  "status": "in_progress", // Varia por tipo: 'unknown', 'in_progress', 'collected', 'available', 'unavailable', 'approved', 'em_verificacao'
+  "priority": "high", // low, medium, high
+  "lastReported": "2024-07-30T12:40:27.883Z",
   "authorId": "user123",
+  "authorDisplayName": "João Silva",
   "updates": [
     {
       "id": "update-01",
-      "text": "Acidente entre dois veículos no cruzamento principal.",
+      "text": "Acidente entre dois veículos...",
       "authorId": "user123",
-      "authorDisplayName": "Nome do Cidadão",
-      "timestamp": "2024-05-26T12:40:27.883Z"
+      "authorDisplayName": "João Silva",
+      "timestamp": "2024-07-30T12:40:27.883Z",
+      "photoDataUri": "data:image/jpeg;base64,..."
     }
+  ],
+  "files": [{ "name": "Planta.pdf", "url": "https://..." }],
+
+  // Campos Específicos para Lotes e Imóveis
+  "propertyType": "land", // land, house, apartment, etc.
+  "area": 1200, // m²
+  "price": 15000000, // AOA
+  "propertyTaxStatus": "paid", // paid, due
+  "polygon": [
+    { "lat": -8.837, "lng": 13.234 },
+    { "lat": -8.837, "lng": 13.235 },
+    { "lat": -8.838, "lng": 13.235 },
+    { "lat": -8.838, "lng": 13.234 }
+  ],
+  "usageType": "residential",
+  "maxHeight": 4, // pisos
+  
+  // Campos Específicos para Projetos de Construção
+  "landPlotId": "land_plot-12345",
+  "projectType": "new-build",
+  "architectName": "Maria Costa",
+  "workflowSteps": [
+    { "id": "step1", "department": "Bombeiros", "reason": "...", "status": "pending" }
+  ],
+
+  // Campos Específicos para Croquis
+  "croquiType": "urban",
+  "collectionName": "Clientes Zona Sul",
+  "croquiPoints": [
+    { "position": { "lat": -8.836, "lng": 13.233 }, "label": "Rotunda Principal", "type": "munitu" }
   ]
 }
 `;
