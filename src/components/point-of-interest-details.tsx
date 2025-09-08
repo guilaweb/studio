@@ -6,7 +6,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime, PointOfInterestStatus } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical, Waves } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical, Waves, Hospital, BedDouble, Stethoscope, HeartPulse, Fuel } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +46,8 @@ const layerConfig = {
     announcement: { label: "Anúncio", Icon: Megaphone, variant: "default" as const },
     water_resource: { label: "Recurso Hídrico", Icon: Droplets, variant: "default" as const },
     croqui: { label: "Croqui de Localização", Icon: Share2, variant: "default" as const },
+    fuel_station: { label: "Posto de Combustível", Icon: Fuel, variant: "default" as const },
+    health_unit: { label: "Unidade Sanitária", Icon: Hospital, variant: "default" as const },
 };
 
 const priorityConfig = {
@@ -453,6 +455,59 @@ const SensorDataDetails = ({ poi }: { poi: PointOfInterest }) => {
     );
 };
 
+const HealthUnitDetails = ({ poi }: { poi: PointOfInterest }) => {
+    if (poi.type !== 'health_unit') return null;
+
+    const hasServices = poi.healthServices && poi.healthServices.length > 0;
+    const hasCapacity = poi.capacity && Object.values(poi.capacity).some(v => v !== undefined && v !== null);
+
+    if (!hasServices && !hasCapacity) return null;
+
+    return (
+         <>
+            <Separator />
+            <div className="py-4">
+                <h3 className="font-semibold mb-2">Detalhes da Unidade</h3>
+                {hasCapacity && (
+                     <div className="grid grid-cols-3 gap-2 text-center mb-4">
+                        {poi.capacity?.beds && (
+                            <div className="p-2 bg-muted/50 rounded-md">
+                                <p className="font-bold text-lg">{poi.capacity.beds}</p>
+                                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1"><BedDouble className="h-3 w-3"/> Camas</p>
+                            </div>
+                        )}
+                         {poi.capacity?.icu_beds && (
+                            <div className="p-2 bg-muted/50 rounded-md">
+                                <p className="font-bold text-lg">{poi.capacity.icu_beds}</p>
+                                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1"><HeartPulse className="h-3 w-3"/> UCI</p>
+                            </div>
+                        )}
+                         {poi.capacity?.daily_capacity && (
+                            <div className="p-2 bg-muted/50 rounded-md">
+                                <p className="font-bold text-lg">{poi.capacity.daily_capacity}</p>
+                                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1"><Users className="h-3 w-3"/> Atend./Dia</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+                 {hasServices && (
+                    <div>
+                        <h4 className="font-medium text-sm mb-2">Serviços e Especialidades</h4>
+                        <div className="flex flex-wrap gap-2">
+                            {poi.healthServices?.map((service, index) => (
+                                <Badge key={index} variant="secondary" className="flex items-center gap-1.5">
+                                    <Stethoscope className="h-3.5 w-3.5" />
+                                    {service}
+                                </Badge>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </>
+    )
+}
+
 const labelMap: Record<string, string> = {
     requesterName: "Requerente",
     province: "Província",
@@ -541,7 +596,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
 
   const config = layerConfig[poi.type];
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
-  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui'].includes(poi.type);
+  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui', 'health_unit'].includes(poi.type);
   const isAdmin = profile?.role === 'Administrador';
   const isAgentOrAdmin = profile?.role === 'Agente Municipal' || isAdmin;
   const isOwner = poi.authorId === user?.uid;
@@ -694,6 +749,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 
                 <LandPlotDetails plot={poi.type === 'land_plot' ? poi : landPlotForCroqui} />
                 
+                <HealthUnitDetails poi={poi} />
+
                 {poi.type === 'construction' && <DocumentList poi={poi} />}
 
                 {poi.type === 'water_resource' && <SensorDataDetails poi={poi} />}
@@ -733,3 +790,4 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </>
   );
 }
+
