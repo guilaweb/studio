@@ -1183,7 +1183,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             }
             }}
             onPoiStatusChange={handlePoiStatusChange}
-            onAddUpdate={onAddUpdate}
+            onAddUpdate={handleAddUpdate}
             onEdit={handleStartEditing}
         />
         <IncidentReport 
