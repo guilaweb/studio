@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Droplets, Database, Activity, GitBranch, BrainCircuit, CheckSquare, Layers, MapPin, Factory, AlertTriangle, CloudRain, Wind, FileSignature, Search, BarChart, FlaskConical, PlusCircle, Tractor, Zap, Thermometer, Sun, Cloud, CloudSun } from "lucide-react";
+import { ArrowLeft, Droplets, Database, Activity, GitBranch, BrainCircuit, CheckSquare, Layers, MapPin, Factory, AlertTriangle, CloudRain, Wind, FileSignature, Search, BarChart, FlaskConical, PlusCircle, Tractor, Zap, Thermometer, Sun, Cloud, CloudSun, Stethoscope } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterestMarker } from "@/components/map-component";
@@ -18,6 +18,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import HeatmapLayer from "@/components/dashboard/heatmap-layer";
+import { PointOfInterest } from "@/lib/data";
 
 const features = [
     {
@@ -170,23 +172,10 @@ const WaterBalanceDashboard = ({ watersheds }: { watersheds: any[] }) => {
     const balanco = disponibilidade - procura;
     
     let stressPercentage = 0;
-    let stressColor = 'bg-green-500';
-
     if (disponibilidade > 0) {
-        const ratio = procura / disponibilidade;
-        if (ratio < 0.2) { // Low stress
-            stressPercentage = ratio * 100;
-            stressColor = 'bg-green-500';
-        } else if (ratio < 0.4) { // Medium stress
-            stressPercentage = ratio * 100;
-            stressColor = 'bg-yellow-500';
-        } else { // High stress
-            stressPercentage = Math.min(ratio * 100, 100);
-            stressColor = 'bg-red-500';
-        }
+        stressPercentage = Math.min((procura / disponibilidade) * 100, 100);
     } else if (procura > 0) {
         stressPercentage = 100;
-        stressColor = 'bg-red-500';
     }
 
 
@@ -370,17 +359,60 @@ const PotentialityIdentifier = () => {
     );
 };
 
+const EpidemiologicalAnalysis = ({ healthCases, waterResources }: { healthCases: PointOfInterest[], waterResources: PointOfInterest[] }) => {
+    const [disease, setDisease] = React.useState<string>('none');
+    
+    const heatmapData = React.useMemo(() => {
+        if (disease === 'none') return [];
+        return healthCases.filter(p => p.title === disease).map(p => p.position);
+    }, [disease, healthCases]);
+    
+    const showWaterSources = disease === 'Cólera' || disease === 'Febre Tifoide';
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Stethoscope className="h-6 w-6 text-primary" /> Análise Epidemiológica</CardTitle>
+                <CardDescription>Cruze dados de saúde com camadas ambientais para identificar riscos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Label htmlFor="disease-selector">Selecione uma doença para análise</Label>
+                <Select value={disease} onValueChange={setDisease}>
+                    <SelectTrigger id="disease-selector">
+                        <SelectValue placeholder="Selecione a doença" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="none">Nenhuma</SelectItem>
+                        <SelectItem value="Cólera">Cólera</SelectItem>
+                        <SelectItem value="Febre Tifoide">Febre Tifoide</SelectItem>
+                        <SelectItem value="Malária">Malária</SelectItem>
+                        <SelectItem value="Dengue">Dengue</SelectItem>
+                    </SelectContent>
+                </Select>
+                
+                {disease !== 'none' && <p className="text-xs text-muted-foreground mt-2">A visualizar {heatmapData.length} casos de {disease}.</p>}
+
+                 {/* The Map component will need to be passed the heatmapData and showWaterSources */}
+                 {/* This component itself doesn't render the map, but prepares the data for it */}
+            </CardContent>
+        </Card>
+    )
+}
 
 function WaterResourcesPage() {
     const { allData } = usePoints();
+    const [disease, setDisease] = React.useState<string>('none');
     
-    const waterResources = React.useMemo(() => {
-        return allData.filter(p => p.type === 'water_resource');
-    }, [allData]);
+    const waterResources = React.useMemo(() => allData.filter(p => p.type === 'water_resource'), [allData]);
+    const watersheds = React.useMemo(() => waterResources.filter(p => p.title.toLowerCase().includes('bacia')), [waterResources]);
+    const healthCases = React.useMemo(() => allData.filter(p => p.type === 'health_case'), [allData]);
     
-    const watersheds = React.useMemo(() => {
-        return waterResources.filter(p => p.title.toLowerCase().includes('bacia'));
-    }, [waterResources]);
+    const heatmapData = React.useMemo(() => {
+        if (disease === 'none') return [];
+        return healthCases.filter(p => p.title === disease).map(p => p.position);
+    }, [disease, healthCases]);
+
+    const showWaterResourcesOnMap = disease === 'Cólera' || disease === 'Febre Tifoide';
 
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -393,64 +425,27 @@ function WaterResourcesPage() {
                         </Link>
                     </Button>
                     <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                        Mapa Nacional de Recursos Hídricos
+                        Mapa Nacional de Recursos Hídricos e Saúde Pública
                     </h1>
                 </header>
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
                     <div className="md:col-span-1 lg:col-span-1 space-y-4">
+                        <EpidemiologicalAnalysis healthCases={healthCases} waterResources={waterResources}/>
                         <WeatherForecast />
                         <WaterBalanceDashboard watersheds={watersheds} />
                         <ScenarioSimulator />
                         <PotentialityIdentifier />
-                        <Card>
-                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Droplets className="h-6 w-6 text-primary" />
-                                    Módulo de Recursos Hídricos
-                                </CardTitle>
-                                <CardDescription>Um inventário completo e um painel de controlo dinâmico para a gestão da água em Angola.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <Accordion type="single" collapsible className="w-full">
-                                    {features.map((feature, index) => (
-                                         <AccordionItem value={`item-${index}`} key={index}>
-                                            <AccordionTrigger>
-                                                <div className="flex items-center gap-3">
-                                                    <feature.Icon className="h-5 w-5 text-primary" />
-                                                    <span>{feature.category}</span>
-                                                </div>
-                                            </AccordionTrigger>
-                                            <AccordionContent className="space-y-4 pl-2">
-                                                {feature.items.map((item, itemIndex) => (
-                                                    <div key={itemIndex}>
-                                                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
-                                                            <item.Icon className="h-4 w-4 text-muted-foreground" />
-                                                            {item.title}
-                                                        </h4>
-                                                        <ul className="list-disc pl-6 text-xs text-muted-foreground space-y-1">
-                                                            {item.points.map((point, pointIndex) => (
-                                                                <li key={pointIndex}>{point}</li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                ))}
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    ))}
-                                </Accordion>
-                            </CardContent>
-                        </Card>
                     </div>
                     <div className="md:col-span-2 lg:col-span-3">
                         <Card className="h-[calc(100vh-10rem)]">
                             <Map
                                 mapId="water-resources-map"
-                                defaultCenter={{ lat: -12.5, lng: 18.5 }} // Centered more broadly on Angola
+                                defaultCenter={{ lat: -12.5, lng: 18.5 }}
                                 defaultZoom={6}
                                 gestureHandling={'greedy'}
                                 disableDefaultUI={false}
                             >
-                                {waterResources.map(point => (
+                                {showWaterResourcesOnMap && waterResources.map(point => (
                                     <PointOfInterestMarker
                                         key={point.id}
                                         point={point}
@@ -459,6 +454,7 @@ function WaterResourcesPage() {
                                         onMouseOver={() => {}}
                                     />
                                 ))}
+                                {heatmapData.length > 0 && <HeatmapLayer data={heatmapData} />}
                             </Map>
                         </Card>
                     </div>
@@ -469,3 +465,4 @@ function WaterResourcesPage() {
 }
 
 export default withAuth(WaterResourcesPage, ['Agente Municipal', 'Administrador']);
+
