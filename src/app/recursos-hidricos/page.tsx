@@ -224,8 +224,8 @@ const WaterBalanceDashboard = ({ watersheds }: { watersheds: any[] }) => {
                 )}
             </CardContent>
         </Card>
-    )
-}
+    );
+};
 
 const ScenarioSimulator = () => {
     const { toast } = useToast();
@@ -359,16 +359,7 @@ const PotentialityIdentifier = () => {
     );
 };
 
-const EpidemiologicalAnalysis = ({ healthCases, waterResources }: { healthCases: PointOfInterest[], waterResources: PointOfInterest[] }) => {
-    const [disease, setDisease] = React.useState<string>('none');
-    
-    const heatmapData = React.useMemo(() => {
-        if (disease === 'none') return [];
-        return healthCases.filter(p => p.title === disease).map(p => p.position);
-    }, [disease, healthCases]);
-    
-    const showWaterSources = disease === 'Cólera' || disease === 'Febre Tifoide';
-
+const EpidemiologicalAnalysis = ({ onDiseaseChange }: { onDiseaseChange: (disease: string) => void }) => {
     return (
         <Card>
             <CardHeader>
@@ -377,7 +368,7 @@ const EpidemiologicalAnalysis = ({ healthCases, waterResources }: { healthCases:
             </CardHeader>
             <CardContent>
                 <Label htmlFor="disease-selector">Selecione uma doença para análise</Label>
-                <Select value={disease} onValueChange={setDisease}>
+                <Select onValueChange={onDiseaseChange} defaultValue='none'>
                     <SelectTrigger id="disease-selector">
                         <SelectValue placeholder="Selecione a doença" />
                     </SelectTrigger>
@@ -389,11 +380,6 @@ const EpidemiologicalAnalysis = ({ healthCases, waterResources }: { healthCases:
                         <SelectItem value="Dengue">Dengue</SelectItem>
                     </SelectContent>
                 </Select>
-                
-                {disease !== 'none' && <p className="text-xs text-muted-foreground mt-2">A visualizar {heatmapData.length} casos de {disease}.</p>}
-
-                 {/* The Map component will need to be passed the heatmapData and showWaterSources */}
-                 {/* This component itself doesn't render the map, but prepares the data for it */}
             </CardContent>
         </Card>
     )
@@ -430,7 +416,7 @@ function WaterResourcesPage() {
                 </header>
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
                     <div className="md:col-span-1 lg:col-span-1 space-y-4">
-                        <EpidemiologicalAnalysis healthCases={healthCases} waterResources={waterResources}/>
+                        <EpidemiologicalAnalysis onDiseaseChange={setDisease}/>
                         <WeatherForecast />
                         <WaterBalanceDashboard watersheds={watersheds} />
                         <ScenarioSimulator />
@@ -464,5 +450,4 @@ function WaterResourcesPage() {
     );
 }
 
-export default withAuth(WaterResourcesPage, ['Agente Municipal', 'Administrador']);
-
+export default withAuth(WaterResourcesPage, ['Agente Municipal', 'Administrador', 'Epidemiologista']);
