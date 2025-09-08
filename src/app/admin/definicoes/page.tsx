@@ -430,4 +430,3 @@ function AdminSettingsPage() {
 
 export default withAuth(AdminSettingsPage, ['Administrador']);
 
-    
