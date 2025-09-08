@@ -11,7 +11,7 @@ import { PointOfInterest, PointOfInterestUpdate, statusLabelMap } from "@/lib/da
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck, Download, ExternalLink, Leaf, Map as MapIcon, Sun, Cloud, CloudRain, Wind } from "lucide-react";
+import { ArrowLeft, Building, User, FileText, Briefcase, Calendar, MessageSquare, Check, X, Circle, Loader2, Wand2, ThumbsUp, ThumbsDown, AlertTriangle, FileCheck, ClipboardCheck, Download, ExternalLink } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -21,13 +21,6 @@ import { useToast } from "@/hooks/use-toast";
 import { generateOfficialResponse } from "@/ai/flows/generate-official-response-flow";
 import WorkflowSuggestions from "@/components/admin/projetos/workflow-suggestions";
 import { generateLicense } from "@/ai/flows/generate-license-flow";
-import { APIProvider, Map } from "@vis.gl/react-google-maps";
-import { PointOfInterestMarker } from "@/components/map-component";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import EnvironmentalImpactAnalysis from "@/components/admin/projetos/environmental-impact-analysis";
-import { generateLocationSketch } from "@/ai/flows/generate-location-sketch-flow";
-import WeatherForecastWidget from "@/components/admin/projetos/weather-forecast-widget";
 
 const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
     if (isFirst) {
@@ -51,29 +44,26 @@ const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
 
     return (
         <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:h-full before:w-0.5 before:bg-border before:-translate-x-px">
-            {sortedUpdates.map((update, index) => {
-                const isVistoria = update.text?.startsWith('**AUTO DE VISTORIA**');
-                return (
-                    <div key={update.id} className="relative flex items-start gap-4">
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-full border ${isVistoria ? 'bg-blue-50' : 'bg-background'} z-10`}>
-                            {getStatusIcon(update, index === 0)}
-                        </div>
-                        <div className="flex-1 pt-1">
-                            <p className="font-semibold text-sm whitespace-pre-wrap">{update.text}</p>
-                            <p className="text-xs text-muted-foreground">
-                                Por {update.authorDisplayName || 'Sistema'} • {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })}
-                            </p>
-                            {update.photoDataUri && (
-                                <div className="mt-2">
-                                    <a href={update.photoDataUri} target="_blank" rel="noopener noreferrer">
-                                        <img src={update.photoDataUri} alt="Documento ou foto anexa" className="rounded-md object-cover max-h-40 border" />
-                                    </a>
-                                </div>
-                            )}
-                        </div>
+            {sortedUpdates.map((update, index) => (
+                <div key={update.id} className="relative flex items-start gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full border bg-background z-10">
+                        {getStatusIcon(update, index === 0)}
                     </div>
-                )
-            })}
+                    <div className="flex-1 pt-1">
+                        <p className="font-semibold text-sm whitespace-pre-wrap">{update.text}</p>
+                        <p className="text-xs text-muted-foreground">
+                            Por {update.authorDisplayName || 'Sistema'} • {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })}
+                        </p>
+                        {update.photoDataUri && (
+                            <div className="mt-2">
+                                <a href={update.photoDataUri} target="_blank" rel="noopener noreferrer">
+                                    <img src={update.photoDataUri} alt="Documento ou foto anexa" className="rounded-md object-cover max-h-40 border" />
+                                </a>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ))}
         </div>
     )
 }
@@ -82,7 +72,7 @@ function AdminProjectDetailPage() {
     const params = useParams();
     const projectId = params.id as string;
     const { profile, user } = useAuth();
-    const { allData, loading: loadingPoints, addUpdateToPoint, updatePointDetails } = usePoints();
+    const { allData, loading: loadingPoints, addUpdateToPoint } = usePoints();
     const [project, setProject] = React.useState<PointOfInterest | null>(null);
     const { user: applicant, loading: loadingApplicant } = useUserProfile(project?.authorId || null);
     const [updateText, setUpdateText] = React.useState("");
@@ -91,8 +81,6 @@ function AdminProjectDetailPage() {
     const {toast} = useToast();
     const [licenseHtml, setLicenseHtml] = React.useState<string | null>(null);
     const [isGeneratingLicense, setIsGeneratingLicense] = React.useState(false);
-    const [sketchHtml, setSketchHtml] = React.useState<string | null>(null);
-    const [isGeneratingSketch, setIsGeneratingSketch] = React.useState(false);
 
     const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
 
@@ -202,44 +190,10 @@ function AdminProjectDetailPage() {
         }
     };
 
-    const handleGenerateSketch = async () => {
-        if (!project || !applicant || !landPlot || !landPlot.polygon) return;
-        setIsGeneratingSketch(true);
-        try {
-            const result = await generateLocationSketch({
-                plot: {
-                    polygon: landPlot.polygon,
-                    area: landPlot.area,
-                    plotNumber: landPlot.plotNumber,
-                },
-                project: {
-                    requesterName: applicant.displayName,
-                    municipality: "Município Exemplo", // Placeholder
-                    province: "Província Exemplo", // Placeholder
-                    date: new Date().toLocaleDateString('pt-PT'),
-                },
-            });
-            setSketchHtml(result.sketchHtml);
-            toast({
-                title: "Croqui de Localização Gerado",
-                description: "O croqui foi gerado e está pronto para visualização.",
-            });
-        } catch (error) {
-            console.error("Failed to generate location sketch:", error);
-            toast({
-                variant: "destructive",
-                title: "Erro ao Gerar Croqui",
-                description: "Não foi possível gerar o croqui de localização. Tente novamente.",
-            });
-        } finally {
-            setIsGeneratingSketch(false);
-        }
-    };
-
-    const handleViewDocument = (htmlContent: string | null, storageKey: string, url: string) => {
-        if (!htmlContent) return;
-        localStorage.setItem(storageKey, htmlContent);
-        window.open(url, '_blank');
+    const handleViewLicense = () => {
+        if (!licenseHtml) return;
+        localStorage.setItem('licensePreview', licenseHtml);
+        window.open('/licenca/preview', '_blank');
     };
     
     const setParecerTemplate = (templateType: 'favoravel' | 'condicionantes' | 'desfavoravel') => {
@@ -249,23 +203,6 @@ function AdminProjectDetailPage() {
             desfavoravel: "**PARECER DESFAVORÁVEL**\n\nO projeto não cumpre com os regulamentos pelos seguintes motivos:\n1. [Motivo 1 - Ex: Violação do recuo frontal]\n2. [Motivo 2 - Ex: Índice de ocupação excede o permitido]\n\nRecomenda-se a rejeição do pedido ou a submissão de um novo projeto corrigido."
         };
         setUpdateText(templates[templateType]);
-    };
-
-     const handleSustainableSealToggle = async (isSustainable: boolean) => {
-        if (!project) return;
-        try {
-            await updatePointDetails(project.id, { sustainableSeal: isSustainable });
-            toast({
-                title: "Selo de Sustentabilidade Atualizado",
-                description: `O projeto foi ${isSustainable ? 'marcado como' : 'desmarcado como'} sustentável.`,
-            });
-        } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Erro ao Atualizar Selo",
-                description: "Não foi possível alterar o estado do selo de sustentabilidade.",
-            });
-        }
     };
 
 
@@ -278,259 +215,193 @@ function AdminProjectDetailPage() {
     }
     
     return (
-        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-            <div className="flex min-h-screen w-full flex-col bg-muted/40">
-                <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-                    <Button size="icon" variant="outline" asChild>
-                        <Link href={isManager ? "/admin/projetos" : "/licencas"}>
-                            <ArrowLeft className="h-5 w-5" />
-                            <span className="sr-only">Voltar</span>
-                        </Link>
-                    </Button>
-                    <div className="flex-1">
-                        <h1 className="text-xl font-semibold tracking-tight">{project.title}</h1>
-                        <p className="text-sm text-muted-foreground">ID do Processo: {project.id}</p>
-                    </div>
-                </header>
-                <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
-                    <div className="grid auto-rows-max items-start gap-4 md:col-span-2 lg:col-span-3">
-                        {isManager && <WeatherForecastWidget />}
-                        {isManager && <WorkflowSuggestions project={project} />}
-                        {isManager && <EnvironmentalImpactAnalysis project={project} />}
+        <div className="flex min-h-screen w-full flex-col bg-muted/40">
+            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+                <Button size="icon" variant="outline" asChild>
+                    <Link href={isManager ? "/admin/projetos" : "/licencas"}>
+                        <ArrowLeft className="h-5 w-5" />
+                        <span className="sr-only">Voltar</span>
+                    </Link>
+                </Button>
+                <div className="flex-1">
+                    <h1 className="text-xl font-semibold tracking-tight">{project.title}</h1>
+                    <p className="text-sm text-muted-foreground">ID do Processo: {project.id}</p>
+                </div>
+            </header>
+            <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid auto-rows-max items-start gap-4 md:col-span-2 lg:col-span-3">
+                    {isManager && <WorkflowSuggestions project={project} />}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Linha do Tempo, Comunicações e Pareceres</CardTitle>
+                            <CardDescription>
+                                Histórico completo de todas as interações e fases do processo de licenciamento.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Timeline updates={project.updates || []} />
+                        </CardContent>
+                    </Card>
+                    {isManager && (
                         <Card>
                             <CardHeader>
-                                <CardTitle>Linha do Tempo, Comunicações e Pareceres</CardTitle>
-                                <CardDescription>
-                                    Histórico completo de todas as interações e fases do processo de licenciamento.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <Timeline updates={project.updates || []} />
-                            </CardContent>
-                        </Card>
-                        {isManager && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Adicionar Comunicação ou Parecer</CardTitle>
-                                    <CardDescription>Use os modelos para emitir um parecer ou escreva uma comunicação livre.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex flex-wrap gap-2">
-                                        <Button variant="outline" size="sm" onClick={() => setParecerTemplate('favoravel')}>
-                                            <ThumbsUp className="mr-2 h-4 w-4" />
-                                            Parecer Favorável
-                                        </Button>
-                                        <Button variant="outline" size="sm" onClick={() => setParecerTemplate('condicionantes')}>
-                                            <AlertTriangle className="mr-2 h-4 w-4" />
-                                            Parecer com Condicionantes
-                                        </Button>
-                                        <Button variant="outline" size="sm" onClick={() => setParecerTemplate('desfavoravel')}>
-                                            <ThumbsDown className="mr-2 h-4 w-4" />
-                                            Parecer Desfavorável
-                                        </Button>
-                                    </div>
-                                    <Textarea 
-                                        placeholder="Escreva aqui a sua comunicação, parecer ou despacho..." 
-                                        value={updateText}
-                                        onChange={(e) => setUpdateText(e.target.value)}
-                                        rows={8}
-                                    />
-                                    <div className="flex flex-wrap gap-2">
-                                        <Button onClick={handleAddUpdate} disabled={isSubmitting || !updateText.trim()}>
-                                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MessageSquare className="mr-2 h-4 w-4"/>}
-                                            Adicionar à Linha do Tempo
-                                        </Button>
-                                        <Button variant="outline" onClick={handleGenerateResponse} disabled={isGenerating}>
-                                            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                                            Gerar Resposta (IA)
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-                        {isManager && project.status === 'approved' && (
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Documentos Oficiais</CardTitle>
-                                    <CardDescription>O processo foi aprovado. Gere a licença e outros documentos necessários.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex flex-wrap gap-4">
-                                    {/* License Generation */}
-                                    <div className="flex items-center gap-4 rounded-lg border p-4 bg-green-50 text-green-800 border-green-200 flex-1 min-w-[280px]">
-                                        <FileCheck className="h-8 w-8 text-green-700" />
-                                        <div>
-                                            <p className="font-semibold">Licença de Construção</p>
-                                            <p className="text-sm">Gere a licença digital final.</p>
-                                        </div>
-                                        {licenseHtml ? (
-                                            <Button variant="outline" size="sm" className="ml-auto text-green-800 border-green-800/50 hover:bg-green-100 hover:text-green-900" onClick={() => handleViewDocument(licenseHtml, 'licensePreview', '/licenca/preview')}>
-                                                Ver
-                                            </Button>
-                                        ) : (
-                                            <Button variant="default" size="sm" className="ml-auto" onClick={handleGenerateLicense} disabled={isGeneratingLicense}>
-                                                {isGeneratingLicense ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Gerar'}
-                                            </Button>
-                                        )}
-                                    </div>
-                                    {/* Sketch Generation */}
-                                    <div className="flex items-center gap-4 rounded-lg border p-4 bg-blue-50 text-blue-800 border-blue-200 flex-1 min-w-[280px]">
-                                        <MapIcon className="h-8 w-8 text-blue-700" />
-                                        <div>
-                                            <p className="font-semibold">Croqui de Localização</p>
-                                            <p className="text-sm">Gere o documento técnico do lote.</p>
-                                        </div>
-                                         {sketchHtml ? (
-                                            <Button variant="outline" size="sm" className="ml-auto text-blue-800 border-blue-800/50 hover:bg-blue-100 hover:text-blue-900" onClick={() => handleViewDocument(sketchHtml, 'sketchPreview', '/licenca/sketch-preview')}>
-                                                Ver
-                                            </Button>
-                                        ) : (
-                                            <Button variant="default" size="sm" className="ml-auto" onClick={handleGenerateSketch} disabled={isGeneratingSketch || !landPlot}>
-                                                {isGeneratingSketch ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Gerar'}
-                                            </Button>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Documentos do Projeto</CardTitle>
-                                <CardDescription>
-                                    Ficheiros submetidos pelo requerente.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                {project.files && project.files.length > 0 ? (
-                                    <div className="space-y-3">
-                                        {project.files.map((file, index) => (
-                                            <div key={index} className="flex items-center justify-between gap-4 rounded-lg border p-4">
-                                                <div className="flex items-center gap-4">
-                                                    <FileText className="h-8 w-8 text-muted-foreground" />
-                                                    <div>
-                                                        <p className="font-semibold">{file.name}</p>
-                                                        <p className="text-sm text-muted-foreground">Submetido em {new Date(project.lastReported!).toLocaleDateString('pt-PT')}</p>
-                                                    </div>
-                                                </div>
-                                                <Button variant="outline" size="sm" asChild>
-                                                    <a href={file.url} target="_blank" rel="noopener noreferrer">
-                                                    Ver Documento
-                                                    <ExternalLink className="ml-2 h-4 w-4" />
-                                                    </a>
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center text-sm text-muted-foreground p-4 border-2 border-dashed rounded-lg">
-                                        Nenhum documento foi submetido para este projeto.
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                    <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Estado do Processo</CardTitle>
+                                <CardTitle>Adicionar Comunicação ou Parecer</CardTitle>
+                                <CardDescription>Use os modelos para emitir um parecer ou escreva uma comunicação livre.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Estado Atual</span>
-                                    <Badge variant={project.status === 'approved' ? 'default' : (project.status === 'rejected' ? 'destructive' : 'secondary')} className={project.status === 'approved' ? 'bg-green-600' : ''}>
-                                        {project.status ? statusLabelMap[project.status] : "N/A"}
-                                    </Badge>
+                                <div className="flex flex-wrap gap-2">
+                                    <Button variant="outline" size="sm" onClick={() => setParecerTemplate('favoravel')}>
+                                        <ThumbsUp className="mr-2 h-4 w-4" />
+                                        Parecer Favorável
+                                    </Button>
+                                    <Button variant="outline" size="sm" onClick={() => setParecerTemplate('condicionantes')}>
+                                        <AlertTriangle className="mr-2 h-4 w-4" />
+                                        Parecer com Condicionantes
+                                    </Button>
+                                    <Button variant="outline" size="sm" onClick={() => setParecerTemplate('desfavoravel')}>
+                                        <ThumbsDown className="mr-2 h-4 w-4" />
+                                        Parecer Desfavorável
+                                    </Button>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Data Submissão</span>
-                                    <span>{new Date(project.lastReported!).toLocaleDateString('pt-PT')}</span>
+                                <Textarea 
+                                    placeholder="Escreva aqui a sua comunicação, parecer ou despacho..." 
+                                    value={updateText}
+                                    onChange={(e) => setUpdateText(e.target.value)}
+                                    rows={8}
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                    <Button onClick={handleAddUpdate} disabled={isSubmitting || !updateText.trim()}>
+                                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MessageSquare className="mr-2 h-4 w-4"/>}
+                                        Adicionar à Linha do Tempo
+                                    </Button>
+                                    <Button variant="outline" onClick={handleGenerateResponse} disabled={isGenerating}>
+                                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                                        Gerar Resposta (IA)
+                                    </Button>
                                 </div>
                             </CardContent>
                         </Card>
-                         {isManager && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Certificação</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="sustainable-seal" className="flex items-center gap-2">
-                                            <Leaf className="h-5 w-5 text-green-600" />
-                                            <span>Selo Sustentável</span>
-                                        </Label>
-                                        <Switch
-                                            id="sustainable-seal"
-                                            checked={!!project.sustainableSeal}
-                                            onCheckedChange={handleSustainableSealToggle}
-                                            aria-label="Atribuir Selo Sustentável"
-                                        />
+                    )}
+                    {isManager && project.status === 'approved' && (
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Documentos Oficiais</CardTitle>
+                                <CardDescription>O processo foi aprovado. Gere a licença digital e outros documentos necessários.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex flex-wrap gap-4">
+                                <div className="flex items-center gap-4 rounded-lg border p-4 bg-green-50 text-green-800 border-green-200 flex-1 min-w-[280px]">
+                                    <FileCheck className="h-8 w-8 text-green-700" />
+                                    <div>
+                                        <p className="font-semibold">Licença de Construção</p>
+                                        <p className="text-sm">Gere a licença digital final.</p>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        )}
-                        {landPlot && (
-                             <Card className="h-[30vh] flex flex-col">
-                                <CardHeader>
-                                        <CardTitle>Localização do Lote</CardTitle>
-                                </CardHeader>
-                                <CardContent className="flex-grow p-0">
-                                    <Map
-                                        mapId="admin-project-map"
-                                        defaultCenter={landPlot.position}
-                                        defaultZoom={15}
-                                        gestureHandling={'greedy'}
-                                        disableDefaultUI={true}
-                                    >
-                                        <PointOfInterestMarker
-                                            point={landPlot}
-                                            onClick={() => {}}
-                                            onMouseOut={() => {}}
-                                            onMouseOver={() => {}}
-                                        />
-                                    </Map>
-                                </CardContent>
-                            </Card>
-                        )}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Detalhes do Projeto</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2 text-sm">
-                                <div className="flex items-start gap-2">
-                                    <Building className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                                    <p><span className="font-semibold">Tipo:</span> {project.projectType || "Não especificado"}</p>
+                                    {licenseHtml ? (
+                                        <Button variant="outline" size="sm" className="ml-auto text-green-800 border-green-800/50 hover:bg-green-100 hover:text-green-900" onClick={handleViewLicense}>
+                                            Ver
+                                        </Button>
+                                    ) : (
+                                        <Button variant="default" size="sm" className="ml-auto" onClick={handleGenerateLicense} disabled={isGeneratingLicense}>
+                                            {isGeneratingLicense ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Gerar'}
+                                        </Button>
+                                    )}
                                 </div>
-                                <div className="flex items-start gap-2">
-                                    <Briefcase className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                                    <p><span className="font-semibold">Arquiteto:</span> {project.architectName || "Não especificado"}</p>
-                                </div>
-                                <Separator className="my-4"/>
-                                <p className="text-muted-foreground whitespace-pre-wrap">{project.description}</p>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Requerente</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {applicant && (
-                                    <div className="flex items-center gap-4">
-                                        <Avatar>
-                                            <AvatarImage src={applicant.photoURL || undefined} />
-                                            <AvatarFallback>{applicant.displayName.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p className="font-semibold">{applicant.displayName}</p>
-                                            <p className="text-sm text-muted-foreground">{applicant.email}</p>
-                                            <Link href={`/public-profile/${applicant.uid}`} className="text-xs text-primary hover:underline">Ver Perfil Público</Link>
+                    )}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Documentos do Projeto</CardTitle>
+                            <CardDescription>
+                                Ficheiros submetidos pelo requerente.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {project.files && project.files.length > 0 ? (
+                                <div className="space-y-3">
+                                    {project.files.map((file, index) => (
+                                        <div key={index} className="flex items-center justify-between gap-4 rounded-lg border p-4">
+                                            <div className="flex items-center gap-4">
+                                                <FileText className="h-8 w-8 text-muted-foreground" />
+                                                <div>
+                                                    <p className="font-semibold">{file.name}</p>
+                                                    <p className="text-sm text-muted-foreground">Submetido em {new Date(project.lastReported!).toLocaleDateString('pt-PT')}</p>
+                                                </div>
+                                            </div>
+                                            <Button variant="outline" size="sm" asChild>
+                                                <a href={file.url} target="_blank" rel="noopener noreferrer">
+                                                   Ver Documento
+                                                   <ExternalLink className="ml-2 h-4 w-4" />
+                                                </a>
+                                            </Button>
                                         </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center text-sm text-muted-foreground p-4 border-2 border-dashed rounded-lg">
+                                    Nenhum documento foi submetido para este projeto.
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Estado do Processo</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Estado Atual</span>
+                                <Badge variant={project.status === 'approved' ? 'default' : (project.status === 'rejected' ? 'destructive' : 'secondary')} className={project.status === 'approved' ? 'bg-green-600' : ''}>
+                                    {project.status ? statusLabelMap[project.status] : "N/A"}
+                                </Badge>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Data Submissão</span>
+                                <span>{new Date(project.lastReported!).toLocaleDateString('pt-PT')}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Detalhes do Projeto</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2 text-sm">
+                            <div className="flex items-start gap-2">
+                                <Building className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                <p><span className="font-semibold">Tipo:</span> {project.projectType || "Não especificado"}</p>
+                            </div>
+                             <div className="flex items-start gap-2">
+                                <Briefcase className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                <p><span className="font-semibold">Arquiteto:</span> {project.architectName || "Não especificado"}</p>
+                            </div>
+                            <Separator className="my-4"/>
+                            <p className="text-muted-foreground whitespace-pre-wrap">{project.description}</p>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Requerente</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {applicant && (
+                                <div className="flex items-center gap-4">
+                                    <Avatar>
+                                        <AvatarImage src={applicant.photoURL || undefined} />
+                                        <AvatarFallback>{applicant.displayName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-semibold">{applicant.displayName}</p>
+                                        <p className="text-sm text-muted-foreground">{applicant.email}</p>
+                                        <Link href={`/public-profile/${applicant.uid}`} className="text-xs text-primary hover:underline">Ver Perfil Público</Link>
                                     </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                </main>
-            </div>
-        </APIProvider>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </main>
+        </div>
     );
 }
 

@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, Users2, ListTodo, Route, HardHat, Waves, Fuel, DollarSign, FileSpreadsheet, Handshake } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2 } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -112,78 +112,55 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                             <Link href="/equipa/minhas-tarefas">
-                                <ListTodo className="mr-2 h-4 w-4" />
-                                <span>Minhas Tarefas</span>
+                            <Link href="/admin/projetos">
+                                <Briefcase className="mr-2 h-4 w-4" />
+                                <span>Gerir Projetos</span>
                             </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuSub>
-                             <DropdownMenuSubTrigger>
-                                <Users2 className="mr-2 h-4 w-4" />
-                                <span>Gestão de Frota</span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                                 <DropdownMenuItem asChild><Link href="/admin/equipa"><Users2 className="mr-2 h-4 w-4" />Monitorizar Frota</Link></DropdownMenuItem>
-                                 <DropdownMenuItem asChild><Link href="/admin/fornecedores"><Handshake className="mr-2 h-4 w-4" />Fornecedores</Link></DropdownMenuItem>
-                                 <DropdownMenuItem asChild><Link href="/admin/abastecimento"><Fuel className="mr-2 h-4 w-4" />Registar Abastecimento</Link></DropdownMenuItem>
-                                 <DropdownMenuItem asChild><Link href="/admin/analise-custos"><DollarSign className="mr-2 h-4 w-4" />Análise de Custos</Link></DropdownMenuItem>
-                                 <DropdownMenuItem asChild><Link href="/admin/relatorios"><FileSpreadsheet className="mr-2 h-4 w-4" />Relatórios Financeiros</Link></DropdownMenuItem>
-                            </DropdownMenuSubContent>
-                        </DropdownMenuSub>
-                        
-                        <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>
-                                <HardHat className="mr-2 h-4 w-4" />
-                                <span>Processos Urbanos</span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                                <DropdownMenuItem asChild><Link href="/admin/projetos"><Briefcase className="mr-2 h-4 w-4" />Gerir Projetos</Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/admin/verificacao"><ShieldCheck className="mr-2 h-4 w-4" />Verificação de Imóveis</Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/admin/fiscalizacao-ambiental"><Waves className="mr-2 h-4 w-4" />Fiscalização Ambiental</Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/inspecao"><ScanLine className="mr-2 h-4 w-4" />Prova de Visita</Link></DropdownMenuItem>
-                            </DropdownMenuSubContent>
-                        </DropdownMenuSub>
-
+                         <DropdownMenuItem asChild>
+                            <Link href="/admin/verificacao">
+                                <ShieldCheck className="mr-2 h-4 w-4" />
+                                <span>Verificação de Imóveis</span>
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href="/inspecao">
+                                <ScanLine className="mr-2 h-4 w-4" />
+                                <span>Prova de Visita</span>
+                            </Link>
+                        </DropdownMenuItem>
                          <DropdownMenuSub>
                             <DropdownMenuSubTrigger>
                                 <GitBranch className="mr-2 h-4 w-4" />
                                 <span>Planeamento e Território</span>
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent>
-                                <DropdownMenuItem asChild><Link href="/admin/planeamento-3d">Planeamento Urbano 3D</Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/recursos-hidricos"><Droplets className="mr-2 h-4 w-4" />Recursos Hídricos</Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/cobertura-do-solo">Uso do Solo</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/recursos-hidricos">Recursos Hídricos</Link></DropdownMenuItem>
                             </DropdownMenuSubContent>
                         </DropdownMenuSub>
 
-                        <DropdownMenuSub>
-                             <DropdownMenuSubTrigger>
-                                <Settings className="mr-2 h-4 w-4" />
-                                <span>Administração</span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                                 <DropdownMenuItem asChild>
-                                    <Link href="/admin/comunicacoes">
-                                        <Megaphone className="mr-2 h-4 w-4" />
-                                        <span>Comunicações</span>
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link href="/admin/definicoes">
-                                        <Settings className="mr-2 h-4 w-4" />
-                                        <span>Definições</span>
-                                    </Link>
-                                </DropdownMenuItem>
-                                 {isAdmin && (
+                         {isAdmin && (
+                            <DropdownMenuSub>
+                                 <DropdownMenuSubTrigger>
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    <span>Administração</span>
+                                </DropdownMenuSubTrigger>
+                                <DropdownMenuSubContent>
+                                     <DropdownMenuItem asChild>
+                                        <Link href="/admin/comunicacoes">
+                                            <Megaphone className="mr-2 h-4 w-4" />
+                                            <span>Comunicações</span>
+                                        </Link>
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
                                         <Link href="/admin/users">
                                             <Users className="mr-2 h-4 w-4" />
                                             <span>Gerir Utilizadores</span>
                                         </Link>
                                     </DropdownMenuItem>
-                                )}
-                            </DropdownMenuSubContent>
-                        </DropdownMenuSub>
+                                </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                        )}
                     </>
                 )}
 
