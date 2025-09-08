@@ -8,4 +8,3 @@ import './flows/analyze-project-compliance-flow';
 import './flows/suggest-next-steps-flow';
 import './flows/generate-license-flow';
 import './flows/suggest-technician-flow';
-import './flows/predict-maintenance-flow';

@@ -533,20 +533,3 @@ export const SuggestTechnicianOutputSchema = z.object({
     suggestions: z.array(SuggestionSchema),
 });
 export type SuggestTechnicianOutput = z.infer<typeof SuggestTechnicianOutputSchema>;
-
-export const PredictMaintenanceInputSchema = z.object({
-    vehicleType: z.string().describe("E.g., 'Carrinha de Manutenção', 'Carro de Patrulha'"),
-    mileage: z.number().describe("Current odometer reading in kilometers."),
-    ageInYears: z.number().describe("Age of the vehicle in years."),
-    telemetryEvents: z.array(z.string()).describe("List of recent driving events like 'Travagem Brusca'."),
-});
-export type PredictMaintenanceInput = z.infer<typeof PredictMaintenanceInputSchema>;
-
-export const PredictMaintenanceOutputSchema = z.object({
-    predictions: z.array(z.object({
-        taskDescription: z.string().describe("The specific maintenance task predicted."),
-        reason: z.string().describe("The justification for the prediction based on the data."),
-        priority: PointOfInterestPriorityEnum.describe("The priority of the task."),
-    })),
-});
-export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
