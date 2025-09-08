@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, AreaChart, Fuel } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, AreaChart, Fuel, Wrench } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -112,12 +112,18 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <span>Painel Municipal</span>
                             </Link>
                         </DropdownMenuItem>
-                         <DropdownMenuItem asChild>
-                            <Link href="/admin/equipa">
+                         <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
                                 <Users className="mr-2 h-4 w-4" />
-                                <span>Gestão de Equipa</span>
-                            </Link>
-                        </DropdownMenuItem>
+                                <span>Equipa e Frota</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem asChild><Link href="/admin/equipa">Gestão de Equipa</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/admin/abastecimento">Registar Abastecimento</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/admin/analise-custos">Análise de Custos</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/admin/relatorios">Relatórios Financeiros</Link></DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
                         <DropdownMenuItem asChild>
                             <Link href="/admin/projetos">
                                 <Briefcase className="mr-2 h-4 w-4" />

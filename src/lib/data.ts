@@ -193,10 +193,10 @@ export const UserProfileWithStatsSchema = UserProfileSchema.extend({
         performanceScore: z.number().optional(),
     })
 });
-export type UserProfileWithStats = z.infer<typeof UserProfileWithStats>;
+export type UserProfileWithStats = z.infer<typeof UserProfileWithStatsSchema>;
 
 export const FuelEntrySchema = z.object({
-    id: z.string(),
+    id: z.string().optional(),
     vehicleId: z.string(),
     driverName: z.string(),
     vehiclePlate: z.string(),
@@ -532,4 +532,3 @@ export const PredictMaintenanceOutputSchema = z.object({
     })),
 });
 export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
-
