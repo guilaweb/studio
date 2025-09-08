@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -147,6 +146,18 @@ export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water'
 export type ActiveLayers = {
   [key in Layer]: boolean;
 };
+
+export const InventoryPartSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  reference: z.string().optional(),
+  stock: z.number(),
+  price: z.number(),
+  supplier: z.string().optional(),
+  createdAt: z.string(),
+});
+export type InventoryPart = z.infer<typeof InventoryPartSchema>;
+
 
 export const UserProfileSchema = z.object({
     uid: z.string(),
@@ -540,5 +551,3 @@ export const PredictMaintenanceOutputSchema = z.object({
     predictions: z.array(PredictedTaskSchema).describe("A list of predicted maintenance tasks."),
 });
 export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
-
-    
