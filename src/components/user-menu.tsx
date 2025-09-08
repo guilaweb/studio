@@ -111,7 +111,12 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <span>Painel Municipal</span>
                             </Link>
                         </DropdownMenuItem>
-                        
+                        <DropdownMenuItem asChild>
+                             <Link href="/equipa/minhas-tarefas">
+                                <ListTodo className="mr-2 h-4 w-4" />
+                                <span>Minhas Tarefas</span>
+                            </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuSub>
                              <DropdownMenuSubTrigger>
                                 <Users2 className="mr-2 h-4 w-4" />
@@ -119,7 +124,6 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent>
                                  <DropdownMenuItem asChild><Link href="/admin/equipa"><Users2 className="mr-2 h-4 w-4" />Monitorizar Frota</Link></DropdownMenuItem>
-                                 <DropdownMenuItem asChild><Link href="/equipa/minhas-tarefas"><ListTodo className="mr-2 h-4 w-4" />Minhas Tarefas</Link></DropdownMenuItem>
                                  <DropdownMenuItem asChild><Link href="/admin/fornecedores"><Handshake className="mr-2 h-4 w-4" />Fornecedores</Link></DropdownMenuItem>
                                  <DropdownMenuItem asChild><Link href="/admin/abastecimento"><Fuel className="mr-2 h-4 w-4" />Registar Abastecimento</Link></DropdownMenuItem>
                                  <DropdownMenuItem asChild><Link href="/admin/analise-custos"><DollarSign className="mr-2 h-4 w-4" />Análise de Custos</Link></DropdownMenuItem>
