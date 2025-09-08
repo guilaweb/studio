@@ -7,7 +7,7 @@ import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search, Loader2, Truck, AlertTriangle, Wrench, Fuel, Info } from "lucide-react";
+import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search, Loader2, Truck, AlertTriangle, Wrench, Fuel, Info, Route, CloudRain } from "lucide-react";
 import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { Badge } from "@/components/ui/badge";
 import { TeamMemberMarker } from "@/components/team-management/team-member-marker";
@@ -28,6 +28,7 @@ import RecentAlerts, { Alert } from "@/components/team-management/recent-alerts"
 import { useFuelEntries } from "@/services/fuel-service";
 import { useMaintenancePlans } from "@/services/maintenance-service";
 import { differenceInDays, addMonths } from "date-fns";
+import DirectionsRenderer from "@/components/directions-renderer";
 
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
@@ -43,7 +44,9 @@ function TeamManagementPage() {
     const [teamFilter, setTeamFilter] = React.useState('Todos');
     const [localTasks, setLocalTasks] = React.useState<PointOfInterest[]>([]);
     const [suggestedTechnicians, setSuggestedTechnicians] = React.useState<SuggestTechnicianOutput['suggestions']>([]);
-    const [isSuggesting, setIsSuggesting] = React.useState<string | null>(null); // Holds the ID of the task being analyzed
+    const [isSuggesting, setIsSuggesting] = React.useState<string | null>(null);
+    const [routeToDisplay, setRouteToDisplay] = React.useState<PointOfInterest[] | null>(null);
+    const [simulateBadWeather, setSimulateBadWeather] = React.useState(false);
     const { toast } = useToast();
     const { user: currentUser, profile: currentProfile } = useAuth();
 
@@ -58,6 +61,12 @@ function TeamManagementPage() {
         const unassigned = allPoints.filter(p => (p.type === 'incident' || p.type === 'sanitation') && (p.status === 'unknown' || p.status === 'full' || p.status === 'in_progress' === false));
         setLocalTasks(unassigned);
     }, [allPoints]);
+
+     React.useEffect(() => {
+        // When selected member changes, clear the route display
+        setRouteToDisplay(null);
+        setSimulateBadWeather(false);
+    }, [selectedMember]);
 
 
     const statusBadgeVariant = (status?: string) => {
@@ -427,6 +436,7 @@ function TeamManagementPage() {
                                         ))}
                                         {selectedMember && selectedMember.path && <TeamMemberPath path={selectedMember.path} color="#22c55e" />}
                                         {selectedMember && selectedMember.currentTask && selectedMember.currentTask.path && <TeamMemberPath path={selectedMember.currentTask.path} color="#3b82f6" />}
+                                        <DirectionsRenderer waypoints={routeToDisplay} avoidBadWeather={simulateBadWeather} />
                                     </Map>
                                 </Card>
                             </div>
@@ -450,16 +460,8 @@ function TeamManagementPage() {
                                         </CardHeader>
                                         <CardContent className="space-y-4 text-sm">
                                             <div className="space-y-2">
-                                                <h4 className="font-semibold text-xs text-muted-foreground">Tarefa Atual</h4>
-                                                {selectedMember.currentTask ? (
-                                                    <p className="font-medium p-2 bg-muted rounded-md">{selectedMember.currentTask.title}</p>
-                                                ) : (
-                                                    <p className="text-muted-foreground p-2 bg-muted rounded-md">Nenhuma tarefa ativa.</p>
-                                                )}
-                                            </div>
-                                            <div className="space-y-2">
                                                 <h4 className="font-semibold text-xs text-muted-foreground">Fila de Tarefas ({selectedMember.taskQueue?.length || 0})</h4>
-                                                <div className="space-y-1">
+                                                <div className="space-y-1 max-h-24 overflow-y-auto">
                                                     {selectedMember.taskQueue && selectedMember.taskQueue.length > 0 ? selectedMember.taskQueue.map(task => (
                                                         <div key={task.id} className="flex items-center gap-2 p-1.5 rounded bg-muted">
                                                             <ListTodo className="h-4 w-4 text-muted-foreground" />
@@ -467,6 +469,16 @@ function TeamManagementPage() {
                                                         </div>
                                                     )) : <p className="text-xs text-muted-foreground">Fila vazia.</p>}
                                                 </div>
+                                                {selectedMember.taskQueue && selectedMember.taskQueue.length > 1 && (
+                                                     <div className="flex gap-2 pt-2">
+                                                        <Button variant="outline" size="sm" className="flex-1" onClick={() => setRouteToDisplay(selectedMember.taskQueue || [])}>
+                                                            <Route className="mr-2 h-4 w-4" /> Otimizar Rota
+                                                        </Button>
+                                                        <Button variant="secondary" size="sm" onClick={() => setSimulateBadWeather(prev => !prev)} disabled={!routeToDisplay}>
+                                                            <CloudRain className="mr-2 h-4 w-4" /> {simulateBadWeather ? 'Rota Normal' : 'Mau Tempo'}
+                                                        </Button>
+                                                    </div>
+                                                )}
                                             </div>
                                             <Separator />
                                             <div className="space-y-2">
@@ -517,6 +529,7 @@ function TeamManagementPage() {
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
 
     
+
 
 
 
