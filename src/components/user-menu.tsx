@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { User } from "firebase/auth";
@@ -202,5 +201,3 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
         </DropdownMenu>
     )
   }
-
-    

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -979,42 +978,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     })
   };
 
-  const handleAddUpdate = (pointId: string, updateText: string, photoDataUri?: string) => {
-    if (!user || !profile) {
-        toast({
-            variant: "destructive",
-            title: "Ação necessária",
-            description: "Por favor, faça login para adicionar uma atualização.",
-        });
-        return;
-    }
-
-    const newUpdate: Omit<PointOfInterestUpdate, 'id'> = {
-        text: updateText,
-        authorId: user.uid,
-        authorDisplayName: profile.displayName || user.displayName || "Utilizador Anónimo",
-        timestamp: new Date().toISOString(),
-        photoDataUri: photoDataUri,
-    };
-    
-    addUpdateToPoint(pointId, newUpdate);
-    
-    // Optimistic update of the selected PoI
-    setSelectedPoi(prevPoi => {
-      if (!prevPoi) return null;
-      const updatedUpdates = [
-          {...newUpdate, id: `temp-${Date.now()}`}, 
-          ...(prevPoi.updates || [])
-      ];
-      return { ...prevPoi, updates: updatedUpdates, lastReported: new Date().toISOString() };
-    });
-
-    toast({
-        title: "Atualização adicionada!",
-        description: "A sua fiscalização foi registada. Obrigado!",
-    });
-  }
-
   return (
       <SidebarProvider>
         <div className="flex h-screen w-full">
@@ -1193,7 +1156,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <LightbulbOff className="mr-2 h-4 w-4" />
                             Reportar Semáforo
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStartReporting('public_lighting')}>
+                         <DropdownMenuItem onClick={() => handleStartReporting('public_lighting')}>
                             <LightbulbOff className="mr-2 h-4 w-4" />
                             Reportar Iluminação
                         </DropdownMenuItem>
@@ -1236,7 +1199,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             }
             }}
             onPoiStatusChange={handlePoiStatusChange}
-            onAddUpdate={handleAddUpdate}
+            onAddUpdate={addUpdateToPoint}
             onEdit={handleStartEditing}
         />
         <IncidentReport 
