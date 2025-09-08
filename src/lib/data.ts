@@ -551,3 +551,5 @@ export const PredictMaintenanceOutputSchema = z.object({
     predictions: z.array(PredictedTaskSchema).describe("A list of predicted maintenance tasks."),
 });
 export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
+
+    

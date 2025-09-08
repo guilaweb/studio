@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, Users2, ListTodo, Route, HardHat, Waves, Fuel, DollarSign, FileSpreadsheet, Handshake, Sun, Bot } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, Users2, ListTodo, Route, HardHat, Waves, Fuel, DollarSign, FileSpreadsheet, Handshake } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -150,9 +150,9 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <span>Planeamento e Território</span>
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent>
-                                <DropdownMenuItem asChild><Link href="/admin/planeamento-3d"><Bot className="mr-2 h-4 w-4"/>Planeamento Urbano 3D</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/admin/planeamento-3d">Planeamento Urbano 3D</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/recursos-hidricos"><Droplets className="mr-2 h-4 w-4" />Recursos Hídricos</Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/cobertura-do-solo"><GitBranch className="mr-2 h-4 w-4" />Uso do Solo</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/cobertura-do-solo">Uso do Solo</Link></DropdownMenuItem>
                             </DropdownMenuSubContent>
                         </DropdownMenuSub>
 
@@ -196,3 +196,5 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
         </DropdownMenu>
     )
   }
+
+    
