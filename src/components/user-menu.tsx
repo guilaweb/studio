@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { User } from "firebase/auth";
@@ -110,6 +109,12 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                             <Link href="/dashboard">
                                 <LayoutDashboard className="mr-2 h-4 w-4" />
                                 <span>Painel Municipal</span>
+                            </Link>
+                        </DropdownMenuItem>
+                         <DropdownMenuItem asChild>
+                            <Link href="/admin/equipa">
+                                <Users className="mr-2 h-4 w-4" />
+                                <span>Gestão de Equipa</span>
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
