@@ -184,5 +184,3 @@ function HealthUnitDetailPage() {
 }
 
 export default withAuth(HealthUnitDetailPage, ['Agente Municipal', 'Administrador', 'Epidemiologista']);
-
-    

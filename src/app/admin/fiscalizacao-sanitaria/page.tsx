@@ -110,5 +110,3 @@ function HealthInspectionPage() {
 }
 
 export default withAuth(HealthInspectionPage, ['Agente Municipal', 'Administrador', 'Epidemiologista']);
-
-    

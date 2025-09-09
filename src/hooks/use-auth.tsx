@@ -180,5 +180,3 @@ export const withAuth = <P extends object>(
   AuthComponent.displayName = `WithAuth(${Component.displayName || Component.name || 'Component'})`;
   return AuthComponent;
 };
-
-    

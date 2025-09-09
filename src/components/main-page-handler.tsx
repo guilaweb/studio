@@ -59,14 +59,14 @@ const defaultActiveLayers: ActiveLayers = {
     construction: true,
     incident: true,
     sanitation: true,
-    water: true,
-    land_plot: true,
+    water: false,
+    land_plot: false,
     announcement: true,
-    water_resource: true,
-    croqui: true,
-    fuel_station: true,
-    health_unit: true,
-    health_case: true,
+    water_resource: false,
+    croqui: false,
+    fuel_station: false,
+    health_unit: false,
+    health_case: false,
 };
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
