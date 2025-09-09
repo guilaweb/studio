@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -22,7 +21,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -67,6 +66,7 @@ const defaultActiveLayers: ActiveLayers = {
     croqui: true,
     fuel_station: true,
     health_unit: true,
+    health_case: true,
 };
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -754,6 +754,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       roadCession: data.roadCession,
       greenSpaceCession: data.greenSpaceCession,
       updates: [{
+          id: `update-${Date.now()}`,
           text: "Registo inicial do lote realizado.",
           authorId: user.uid,
           authorDisplayName: profile.displayName,

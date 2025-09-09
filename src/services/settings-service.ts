@@ -16,11 +16,16 @@ const initialPublicLayers: ActiveLayers = {
     water: false,
     land_plot: false,
     announcement: true,
+    water_resource: false,
+    croqui: false,
+    fuel_station: false,
+    health_unit: false,
+    health_case: false,
 };
 
 // Hook to read public layer settings
 export const usePublicLayerSettings = () => {
-    const [publicLayers, setPublicLayers] = useState<ActiveLayers>(initialPublicLayers);
+    const [publicLayers, setPublicLayers] = useState<ActiveLayers | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -31,8 +36,10 @@ export const usePublicLayerSettings = () => {
                 setPublicLayers(doc.data() as ActiveLayers);
             } else {
                 // If the document doesn't exist, you might want to initialize it
-                console.log("Settings document not found, using initial settings.");
+                console.log("Settings document not found, creating with initial settings.");
                 setPublicLayers(initialPublicLayers);
+                // Optionally, write the initial settings back to Firestore
+                // setDoc(settingsDocRef, initialPublicLayers);
             }
             setLoading(false);
         }, (err) => {
