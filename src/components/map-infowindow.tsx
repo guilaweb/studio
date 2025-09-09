@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React from 'react';
@@ -13,14 +14,14 @@ interface MapInfoWindowProps {
 const MapInfoWindow: React.FC<MapInfoWindowProps> = ({ poi }) => {
   let photoUrl: string | undefined;
 
-  // Find a photo from updates or files
-  if (poi.updates && poi.updates.length > 0) {
-      const sortedUpdates = poi.updates.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-      photoUrl = sortedUpdates[0]?.photoDataUri;
+  // Find a photo from files first, then updates
+  if (poi.files && poi.files.length > 0) {
+      photoUrl = poi.files.find(f => f.url.match(/\.(jpeg|jpg|gif|png|webp)$/i))?.url;
   }
   
-  if (!photoUrl && poi.files && poi.files.length > 0) {
-      photoUrl = poi.files.find(f => f.url.match(/\.(jpeg|jpg|gif|png)$/))?.url;
+  if (!photoUrl && poi.updates && poi.updates.length > 0) {
+      const sortedUpdates = poi.updates.slice().sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      photoUrl = sortedUpdates.find(u => u.photoDataUri)?.photoDataUri;
   }
 
 

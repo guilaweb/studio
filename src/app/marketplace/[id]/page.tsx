@@ -71,6 +71,14 @@ export default function MarketplacePropertyDetailPage() {
         setIsStartingChat(false);
     }
     
+    const handleShare = () => {
+        navigator.clipboard.writeText(window.location.href);
+        toast({
+            title: "Link Copiado!",
+            description: "O link para este imóvel foi copiado para a sua área de transferência."
+        });
+    }
+    
     const media = property?.updates?.map(u => u.photoDataUri).filter(Boolean) as string[] || [];
     if (property?.files) {
         property.files.forEach(f => {
@@ -251,18 +259,15 @@ export default function MarketplacePropertyDetailPage() {
                                         <CardTitle>Contactar Vendedor</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        {property.croquiId && (
-                                            <Button variant="outline" className="w-full" asChild>
-                                                <Link href={`/croquis/${property.croquiId}`} target="_blank">
-                                                    <Share2 className="mr-2 h-4 w-4" /> Ver Croqui de Acesso
-                                                </Link>
+                                        <div className="flex gap-2">
+                                            <Button className="flex-1" onClick={handleContactSeller} disabled={isStartingChat}>
+                                                {isStartingChat ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <MessageSquare className="mr-2 h-4 w-4" />}
+                                                {isStartingChat ? "A iniciar..." : "Enviar Mensagem"}
                                             </Button>
-                                        )}
-                                        <p className="text-sm text-muted-foreground">Contacte o proprietário para mais informações ou para agendar uma visita.</p>
-                                        <Button className="w-full" onClick={handleContactSeller} disabled={isStartingChat}>
-                                            {isStartingChat ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <MessageSquare className="mr-2 h-4 w-4" />}
-                                            {isStartingChat ? "A iniciar conversa..." : "Enviar Mensagem"}
-                                        </Button>
+                                             <Button variant="outline" size="icon" onClick={handleShare}>
+                                                <Share2 className="h-4 w-4"/>
+                                            </Button>
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </div>
@@ -273,5 +278,3 @@ export default function MarketplacePropertyDetailPage() {
         </APIProvider>
     );
 }
-
-    

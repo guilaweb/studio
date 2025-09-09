@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -10,7 +11,7 @@ import { BedDouble, Bath, Ruler, Leaf } from "lucide-react";
 
 
 export const PropertyCard = ({ property }: { property: PointOfInterest }) => {
-    const mainPhoto = property.updates?.find(u => u.photoDataUri)?.photoDataUri;
+    const mainPhoto = property.files?.find(f => f.url.match(/\.(jpeg|jpg|gif|png|webp)$/i))?.url || property.updates?.find(u => u.photoDataUri)?.photoDataUri;
     const placeholderImage = "https://placehold.co/600x400.png";
 
     return (
@@ -57,5 +58,3 @@ export const PropertyCard = ({ property }: { property: PointOfInterest }) => {
         </Link>
     );
 }
-
-    
