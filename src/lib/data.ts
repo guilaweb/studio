@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -188,6 +189,7 @@ export const UserProfileSchema = z.object({
         lastServiceDate: z.string().optional(), // ISO string
         lastServiceOdometer: z.number().optional(),
     }).optional(),
+    organizationId: z.string().optional(), // To link user to a municipality/company
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 
@@ -228,6 +230,28 @@ export const InventoryPartSchema = z.object({
 });
 export type InventoryPart = z.infer<typeof InventoryPartSchema>;
 
+export const SubscriptionPlanEnum = z.enum(['basic', 'professional', 'enterprise', 'free']);
+export type SubscriptionPlan = z.infer<typeof SubscriptionPlanEnum>;
+
+export const SubscriptionStatusEnum = z.enum(['active', 'trialing', 'past_due', 'canceled', 'unpaid']);
+export type SubscriptionStatus = z.infer<typeof SubscriptionStatusEnum>;
+
+export const SubscriptionSchema = z.object({
+    id: z.string(),
+    organizationId: z.string(),
+    plan: SubscriptionPlanEnum,
+    status: SubscriptionStatusEnum,
+    currentPeriodStart: z.string(), // ISO string
+    currentPeriodEnd: z.string(), // ISO string
+    cancelAtPeriodEnd: z.boolean(),
+    createdAt: z.string(),
+    limits: z.object({
+        agents: z.number(),
+        storageGb: z.number(),
+        apiCalls: z.number(),
+    })
+});
+export type Subscription = z.infer<typeof SubscriptionSchema>;
 
 
 

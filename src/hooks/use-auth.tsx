@@ -5,8 +5,8 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
-import { UserProfile } from '@/lib/data';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import type { UserProfile, Subscription, SubscriptionPlan, SubscriptionStatus } from '@/lib/data';
 import { useToast } from './use-toast';
 
 interface AuthContextType {
@@ -23,6 +23,43 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
 });
 
+// Helper function to create a default organization and subscription for the first admin
+const createDefaultOrganization = async (userId: string, orgName: string): Promise<string> => {
+    const organizationId = `org_${userId.substring(0, 10)}`;
+    const orgDocRef = doc(db, 'organizations', organizationId);
+    const orgDoc = await getDoc(orgDocRef);
+    
+    if (!orgDoc.exists()) {
+        await setDoc(orgDocRef, {
+            name: orgName,
+            ownerId: userId,
+            createdAt: new Date().toISOString(),
+        });
+
+        // Create a default subscription for this new organization
+        const subscriptionDocRef = doc(db, 'subscriptions', organizationId);
+        const now = new Date();
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
+
+        const defaultSubscription: Omit<Subscription, 'id'> = {
+            organizationId,
+            plan: 'free',
+            status: 'trialing', // or 'active'
+            currentPeriodStart: now.toISOString(),
+            currentPeriodEnd: nextMonth.toISOString(),
+            cancelAtPeriodEnd: false,
+            createdAt: now.toISOString(),
+            limits: {
+                agents: 5,
+                storageGb: 1,
+                apiCalls: 1000
+            }
+        };
+        await setDoc(subscriptionDocRef, defaultSubscription);
+    }
+    return organizationId;
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -30,7 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (!user) {
         setProfile(null);
@@ -44,13 +81,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (user) {
         const userDocRef = doc(db, 'users', user.uid);
-        const unsubscribeProfile = onSnapshot(userDocRef, (doc) => {
-            if (doc.exists()) {
-                setProfile(doc.data() as UserProfile);
+        const unsubscribeProfile = onSnapshot(userDocRef, async (docSnap) => {
+            if (docSnap.exists()) {
+                let profileData = docSnap.data() as UserProfile;
+
+                // Onboarding for the very first admin user
+                if (profileData.role === 'Administrador' && !profileData.organizationId) {
+                    setLoading(true); // Hold loading state while we create the org
+                    const orgName = `${profileData.displayName}'s Municipality`;
+                    const organizationId = await createDefaultOrganization(user.uid, orgName);
+                    
+                    // Update the user's profile with the new org ID
+                    await setDoc(userDocRef, { organizationId }, { merge: true });
+                    profileData.organizationId = organizationId;
+                }
+
+                setProfile(profileData);
             } else {
-                // The profile creation should be handled explicitly on registration
-                // or first Google Sign-in to ensure proper role assignment (especially for admin).
-                // If a user is authenticated but has no profile, they are in an inconsistent state.
                 console.warn(`User profile for ${user.uid} not found.`);
                 setProfile(null);
             }
@@ -109,7 +156,7 @@ export const withAuth = <P extends object>(
     }, [user, profile, loading, router, toast]);
 
     if (loading || !user || (allowedRoles && (!profile || !allowedRoles.includes(profile.role)))) {
-      return <div>A carregar...</div>; 
+      return <div className="flex h-screen w-full items-center justify-center">A carregar...</div>; 
     }
 
     return <Component {...props} />;

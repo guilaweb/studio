@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { User } from "firebase/auth";
@@ -7,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, AreaChart, Fuel, Wrench, Sun, Hospital, Stethoscope } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, AreaChart, Fuel, Wrench, Sun, Hospital, Stethoscope, CreditCard } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -179,6 +180,12 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                         <Link href="/admin/fiscalizacao-ambiental">
                                             <Droplets className="mr-2 h-4 w-4" />
                                             <span>Fiscalização Ambiental</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/admin/faturacao">
+                                            <CreditCard className="mr-2 h-4 w-4" />
+                                            <span>Faturação e Plano</span>
                                         </Link>
                                     </DropdownMenuItem>
                                      <DropdownMenuItem asChild>
