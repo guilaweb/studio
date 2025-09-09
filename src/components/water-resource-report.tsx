@@ -181,6 +181,44 @@ export default function WaterResourceReport({
     setCustomFields(customFields.filter((_, i) => i !== index));
   };
   
+  const aquiferDefaultFields = [
+    { key: 'Profundidade Média (m)', value: '' },
+    { key: 'Vulnerabilidade', value: '' },
+    { key: 'Potencial de Extração (m³/dia)', value: '' },
+  ];
+  const damDefaultFields = [
+    { key: 'Altura (m)', value: '' },
+    { key: 'Comprimento (m)', value: '' },
+    { key: 'Volume de Armazenamento (hm³)', value: '' },
+    { key: 'Uso Principal', value: '' },
+  ];
+  const reservoirDefaultFields = [
+    { key: 'Área (km²)', value: '' },
+    { key: 'Volume Médio (hm³)', value: '' },
+  ];
+  const treatmentStationDefaultFields = [
+    { key: 'Capacidade (m³/dia)', value: '' },
+    { key: 'População Servida', value: '' },
+  ];
+  const concessionDefaultFields = [
+    { key: 'Titular', value: '' },
+    { key: 'Data de Validade', value: '' },
+    { key: 'Caudal Licenciado (m³/s)', value: '' },
+  ];
+  const monitoringPointDefaultFields = [
+    { key: 'Parâmetros Analisados', value: 'pH, Turbidez, Nitratos' },
+    { key: 'Frequência de Coleta', value: 'Mensal' },
+  ];
+  const pollutionSourceDefaultFields = [
+    { key: 'Tipo de Fonte', value: 'Industrial' },
+    { key: 'Nível de Risco', value: 'Alto' },
+  ];
+  const watershedDefaultFields = [
+    { key: 'Área de Drenagem (km²)', value: '' },
+    { key: 'Disponibilidade Anual (hm³)', value: '' },
+    { key: 'Procura Total (hm³)', value: '' },
+  ];
+  
   const handleResourceTypeChange = (value: string) => {
     form.setValue('title', value);
     if (value === 'Aquífero') {
