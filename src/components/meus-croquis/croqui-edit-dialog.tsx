@@ -46,6 +46,7 @@ export default function CroquiEditDialog({ open, onOpenChange, croqui, onSave }:
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     await onSave(croqui.id, values.title, values.collectionName || 'Croquis Individuais');
+    onOpenChange(false);
   };
 
   return (

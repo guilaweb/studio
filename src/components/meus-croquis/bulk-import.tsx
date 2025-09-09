@@ -215,7 +215,7 @@ export default function BulkImport() {
                                         ))}
                                     </TableBody>
                                 </Table>
-                                {parsedData.length > 100 && <p className="text-center text-xs text-muted-foreground p-2">A mostrar as primeiras 100 de {parsedData.length} linhas.</p>}
+                                {parsedData.length > 100 && <p className="text-center text-xs text-muted-foreground p-2">A mostrar as primeiras 100 de ${parsedData.length} linhas.</p>}
                             </div>
                         ) : (
                              <div className="flex flex-col items-center justify-center p-8 text-center border-2 border-dashed rounded-lg">
