@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -20,6 +21,7 @@ export const PointOfInterestUpdateSchema = z.object({
   timestamp: z.string(),
   photoDataUri: z.string().optional(),
   availableNotes: z.array(z.number()).optional(),
+  availableFuels: z.array(z.string()).optional(),
   queueTime: QueueTimeEnum.optional(),
   partsUsed: z.array(z.object({
       partId: z.string(),

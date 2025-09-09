@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -64,7 +65,7 @@ const defaultActiveLayers: ActiveLayers = {
     announcement: true,
     water_resource: false,
     croqui: false,
-    fuel_station: false,
+    fuel_station: true,
     health_unit: false,
     health_case: false,
 };
@@ -696,7 +697,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       authorId: user.uid,
       authorDisplayName: profile.displayName,
       lastReported: timestamp,
-      status: 'available',
+      status: 'unknown',
       description: newPointData.description,
       position: newPointData.position,
       customData: newPointData.customData,

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -11,7 +12,7 @@ import { useAuth } from './use-auth';
 interface PointsContextType {
   allData: PointOfInterest[];
   addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }, propertyIdToLink?: string) => Promise<void>;
-  updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => Promise<void>;
+  updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[]) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
   updatePointDetails: (pointId: string, updates: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>) => Promise<void>;
   deletePoint: (pointId: string) => Promise<void>;
@@ -193,7 +194,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updatePointStatus = async (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => {
+  const updatePointStatus = async (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[]) => {
     if (!user || !profile) {
       toast({ variant: "destructive", title: "Erro de Permissão", description: "Utilizador não autenticado." });
       return;
@@ -210,6 +211,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             timestamp: new Date().toISOString(),
             availableNotes: availableNotes,
             queueTime: queueTime,
+            availableFuels: availableFuels,
         };
 
         const updateWithId = {
