@@ -26,6 +26,7 @@ const formSchema = z.object({
   name: z.string().min(3, "O nome do plano é obrigatório."),
   description: z.string().min(10, "A descrição é obrigatória."),
   price: z.coerce.number().min(0, "O preço não pode ser negativo."),
+  priceAnnual: z.coerce.number().optional(),
   limits: z.object({
       agents: z.coerce.number().min(-1, "O limite de agentes é inválido."),
       storageGb: z.coerce.number().min(-1, "O limite de armazenamento é inválido."),
@@ -49,6 +50,7 @@ export default function PlanEditor({ open, onOpenChange, plan }: PlanEditorProps
                 name: plan.name,
                 description: plan.description,
                 price: plan.price,
+                priceAnnual: plan.priceAnnual,
                 limits: plan.limits,
             });
         } else {
@@ -57,6 +59,7 @@ export default function PlanEditor({ open, onOpenChange, plan }: PlanEditorProps
                 name: '',
                 description: '',
                 price: 0,
+                priceAnnual: undefined,
                 limits: { agents: 0, storageGb: 0, apiCalls: 0 },
             });
         }
@@ -69,6 +72,7 @@ export default function PlanEditor({ open, onOpenChange, plan }: PlanEditorProps
     try {
         const planData: SubscriptionPlan = {
             ...values,
+            priceAnnual: values.priceAnnual || values.price * 10, // Default discount
             currency: 'AOA',
             active: plan?.active ?? true,
             features: plan?.features ?? [],
@@ -102,9 +106,14 @@ export default function PlanEditor({ open, onOpenChange, plan }: PlanEditorProps
              <FormField control={form.control} name="description" render={({ field }) => (
               <FormItem><FormLabel>Descrição</FormLabel><FormControl><Textarea placeholder="Ideal para municípios de média dimensão..." {...field} /></FormControl><FormMessage /></FormItem>
             )} />
-            <FormField control={form.control} name="price" render={({ field }) => (
-              <FormItem><FormLabel>Preço (AOA/mês)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
+             <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="price" render={({ field }) => (
+                <FormItem><FormLabel>Preço Mensal (AOA)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                 <FormField control={form.control} name="priceAnnual" render={({ field }) => (
+                <FormItem><FormLabel>Preço Anual (AOA)</FormLabel><FormControl><Input type="number" placeholder="Ex: 500000" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+            </div>
 
              <h4 className="font-semibold text-lg pt-4 border-t">Limites</h4>
              <p className="text-sm text-muted-foreground -mt-2">Use -1 para ilimitado.</p>

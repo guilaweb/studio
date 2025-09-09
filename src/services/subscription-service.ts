@@ -6,7 +6,7 @@ import { db } from '@/lib/firebase';
 import { doc, onSnapshot, updateDoc, collection, query, where, getDocs, addDoc, setDoc } from 'firebase/firestore';
 import type { Subscription, SubscriptionPlan, UserProfile } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
-import { addDays, formatISO } from 'date-fns';
+import { addDays, formatISO, addYears } from 'date-fns';
 import { usePoints } from '@/hooks/use-points';
 
 interface UsageData {
@@ -91,7 +91,7 @@ export const useSubscription = () => {
 };
 
 // Function to change the subscription plan for an organization
-export const changeSubscriptionPlan = async (organizationId: string, newPlan: SubscriptionPlan): Promise<void> => {
+export const changeSubscriptionPlan = async (organizationId: string, newPlan: SubscriptionPlan, billingCycle: 'monthly' | 'annual'): Promise<void> => {
     const subscriptionDocRef = doc(db, 'subscriptions', organizationId);
     
     if (!newPlan) {
@@ -99,28 +99,29 @@ export const changeSubscriptionPlan = async (organizationId: string, newPlan: Su
     }
     
     const now = new Date();
-    const nextMonth = addDays(now, 30);
+    const nextRenewalDate = billingCycle === 'annual' ? addYears(now, 1) : addDays(now, 30);
+    const amountToPay = billingCycle === 'annual' ? (newPlan.priceAnnual ?? newPlan.price * 10) : newPlan.price;
 
     const updateData = {
         planId: newPlan.id,
         currentPeriodStart: formatISO(now),
-        currentPeriodEnd: formatISO(nextMonth),
+        currentPeriodEnd: formatISO(nextRenewalDate),
         status: 'active',
-        limits: newPlan.limits, // Also update the limits on the subscription document itself
+        billingCycle,
+        limits: newPlan.limits,
     };
 
     try {
         await updateDoc(subscriptionDocRef, updateData);
 
-        // Add a record to the payment history
         const paymentsCollectionRef = collection(db, 'payments');
         await addDoc(paymentsCollectionRef, {
             organizationId,
-            amount: newPlan.price,
+            amount: amountToPay,
             date: now.toISOString(),
             planId: newPlan.id,
             status: 'completed',
-            description: `Subscrição do plano ${newPlan.name}`,
+            description: `Subscrição do plano ${newPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'})`,
         });
 
     } catch (err) {
@@ -141,6 +142,7 @@ export const createDefaultSubscription = async (organizationId: string, plan: Su
         status: 'trialing',
         currentPeriodStart: now.toISOString(),
         currentPeriodEnd: nextMonth.toISOString(),
+        billingCycle: 'monthly',
         cancelAtPeriodEnd: false,
         createdAt: now.toISOString(),
         limits: plan.limits,

@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -235,6 +236,7 @@ export const SubscriptionPlanSchema = z.object({
     name: z.string(),
     description: z.string(),
     price: z.number(),
+    priceAnnual: z.number().optional(),
     currency: z.string().default('AOA'),
     limits: z.object({
         agents: z.number().describe("Number of agents allowed. -1 for unlimited."),
@@ -257,6 +259,7 @@ export const SubscriptionSchema = z.object({
     status: SubscriptionStatusEnum,
     currentPeriodStart: z.string(), // ISO string
     currentPeriodEnd: z.string(), // ISO string
+    billingCycle: z.enum(['monthly', 'annual']).default('monthly'),
     cancelAtPeriodEnd: z.boolean(),
     createdAt: z.string(),
     limits: z.object({

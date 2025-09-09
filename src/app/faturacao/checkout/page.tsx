@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { withAuth, useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import PaymentDialog from '@/components/admin/faturacao/payment-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { changeSubscriptionPlan } from '@/services/subscription-service';
 import { useSubscriptionPlans } from '@/services/plans-service';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function CheckoutPage() {
   const searchParams = useSearchParams();
@@ -20,10 +21,11 @@ function CheckoutPage() {
   const { toast } = useToast();
   const planId = searchParams.get('plan');
   const { subscriptionPlans, loading: loadingPlans } = useSubscriptionPlans();
-  const [selectedPlan, setSelectedPlan] = React.useState<SubscriptionPlan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
 
-  const [isProcessing, setIsProcessing] = React.useState(false);
-  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   
   useEffect(() => {
     if (!loadingPlans && planId) {
@@ -58,7 +60,7 @@ function CheckoutPage() {
     setIsProcessing(true);
     setIsPaymentDialogOpen(false); // Close the dialog immediately
     try {
-        await changeSubscriptionPlan(profile.organizationId, selectedPlan);
+        await changeSubscriptionPlan(profile.organizationId, selectedPlan, billingCycle);
         toast({ title: 'Pagamento Confirmado!', description: `A sua subscrição foi atualizada para o plano ${selectedPlan.name}.` });
         router.push('/admin/faturacao');
     } catch (error) {
@@ -66,6 +68,10 @@ function CheckoutPage() {
         setIsProcessing(false);
     }
   }
+
+  const annualPrice = selectedPlan.priceAnnual ?? selectedPlan.price * 10;
+  const priceToPay = billingCycle === 'annual' ? annualPrice : selectedPlan.price;
+  const monthlyPriceIfAnnual = billingCycle === 'annual' ? (annualPrice / 12) : selectedPlan.price;
 
   return (
     <>
@@ -77,9 +83,20 @@ function CheckoutPage() {
           </CardHeader>
           <CardContent className="space-y-4">
               <div className="p-4 rounded-lg border bg-background">
-                  <div className="flex justify-between items-baseline">
+                  <div className="flex justify-between items-baseline mb-4">
                       <span className="text-lg font-semibold">{selectedPlan.name}</span>
-                      <span className="text-2xl font-bold">AOA {selectedPlan.price.toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/mês</span></span>
+                      <Tabs defaultValue="monthly" onValueChange={(value) => setBillingCycle(value as any)} className="w-auto">
+                        <TabsList>
+                            <TabsTrigger value="monthly">Mensal</TabsTrigger>
+                            <TabsTrigger value="annual">Anual</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                  </div>
+                  <div className="text-center bg-muted/50 p-4 rounded-md">
+                      <p className="text-3xl font-bold">AOA {priceToPay.toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/{billingCycle === 'annual' ? 'ano' : 'mês'}</span></p>
+                      {billingCycle === 'annual' && (
+                          <p className="text-xs text-green-600 font-semibold">Equivalente a AOA {monthlyPriceIfAnnual.toLocaleString(undefined, {maximumFractionDigits: 0})}/mês - Poupe até {(((selectedPlan.price * 12) - annualPrice) / (selectedPlan.price * 12) * 100).toFixed(0)}%!</p>
+                      )}
                   </div>
                   <ul className="mt-4 space-y-1 text-sm text-muted-foreground">
                       <li>Até {selectedPlan.limits.agents === -1 ? 'ilimitados' : selectedPlan.limits.agents} agentes</li>
@@ -105,7 +122,7 @@ function CheckoutPage() {
         open={isPaymentDialogOpen}
         onOpenChange={setIsPaymentDialogOpen}
         onConfirm={handleConfirmPayment}
-        planName={selectedPlan.name}
+        planName={`${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'})`}
         isChangingPlan={isProcessing}
       />
     </>

@@ -113,7 +113,10 @@ function BillingPage() {
                                             <CardDescription>{currentPlan.description}</CardDescription>
                                         </div>
                                         <div className="text-left md:text-right">
-                                            <p className="text-3xl font-bold">AOA {currentPlan.price.toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
+                                             <p className="text-3xl font-bold">
+                                                AOA {subscription?.billingCycle === 'annual' ? currentPlan.priceAnnual?.toLocaleString() : currentPlan.price.toLocaleString()}
+                                                <span className="text-sm font-normal text-muted-foreground">/{subscription?.billingCycle === 'annual' ? 'ano' : 'mês'}</span>
+                                            </p>
                                             {subscription && subscription.status !== 'trialing' && <p className="text-xs text-muted-foreground">Renova em {format(new Date(subscription.currentPeriodEnd), "dd 'de' MMMM, yyyy", { locale: pt })}</p>}
                                             {subscription?.status === 'trialing' && <p className="text-xs text-muted-foreground">O seu período de teste termina em {format(new Date(subscription.currentPeriodEnd), "dd 'de' MMMM, yyyy", { locale: pt })}</p>}
                                         </div>

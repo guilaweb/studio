@@ -17,6 +17,7 @@ const seedDefaultPlans = async () => {
             name: 'Plano Gratuito',
             description: 'Para experimentar a plataforma e para pequenas equipas.',
             price: 0,
+            priceAnnual: 0,
             currency: 'AOA',
             limits: { agents: 2, storageGb: 1, apiCalls: 1000 },
             features: ['Até 2 agentes', '1GB de armazenamento'],
@@ -27,6 +28,7 @@ const seedDefaultPlans = async () => {
             name: 'Plano Profissional',
             description: 'Ideal para municípios de média dimensão e empresas.',
             price: 50000,
+            priceAnnual: 500000, // Pay for 10 months
             currency: 'AOA',
             limits: { agents: 10, storageGb: 10, apiCalls: 10000 },
             features: ['Até 10 agentes', '10GB de armazenamento', 'Suporte prioritário'],
@@ -37,6 +39,7 @@ const seedDefaultPlans = async () => {
             name: 'Plano Empresarial',
             description: 'Soluções à medida para grandes organizações.',
             price: 250000,
+            priceAnnual: 2500000, // Pay for 10 months
             currency: 'AOA',
             limits: { agents: -1, storageGb: -1, apiCalls: -1 }, // -1 for unlimited
             features: ['Agentes ilimitados', 'Armazenamento ilimitado', 'API e integrações'],
@@ -106,8 +109,6 @@ export const useSubscriptionPlans = () => {
 export const saveSubscriptionPlan = async (plan: SubscriptionPlan, isEditing: boolean): Promise<void> => {
     try {
         const planDocRef = doc(db, 'subscriptionPlans', plan.id);
-        // Using merge:true for updates is safer as it won't overwrite fields not included in the form.
-        // For creation, a simple setDoc is sufficient.
         if (isEditing) {
             await setDoc(planDocRef, plan, { merge: true });
         } else {
