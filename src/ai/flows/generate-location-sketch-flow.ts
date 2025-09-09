@@ -46,7 +46,7 @@ const prompt = ai.definePrompt({
             *   Create a professional-looking table with the vertices of the plot.
             *   Columns: "VERT.", "COORDENADA ESTE (m)", "COORDENADA NORTE (m)", "LATITUDE", "LONGITUDE".
             *   **Simulate plausible UTM-like coordinates for "ESTE" and "NORTE".** A simple, consistent transformation is fine (e.g., add a large base value and multiply by a factor). The goal is realism, not geodetic accuracy.
-            *   Format Latitude and Longitude to two decimal places.
+            *   Format Latitude and Longitude to six decimal places.
 
         5.  **Footer Area:**
             *   A container div using flexbox (\`display: flex; justify-content: space-between;\`) for the details.
@@ -57,8 +57,7 @@ const prompt = ai.definePrompt({
             *   **Graphical Scale:** Create a simple visual scale bar using styled divs. It should represent an approximate distance (e.g., 50m).
 
         **Input Data:**
-        - Plot Data: {{{json plot}}}
-        - Project Data: {{{json project}}}
+        - Croqui Data: {{{json croqui}}}
 
         Generate the full HTML document now, following all instructions precisely.
     `,
@@ -78,3 +77,4 @@ const generateLocationSketchFlow = ai.defineFlow(
         };
     }
 );
+

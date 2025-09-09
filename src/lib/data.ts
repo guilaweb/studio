@@ -517,8 +517,7 @@ export type AnalyzePropertyDocumentOutput = z.infer<typeof AnalyzePropertyDocume
 
 
 export const GenerateLocationSketchInputSchema = z.object({
-  plot: PointOfInterestSchema,
-  project: PointOfInterestSchema,
+  croqui: PointOfInterestSchema,
 });
 export type GenerateLocationSketchInput = z.infer<typeof GenerateLocationSketchInputSchema>;
 

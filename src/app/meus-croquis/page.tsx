@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import CroquiEditDialog from "@/components/meus-croquis/croqui-edit-dialog";
+import { generateLocationSketch } from "@/services/sketch-service";
 
 const CroquiCard = ({ croqui, onShare, onSelect, isSelected, onEdit, onGenerateDocument }: { croqui: PointOfInterest, onShare: (id: string, title: string) => void, onSelect: (id: string, selected: boolean) => void, isSelected: boolean, onEdit: (croqui: PointOfInterest) => void, onGenerateDocument: (croqui: PointOfInterest) => void }) => {
     return (
@@ -75,6 +76,7 @@ function MeusCroquisPage() {
     const { toast } = useToast();
     const [selectedCroquis, setSelectedCroquis] = React.useState<string[]>([]);
     const [croquiToEdit, setCroquiToEdit] = React.useState<PointOfInterest | null>(null);
+    const [generatingDocId, setGeneratingDocId] = React.useState<string | null>(null);
 
     const userCroquisByCollection = React.useMemo(() => {
         if (!user) return {};
@@ -132,8 +134,21 @@ function MeusCroquisPage() {
         setCroquiToEdit(null);
     };
     
-    const handleGenerateDocument = (croqui: PointOfInterest) => {
-        router.push(`/croquis/${croqui.id}/documento`);
+    const handleGenerateDocument = async (croqui: PointOfInterest) => {
+        setGeneratingDocId(croqui.id);
+        try {
+            const result = await generateLocationSketch({ croqui });
+            localStorage.setItem('sketchPreview', result.sketchHtml);
+            window.open('/licenca/sketch-preview', '_blank');
+        } catch (error) {
+             toast({
+                variant: "destructive",
+                title: "Erro ao Gerar Documento",
+                description: "Não foi possível gerar o croqui. Tente novamente.",
+            });
+        } finally {
+            setGeneratingDocId(null);
+        }
     };
 
 
