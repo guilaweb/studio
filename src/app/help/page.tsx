@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -111,7 +110,7 @@ export default function HelpPage() {
                             </Link>
                         </Button>
                         <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                            Ajuda & FAQ
+                            Ajuda &amp; FAQ
                         </h1>
                     </header>
                     <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-6">
