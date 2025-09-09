@@ -133,7 +133,6 @@ export default function RegisterPage() {
       
       await runTransaction(db, async (transaction) => {
         const usersCollectionRef = collection(db, "users");
-        // Check if there are any users already to determine if this is the first one.
         const usersSnapshot = await getDocs(usersCollectionRef);
         const isFirstUser = usersSnapshot.empty;
 
@@ -144,13 +143,13 @@ export default function RegisterPage() {
             photoURL: user.photoURL || null,
             role: isFirstUser ? "Administrador" : "Cidadao",
             createdAt: new Date().toISOString(),
-            onboardingCompleted: false,
+            onboardingCompleted: false, // Ensure this is set for all new users
         });
       });
 
       toast({
         title: "Conta criada com sucesso!",
-        description: "A sua conta foi criada e já pode fazer login.",
+        description: "A sua conta foi criada. Será agora redirecionado.",
       });
       router.push("/");
     } catch (error: any) {

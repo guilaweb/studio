@@ -1,12 +1,11 @@
 
-
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot, setDoc, getDoc, collection, getDocs, runTransaction } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc, collection, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import type { UserProfile, Subscription, SubscriptionPlan, SubscriptionStatus } from '@/lib/data';
 import { useToast } from './use-toast';
 
@@ -95,8 +94,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                         const organizationId = await createDefaultOrganization(user.uid, orgName);
                         
                         // Update the user's profile with the new org ID
-                        await setDoc(userDocRef, { organizationId }, { merge: true });
+                        await setDoc(userDocRef, { organizationId, onboardingCompleted: false }, { merge: true });
                         profileData.organizationId = organizationId;
+                        profileData.onboardingCompleted = false;
 
                     } catch (e) {
                          console.error("Failed to create organization for first admin:", e);
@@ -106,16 +106,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setProfile(profileData);
             } else {
                 console.warn(`User profile for ${user.uid} not found. This might be a new registration.`);
-                // If it's a new user, the registration flow will create the profile.
-                // For now, we can set a temporary minimal profile or null.
-                 const usersCollectionRef = collection(db, "users");
-                 const usersSnapshot = await getDoc(userDocRef);
-                 if (!usersSnapshot.exists()) {
-                     // It is indeed a new user (likely from Google sign-in) who doesn't have a doc yet.
-                     // The registration logic in login/register pages should handle creation.
-                 } else {
-                     setProfile(null);
-                 }
+                // This case handles a newly signed-up user via Google where the doc might not exist yet.
+                // The registration flow will create the profile, so we can temporarily set profile to null.
+                setProfile(null);
             }
             setLoading(false);
         }, (error) => {

@@ -27,7 +27,7 @@ export default function Home() {
             <MainPageHandler 
                 userMenu={<UserMenu user={user} loading={loading} logout={logout} profile={profile} />} 
             />
-            <OnboardingWizard />
+            {profile?.role === 'Administrador' && <OnboardingWizard />}
         </Suspense>
     </APIProvider>
   );
