@@ -23,6 +23,20 @@ export const useSubscription = () => {
     const [usage, setUsage] = useState<UsageData>({ agents: 0, storage: 0, apiCalls: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [users, setUsers] = useState<UserProfile[]>([]);
+
+    useEffect(() => {
+        if (!profile?.organizationId) {
+            return;
+        }
+        const usersCollectionRef = collection(db, 'users');
+        const q = query(usersCollectionRef, where("organizationId", "==", profile.organizationId), where("role", "==", "Agente Municipal"));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setUsage(prev => ({...prev, agents: snapshot.size}));
+        });
+        return () => unsubscribe();
+    }, [profile?.organizationId]);
+
 
     useEffect(() => {
         if (authLoading) {
@@ -37,17 +51,7 @@ export const useSubscription = () => {
 
         if (!profile.organizationId) {
             setLoading(false);
-            console.warn("User has a profile but no organization ID.");
-            setSubscription({
-                id: 'virtual-free',
-                organizationId: 'none',
-                planId: 'free',
-                status: 'active',
-                currentPeriodStart: new Date().toISOString(),
-                currentPeriodEnd: addDays(new Date(), 30).toISOString(),
-                cancelAtPeriodEnd: false,
-                createdAt: new Date().toISOString(),
-            });
+            setSubscription(null); // No subscription if no organization
             return;
         }
 
@@ -57,8 +61,8 @@ export const useSubscription = () => {
             if (doc.exists()) {
                 setSubscription({ id: doc.id, ...doc.data() } as Subscription);
             } else {
-                console.error(`CRITICAL: Subscription for organization ${profile.organizationId} not found.`);
-                setError("Subscription not found.");
+                console.warn(`Subscription for organization ${profile.organizationId} not found.`);
+                setError("Subscrição não encontrada. Por favor contacte o suporte.");
                 setSubscription(null);
             }
             setLoading(false);
@@ -68,25 +72,18 @@ export const useSubscription = () => {
             setLoading(false);
         });
 
-        // Fetch usage data
-        const usersCollectionRef = collection(db, 'users');
-        const q = query(usersCollectionRef, where("organizationId", "==", profile.organizationId), where("role", "==", "Agente Municipal"));
-
-        const unsubscribeUsage = onSnapshot(q, (snapshot) => {
-            // Here we use the total number of points as a proxy for API calls and storage
-            // In a real app, this would be tracked by backend services.
-            const storageUsageGB = parseFloat((JSON.stringify(allData).length / (1024 * 1024 * 1024)).toFixed(4));
-            
-            setUsage({ 
-                agents: snapshot.size,
-                storage: storageUsageGB,
-                apiCalls: allData.length * 5, // A simple proxy for API calls
-            });
-        });
+        // Here we use the total number of points as a proxy for API calls and storage
+        // In a real app, this would be tracked by backend services.
+        const storageUsageGB = parseFloat((JSON.stringify(allData).length / (1024 * 1024 * 1024)).toFixed(4));
+        
+        setUsage(prev => ({ 
+            ...prev,
+            storage: storageUsageGB,
+            apiCalls: allData.length * 5, // A simple proxy for API calls
+        }));
 
         return () => {
             unsubscribeSub();
-            unsubscribeUsage();
         };
     }, [profile, authLoading, allData]);
 

@@ -5,7 +5,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot, setDoc, getDoc, collection, query, where, getDocs, runTransaction, getDocsFromCache } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc, collection, query, where, getDocs, runTransaction, getDocsFromCache, updateDoc } from 'firebase/firestore';
 import type { UserProfile, Subscription, SubscriptionPlan, SubscriptionStatus } from '@/lib/data';
 import { useToast } from './use-toast';
 import { useSubscriptionPlans } from '@/services/plans-service';
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                         const organizationId = await createDefaultOrganizationAndSubscription(user.uid, orgName, freePlan);
                         
                         // Update the user's profile with the new org ID
-                        await setDoc(userDocRef, { organizationId, onboardingCompleted: false }, { merge: true });
+                        await updateDoc(userDocRef, { organizationId: organizationId, onboardingCompleted: false });
                         profileData.organizationId = organizationId;
                         profileData.onboardingCompleted = false;
 
