@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -162,6 +163,7 @@ export const UserProfileSchema = z.object({
     role: z.enum(['Cidadao', 'Agente Municipal', 'Administrador', 'Epidemiologista']),
     createdAt: z.string().optional(),
     onboardingCompleted: z.boolean().optional(),
+    organizationId: z.string().optional(), // To link user to a municipality/company
     // Team management fields
     status: z.enum(['Disponível', 'Em Rota', 'Ocupado', 'Offline']).optional(),
     location: PositionSchema.optional().nullable(),
@@ -188,7 +190,6 @@ export const UserProfileSchema = z.object({
         lastServiceDate: z.string().optional(), // ISO string
         lastServiceOdometer: z.number().optional(),
     }).optional(),
-    organizationId: z.string().optional(), // To link user to a municipality/company
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 

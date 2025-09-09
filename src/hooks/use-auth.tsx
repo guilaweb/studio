@@ -1,11 +1,12 @@
 
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot, setDoc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc, collection, getDocs, runTransaction } from 'firebase/firestore';
 import type { UserProfile, Subscription, SubscriptionPlan, SubscriptionStatus } from '@/lib/data';
 import { useToast } from './use-toast';
 
@@ -88,12 +89,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 // Onboarding for the very first admin user
                 if (profileData.role === 'Administrador' && !profileData.organizationId) {
                     setLoading(true); // Hold loading state while we create the org
-                    const orgName = `${profileData.displayName}'s Municipality`;
-                    const organizationId = await createDefaultOrganization(user.uid, orgName);
                     
-                    // Update the user's profile with the new org ID
-                    await setDoc(userDocRef, { organizationId }, { merge: true });
-                    profileData.organizationId = organizationId;
+                    try {
+                        const orgName = `${profileData.displayName}'s Municipality`;
+                        const organizationId = await createDefaultOrganization(user.uid, orgName);
+                        
+                        // Update the user's profile with the new org ID
+                        await setDoc(userDocRef, { organizationId }, { merge: true });
+                        profileData.organizationId = organizationId;
+
+                    } catch (e) {
+                         console.error("Failed to create organization for first admin:", e);
+                    }
                 }
 
                 setProfile(profileData);

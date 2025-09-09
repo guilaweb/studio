@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -9,27 +10,27 @@ import { useAuth } from '@/hooks/use-auth';
 
 // Hook to get the subscription for the current user's organization
 export const useSubscription = () => {
-    const { profile } = useAuth();
+    const { profile, loading: authLoading } = useAuth();
     const [subscription, setSubscription] = useState<Subscription | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (authLoading) {
+            return; // Wait for authentication to resolve
+        }
+
         if (!profile) {
-            if (!profile && !loading) {
-                 // If not loading and still no profile, it's a non-org user.
-                setLoading(false);
-                setSubscription(null);
-            }
+            // If not loading and still no profile, it might be a non-org user or loading profile failed.
+            setLoading(false);
+            setSubscription(null);
             return;
         }
 
         if (!profile.organizationId) {
             setLoading(false);
             console.warn("User has a profile but no organization ID.");
-            // This might happen for a brief moment for the first admin.
-            // Or for regular citizens.
-            setSubscription(null);
+            setSubscription(null); // No organization, so no subscription.
             return;
         }
 
@@ -51,7 +52,7 @@ export const useSubscription = () => {
         });
 
         return () => unsubscribe();
-    }, [profile, loading]);
+    }, [profile, authLoading]);
 
     return { subscription, loading, error };
 };
