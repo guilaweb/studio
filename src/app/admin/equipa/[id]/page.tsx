@@ -6,13 +6,12 @@ import { useParams, useRouter } from "next/navigation";
 import { withAuth } from "@/hooks/use-auth";
 import { useUserProfile } from "@/services/user-service";
 import { useFuelEntries } from "@/services/fuel-service";
-import { useMaintenancePlans } from "@/services/maintenance-service";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, Car, Fuel, TrendingUp, AlertTriangle, User, Wrench } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Line, LineChart, Legend } from "recharts";
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Legend } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -43,7 +42,7 @@ function VehicleDetailPage() {
     const { allData: allPoints, loading: loadingPoints } = usePoints();
 
     const vehicleFuelEntries = React.useMemo(() => {
-        return fuelEntries.filter(entry => entry.vehicleId === vehicleId);
+        return fuelEntries.filter(entry => entry.vehicleId === vehicleId).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [fuelEntries, vehicleId]);
 
     const vehicleStats = React.useMemo(() => {
@@ -68,7 +67,8 @@ function VehicleDetailPage() {
             }
         }
         
-        const avgConsumption = consumptions.length > 0 ? consumptions.reduce((acc, c) => acc + c, 0) / consumptions.length : 0;
+        const totalLiters = sortedEntries.reduce((acc, c) => acc + c.liters, 0);
+        const avgConsumption = totalDistance > 0 ? (totalLiters / totalDistance) * 100 : 0; // L/100km
         
         return { totalDistance, avgConsumption, consumptionData: consumptions };
 
@@ -130,12 +130,12 @@ function VehicleDetailPage() {
             <main className="grid flex-1 items-start gap-6 p-4 sm:px-6 sm:py-6">
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
                         <Card>
-                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Distância (Últimos Abast.)</CardTitle><Car className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Distância Total (Aprox)</CardTitle><Car className="h-4 w-4 text-muted-foreground"/></CardHeader>
                             <CardContent><div className="text-2xl font-bold">{vehicleStats.totalDistance.toLocaleString('pt-PT')} km</div></CardContent>
                         </Card>
                          <Card>
                             <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Consumo Médio</CardTitle><Fuel className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">{vehicleStats.avgConsumption.toFixed(2)} km/L</div></CardContent>
+                            <CardContent><div className="text-2xl font-bold">{vehicleStats.avgConsumption.toFixed(2)} L/100km</div></CardContent>
                         </Card>
                          <Card>
                             <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Pontuação Desempenho</CardTitle><TrendingUp className="h-4 w-4 text-muted-foreground"/></CardHeader>
@@ -261,5 +261,3 @@ function VehicleDetailPage() {
 }
 
 export default withAuth(VehicleDetailPage, ['Agente Municipal', 'Administrador']);
-
-    

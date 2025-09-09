@@ -9,10 +9,9 @@ import { usePoints } from "@/hooks/use-points";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Legend, Tooltip as RechartsTooltip, Scatter, ScatterChart } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, DollarSign, Fuel, Wrench, TrendingUp, Droplets, Route } from "lucide-react";
+import { ArrowLeft, DollarSign, Fuel, Wrench } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 function CostAnalysisPage() {
     const { fuelEntries, loading: loadingFuel } = useFuelEntries();

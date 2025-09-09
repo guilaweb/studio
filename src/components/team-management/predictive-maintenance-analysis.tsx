@@ -88,8 +88,8 @@ const PredictiveMaintenanceAnalysis: React.FC<PredictiveMaintenanceAnalysisProps
                             const config = priorityConfig[prediction.priority];
                             return (
                                 <div key={index} className="flex items-start gap-4 p-3 border rounded-lg bg-background group">
-                                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${config.color}/10 flex-shrink-0`}>
-                                        <Wrench className={`h-5 w-5 ${config.color}`} />
+                                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0`}>
+                                        <Wrench className={`h-5 w-5 text-primary`} />
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between">
@@ -109,5 +109,3 @@ const PredictiveMaintenanceAnalysis: React.FC<PredictiveMaintenanceAnalysisProps
 };
 
 export default PredictiveMaintenanceAnalysis;
-
-    

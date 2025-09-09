@@ -1,12 +1,11 @@
 
-
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { UserProfile, UserProfileWithStats } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, ChevronsUpDown, MoreHorizontal, Link as LinkIcon, Wrench, Car } from "lucide-react";
+import { ArrowUpDown, ChevronsUpDown, MoreHorizontal, Link as LinkIcon, Car } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,9 +15,6 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent
 } from "@/components/ui/dropdown-menu";
 import * as React from "react";
 import Link from "next/link";
