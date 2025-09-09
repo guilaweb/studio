@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, AreaChart, Fuel, Wrench, Sun, Hospital, Stethoscope, CreditCard } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, AreaChart, Fuel, Wrench, Sun, Hospital, Stethoscope, CreditCard, Package } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -124,6 +124,7 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <DropdownMenuItem asChild><Link href="/admin/analise-custos">Análise de Custos</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/relatorios">Relatórios Financeiros</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/fornecedores">Portal de Fornecedores</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/admin/inventario">Inventário de Peças</Link></DropdownMenuItem>
                             </DropdownMenuSubContent>
                         </DropdownMenuSub>
                         <DropdownMenuItem asChild>
