@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, EyeOff, Eye, Globe, Plus, Loader2, Trash2, MapPin, Wrench, Fuel, CreditCard, Save } from "lucide-react";
+import { ArrowLeft, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, EyeOff, Eye, Globe, Plus, Loader2, Trash2, MapPin, Wrench, Fuel, CreditCard } from "lucide-react";
 import { usePublicLayerSettings, updatePublicLayerSettings } from "@/services/settings-service";
 import type { ActiveLayers, Layer, SubscriptionPlan } from "@/lib/data";
 import { Switch } from "@/components/ui/switch";
@@ -475,3 +475,5 @@ function AdminSettingsPage() {
 }
 
 export default withAuth(AdminSettingsPage, ['Administrador']);
+
+    
