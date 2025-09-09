@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
@@ -20,16 +21,29 @@ import * as React from "react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import MaintenancePlanSelector from "./maintenance-plan-selector";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type RoleUpdateHandler = (uid: string, role: UserProfile['role']) => Promise<void>;
 type UserUpdateHandler = (uid: string, data: Partial<UserProfile>) => Promise<void>;
 
-const RoleSelector = ({ user, onUpdateUserRole }: { user: UserProfile, onUpdateUserRole: RoleUpdateHandler }) => {
+const RoleSelector = ({ user, onUpdateUserRole, agentCount, agentLimit }: { user: UserProfile, onUpdateUserRole: RoleUpdateHandler, agentCount: number, agentLimit: number }) => {
     const [currentRole, setCurrentRole] = React.useState(user.role);
     const { toast } = useToast();
+    
+    const isAgentLimitReached = agentLimit !== -1 && agentCount >= agentLimit;
+    const canBecomeAgent = user.role !== 'Agente Municipal' && isAgentLimitReached;
 
     const handleRoleChange = async (newRole: UserProfile['role']) => {
         if (newRole === currentRole) return;
+        if (newRole === 'Agente Municipal' && canBecomeAgent) {
+             toast({
+                variant: "destructive",
+                title: "Limite de Agentes Atingido",
+                description: "O seu plano atual não permite adicionar mais agentes. Por favor, faça um upgrade.",
+            });
+            return;
+        }
+
         try {
             await onUpdateUserRole(user.uid, newRole);
             setCurrentRole(newRole);
@@ -47,6 +61,12 @@ const RoleSelector = ({ user, onUpdateUserRole }: { user: UserProfile, onUpdateU
         }
     }
 
+    const agentOption = (
+        <DropdownMenuRadioItem value="Agente Municipal" disabled={canBecomeAgent}>
+            Agente Municipal
+        </DropdownMenuRadioItem>
+    );
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -58,7 +78,18 @@ const RoleSelector = ({ user, onUpdateUserRole }: { user: UserProfile, onUpdateU
             <DropdownMenuContent>
                 <DropdownMenuRadioGroup value={currentRole} onValueChange={(value) => handleRoleChange(value as UserProfile['role'])}>
                      <DropdownMenuRadioItem value="Cidadao">Cidadao</DropdownMenuRadioItem>
-                     <DropdownMenuRadioItem value="Agente Municipal">Agente Municipal</DropdownMenuRadioItem>
+                     {canBecomeAgent ? (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span>{agentOption}</span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Limite de agentes ({agentLimit}) atingido. <Link href="/admin/faturacao" className="font-bold underline">Faça um upgrade</Link>.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                     ) : agentOption }
                      <DropdownMenuRadioItem value="Administrador">Administrador</DropdownMenuRadioItem>
                      <DropdownMenuRadioItem value="Epidemiologista">Epidemiologista</DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
@@ -134,8 +165,8 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
     header: "Permissão",
     cell: ({ row, table }) => {
         const user = row.original;
-        const { onUpdateUserRole } = table.options.meta as any;
-        return <RoleSelector user={user} onUpdateUserRole={onUpdateUserRole} />
+        const { onUpdateUserRole, agentCount, agentLimit } = table.options.meta as any;
+        return <RoleSelector user={user} onUpdateUserRole={onUpdateUserRole} agentCount={agentCount} agentLimit={agentLimit} />
     }
   },
   {
