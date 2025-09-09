@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, DollarSign, Fuel, Wrench } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { CostItem } from "../relatorios/page";
 
 function CostAnalysisPage() {
     const { fuelEntries, loading: loadingFuel } = useFuelEntries();
@@ -19,26 +20,39 @@ function CostAnalysisPage() {
     const { users, loading: loadingUsers } = useUsers();
 
     const costData = React.useMemo(() => {
-        const fuelCosts = fuelEntries.map(e => ({ ...e, type: 'Combustível', partsCost: 0, laborCost: 0, cost: e.cost }));
-        const maintenanceCosts = allPoints
+        const fuelCosts: CostItem[] = fuelEntries.map(e => ({
+            id: e.id!,
+            date: e.date,
+            vehicleId: e.vehicleId,
+            vehiclePlate: e.vehiclePlate,
+            driverName: e.driverName,
+            type: 'Combustível',
+            description: `${e.liters.toFixed(2)} L @ AOA ${(e.cost / e.liters).toFixed(2)}/L`,
+            cost: e.cost,
+            partsCost: 0,
+            laborCost: 0,
+        }));
+
+        const maintenanceCosts: CostItem[] = allPoints
             .filter(p => p.type === 'incident' && p.maintenanceId && p.status === 'collected')
             .map(p => ({
                 id: p.id,
-                date: p.lastReported,
+                date: p.lastReported!,
+                vehicleId: p.maintenanceId!.split('-')[0],
+                vehiclePlate: users.find(u => u.uid === p.maintenanceId?.split('-')[0])?.vehicle?.plate || 'N/A',
+                driverName: users.find(u => u.uid === p.maintenanceId?.split('-')[0])?.displayName || 'N/A',
+                type: 'Manutenção',
+                description: p.title.split(' - ')[0],
                 cost: (p.partsCost || 0) + (p.laborCost || 0),
                 partsCost: p.partsCost || 0,
                 laborCost: p.laborCost || 0,
-                type: 'Manutenção',
-                description: p.title,
-                vehiclePlate: users.find(u => u.uid === p.maintenanceId?.split('-')[0])?.vehicle?.plate || 'N/A',
-                vehicleId: p.maintenanceId?.split('-')[0] || ''
             }));
 
         const allCosts = [...fuelCosts, ...maintenanceCosts].sort((a, b) => new Date(b.date!).getTime() - new Date(a.date!).getTime());
         
         const totalFuelCost = fuelCosts.reduce((acc, curr) => acc + curr.cost, 0);
-        const totalPartsCost = maintenanceCosts.reduce((acc, curr) => acc + curr.partsCost, 0);
-        const totalLaborCost = maintenanceCosts.reduce((acc, curr) => acc + curr.laborCost, 0);
+        const totalPartsCost = maintenanceCosts.reduce((acc, curr) => acc + curr.partsCost!, 0);
+        const totalLaborCost = maintenanceCosts.reduce((acc, curr) => acc + curr.laborCost!, 0);
         const totalMaintenanceCost = totalPartsCost + totalLaborCost;
         const totalCost = totalFuelCost + totalMaintenanceCost;
 
@@ -65,8 +79,8 @@ function CostAnalysisPage() {
                 performanceScore: user.stats?.performanceScore || 0,
                 // for bar chart
                 Combustível: fuelCost,
-                'Peças': userMaintenanceCosts.reduce((s, m) => s + m.partsCost, 0),
-                'Mão de Obra': userMaintenanceCosts.reduce((s, m) => s + m.laborCost, 0),
+                'Peças': userMaintenanceCosts.reduce((s, m) => s + m.partsCost!, 0),
+                'Mão de Obra': userMaintenanceCosts.reduce((s, m) => s + m.laborCost!, 0),
             }
         }).filter(d => d.totalDistance > 0);
 

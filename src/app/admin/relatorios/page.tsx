@@ -51,7 +51,7 @@ function FinancialReportsPage() {
                 id: p.id,
                 date: p.lastReported!,
                 vehicleId: p.maintenanceId!.split('-')[0], // Extract vehicleId from maintenanceId
-                vehiclePlate: p.title.split(' - ')[1] || 'N/A', // Extract plate from title
+                vehiclePlate: users.find(u => u.uid === p.maintenanceId?.split('-')[0])?.vehicle?.plate || 'N/A',
                 driverName: users.find(u => u.uid === p.maintenanceId?.split('-')[0])?.displayName || 'N/A',
                 type: 'Manutenção',
                 description: p.title.split(' - ')[0],
