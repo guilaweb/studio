@@ -155,18 +155,27 @@ function BillingPage() {
                                             </li>
                                         ))}
                                     </ul>
-                                    <Button 
-                                        className="w-full mt-auto" 
-                                        onClick={() => handlePlanChange(key as SubscriptionPlan)}
-                                        disabled={isChangingPlan !== null || key === 'enterprise'}
-                                    >
-                                        {isChangingPlan === key ? (
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                        ) : (
-                                            <Zap className="mr-2 h-4 w-4"/>
-                                        )}
-                                        {isChangingPlan === key ? 'A Mudar...' : (key === 'enterprise' ? 'Contactar Vendas' : 'Fazer Upgrade')}
-                                    </Button>
+                                    {key === 'enterprise' ? (
+                                        <Button className="w-full mt-auto" asChild>
+                                            <Link href="/governo/solicitar">
+                                                <Zap className="mr-2 h-4 w-4"/>
+                                                Contactar Vendas
+                                            </Link>
+                                        </Button>
+                                    ) : (
+                                        <Button 
+                                            className="w-full mt-auto" 
+                                            onClick={() => handlePlanChange(key as SubscriptionPlan)}
+                                            disabled={isChangingPlan !== null}
+                                        >
+                                            {isChangingPlan === key ? (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                            ) : (
+                                                <Zap className="mr-2 h-4 w-4"/>
+                                            )}
+                                            {isChangingPlan === key ? 'A Mudar...' : 'Fazer Upgrade'}
+                                        </Button>
+                                    )}
                                 </CardContent>
                             </Card>
                         ))}
