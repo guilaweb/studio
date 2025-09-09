@@ -7,28 +7,24 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle, Zap, Loader2, Download, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSubscription, changeSubscriptionPlan } from "@/services/subscription-service";
+import { useSubscription } from "@/services/subscription-service";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { planDetails } from "@/lib/data";
-import { useToast } from "@/hooks/use-toast";
 import type { SubscriptionPlan, Payment } from "@/lib/data";
 import { Separator } from "@/components/ui/separator";
 import UsageProgressBar from "@/components/usage-progress-bar";
-import PaymentDialog from "@/components/admin/faturacao/payment-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { usePayments } from "@/services/payment-service";
+import { useRouter } from "next/navigation";
 
 function BillingPage() {
     const { subscription, usage, loading } = useSubscription();
     const { payments, loading: loadingPayments } = usePayments();
     const { profile } = useAuth();
-    const { toast } = useToast();
-    const [isChangingPlan, setIsChangingPlan] = React.useState(false);
-    const [selectedPlan, setSelectedPlan] = React.useState<SubscriptionPlan | null>(null);
-    const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
+    const router = useRouter();
 
     const currentPlanKey = subscription?.plan || 'free';
     const currentPlan = planDetails[currentPlanKey as keyof typeof planDetails];
@@ -49,31 +45,7 @@ function BillingPage() {
     };
     
     const handlePlanChangeClick = (newPlan: SubscriptionPlan) => {
-        if (!profile?.organizationId) {
-            toast({ variant: "destructive", title: "Erro", description: "ID da organização não encontrado." });
-            return;
-        }
-        setSelectedPlan(newPlan);
-        setIsPaymentDialogOpen(true);
-    };
-
-    const handleConfirmPayment = async () => {
-        if (!profile?.organizationId || !selectedPlan) return;
-        
-        setIsChangingPlan(true);
-        try {
-            await changeSubscriptionPlan(profile.organizationId, selectedPlan);
-            toast({
-                title: "Plano Atualizado!",
-                description: `A sua subscrição foi alterada para o plano ${planDetails[selectedPlan].name}. A sua fatura aparecerá no histórico abaixo.`,
-            });
-        } catch (error) {
-            toast({ variant: "destructive", title: "Erro ao Mudar de Plano", description: "Não foi possível atualizar a sua subscrição."});
-        } finally {
-            setIsChangingPlan(false);
-            setIsPaymentDialogOpen(false);
-            setSelectedPlan(null);
-        }
+        router.push(`/faturacao/checkout?plan=${newPlan}`);
     };
     
      const handleDownloadInvoice = (payment: Payment) => {
@@ -204,14 +176,9 @@ function BillingPage() {
                                             <Button 
                                                 className="w-full mt-auto" 
                                                 onClick={() => handlePlanChangeClick(key as SubscriptionPlan)}
-                                                disabled={isChangingPlan}
                                             >
-                                                {isChangingPlan ? (
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                                ) : (
-                                                    <Zap className="mr-2 h-4 w-4"/>
-                                                )}
-                                                {isChangingPlan ? 'A Mudar...' : 'Fazer Upgrade'}
+                                                <Zap className="mr-2 h-4 w-4"/>
+                                                Fazer Upgrade
                                             </Button>
                                         )}
                                     </CardContent>
@@ -262,13 +229,6 @@ function BillingPage() {
 
                 </main>
             </div>
-            <PaymentDialog
-                open={isPaymentDialogOpen}
-                onOpenChange={setIsPaymentDialogOpen}
-                onConfirm={handleConfirmPayment}
-                planName={selectedPlan ? planDetails[selectedPlan].name : ''}
-                isChangingPlan={isChangingPlan}
-            />
         </>
     );
 }
