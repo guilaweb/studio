@@ -22,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -1091,8 +1091,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             Mapear Unidade Sanitária
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStartReporting('croqui')}>
-                            <Share2 className="mr-2 h-4 w-4" />
-                            Criar Croqui de Localização
+                            <Package className="mr-2 h-4 w-4" />
+                            Mapa de Localização (Croqui)
                         </DropdownMenuItem>
                          <DropdownMenuItem onClick={() => handleStartReporting('fuel_station')}>
                             <Fuel className="mr-2 h-4 w-4" />
@@ -1211,8 +1211,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             Mapear Unidade Sanitária
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStartReporting('croqui')}>
-                            <Share2 className="mr-2 h-4 w-4" />
-                            Criar Croqui
+                            <Package className="mr-2 h-4 w-4" />
+                            Mapa de Localização (Croqui)
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStartReporting('fuel_station')}>
                             <Fuel className="mr-2 h-4 w-4" />

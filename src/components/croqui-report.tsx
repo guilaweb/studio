@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -26,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { CroquiPoint, PointOfInterest } from "@/lib/data";
 import { Map, AdvancedMarker, Pin, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { MapPin, Share2, PlusCircle, X, Trash2, Locate, Building, Tent, Tractor, Route, AppWindow } from "lucide-react";
+import { MapPin, Share2, PlusCircle, X, Trash2, Locate, Building, Tent, Tractor, Route, AppWindow, Package } from "lucide-react";
 import { Input } from "./ui/input";
 import {
   AlertDialog,
@@ -369,7 +368,7 @@ export default function CroquiReport({
     }, propertyToLink?.id);
   }
 
-  const sheetTitle = isEdit ? (editMode === 'divide' ? 'Dividir Croqui (Criar Cópia)' : 'Editar Croqui/POI') : `Passo ${step}: ${step === 1 ? "Selecione o Tipo de Local" : "Detalhes do Local"}`;
+  const sheetTitle = isEdit ? (editMode === 'divide' ? 'Dividir Mapa (Criar Cópia)' : 'Editar Mapa/POI') : `Passo ${step}: ${step === 1 ? "Selecione o Tipo de Local" : "Detalhes do Local"}`;
   const submitButtonText = isEdit ? (editMode === 'divide' ? 'Criar Cópia Editada' : 'Guardar Alterações') : 'Criar e Partilhar';
 
   return (
@@ -477,7 +476,7 @@ export default function CroquiReport({
                 </div>
                 <SheetFooter className="p-6 pt-4 border-t bg-background">
                     <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                    <Button type="submit"><Share2 className="mr-2 h-4 w-4" />{submitButtonText}</Button>
+                    <Button type="submit"><Package className="mr-2 h-4 w-4" />{submitButtonText}</Button>
                 </SheetFooter>
             </form>
             </Form>

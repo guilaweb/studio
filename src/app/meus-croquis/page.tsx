@@ -6,7 +6,7 @@ import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowLeft, Plus, Share2, Folder, Upload, Route, MoreVertical, Edit, FileSignature, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Share2, Folder, Upload, Route, MoreVertical, Edit, FileSignature, Loader2, Package } from "lucide-react";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
 import { useRouter } from "next/navigation";
@@ -32,7 +32,7 @@ const CroquiCard = ({ croqui, onShare, onSelect, isSelected, onEdit, onGenerateD
                         onCheckedChange={(checked) => onSelect(croqui.id, !!checked)}
                         aria-label={`Selecionar ${croqui.title}`}
                     />
-                    <Share2 className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+                    <Package className="h-8 w-8 text-muted-foreground flex-shrink-0" />
                     <div className="flex-1 overflow-hidden">
                         <p className="font-semibold truncate">{croqui.title}</p>
                         <p className="text-sm text-muted-foreground">
@@ -169,7 +169,7 @@ function MeusCroquisPage() {
                         </Link>
                     </Button>
                     <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                        Meus Croquis e POIs
+                        Mapas de Localização (Croquis)
                     </h1>
                     <div className="ml-auto flex items-center gap-2">
                         <Button variant="outline" onClick={() => router.push('/meus-croquis/importar')}>
@@ -216,9 +216,9 @@ function MeusCroquisPage() {
                     ) : (
                         <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8 text-center">
                             <div className="flex flex-col items-center gap-2">
-                                <Share2 className="h-12 w-12 text-muted-foreground" />
-                                <h3 className="text-2xl font-bold tracking-tight">Ainda não criou nenhum croqui ou POI</h3>
-                                <p className="text-muted-foreground">Crie um POI para guardar localizações importantes como clientes ou fornecedores.</p>
+                                <Package className="h-12 w-12 text-muted-foreground" />
+                                <h3 className="text-2xl font-bold tracking-tight">Ainda não criou nenhum mapa</h3>
+                                <p className="text-muted-foreground">Crie um mapa para guardar localizações importantes ou mapear ativos.</p>
                                 <Button className="mt-4" onClick={() => router.push('/?#report-croqui')}>
                                     <Plus className="mr-2 h-4 w-4" />
                                     Criar Novo
