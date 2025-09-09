@@ -13,7 +13,7 @@ import { columns } from "@/components/admin/comunicacoes/columns";
 import { CommunicationsDataTable } from "@/components/admin/comunicacoes/data-table";
 
 function AdminAnnouncementsPage() {
-    const { allData, loading, deletePoint, updatePointDetails } = usePoints();
+    const { allData, loading } = usePoints();
     
     const announcements = React.useMemo(() => {
         return allData.filter(p => p.type === 'announcement');
@@ -37,7 +37,7 @@ function AdminAnnouncementsPage() {
                 </h1>
                 <div className="ml-auto">
                     <Button asChild>
-                        <Link href="/?poi=announcement-1755434075725#report-announcement">
+                        <Link href="/?#report-announcement">
                            <Plus className="mr-2 h-4 w-4" /> Novo Anúncio
                         </Link>
                     </Button>

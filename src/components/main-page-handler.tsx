@@ -992,7 +992,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         }
     } else {
         // Regular users can only edit what they own, and only specific types.
-        canEdit = isOwner && ['incident', 'atm', 'croqui'].includes(poi.type);
+        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement' || poi.type === 'croqui');
     }
     
     if (!canEdit) {

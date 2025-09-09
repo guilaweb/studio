@@ -78,6 +78,12 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                         </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                        <Link href="/comunicacoes">
+                            <Megaphone className="mr-2 h-4 w-4" />
+                            <span>Comunicações</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                         <Link href="/marketplace">
                             <Building className="mr-2 h-4 w-4" />
                             <span>Marketplace</span>
