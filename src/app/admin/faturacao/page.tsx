@@ -17,13 +17,16 @@ import { useToast } from "@/hooks/use-toast";
 import type { SubscriptionPlan } from "@/lib/data";
 import { Separator } from "@/components/ui/separator";
 import UsageProgressBar from "@/components/usage-progress-bar";
+import PaymentDialog from "@/components/admin/faturacao/payment-dialog";
 
 
 function BillingPage() {
     const { subscription, usage, loading } = useSubscription();
     const { profile } = useAuth();
     const { toast } = useToast();
-    const [isChangingPlan, setIsChangingPlan] = React.useState<SubscriptionPlan | null>(null);
+    const [isChangingPlan, setIsChangingPlan] = React.useState(false);
+    const [selectedPlan, setSelectedPlan] = React.useState<SubscriptionPlan | null>(null);
+    const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
 
     const currentPlanKey = subscription?.plan || 'free';
     const currentPlan = planDetails[currentPlanKey as keyof typeof planDetails];
@@ -43,146 +46,164 @@ function BillingPage() {
         }
     };
     
-    const handlePlanChange = async (newPlan: SubscriptionPlan) => {
+    const handlePlanChangeClick = (newPlan: SubscriptionPlan) => {
         if (!profile?.organizationId) {
             toast({ variant: "destructive", title: "Erro", description: "ID da organização não encontrado." });
             return;
         }
-        setIsChangingPlan(newPlan);
+        setSelectedPlan(newPlan);
+        setIsPaymentDialogOpen(true);
+    };
+
+    const handleConfirmPayment = async () => {
+        if (!profile?.organizationId || !selectedPlan) return;
+        
+        setIsChangingPlan(true);
         try {
-            await changeSubscriptionPlan(profile.organizationId, newPlan);
+            await changeSubscriptionPlan(profile.organizationId, selectedPlan);
             toast({
                 title: "Plano Atualizado!",
-                description: `A sua subscrição foi alterada para o plano ${planDetails[newPlan].name}.`,
+                description: `A sua subscrição foi alterada para o plano ${planDetails[selectedPlan].name}.`,
             });
         } catch (error) {
             toast({ variant: "destructive", title: "Erro ao Mudar de Plano", description: "Não foi possível atualizar a sua subscrição."});
         } finally {
-            setIsChangingPlan(null);
+            setIsChangingPlan(false);
+            setIsPaymentDialogOpen(false);
+            setSelectedPlan(null);
         }
     };
 
     return (
-        <div className="flex min-h-screen w-full flex-col bg-muted/40">
-            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-                <Button size="icon" variant="outline" asChild>
-                    <Link href="/">
-                        <ArrowLeft className="h-5 w-5" />
-                        <span className="sr-only">Voltar</span>
-                    </Link>
-                </Button>
-                <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                    Subscrição e Faturação
-                </h1>
-            </header>
-            <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Plano Atual</CardTitle>
-                        <CardDescription>Esta é a subscrição atual da sua organização.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {loading ? (
-                            <Skeleton className="h-48 w-full" />
-                        ) : (
-                             <Card className="bg-primary/5 border-primary/20">
-                                <CardHeader className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                                    <div>
-                                        <CardTitle className="flex items-center gap-2">{currentPlan.name} {getStatusBadge(subscription?.status)}</CardTitle>
-                                        <CardDescription>{currentPlan.description}</CardDescription>
-                                    </div>
-                                    <div className="text-left md:text-right">
-                                        <p className="text-3xl font-bold">{currentPlan.price}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
-                                        {subscription && subscription.status !== 'trialing' && <p className="text-xs text-muted-foreground">Renova em {format(new Date(subscription.currentPeriodEnd), "dd 'de' MMMM, yyyy", { locale: pt })}</p>}
-                                        {subscription?.status === 'trialing' && <p className="text-xs text-muted-foreground">O seu período de teste termina em {format(new Date(subscription.currentPeriodEnd), "dd 'de' MMMM, yyyy", { locale: pt })}</p>}
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <ul className="space-y-2 text-sm">
-                                        {currentPlan.features.map((feature, i) => (
-                                            <li key={i} className="flex items-center gap-2">
-                                                <CheckCircle className="h-4 w-4 text-green-500" />
-                                                <span>{feature}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                    <Separator className="my-6" />
-                                    <div>
-                                        <h4 className="text-md font-semibold mb-4">Utilização dos Recursos</h4>
-                                        <div className="space-y-4">
-                                             <UsageProgressBar
-                                                label="Agentes Municipais"
-                                                currentValue={usage.agents}
-                                                limit={subscription?.limits.agents ?? 0}
-                                            />
-                                             <UsageProgressBar
-                                                label="Armazenamento (GB)"
-                                                currentValue={0.5} // Placeholder
-                                                limit={subscription?.limits.storageGb ?? 0}
-                                            />
-                                             <UsageProgressBar
-                                                label="Chamadas API"
-                                                currentValue={120} // Placeholder
-                                                limit={subscription?.limits.apiCalls ?? 0}
-                                            />
+        <>
+            <div className="flex min-h-screen w-full flex-col bg-muted/40">
+                <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+                    <Button size="icon" variant="outline" asChild>
+                        <Link href="/">
+                            <ArrowLeft className="h-5 w-5" />
+                            <span className="sr-only">Voltar</span>
+                        </Link>
+                    </Button>
+                    <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+                        Subscrição e Faturação
+                    </h1>
+                </header>
+                <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Plano Atual</CardTitle>
+                            <CardDescription>Esta é a subscrição atual da sua organização.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {loading ? (
+                                <Skeleton className="h-48 w-full" />
+                            ) : (
+                                <Card className="bg-primary/5 border-primary/20">
+                                    <CardHeader className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                                        <div>
+                                            <CardTitle className="flex items-center gap-2">{currentPlan.name} {getStatusBadge(subscription?.status)}</CardTitle>
+                                            <CardDescription>{currentPlan.description}</CardDescription>
                                         </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-                    </CardContent>
-                </Card>
+                                        <div className="text-left md:text-right">
+                                            <p className="text-3xl font-bold">{currentPlan.price}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
+                                            {subscription && subscription.status !== 'trialing' && <p className="text-xs text-muted-foreground">Renova em {format(new Date(subscription.currentPeriodEnd), "dd 'de' MMMM, yyyy", { locale: pt })}</p>}
+                                            {subscription?.status === 'trialing' && <p className="text-xs text-muted-foreground">O seu período de teste termina em {format(new Date(subscription.currentPeriodEnd), "dd 'de' MMMM, yyyy", { locale: pt })}</p>}
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <ul className="space-y-2 text-sm">
+                                            {currentPlan.features.map((feature, i) => (
+                                                <li key={i} className="flex items-center gap-2">
+                                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                                    <span>{feature}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <Separator className="my-6" />
+                                        <div>
+                                            <h4 className="text-md font-semibold mb-4">Utilização dos Recursos</h4>
+                                            <div className="space-y-4">
+                                                <UsageProgressBar
+                                                    label="Agentes Municipais"
+                                                    currentValue={usage.agents}
+                                                    limit={subscription?.limits.agents ?? 0}
+                                                />
+                                                <UsageProgressBar
+                                                    label="Armazenamento (GB)"
+                                                    currentValue={0.5} // Placeholder
+                                                    limit={subscription?.limits.storageGb ?? 0}
+                                                />
+                                                <UsageProgressBar
+                                                    label="Chamadas API"
+                                                    currentValue={120} // Placeholder
+                                                    limit={subscription?.limits.apiCalls ?? 0}
+                                                />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </CardContent>
+                    </Card>
 
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Mudar de Plano</CardTitle>
-                        <CardDescription>Escolha o plano que melhor se adapta às necessidades da sua entidade.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {Object.entries(planDetails).filter(([key]) => key !== currentPlanKey).map(([key, plan]) => (
-                             <Card key={key} className="flex flex-col">
-                                <CardHeader>
-                                    <CardTitle>{plan.name}</CardTitle>
-                                    <p className="text-2xl font-bold">{plan.price}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
-                                    <CardDescription>{plan.description}</CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex-grow flex flex-col justify-between">
-                                     <ul className="space-y-2 text-sm mb-6">
-                                        {plan.features.map((feature, i) => (
-                                            <li key={i} className="flex items-center gap-2">
-                                                <CheckCircle className="h-4 w-4 text-green-500" />
-                                                <span>{feature}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                    {key === 'enterprise' ? (
-                                        <Button className="w-full mt-auto" asChild>
-                                            <Link href="/governo/solicitar">
-                                                <Zap className="mr-2 h-4 w-4"/>
-                                                Contactar Vendas
-                                            </Link>
-                                        </Button>
-                                    ) : (
-                                        <Button 
-                                            className="w-full mt-auto" 
-                                            onClick={() => handlePlanChange(key as SubscriptionPlan)}
-                                            disabled={isChangingPlan !== null}
-                                        >
-                                            {isChangingPlan === key ? (
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                            ) : (
-                                                <Zap className="mr-2 h-4 w-4"/>
-                                            )}
-                                            {isChangingPlan === key ? 'A Mudar...' : 'Fazer Upgrade'}
-                                        </Button>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </CardContent>
-                </Card>
-            </main>
-        </div>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Mudar de Plano</CardTitle>
+                            <CardDescription>Escolha o plano que melhor se adapta às necessidades da sua entidade.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            {Object.entries(planDetails).filter(([key]) => key !== currentPlanKey).map(([key, plan]) => (
+                                <Card key={key} className="flex flex-col">
+                                    <CardHeader>
+                                        <CardTitle>{plan.name}</CardTitle>
+                                        <p className="text-2xl font-bold">{plan.price}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
+                                        <CardDescription>{plan.description}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="flex-grow flex flex-col justify-between">
+                                        <ul className="space-y-2 text-sm mb-6">
+                                            {plan.features.map((feature, i) => (
+                                                <li key={i} className="flex items-center gap-2">
+                                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                                    <span>{feature}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        {key === 'enterprise' ? (
+                                            <Button className="w-full mt-auto" asChild>
+                                                <Link href="/governo/solicitar">
+                                                    <Zap className="mr-2 h-4 w-4"/>
+                                                    Contactar Vendas
+                                                </Link>
+                                            </Button>
+                                        ) : (
+                                            <Button 
+                                                className="w-full mt-auto" 
+                                                onClick={() => handlePlanChangeClick(key as SubscriptionPlan)}
+                                                disabled={isChangingPlan}
+                                            >
+                                                {isChangingPlan ? (
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                                ) : (
+                                                    <Zap className="mr-2 h-4 w-4"/>
+                                                )}
+                                                {isChangingPlan ? 'A Mudar...' : 'Fazer Upgrade'}
+                                            </Button>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </main>
+            </div>
+            <PaymentDialog
+                open={isPaymentDialogOpen}
+                onOpenChange={setIsPaymentDialogOpen}
+                onConfirm={handleConfirmPayment}
+                planName={selectedPlan ? planDetails[selectedPlan].name : ''}
+                isChangingPlan={isChangingPlan}
+            />
+        </>
     );
 }
 
