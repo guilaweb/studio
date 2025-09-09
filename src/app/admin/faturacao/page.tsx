@@ -4,7 +4,7 @@
 import * as React from "react";
 import { withAuth, useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, Zap, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, Zap, Loader2, Download, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSubscription, changeSubscriptionPlan } from "@/services/subscription-service";
@@ -14,14 +14,16 @@ import { pt } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { planDetails } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
-import type { SubscriptionPlan } from "@/lib/data";
+import type { SubscriptionPlan, Payment } from "@/lib/data";
 import { Separator } from "@/components/ui/separator";
 import UsageProgressBar from "@/components/usage-progress-bar";
 import PaymentDialog from "@/components/admin/faturacao/payment-dialog";
-
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { usePayments } from "@/services/payment-service";
 
 function BillingPage() {
     const { subscription, usage, loading } = useSubscription();
+    const { payments, loading: loadingPayments } = usePayments();
     const { profile } = useAuth();
     const { toast } = useToast();
     const [isChangingPlan, setIsChangingPlan] = React.useState(false);
@@ -63,7 +65,7 @@ function BillingPage() {
             await changeSubscriptionPlan(profile.organizationId, selectedPlan);
             toast({
                 title: "Plano Atualizado!",
-                description: `A sua subscrição foi alterada para o plano ${planDetails[selectedPlan].name}.`,
+                description: `A sua subscrição foi alterada para o plano ${planDetails[selectedPlan].name}. A sua fatura aparecerá no histórico abaixo.`,
             });
         } catch (error) {
             toast({ variant: "destructive", title: "Erro ao Mudar de Plano", description: "Não foi possível atualizar a sua subscrição."});
@@ -72,6 +74,29 @@ function BillingPage() {
             setIsPaymentDialogOpen(false);
             setSelectedPlan(null);
         }
+    };
+    
+     const handleDownloadInvoice = (payment: Payment) => {
+        const invoiceHtml = `
+            <html>
+                <head><title>Fatura ${payment.id}</title><style>body{font-family:sans-serif;padding:2rem;} h1{color:#111;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ddd;padding:8px;text-align:left;} th{background-color:#f2f2f2;}</style></head>
+                <body>
+                    <h1>Fatura MUNITU</h1>
+                    <p><strong>Fatura ID:</strong> ${payment.id}</p>
+                    <p><strong>Data:</strong> ${format(new Date(payment.date), "dd/MM/yyyy")}</p>
+                    <p><strong>Cliente:</strong> ${profile?.organizationId}</p>
+                    <hr/>
+                    <table>
+                        <thead><tr><th>Descrição</th><th>Valor</th></tr></thead>
+                        <tbody><tr><td>${payment.description}</td><td>AOA ${payment.amount.toFixed(2)}</td></tr></tbody>
+                    </table>
+                    <p style="margin-top:2rem;">Obrigado por usar a MUNITU.</p>
+                </body>
+            </html>
+        `;
+        const newWindow = window.open();
+        newWindow?.document.write(invoiceHtml);
+        newWindow?.document.close();
     };
 
     return (
@@ -194,6 +219,47 @@ function BillingPage() {
                             ))}
                         </CardContent>
                     </Card>
+
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Histórico de Faturação</CardTitle>
+                            <CardDescription>Consulte e descarregue as suas faturas anteriores.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Data</TableHead>
+                                        <TableHead>Descrição</TableHead>
+                                        <TableHead className="text-right">Valor (AOA)</TableHead>
+                                        <TableHead className="text-right">Ações</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {loadingPayments ? (
+                                        <TableRow><TableCell colSpan={4} className="text-center"><Skeleton className="h-8 w-full" /></TableCell></TableRow>
+                                    ) : payments.length > 0 ? (
+                                        payments.map((payment) => (
+                                            <TableRow key={payment.id}>
+                                                <TableCell>{format(new Date(payment.date), "dd MMM, yyyy", { locale: pt })}</TableCell>
+                                                <TableCell>{payment.description}</TableCell>
+                                                <TableCell className="text-right font-mono">{payment.amount.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(payment)}>
+                                                        <Download className="mr-2 h-3.5 w-3.5" />
+                                                        Descarregar
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhuma fatura encontrada.</TableCell></TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+
                 </main>
             </div>
             <PaymentDialog

@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import type { Subscription, SubscriptionPlan, UserProfile } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
 import { planDetails } from '@/lib/data';
@@ -104,6 +104,18 @@ export const changeSubscriptionPlan = async (organizationId: string, newPlan: Su
 
     try {
         await updateDoc(subscriptionDocRef, updateData);
+
+        // Add a record to the payment history
+        const paymentsCollectionRef = collection(db, 'payments');
+        await addDoc(paymentsCollectionRef, {
+            organizationId,
+            amount: parseFloat(newPlanDetails.price.replace(/[^0-9,-]+/g,"").replace(',', '.')) || 0,
+            date: now.toISOString(),
+            plan: newPlan,
+            status: 'completed',
+            description: `Subscrição do plano ${newPlanDetails.name}`,
+        });
+
     } catch (err) {
         console.error("Error changing subscription plan:", err);
         throw new Error("Failed to change subscription plan.");

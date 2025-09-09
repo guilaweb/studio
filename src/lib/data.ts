@@ -253,6 +253,17 @@ export const SubscriptionSchema = z.object({
 });
 export type Subscription = z.infer<typeof SubscriptionSchema>;
 
+export const PaymentSchema = z.object({
+    id: z.string(),
+    organizationId: z.string(),
+    amount: z.number(),
+    date: z.string(), // ISO string
+    plan: SubscriptionPlanEnum,
+    status: z.enum(['completed', 'pending', 'failed']),
+    description: z.string(),
+    invoiceUrl: z.string().optional(),
+});
+export type Payment = z.infer<typeof PaymentSchema>;
 
 export const MessageSchema = z.object({
     id: z.string(),
