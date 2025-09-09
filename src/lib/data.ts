@@ -259,6 +259,11 @@ export const SubscriptionSchema = z.object({
     currentPeriodEnd: z.string(), // ISO string
     cancelAtPeriodEnd: z.boolean(),
     createdAt: z.string(),
+    limits: z.object({
+        agents: z.number(),
+        storageGb: z.number(),
+        apiCalls: z.number(),
+    }),
 });
 export type Subscription = z.infer<typeof SubscriptionSchema>;
 

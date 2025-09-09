@@ -31,10 +31,10 @@ const UsageProgressBar: React.FC<UsageProgressBarProps> = ({ label, currentValue
             <div className="flex justify-between items-baseline">
                 <Label className="text-sm">{label}</Label>
                 <p className="text-sm font-medium">
-                    <span className="font-bold text-lg">{currentValue}</span> / {limitText}
+                    <span className="font-bold text-lg">{currentValue.toLocaleString('pt-PT')}</span> / {limitText === 'Ilimitado' ? limitText : Number(limitText).toLocaleString('pt-PT')}
                 </p>
             </div>
-            <Progress value={percentage} className={cn("h-2", progressColorClass)} />
+            {limit !== Infinity && <Progress value={percentage} className={cn("h-2", progressColorClass)} />}
         </div>
     );
 };

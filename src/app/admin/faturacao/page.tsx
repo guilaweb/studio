@@ -133,14 +133,14 @@ function BillingPage() {
                                                     currentValue={usage.agents}
                                                     limit={currentPlan.limits.agents}
                                                 />
-                                                <UsageProgressBar
+                                                 <UsageProgressBar
                                                     label="Armazenamento (GB)"
-                                                    currentValue={0.5} // Placeholder
+                                                    currentValue={usage.storage}
                                                     limit={currentPlan.limits.storageGb}
                                                 />
                                                 <UsageProgressBar
-                                                    label="Chamadas API"
-                                                    currentValue={120} // Placeholder
+                                                    label="Chamadas API (Este Mês)"
+                                                    currentValue={usage.apiCalls}
                                                     limit={currentPlan.limits.apiCalls}
                                                 />
                                             </div>

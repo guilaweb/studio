@@ -5,9 +5,12 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot, setDoc, getDoc, collection, query, where, getDocs, runTransaction } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc, collection, query, where, getDocs, runTransaction, getDocsFromCache } from 'firebase/firestore';
 import type { UserProfile, Subscription, SubscriptionPlan, SubscriptionStatus } from '@/lib/data';
 import { useToast } from './use-toast';
+import { useSubscriptionPlans } from '@/services/plans-service';
+import { createDefaultSubscription } from '@/services/subscription-service';
+
 
 interface AuthContextType {
   user: User | null;
@@ -24,7 +27,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 // Helper function to create a default organization and subscription for the first admin
-const createDefaultOrganization = async (userId: string, orgName: string): Promise<string> => {
+const createDefaultOrganizationAndSubscription = async (userId: string, orgName: string, defaultPlan: SubscriptionPlan | undefined): Promise<string> => {
     const organizationId = `org_${userId.substring(0, 10)}`;
     const orgDocRef = doc(db, 'organizations', organizationId);
     const orgDoc = await getDoc(orgDocRef);
@@ -36,26 +39,12 @@ const createDefaultOrganization = async (userId: string, orgName: string): Promi
             createdAt: new Date().toISOString(),
         });
 
-        // Create a default subscription for this new organization
-        const subscriptionDocRef = doc(db, 'subscriptions', organizationId);
-        const now = new Date();
-        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
-
-        const defaultSubscription: Omit<Subscription, 'id'> = {
-            organizationId,
-            plan: 'free',
-            status: 'trialing', // or 'active'
-            currentPeriodStart: now.toISOString(),
-            currentPeriodEnd: nextMonth.toISOString(),
-            cancelAtPeriodEnd: false,
-            createdAt: now.toISOString(),
-            limits: {
-                agents: 5,
-                storageGb: 1,
-                apiCalls: 1000
-            }
-        };
-        await setDoc(subscriptionDocRef, defaultSubscription);
+        if (defaultPlan) {
+            await createDefaultSubscription(organizationId, defaultPlan);
+        } else {
+             console.error("CRITICAL: Default 'free' plan not found. Cannot create subscription.");
+             throw new Error("Default plan is missing.");
+        }
     }
     return organizationId;
 };
@@ -64,6 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const { subscriptionPlans, loading: loadingPlans } = useSubscriptionPlans();
   const router = useRouter();
 
   useEffect(() => {
@@ -79,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user && !loadingPlans) { // Wait for plans to be loaded
         const userDocRef = doc(db, 'users', user.uid);
         const unsubscribeProfile = onSnapshot(userDocRef, async (docSnap) => {
             if (docSnap.exists()) {
@@ -91,7 +81,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     
                     try {
                         const orgName = `${profileData.displayName}'s Municipality`;
-                        const organizationId = await createDefaultOrganization(user.uid, orgName);
+                        const freePlan = subscriptionPlans.find(p => p.id === 'free');
+                        const organizationId = await createDefaultOrganizationAndSubscription(user.uid, orgName, freePlan);
                         
                         // Update the user's profile with the new org ID
                         await setDoc(userDocRef, { organizationId, onboardingCompleted: false }, { merge: true });
@@ -106,8 +97,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setProfile(profileData);
             } else {
                 console.warn(`User profile for ${user.uid} not found. This might be a new registration.`);
-                // This case handles a newly signed-up user via Google where the doc might not exist yet.
-                // The registration flow will create the profile, so we can temporarily set profile to null.
                 setProfile(null);
             }
             setLoading(false);
@@ -119,7 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         return () => unsubscribeProfile();
     }
-  }, [user]);
+  }, [user, loadingPlans, subscriptionPlans]);
 
 
   const logout = async () => {

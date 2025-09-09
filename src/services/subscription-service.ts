@@ -7,12 +7,20 @@ import { doc, onSnapshot, updateDoc, collection, query, where, getDocs, addDoc, 
 import type { Subscription, SubscriptionPlan, UserProfile } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
 import { addDays, formatISO } from 'date-fns';
+import { usePoints } from '@/hooks/use-points';
+
+interface UsageData {
+    agents: number;
+    storage: number; // in GB
+    apiCalls: number; // For the current month
+}
 
 // Hook to get the subscription and usage for the current user's organization
 export const useSubscription = () => {
     const { profile, loading: authLoading } = useAuth();
+    const { allData } = usePoints();
     const [subscription, setSubscription] = useState<Subscription | null>(null);
-    const [usage, setUsage] = useState<{ agents: number }>({ agents: 0 });
+    const [usage, setUsage] = useState<UsageData>({ agents: 0, storage: 0, apiCalls: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +38,6 @@ export const useSubscription = () => {
         if (!profile.organizationId) {
             setLoading(false);
             console.warn("User has a profile but no organization ID.");
-            // For demo purposes, create a "free" virtual subscription if none exists
             setSubscription({
                 id: 'virtual-free',
                 organizationId: 'none',
@@ -66,14 +73,22 @@ export const useSubscription = () => {
         const q = query(usersCollectionRef, where("organizationId", "==", profile.organizationId), where("role", "==", "Agente Municipal"));
 
         const unsubscribeUsage = onSnapshot(q, (snapshot) => {
-            setUsage({ agents: snapshot.size });
+            // Here we use the total number of points as a proxy for API calls and storage
+            // In a real app, this would be tracked by backend services.
+            const storageUsageGB = parseFloat((JSON.stringify(allData).length / (1024 * 1024 * 1024)).toFixed(4));
+            
+            setUsage({ 
+                agents: snapshot.size,
+                storage: storageUsageGB,
+                apiCalls: allData.length * 5, // A simple proxy for API calls
+            });
         });
 
         return () => {
             unsubscribeSub();
             unsubscribeUsage();
         };
-    }, [profile, authLoading]);
+    }, [profile, authLoading, allData]);
 
     return { subscription, usage, loading, error };
 };
@@ -91,11 +106,10 @@ export const changeSubscriptionPlan = async (organizationId: string, newPlan: Su
 
     const updateData = {
         planId: newPlan.id,
-        // In a real scenario, you'd handle prorating and billing cycles.
-        // For this demo, we'll just reset the period.
         currentPeriodStart: formatISO(now),
         currentPeriodEnd: formatISO(nextMonth),
-        status: 'active', // Assume payment is successful
+        status: 'active',
+        limits: newPlan.limits, // Also update the limits on the subscription document itself
     };
 
     try {
@@ -119,19 +133,20 @@ export const changeSubscriptionPlan = async (organizationId: string, newPlan: Su
 };
 
 // Function to create a default subscription for a new organization
-export const createDefaultSubscription = async (organizationId: string, planId: string): Promise<void> => {
+export const createDefaultSubscription = async (organizationId: string, plan: SubscriptionPlan): Promise<void> => {
     const subscriptionDocRef = doc(db, 'subscriptions', organizationId);
     const now = new Date();
     const nextMonth = addDays(new Date(), 30);
 
     const defaultSubscription: Omit<Subscription, 'id'> = {
         organizationId,
-        planId: planId, // typically the 'free' or 'trial' plan ID
+        planId: plan.id,
         status: 'trialing',
         currentPeriodStart: now.toISOString(),
         currentPeriodEnd: nextMonth.toISOString(),
         cancelAtPeriodEnd: false,
         createdAt: now.toISOString(),
+        limits: plan.limits,
     };
     await setDoc(subscriptionDocRef, defaultSubscription);
 };
