@@ -1,12 +1,15 @@
 
+      
 
 "use client";
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
-import type { Subscription } from '@/lib/data';
+import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import type { Subscription, SubscriptionPlan } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
+import { planDetails } from '@/lib/data';
+import { addDays, formatISO } from 'date-fns';
 
 // Hook to get the subscription for the current user's organization
 export const useSubscription = () => {
@@ -30,7 +33,18 @@ export const useSubscription = () => {
         if (!profile.organizationId) {
             setLoading(false);
             console.warn("User has a profile but no organization ID.");
-            setSubscription(null); // No organization, so no subscription.
+            // For demo purposes, create a "free" virtual subscription if none exists
+            setSubscription({
+                id: 'virtual-free',
+                organizationId: 'none',
+                plan: 'free',
+                status: 'active',
+                currentPeriodStart: new Date().toISOString(),
+                currentPeriodEnd: addDays(new Date(), 30).toISOString(),
+                cancelAtPeriodEnd: false,
+                createdAt: new Date().toISOString(),
+                limits: { agents: 5, storageGb: 1, apiCalls: 1000 },
+            });
             return;
         }
 
@@ -57,6 +71,35 @@ export const useSubscription = () => {
     return { subscription, loading, error };
 };
 
-// In a real application, you would have functions here to create/update subscriptions,
-// likely interacting with a payment provider like Stripe via a backend function.
-// e.g., export const createCheckoutSession = async (plan: string) => { ... };
+// Function to change the subscription plan for an organization
+export const changeSubscriptionPlan = async (organizationId: string, newPlan: SubscriptionPlan): Promise<void> => {
+    const subscriptionDocRef = doc(db, 'subscriptions', organizationId);
+    const newPlanDetails = planDetails[newPlan as keyof typeof planDetails];
+    
+    if (!newPlanDetails) {
+        throw new Error("Invalid plan selected.");
+    }
+    
+    const now = new Date();
+    const nextMonth = addDays(now, 30);
+
+    const updateData = {
+        plan: newPlan,
+        limits: newPlanDetails.limits,
+        // In a real scenario, you'd handle prorating and billing cycles.
+        // For this demo, we'll just reset the period.
+        currentPeriodStart: formatISO(now),
+        currentPeriodEnd: formatISO(nextMonth),
+        status: 'active', // Assume payment is successful
+    };
+
+    try {
+        await updateDoc(subscriptionDocRef, updateData);
+    } catch (err) {
+        console.error("Error changing subscription plan:", err);
+        throw new Error("Failed to change subscription plan.");
+    }
+};
+
+
+    

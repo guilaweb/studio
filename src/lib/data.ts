@@ -1,4 +1,5 @@
 
+      
 
 import { z } from 'zod';
 
@@ -362,6 +363,15 @@ export const queueTimeLabelMap: Record<QueueTime, string> = {
 };
 
 
+// SAAS Plan Details
+export const planDetails = {
+    free: { name: "Plano Gratuito", price: "AOA 0", description: "Para experimentar e explorar a plataforma.", features: ["5 Agentes", "1GB Armazenamento", "1,000 Chamadas API/mês"], limits: { agents: 5, storageGb: 1, apiCalls: 1000 } },
+    basic: { name: "Plano Básico", price: "AOA 49,990", description: "Ideal para municípios pequenos e projetos piloto.", features: ["20 Agentes", "10GB Armazenamento", "10,000 Chamadas API/mês", "Suporte Padrão"], limits: { agents: 20, storageGb: 10, apiCalls: 10000 } },
+    professional: { name: "Plano Profissional", price: "AOA 149,990", description: "O mais popular, para uma gestão municipal completa.", features: ["100 Agentes", "50GB Armazenamento", "100,000 Chamadas API/mês", "Suporte Prioritário", "Análise Preditiva IA"], limits: { agents: 100, storageGb: 50, apiCalls: 100000 } },
+    enterprise: { name: "Plano Empresarial", price: "Contacte-nos", description: "Soluções à medida para grandes cidades e necessidades específicas.", features: ["Agentes Ilimitados", "Armazenamento Ilimitado", "API Dedicada", "Suporte 24/7", "Módulos Customizados"], limits: { agents: -1, storageGb: -1, apiCalls: -1 } }, // -1 for unlimited
+};
+
+
 // Schemas for AI Flows
 
 export const GenerateOfficialResponseInputSchema = z.object({
@@ -581,3 +591,5 @@ export const PredictMaintenanceOutputSchema = z.object({
     })),
 });
 export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
+
+    

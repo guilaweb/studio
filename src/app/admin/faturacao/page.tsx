@@ -1,30 +1,31 @@
 
+      
 "use client";
 
 import * as React from "react";
-import { withAuth } from "@/hooks/use-auth";
+import { withAuth, useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, Zap } from "lucide-react";
+import { ArrowLeft, CheckCircle, Zap, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSubscription } from "@/services/subscription-service";
+import { useSubscription, changeSubscriptionPlan } from "@/services/subscription-service";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
+import { planDetails } from "@/lib/data";
+import { useToast } from "@/hooks/use-toast";
+import type { SubscriptionPlan } from "@/lib/data";
 
-const planDetails = {
-    free: { name: "Plano Gratuito", price: "AOA 0", description: "Para experimentar e explorar a plataforma.", features: ["5 Agentes", "1GB Armazenamento", "1,000 Chamadas API/mês"] },
-    basic: { name: "Plano Básico", price: "AOA 49,990", description: "Ideal para municípios pequenos e projetos piloto.", features: ["20 Agentes", "10GB Armazenamento", "10,000 Chamadas API/mês", "Suporte Padrão"] },
-    professional: { name: "Plano Profissional", price: "AOA 149,990", description: "O mais popular, para uma gestão municipal completa.", features: ["100 Agentes", "50GB Armazenamento", "100,000 Chamadas API/mês", "Suporte Prioritário", "Análise Preditiva IA"] },
-    enterprise: { name: "Plano Empresarial", price: "Contacte-nos", description: "Soluções à medida para grandes cidades e necessidades específicas.", features: ["Agentes Ilimitados", "Armazenamento Ilimitado", "API Dedicada", "Suporte 24/7", "Módulos Customizados"] },
-};
 
 function BillingPage() {
     const { subscription, loading } = useSubscription();
+    const { profile } = useAuth();
+    const { toast } = useToast();
+    const [isChangingPlan, setIsChangingPlan] = React.useState<SubscriptionPlan | null>(null);
 
     const currentPlanKey = subscription?.plan || 'free';
-    const currentPlan = planDetails[currentPlanKey];
+    const currentPlan = planDetails[currentPlanKey as keyof typeof planDetails];
 
     const getStatusBadge = (status?: string) => {
         switch (status) {
@@ -38,6 +39,25 @@ function BillingPage() {
                 return <Badge variant="outline">Cancelado</Badge>;
             default:
                 return <Badge variant="secondary">N/D</Badge>;
+        }
+    };
+    
+    const handlePlanChange = async (newPlan: SubscriptionPlan) => {
+        if (!profile?.organizationId) {
+            toast({ variant: "destructive", title: "Erro", description: "ID da organização não encontrado." });
+            return;
+        }
+        setIsChangingPlan(newPlan);
+        try {
+            await changeSubscriptionPlan(profile.organizationId, newPlan);
+            toast({
+                title: "Plano Atualizado!",
+                description: `A sua subscrição foi alterada para o plano ${planDetails[newPlan].name}.`,
+            });
+        } catch (error) {
+            toast({ variant: "destructive", title: "Erro ao Mudar de Plano", description: "Não foi possível atualizar a sua subscrição."});
+        } finally {
+            setIsChangingPlan(null);
         }
     };
 
@@ -112,9 +132,17 @@ function BillingPage() {
                                             </li>
                                         ))}
                                     </ul>
-                                    <Button className="w-full mt-auto" disabled={key !== 'professional'}>
-                                        <Zap className="mr-2 h-4 w-4"/>
-                                        {key === 'enterprise' ? 'Contactar Vendas' : 'Fazer Upgrade'}
+                                    <Button 
+                                        className="w-full mt-auto" 
+                                        onClick={() => handlePlanChange(key as SubscriptionPlan)}
+                                        disabled={isChangingPlan !== null}
+                                    >
+                                        {isChangingPlan === key ? (
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                        ) : (
+                                            <Zap className="mr-2 h-4 w-4"/>
+                                        )}
+                                        {isChangingPlan === key ? 'A Mudar...' : (key === 'enterprise' ? 'Contactar Vendas' : 'Fazer Upgrade')}
                                     </Button>
                                 </CardContent>
                             </Card>
@@ -127,3 +155,5 @@ function BillingPage() {
 }
 
 export default withAuth(BillingPage, ['Administrador']);
+
+    
