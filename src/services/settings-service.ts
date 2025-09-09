@@ -18,7 +18,7 @@ const initialPublicLayers: ActiveLayers = {
     announcement: true,
     water_resource: false,
     croqui: false,
-    fuel_station: false,
+    fuel_station: true,
     health_unit: false,
     health_case: false,
 };
