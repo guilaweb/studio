@@ -13,6 +13,7 @@ import { SubscriptionPlan } from '@/lib/data';
 import { Loader2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { saveSubscriptionPlan } from '@/services/plans-service';
+import { Textarea } from '@/components/ui/textarea';
 
 interface PlanEditorProps {
   planToEdit: SubscriptionPlan | null;
@@ -39,7 +40,7 @@ export default function PlanEditor({ open, onOpenChange, planToEdit }: PlanEdito
   });
 
   React.useEffect(() => {
-    if (planToEdit) {
+    if (open && planToEdit) {
       form.reset({
         id: planToEdit.id,
         name: planToEdit.name,
@@ -47,7 +48,7 @@ export default function PlanEditor({ open, onOpenChange, planToEdit }: PlanEdito
         price: planToEdit.price,
         limits: planToEdit.limits,
       });
-    } else {
+    } else if(open) {
       form.reset({
         id: '',
         name: '',
@@ -56,17 +57,18 @@ export default function PlanEditor({ open, onOpenChange, planToEdit }: PlanEdito
         limits: { agents: 0, storageGb: 0, apiCalls: 0 },
       });
     }
-  }, [planToEdit, form]);
+  }, [planToEdit, open, form]);
 
   const { isSubmitting } = form.formState;
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await saveSubscriptionPlan({ ...values, active: true });
-      toast({ title: 'Plano Guardado!', description: `O plano "${values.name}" foi guardado com sucesso.` });
-      onOpenChange(false);
+        const isEditing = !!planToEdit;
+        await saveSubscriptionPlan(values, isEditing);
+        toast({ title: 'Plano Guardado!', description: `O plano "${values.name}" foi guardado com sucesso.` });
+        onOpenChange(false);
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Erro ao Guardar', description: 'Não foi possível guardar os dados do plano.' });
+        toast({ variant: 'destructive', title: 'Erro ao Guardar', description: 'Não foi possível guardar os dados do plano.' });
     }
   };
 
@@ -88,7 +90,7 @@ export default function PlanEditor({ open, onOpenChange, planToEdit }: PlanEdito
               <FormItem><FormLabel>Nome do Plano</FormLabel><FormControl><Input placeholder="Ex: Plano Profissional" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
              <FormField control={form.control} name="description" render={({ field }) => (
-              <FormItem><FormLabel>Descrição</FormLabel><FormControl><Input placeholder="Ideal para municípios de média dimensão..." {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel>Descrição</FormLabel><FormControl><Textarea placeholder="Ideal para municípios de média dimensão..." {...field} /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="price" render={({ field }) => (
               <FormItem><FormLabel>Preço (AOA/mês)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
@@ -123,5 +125,3 @@ export default function PlanEditor({ open, onOpenChange, planToEdit }: PlanEdito
     </Dialog>
   );
 }
-
-    

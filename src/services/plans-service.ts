@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, doc, query, orderBy, setDoc } from 'firebase/firestore';
 import type { SubscriptionPlan } from '@/lib/data';
 
 // Hook to get all subscription plans in real-time
@@ -36,15 +36,16 @@ export const useSubscriptionPlans = () => {
 };
 
 // Function to add or update a subscription plan
-export const saveSubscriptionPlan = async (plan: Omit<SubscriptionPlan, 'id'> & { id?: string }): Promise<void> => {
+export const saveSubscriptionPlan = async (plan: SubscriptionPlan, isEditing: boolean): Promise<void> => {
     try {
-        if (plan.id) {
-            // Update existing plan
-            const planDocRef = doc(db, 'subscriptionPlans', plan.id);
-            await updateDoc(planDocRef, plan);
+        const planDocRef = doc(db, 'subscriptionPlans', plan.id);
+        
+        if (isEditing) {
+            // Update existing plan - merge with existing data to avoid overwriting fields not in the form
+            await setDoc(planDocRef, plan, { merge: true });
         } else {
-            // Add new plan
-            await addDoc(collection(db, 'subscriptionPlans'), plan);
+            // Create new plan
+            await setDoc(planDocRef, { ...plan, active: true });
         }
     } catch (err) {
         console.error("Error saving subscription plan:", err);
