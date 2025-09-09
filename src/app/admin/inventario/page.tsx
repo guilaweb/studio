@@ -2,6 +2,7 @@
 "use client";
 
 import * as React from "react";
+import { useState } from "react";
 import { withAuth } from "@/hooks/use-auth";
 import Link from "next/link";
 import { ArrowLeft, Plus, Loader2, Package, Trash2 } from "lucide-react";
@@ -134,7 +135,7 @@ function InventoryPage() {
             </div>
             <DeleteConfirmationDialog 
                 open={!!partToDelete}
-                onOpenChange={setPartToDelete}
+                onOpenChange={(open) => !open && setPartToDelete(null)}
                 onConfirm={handleDelete}
                 itemType="peça do inventário"
             />
