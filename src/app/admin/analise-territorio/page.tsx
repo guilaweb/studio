@@ -25,6 +25,7 @@ function TerritoryAnalysisPage() {
     const { allData, loading } = usePoints();
     const [drawnPolygon, setDrawnPolygon] = React.useState<google.maps.Polygon | null>(null);
     const [analysisResult, setAnalysisResult] = React.useState<AnalysisResult | null>(null);
+    const [pointsInPolygon, setPointsInPolygon] = React.useState<PointOfInterest[]>([]);
     const geometry = useMapsLibrary('geometry');
 
     const handlePolygonComplete = (poly: google.maps.Polygon) => {
@@ -37,21 +38,25 @@ function TerritoryAnalysisPage() {
     React.useEffect(() => {
         if (!drawnPolygon || !geometry) {
             setAnalysisResult(null);
+            setPointsInPolygon([]);
             return;
         };
 
         const path = drawnPolygon.getPath();
         if (!path || path.getLength() === 0) {
             setAnalysisResult(null);
+            setPointsInPolygon([]);
             return;
         }
 
-        const polygonPath = path.getArray().map(latLng => new google.maps.LatLng(latLng.lat(), latLng.lng()));
-        const googlePolygon = new google.maps.Polygon({paths: polygonPath});
+        const googlePolygon = new google.maps.Polygon({paths: path.getArray()});
         
         const pointsInside = allData.filter(poi => {
-            return geometry.spherical.containsLocation(new google.maps.LatLng(poi.position.lat, poi.position.lng), googlePolygon);
+            const poiLatLng = new google.maps.LatLng(poi.position.lat, poi.position.lng);
+            return geometry.spherical.containsLocation(poiLatLng, googlePolygon);
         });
+
+        setPointsInPolygon(pointsInside);
 
         const pointsByType = pointsInside.reduce((acc, poi) => {
             const typeName = typeLabelMap[poi.type] || 'Outro';
@@ -75,6 +80,7 @@ function TerritoryAnalysisPage() {
         }
         setDrawnPolygon(null);
         setAnalysisResult(null);
+        setPointsInPolygon([]);
     };
 
 
@@ -118,6 +124,7 @@ function TerritoryAnalysisPage() {
                                                     <span className="font-medium">{count}</span>
                                                 </div>
                                             ))}
+                                            {analysisResult.totalPoints > 0 && Object.keys(analysisResult.pointsByType).length === 0 && <p className="text-muted-foreground text-xs">Nenhum ponto de tipo conhecido na área.</p>}
                                         </div>
                                         <Button onClick={handleClearAnalysis} variant="destructive" className="w-full">
                                             <Trash2 className="mr-2 h-4 w-4"/>
@@ -142,15 +149,17 @@ function TerritoryAnalysisPage() {
                                 disableDefaultUI={false}
                             >
                                 <DrawingManager onPolygonComplete={handlePolygonComplete}/>
-                                {loading ? null : allData.map(point => (
-                                    <PointOfInterestMarker
-                                        key={point.id}
-                                        point={point}
-                                        onClick={() => {}}
-                                        onMouseOut={() => {}}
-                                        onMouseOver={() => {}}
-                                    />
-                                ))}
+                                {loading ? null : (
+                                    (pointsInPolygon.length > 0 ? pointsInPolygon : allData).map(point => (
+                                        <PointOfInterestMarker
+                                            key={point.id}
+                                            point={point}
+                                            onClick={() => {}}
+                                            onMouseOut={() => {}}
+                                            onMouseOver={() => {}}
+                                        />
+                                    ))
+                                )}
                             </Map>
                         </Card>
                     </div>
