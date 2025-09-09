@@ -123,8 +123,8 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <DropdownMenuItem asChild><Link href="/admin/abastecimento">Registar Abastecimento</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/analise-custos">Análise de Custos</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/relatorios">Relatórios Financeiros</Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/admin/fornecedores">Portal de Fornecedores</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/inventario">Inventário de Peças</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/admin/fornecedores">Portal de Fornecedores</Link></DropdownMenuItem>
                             </DropdownMenuSubContent>
                         </DropdownMenuSub>
                         <DropdownMenuItem asChild>
