@@ -36,7 +36,7 @@ function TerritoryAnalysisPage() {
     };
     
     React.useEffect(() => {
-        if (!drawnPolygon || !geometry) {
+        if (!drawnPolygon || !geometry || !drawnPolygon.getMap()) {
             setAnalysisResult(null);
             setPointsInPolygon([]);
             return;
@@ -118,13 +118,16 @@ function TerritoryAnalysisPage() {
                                         </div>
                                         <h4 className="font-semibold text-sm pt-2">Detalhes por Tipo:</h4>
                                         <div className="space-y-1 text-sm">
-                                            {Object.entries(analysisResult.pointsByType).map(([type, count]) => (
-                                                <div key={type} className="flex justify-between items-center">
-                                                    <span className="text-muted-foreground">{type}</span>
-                                                    <span className="font-medium">{count}</span>
-                                                </div>
-                                            ))}
-                                            {analysisResult.totalPoints > 0 && Object.keys(analysisResult.pointsByType).length === 0 && <p className="text-muted-foreground text-xs">Nenhum ponto de tipo conhecido na área.</p>}
+                                            {Object.keys(analysisResult.pointsByType).length > 0 ? (
+                                                Object.entries(analysisResult.pointsByType).map(([type, count]) => (
+                                                    <div key={type} className="flex justify-between items-center">
+                                                        <span className="text-muted-foreground">{type}</span>
+                                                        <span className="font-medium">{count}</span>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-muted-foreground text-xs">Nenhum ponto encontrado na área.</p>
+                                            )}
                                         </div>
                                         <Button onClick={handleClearAnalysis} variant="destructive" className="w-full">
                                             <Trash2 className="mr-2 h-4 w-4"/>
