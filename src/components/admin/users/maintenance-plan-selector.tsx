@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Wrench } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '../ui/badge';
 
 type UserUpdateHandler = (uid: string, data: Partial<UserProfile>) => Promise<void>;
 
@@ -87,3 +87,5 @@ const MaintenancePlanSelector: React.FC<MaintenancePlanSelectorProps> = ({ user,
 };
 
 export default MaintenancePlanSelector;
+
+    

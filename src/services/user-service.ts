@@ -16,9 +16,14 @@ export const useUsers = () => {
         const usersCollectionRef = collection(db, 'users');
         const unsubscribe = onSnapshot(usersCollectionRef, (snapshot) => {
             const usersData = snapshot.docs.map((doc, index) => {
+                const data = doc.data();
+                // Ensure vehicle and maintenancePlanIds exist for agents
+                if (data.role === 'Agente Municipal' && data.vehicle && !data.vehicle.maintenancePlanIds) {
+                    data.vehicle.maintenancePlanIds = [];
+                }
                 return {
                     uid: doc.id,
-                    ...doc.data()
+                    ...data
                 } as UserProfile;
             });
             setUsers(usersData);
@@ -73,8 +78,8 @@ export const useUserProfile = (userId: string | null) => {
         const unsubscribe = onSnapshot(userDocRef, (doc) => {
             if (doc.exists()) {
                 const userData = { uid: doc.id, ...doc.data() } as UserProfile;
-                 if (userData.role === 'Agente Municipal' && !userData.vehicle?.maintenancePlanIds) {
-                    userData.vehicle = { ...userData.vehicle, maintenancePlanIds: [] } as any;
+                 if (userData.role === 'Agente Municipal' && userData.vehicle && !userData.vehicle.maintenancePlanIds) {
+                    userData.vehicle.maintenancePlanIds = [];
                 }
                 setUser(userData);
             } else {

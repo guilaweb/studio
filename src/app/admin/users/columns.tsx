@@ -243,3 +243,4 @@ export const columns: ColumnDef<UserProfileWithStats>[] = [
   }
 ];
 
+    

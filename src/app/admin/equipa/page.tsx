@@ -93,7 +93,7 @@ function TeamManagementPage() {
     const filteredMembers = React.useMemo(() => {
         return teamMembers.filter(member => {
             const nameMatch = member.displayName.toLowerCase().includes(searchQuery.toLowerCase());
-            const statusMatch = statusFilter === 'Todos' || member.status === statusFilter;
+            const statusMatch = statusFilter === 'Todos' || member.status === statusMatch;
             const teamMatch = teamFilter === 'Todos' || member.team === teamMatch;
             return nameMatch && statusMatch && teamMatch;
         });
@@ -591,3 +591,5 @@ function TeamManagementPage() {
 }
 
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
+
+    
