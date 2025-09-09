@@ -26,12 +26,13 @@ import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import Timeline from "./timeline";
 import StreetViewPanorama from "./street-view-panorama";
+import FuelAvailabilityReport from "./fuel-availability-report";
 
 type PointOfInterestDetailsProps = {
   poi: PointOfInterest | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPoiStatusChange: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => void;
+  onPoiStatusChange: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[]) => void;
   onAddUpdate: (pointId: string, updateText: string, photoDataUri?: string) => void;
   onEdit: (poi: PointOfInterest, mode?: 'edit' | 'divide') => void;
 };
@@ -147,6 +148,75 @@ const ATMStatus = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, o
         </>
     )
 }
+
+const FuelStationStatus = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], canUpdate: boolean}) => {
+    const { toast } = useToast();
+    const [reportOpen, setReportOpen] = React.useState(false);
+
+    if (poi.type !== 'fuel_station') return null;
+
+    const getStatusBadge = () => {
+        if (poi.status === 'available') return <Badge variant="default" className="bg-green-500 hover:bg-green-600">Com Combustível</Badge>
+        if (poi.status === 'unavailable') return <Badge variant="destructive">Sem Combustível</Badge>
+        return <Badge variant="secondary">Não Reportado</Badge>
+    }
+
+    const handleNotifyClick = () => {
+        toast({
+            title: "Notificação Ativada!",
+            description: "Iremos notificá-lo assim que a comunidade reportar que este posto tem combustível.",
+        });
+    };
+
+    const handleConfirmAvailable = (fuels: string[], queueTime?: QueueTime) => {
+        onPoiStatusChange(poi.id, 'available', 'Reportou como "Com Combustível"', undefined, queueTime, fuels);
+    }
+    
+    const handleConfirmUnavailable = () => {
+        onPoiStatusChange(poi.id, 'unavailable', 'Reportou como "Sem Combustível"');
+    }
+
+    return (
+        <>
+            <div className="mt-4 p-4 rounded-lg bg-muted/50">
+                <h3 className="font-semibold mb-2">Estado do Posto</h3>
+                <div className="flex items-center justify-between mb-4">
+                    {getStatusBadge()}
+                    {getLastReportedTime(poi.lastReported)}
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                    {poi.status === 'unavailable' ? (
+                        <Button variant="outline" className="w-full" onClick={handleNotifyClick}>
+                            <BellRing className="mr-2 h-4 w-4" /> Avise-me Quando Tiver
+                        </Button>
+                    ) : (
+                        <Button variant="outline" className="w-full" asChild>
+                            <Link href={`/posto/${poi.id}`}>
+                                <Clock className="mr-2 h-4 w-4" /> Ver Histórico de Atividade
+                            </Link>
+                        </Button>
+                    )}
+                    {canUpdate && (
+                        <div className="grid grid-cols-2 gap-2">
+                            <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => setReportOpen(true)}>
+                                <ThumbsUp className="mr-2"/> TEM
+                            </Button>
+                            <Button variant="outline" className="bg-red-100 border-red-500 text-red-700 hover:bg-red-200" onClick={handleConfirmUnavailable}>
+                                <ThumbsDown className="mr-2"/> NÃO TEM
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </div>
+            <FuelAvailabilityReport
+                open={reportOpen}
+                onOpenChange={setReportOpen}
+                onConfirm={handleConfirmAvailable}
+            />
+        </>
+    )
+}
+
 
 const SanitationTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], canUpdate: boolean}) => {
     
@@ -619,7 +689,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
       canDivide = isOwner && (poi.type === 'croqui' || poi.type === 'land_plot');
   }
   
-   const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => {
+   const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[]) => {
     if (!user) {
         toast({
             variant: "destructive",
@@ -631,7 +701,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     
     const text = updateText || `Estado atualizado para: ${statusLabelMap[status!] || status}`;
 
-    onPoiStatusChange(pointId, status, text, availableNotes, queueTime);
+    onPoiStatusChange(pointId, status, text, availableNotes, queueTime, availableFuels);
     
     toast({
         title: "Estado atualizado!",
@@ -745,6 +815,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
 
                 {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />}
                 
+                {poi.type === 'fuel_station' && <FuelStationStatus poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />}
+
                 {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={isAgentOrAdmin} />}
                 
                 <LandPlotDetails plot={poi.type === 'land_plot' ? poi : landPlotForCroqui} />
@@ -790,4 +862,3 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
     </>
   );
 }
-

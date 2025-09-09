@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
@@ -70,13 +71,7 @@ const getSensorStatus = (point: PointOfInterest) => {
 };
 
 export const getPinStyle = (point: PointOfInterest) => {
-    if (point.type === 'fuel_station') {
-        return { background: '#6d28d9', borderColor: '#5b21b6', glyphColor: '#ffffff' }; // purple
-    }
-    if (point.type === 'health_unit') {
-        return { background: '#1d4ed8', borderColor: '#1e40af', glyphColor: '#ffffff' }; // blue
-    }
-    if (point.type === 'atm') {
+    if (point.type === 'fuel_station' || point.type === 'atm') {
         switch (point.status) {
             case 'available':
                 return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
@@ -85,6 +80,9 @@ export const getPinStyle = (point: PointOfInterest) => {
             default:
                  return { background: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary))', glyphColor: 'hsl(var(--primary-foreground))' };
         }
+    }
+    if (point.type === 'health_unit') {
+        return { background: '#1d4ed8', borderColor: '#1e40af', glyphColor: '#ffffff' }; // blue
     }
     if (point.type === 'construction') {
         return { background: 'hsl(var(--secondary-foreground))', borderColor: 'hsl(var(--secondary-foreground))', glyphColor: 'hsl(var(--secondary))' };
