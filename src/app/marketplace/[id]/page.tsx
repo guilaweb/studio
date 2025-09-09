@@ -118,13 +118,13 @@ export default function MarketplacePropertyDetailPage() {
                                         {media.length > 0 ? media.map((src, index) => (
                                             <CarouselItem key={index}>
                                                 <div className="relative h-96 w-full">
-                                                    <Image src={src} alt={`Foto do imóvel ${index + 1}`} fill={true} objectFit="cover" />
+                                                    <Image src={src} alt={`Foto do imóvel ${index + 1}`} fill={true} style={{objectFit: 'cover'}} />
                                                 </div>
                                             </CarouselItem>
                                         )) : (
                                             <CarouselItem>
                                                 <div className="relative h-96 w-full bg-muted flex items-center justify-center">
-                                                    <Image src="https://placehold.co/1200x800.png" alt="Sem imagem" fill={true} objectFit="cover" data-ai-hint="house placeholder" />
+                                                    <Image src="https://placehold.co/1200x800.png" alt="Sem imagem" fill={true} style={{objectFit: 'cover'}} data-ai-hint="house placeholder" />
                                                 </div>
                                             </CarouselItem>
                                         )}

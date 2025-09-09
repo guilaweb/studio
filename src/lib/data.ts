@@ -253,6 +253,33 @@ export const SubscriptionSchema = z.object({
 export type Subscription = z.infer<typeof SubscriptionSchema>;
 
 
+export const MessageSchema = z.object({
+    id: z.string(),
+    senderId: z.string(),
+    senderDisplayName: z.string(),
+    text: z.string(),
+    timestamp: z.string(), // ISO string
+    readBy: z.array(z.string()),
+});
+export type Message = z.infer<typeof MessageSchema>;
+
+export const ConversationSchema = z.object({
+    id: z.string(),
+    participants: z.array(z.string()),
+    participantDetails: z.array(z.object({
+        uid: z.string(),
+        displayName: z.string(),
+        photoURL: z.string().nullable().optional(),
+    })),
+    propertyId: z.string(),
+    propertyTitle: z.string(),
+    propertyImage: z.string().optional(),
+    lastMessage: MessageSchema.optional(),
+    createdAt: z.string(), // ISO string
+    updatedAt: z.string(), // ISO string
+});
+export type Conversation = z.infer<typeof ConversationSchema>;
+
 
 // Label Mappings
 export const typeLabelMap: Record<PointOfInterestType, string> = {
@@ -332,27 +359,6 @@ export const queueTimeLabelMap: Record<QueueTime, string> = {
     medium: 'Média (5-10 pessoas)',
     long: 'Longa (+10 pessoas)',
 };
-
-export interface Conversation {
-  id: string;
-  participants: string[];
-  participantDetails: { uid: string; displayName: string; photoURL?: string | null; }[];
-  propertyId: string;
-  propertyTitle: string;
-  propertyImage?: string;
-  lastMessage?: Message;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Message {
-  id: string;
-  senderId: string;
-  senderDisplayName: string;
-  text: string;
-  timestamp: string;
-  readBy: string[];
-}
 
 
 // Schemas for AI Flows
