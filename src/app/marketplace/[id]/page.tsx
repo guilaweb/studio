@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -79,14 +78,7 @@ export default function MarketplacePropertyDetailPage() {
         });
     }
     
-    const media = property?.updates?.map(u => u.photoDataUri).filter(Boolean) as string[] || [];
-    if (property?.files) {
-        property.files.forEach(f => {
-            if (f.url.match(/\.(jpeg|jpg|gif|png)$/)) {
-                media.push(f.url);
-            }
-        });
-    }
+    const media = property?.files?.filter(f => f.url.match(/\.(jpeg|jpg|gif|png|webp)$/i)).map(f => f.url) || [];
 
     if (loading) {
         return <div className="flex min-h-screen items-center justify-center">A carregar...</div>;
@@ -126,19 +118,23 @@ export default function MarketplacePropertyDetailPage() {
                                         {media.length > 0 ? media.map((src, index) => (
                                             <CarouselItem key={index}>
                                                 <div className="relative h-96 w-full">
-                                                    <Image src={src} alt={`Foto do imóvel ${index + 1}`} layout="fill" objectFit="cover" />
+                                                    <Image src={src} alt={`Foto do imóvel ${index + 1}`} fill={true} objectFit="cover" />
                                                 </div>
                                             </CarouselItem>
                                         )) : (
                                             <CarouselItem>
                                                 <div className="relative h-96 w-full bg-muted flex items-center justify-center">
-                                                    <Image src="https://placehold.co/1200x800.png" alt="Sem imagem" layout="fill" objectFit="cover" data-ai-hint="house placeholder" />
+                                                    <Image src="https://placehold.co/1200x800.png" alt="Sem imagem" fill={true} objectFit="cover" data-ai-hint="house placeholder" />
                                                 </div>
                                             </CarouselItem>
                                         )}
                                     </CarouselContent>
-                                    <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2" />
-                                    <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2" />
+                                    {media.length > 1 && (
+                                        <>
+                                            <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2" />
+                                            <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2" />
+                                        </>
+                                    )}
                                 </Carousel>
                             </CardContent>
                         </Card>
@@ -212,7 +208,7 @@ export default function MarketplacePropertyDetailPage() {
                                     <CardContent>
                                         {property.files && property.files.length > 0 ? (
                                             <div className="space-y-2">
-                                                {property.files.map((file, index) => (
+                                                {property.files.filter(f => !f.url.match(/\.(jpeg|jpg|gif|png|webp)$/i)).map((file, index) => (
                                                     <a key={index} href={file.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 rounded-md hover:bg-muted">
                                                         <FileText className="h-6 w-6 text-primary" />
                                                         <span className="text-sm font-medium underline">{file.name}</span>

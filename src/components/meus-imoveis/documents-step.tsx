@@ -13,19 +13,24 @@ interface DocumentsStepProps {
   onNext: (data: Partial<FormData>) => void;
   onBack: () => void;
   initialFiles: File[];
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
 }
 
-export default function DocumentsStep({ onNext, onBack, initialFiles }: DocumentsStepProps) {
+export default function DocumentsStep({ onNext, onBack, initialFiles, setFormData }: DocumentsStepProps) {
   const [files, setFiles] = useState<File[]>(initialFiles);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+        const newFiles = Array.from(e.target.files);
+        setFiles(prev => [...prev, ...newFiles]);
+        setFormData(prev => ({...prev, documents: [...prev.documents, ...newFiles]}));
     }
   };
 
   const removeFile = (fileName: string) => {
-    setFiles(prev => prev.filter(f => f.name !== fileName));
+    const newFiles = files.filter(f => f.name !== fileName);
+    setFiles(newFiles);
+    setFormData(prev => ({...prev, documents: newFiles}));
   };
 
   const handleNextClick = () => {

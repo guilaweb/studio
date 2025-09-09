@@ -71,7 +71,7 @@ export default function MediaStep({ onBack, onSubmit, initialFiles, setFormData 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {previews.map((preview, index) => (
               <div key={index} className="relative group aspect-square">
-                <Image src={preview} alt={`Preview ${index}`} layout="fill" objectFit="cover" className="rounded-md" />
+                <Image src={preview} alt={`Preview ${index}`} fill={true} objectFit="cover" className="rounded-md" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                    <Button variant="destructive" size="icon" onClick={() => removeFile(index)}>
                      <Trash2 className="h-4 w-4" />

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -82,7 +81,7 @@ function ManagePropertyPage() {
         return <div className="flex min-h-screen items-center justify-center">Imóvel não encontrado.</div>;
     }
     
-    const mainPhoto = property.updates?.find(u => u.photoDataUri)?.photoDataUri;
+    const mainPhoto = property.files?.find(f => f.url.match(/\.(jpeg|jpg|gif|png|webp)$/i))?.url || property.updates?.find(u => u.photoDataUri)?.photoDataUri;
     const placeholderImage = "https://placehold.co/600x400.png";
 
     return (

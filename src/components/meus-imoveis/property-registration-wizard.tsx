@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
+import { useRouter } from "next/navigation";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -34,6 +35,7 @@ export default function PropertyRegistrationWizard() {
         media: [],
     });
     const { toast } = useToast();
+    const router = useRouter();
 
     const progressValue = (step / 4) * 100;
 
@@ -63,6 +65,10 @@ export default function PropertyRegistrationWizard() {
         const centerLat = formData.polygon.reduce((sum, p) => sum + p.lat, 0) / formData.polygon.length;
         const centerLng = formData.polygon.reduce((sum, p) => sum + p.lng, 0) / formData.polygon.length;
 
+        // Simulate file uploads and get URLs/references
+        const documentFiles = formData.documents.map(f => ({ name: f.name, url: `https://storage.placeholder.com/docs/${f.name}` }));
+        const mediaFiles = formData.media.map(f => ({ name: f.name, url: `https://storage.placeholder.com/media/${f.name}` }));
+
         const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: any[] } = {
             id: `land_plot-${Date.now()}`,
             type: 'land_plot',
@@ -86,9 +92,7 @@ export default function PropertyRegistrationWizard() {
                 authorDisplayName: profile.displayName,
                 timestamp: new Date().toISOString(),
             }],
-            // In a real app, you would upload files to a storage service
-            // and save the URLs here. For now, we save the names.
-            files: formData.documents.map(f => ({ name: f.name, url: '#' })),
+            files: [...documentFiles, ...mediaFiles],
         };
         
         await addPoint(pointToAdd as any);
@@ -97,15 +101,7 @@ export default function PropertyRegistrationWizard() {
             title: "Submissão Enviada!",
             description: "O seu imóvel foi submetido para verificação. Será notificado sobre o progresso.",
         });
-        // Here you would typically redirect the user
-        // e.g., router.push('/meus-imoveis');
-        setStep(1);
-        setFormData({
-            polygon: null,
-            details: {},
-            documents: [],
-            media: [],
-        });
+        router.push('/meus-imoveis');
     };
 
     return (
@@ -134,6 +130,7 @@ export default function PropertyRegistrationWizard() {
                         onNext={handleNext}
                         onBack={handleBack}
                         initialFiles={formData.documents}
+                        setFormData={setFormData}
                     />
                 )}
                 {step === 4 && (
