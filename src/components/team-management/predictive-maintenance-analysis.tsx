@@ -40,10 +40,12 @@ const PredictiveMaintenanceAnalysis: React.FC<PredictiveMaintenanceAnalysisProps
                 const mockTelemetry = ['Travagem Brusca', 'Aceleração Brusca', 'Excesso de Velocidade'];
 
                 const result = await predictMaintenanceFlow({
-                    vehicleType: user.vehicle!.type,
+                  input: {
+                    vehicleType: user.vehicle!.type || 'Veículo Padrão',
                     mileage: user.vehicle!.odometer || 0,
                     ageInYears: 5, // Placeholder, could be calculated from a registration date
                     telemetryEvents: mockTelemetry,
+                  }
                 });
                 setAnalysis(result);
             } catch (error) {

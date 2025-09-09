@@ -5,7 +5,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc, collection, getDocs } from 'firebase/firestore';
 import type { UserProfile, Subscription, SubscriptionPlan, SubscriptionStatus } from '@/lib/data';
 import { useToast } from './use-toast';
 
@@ -98,8 +98,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
                 setProfile(profileData);
             } else {
-                console.warn(`User profile for ${user.uid} not found.`);
-                setProfile(null);
+                console.warn(`User profile for ${user.uid} not found. This might be a new registration.`);
+                // If it's a new user, the registration flow will create the profile.
+                // For now, we can set a temporary minimal profile or null.
+                 const usersCollectionRef = collection(db, "users");
+                 const usersSnapshot = await getDoc(userDocRef);
+                 if (!usersSnapshot.exists()) {
+                     // It is indeed a new user (likely from Google sign-in) who doesn't have a doc yet.
+                     // The registration logic in login/register pages should handle creation.
+                 } else {
+                     setProfile(null);
+                 }
             }
             setLoading(false);
         }, (error) => {

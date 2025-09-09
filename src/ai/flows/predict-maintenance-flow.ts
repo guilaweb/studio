@@ -23,7 +23,7 @@ const prompt = ai.definePrompt({
         For each prediction, you MUST provide:
         1.  **taskDescription**: A clear, concise description of the maintenance task (e.g., "Substituição da embraiagem", "Troca das pastilhas de travão dianteiras").
         2.  **reason**: A brief justification based on the provided data. Connect the data to the prediction. (e.g., "A quilometragem elevada e os eventos de aceleração brusca indicam desgaste acentuado da embraiagem.").
-        3.  **priority**: The priority of the task ('low', 'medium', or 'high'). High priority should be for issues that could cause a breakdown or safety risk.
+        3.  **priority**: The priority of the task ('low', 'medium', 'high'). High priority should be for issues that could cause a breakdown or safety risk.
 
         **Example Analysis:**
         - A vehicle with high mileage and a history of "Travagem Brusca" events is a strong candidate for a "Troca das pastilhas de travão" prediction.
@@ -43,7 +43,7 @@ export const predictMaintenanceFlow = ai.defineFlow(
         inputSchema: PredictMaintenanceInputSchema,
         outputSchema: PredictMaintenanceOutputSchema,
     },
-    async (input: PredictMaintenanceInput): Promise<PredictMaintenanceOutput> => {
+    async ({input}) => {
         const { output } = await prompt({input});
         if (!output) {
             return { predictions: [] };

@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -558,10 +557,12 @@ export const SuggestTechnicianOutputSchema = z.object({
 export type SuggestTechnicianOutput = z.infer<typeof SuggestTechnicianOutputSchema>;
 
 export const PredictMaintenanceInputSchema = z.object({
-    vehicleType: z.string().describe("The type of vehicle (e.g., 'Carrinha de Manutenção', 'Carro de Patrulha')."),
-    mileage: z.number().describe("The current odometer reading in kilometers."),
-    ageInYears: z.number().describe("The age of the vehicle in years."),
-    telemetryEvents: z.array(z.string()).describe("A list of recent driving events (e.g., 'Travagem Brusca', 'Aceleração Brusca')."),
+    input: z.object({
+        vehicleType: z.string().describe("The type of vehicle (e.g., 'Carrinha de Manutenção', 'Carro de Patrulha')."),
+        mileage: z.number().describe("The current odometer reading in kilometers."),
+        ageInYears: z.number().describe("The age of the vehicle in years."),
+        telemetryEvents: z.array(z.string()).describe("A list of recent driving events (e.g., 'Travagem Brusca', 'Aceleração Brusca')."),
+    })
 });
 export type PredictMaintenanceInput = z.infer<typeof PredictMaintenanceInputSchema>;
 
