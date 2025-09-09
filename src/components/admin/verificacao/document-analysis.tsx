@@ -9,13 +9,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { FileSearch, User, Hash, AreaChart, CircleDot, AlertTriangle, BadgePercent } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { Label } from '@/components/ui/label';
 
 interface DocumentAnalysisProps {
     documentUrl: string;
 }
 
 const urlToDataUri = async (url: string): Promise<string> => {
-    const response = await fetch(url);
+    // This is a temporary solution for the demo. In a real app, you would have a backend
+    // endpoint to fetch the image and convert it to a data URI to avoid CORS issues.
+    // We are proxying the request through a public CORS proxy.
+    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+    const response = await fetch(proxyUrl + url);
     if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.statusText}`);
     }

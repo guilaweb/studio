@@ -189,7 +189,7 @@ function AdminVerificationDetailPage() {
                                 {applicant && (
                                     <div className="flex items-center gap-4">
                                         <Avatar>
-                                            <AvatarImage src={applicant.photoURL} />
+                                            <AvatarImage src={applicant.photoURL || undefined} />
                                             <AvatarFallback>{applicant.displayName.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div>
