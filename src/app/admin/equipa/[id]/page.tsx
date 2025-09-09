@@ -254,7 +254,7 @@ function VehicleDetailPage() {
                         </Card>
                     </div>
                 </div>
-                {user && <PredictiveMaintenanceAnalysis user={user} />}
+                {user && user.vehicle && <PredictiveMaintenanceAnalysis user={user} />}
             </main>
         </div>
     );
