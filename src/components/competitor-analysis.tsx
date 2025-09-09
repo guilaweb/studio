@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Loader2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,8 +15,7 @@ interface CompetitorAnalysisProps {
     map: google.maps.Map | null;
 }
 
-const CompetitorAnalysis: React.FC<CompetitorAnalysisProps> = ({ onResults }) => {
-    const map = useMap();
+const CompetitorAnalysis: React.FC<CompetitorAnalysisProps> = ({ onResults, map }) => {
     const places = useMapsLibrary('places');
     const [query, setQuery] = useState('Posto de combustível');
     const [loading, setLoading] = useState(false);
@@ -32,7 +31,7 @@ const CompetitorAnalysis: React.FC<CompetitorAnalysisProps> = ({ onResults }) =>
 
         const request: google.maps.places.TextSearchRequest = {
             query,
-            bounds: map.getBounds(),
+            bounds: map.getBounds() as google.maps.LatLngBounds,
         };
 
         const placesService = new places.PlacesService(map);

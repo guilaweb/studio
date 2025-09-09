@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
@@ -25,6 +24,7 @@ type MapComponentProps = {
   onMarkerClick: (pointId: string) => void;
   children?: React.ReactNode;
   styles?: google.maps.MapTypeStyle[];
+  mapRef?: React.MutableRefObject<google.maps.Map | null>;
 };
 
 const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
@@ -365,7 +365,7 @@ export const WFSLayer = ({ url, layerName }: { url: string, layerName: string })
 
 
 
-export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, placesResults, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick, children, styles }: MapComponentProps) {
+export default function MapComponent({ activeLayers, data, userPosition, searchedPlace, placesResults, center, zoom, onCenterChanged, onZoomChanged, onMarkerClick, children, styles, mapRef }: MapComponentProps) {
   
     const [infoWindowState, setInfoWindowState] = useState<{ anchor: google.maps.marker.AdvancedMarkerElement | google.maps.LatLngLiteral | null; poi: PointOfInterest | null }>({ anchor: null, poi: null });
     const { externalLayers } = useExternalLayers();
@@ -411,6 +411,7 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
     return (
         <div style={{ height: "100%", width: "100%", minHeight: "200px" }}>
             <Map
+                ref={mapRef}
                 mapId="jango-digital-map"
                 center={center}
                 zoom={zoom}

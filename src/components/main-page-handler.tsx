@@ -82,6 +82,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   const [selectedPoi, setSelectedPoi] = React.useState<PointOfInterest | null>(null);
   const [searchedPlace, setSearchedPlace] = React.useState<google.maps.places.PlaceResult | null>(null);
   const [userPosition, setUserPosition] = React.useState<google.maps.LatLngLiteral | null>(null);
+  const mapRef = React.useRef<google.maps.Map>(null);
   const [mapCenter, setMapCenter] = React.useState<google.maps.LatLngLiteral>({
     lat: -12.5,
     lng: 18.5,
@@ -1070,7 +1071,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
               {isManager && (
                 <>
                   <Separator />
-                  <CompetitorAnalysis onResults={setPlacesResults} map={null} />
+                  <CompetitorAnalysis onResults={setPlacesResults} map={mapRef.current} />
                 </>
               )}
             </SidebarContent>
@@ -1179,6 +1180,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             </AppHeader>
             <div className="flex-1 overflow-hidden relative">
                <MapComponent
+                mapRef={mapRef}
                 activeLayers={finalActiveLayers}
                 data={allData}
                 userPosition={userPosition}
