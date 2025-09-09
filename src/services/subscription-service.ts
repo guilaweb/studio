@@ -3,10 +3,9 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot, updateDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, collection, query, where, getDocs, addDoc, setDoc } from 'firebase/firestore';
 import type { Subscription, SubscriptionPlan, UserProfile } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
-import { planDetails } from '@/lib/data';
 import { addDays, formatISO } from 'date-fns';
 
 // Hook to get the subscription and usage for the current user's organization
@@ -35,13 +34,12 @@ export const useSubscription = () => {
             setSubscription({
                 id: 'virtual-free',
                 organizationId: 'none',
-                plan: 'free',
+                planId: 'free',
                 status: 'active',
                 currentPeriodStart: new Date().toISOString(),
                 currentPeriodEnd: addDays(new Date(), 30).toISOString(),
                 cancelAtPeriodEnd: false,
                 createdAt: new Date().toISOString(),
-                limits: { agents: 5, storageGb: 1, apiCalls: 1000 },
             });
             return;
         }
@@ -83,9 +81,8 @@ export const useSubscription = () => {
 // Function to change the subscription plan for an organization
 export const changeSubscriptionPlan = async (organizationId: string, newPlan: SubscriptionPlan): Promise<void> => {
     const subscriptionDocRef = doc(db, 'subscriptions', organizationId);
-    const newPlanDetails = planDetails[newPlan as keyof typeof planDetails];
     
-    if (!newPlanDetails) {
+    if (!newPlan) {
         throw new Error("Invalid plan selected.");
     }
     
@@ -93,8 +90,7 @@ export const changeSubscriptionPlan = async (organizationId: string, newPlan: Su
     const nextMonth = addDays(now, 30);
 
     const updateData = {
-        plan: newPlan,
-        limits: newPlanDetails.limits,
+        planId: newPlan.id,
         // In a real scenario, you'd handle prorating and billing cycles.
         // For this demo, we'll just reset the period.
         currentPeriodStart: formatISO(now),
@@ -109,11 +105,11 @@ export const changeSubscriptionPlan = async (organizationId: string, newPlan: Su
         const paymentsCollectionRef = collection(db, 'payments');
         await addDoc(paymentsCollectionRef, {
             organizationId,
-            amount: parseFloat(newPlanDetails.price.replace(/[^0-9,-]+/g,"").replace(',', '.')) || 0,
+            amount: newPlan.price,
             date: now.toISOString(),
-            plan: newPlan,
+            planId: newPlan.id,
             status: 'completed',
-            description: `Subscrição do plano ${newPlanDetails.name}`,
+            description: `Subscrição do plano ${newPlan.name}`,
         });
 
     } catch (err) {
@@ -121,4 +117,21 @@ export const changeSubscriptionPlan = async (organizationId: string, newPlan: Su
         throw new Error("Failed to change subscription plan.");
     }
 };
-    
+
+// Function to create a default subscription for a new organization
+export const createDefaultSubscription = async (organizationId: string, planId: string): Promise<void> => {
+    const subscriptionDocRef = doc(db, 'subscriptions', organizationId);
+    const now = new Date();
+    const nextMonth = addDays(new Date(), 30);
+
+    const defaultSubscription: Omit<Subscription, 'id'> = {
+        organizationId,
+        planId: planId, // typically the 'free' or 'trial' plan ID
+        status: 'trialing',
+        currentPeriodStart: now.toISOString(),
+        currentPeriodEnd: nextMonth.toISOString(),
+        cancelAtPeriodEnd: false,
+        createdAt: now.toISOString(),
+    };
+    await setDoc(subscriptionDocRef, defaultSubscription);
+};

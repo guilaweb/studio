@@ -12,22 +12,31 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
-import { planDetails } from "@/lib/data";
 import type { SubscriptionPlan, Payment } from "@/lib/data";
 import { Separator } from "@/components/ui/separator";
 import UsageProgressBar from "@/components/usage-progress-bar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { usePayments } from "@/services/payment-service";
 import { useRouter } from "next/navigation";
+import { useSubscriptionPlans } from "@/services/plans-service";
 
 function BillingPage() {
-    const { subscription, usage, loading } = useSubscription();
+    const { subscription, usage, loading: loadingSub } = useSubscription();
     const { payments, loading: loadingPayments } = usePayments();
+    const { subscriptionPlans, loading: loadingPlans } = useSubscriptionPlans();
     const { profile } = useAuth();
     const router = useRouter();
 
-    const currentPlanKey = subscription?.plan || 'free';
-    const currentPlan = planDetails[currentPlanKey as keyof typeof planDetails];
+    const currentPlan = React.useMemo(() => {
+        if (!subscription || !subscriptionPlans) return null;
+        return subscriptionPlans.find(p => p.id === subscription.planId);
+    }, [subscription, subscriptionPlans]);
+    
+    const otherPlans = React.useMemo(() => {
+         if (!subscription || !subscriptionPlans) return [];
+         return subscriptionPlans.filter(p => p.id !== subscription.planId);
+    }, [subscription, subscriptionPlans]);
+
 
     const getStatusBadge = (status?: string) => {
         switch (status) {
@@ -45,7 +54,7 @@ function BillingPage() {
     };
     
     const handlePlanChangeClick = (newPlan: SubscriptionPlan) => {
-        router.push(`/faturacao/checkout?plan=${newPlan}`);
+        router.push(`/faturacao/checkout?plan=${newPlan.id}`);
     };
     
      const handleDownloadInvoice = (payment: Payment) => {
@@ -71,6 +80,8 @@ function BillingPage() {
         newWindow?.document.close();
     };
 
+    const loading = loadingSub || loadingPayments || loadingPlans;
+
     return (
         <>
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -92,7 +103,7 @@ function BillingPage() {
                             <CardDescription>Esta é a subscrição atual da sua organização.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {loading ? (
+                            {loading || !currentPlan ? (
                                 <Skeleton className="h-48 w-full" />
                             ) : (
                                 <Card className="bg-primary/5 border-primary/20">
@@ -102,19 +113,16 @@ function BillingPage() {
                                             <CardDescription>{currentPlan.description}</CardDescription>
                                         </div>
                                         <div className="text-left md:text-right">
-                                            <p className="text-3xl font-bold">{currentPlan.price}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
+                                            <p className="text-3xl font-bold">AOA {currentPlan.price.toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
                                             {subscription && subscription.status !== 'trialing' && <p className="text-xs text-muted-foreground">Renova em {format(new Date(subscription.currentPeriodEnd), "dd 'de' MMMM, yyyy", { locale: pt })}</p>}
                                             {subscription?.status === 'trialing' && <p className="text-xs text-muted-foreground">O seu período de teste termina em {format(new Date(subscription.currentPeriodEnd), "dd 'de' MMMM, yyyy", { locale: pt })}</p>}
                                         </div>
                                     </CardHeader>
                                     <CardContent>
                                         <ul className="space-y-2 text-sm">
-                                            {currentPlan.features.map((feature, i) => (
-                                                <li key={i} className="flex items-center gap-2">
-                                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                                    <span>{feature}</span>
-                                                </li>
-                                            ))}
+                                            <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /><span>Até {currentPlan.limits.agents === -1 ? 'ilimitados' : currentPlan.limits.agents} agentes</span></li>
+                                            <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /><span>{currentPlan.limits.storageGb === -1 ? 'Ilimitado' : `${currentPlan.limits.storageGb} GB`} de armazenamento</span></li>
+                                            <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /><span>{currentPlan.limits.apiCalls === -1 ? 'Ilimitadas' : `${currentPlan.limits.apiCalls.toLocaleString()}`} chamadas API/mês</span></li>
                                         </ul>
                                         <Separator className="my-6" />
                                         <div>
@@ -123,17 +131,17 @@ function BillingPage() {
                                                 <UsageProgressBar
                                                     label="Agentes Municipais"
                                                     currentValue={usage.agents}
-                                                    limit={subscription?.limits.agents ?? 0}
+                                                    limit={currentPlan.limits.agents}
                                                 />
                                                 <UsageProgressBar
                                                     label="Armazenamento (GB)"
                                                     currentValue={0.5} // Placeholder
-                                                    limit={subscription?.limits.storageGb ?? 0}
+                                                    limit={currentPlan.limits.storageGb}
                                                 />
                                                 <UsageProgressBar
                                                     label="Chamadas API"
                                                     currentValue={120} // Placeholder
-                                                    limit={subscription?.limits.apiCalls ?? 0}
+                                                    limit={currentPlan.limits.apiCalls}
                                                 />
                                             </div>
                                         </div>
@@ -149,23 +157,20 @@ function BillingPage() {
                             <CardDescription>Escolha o plano que melhor se adapta às necessidades da sua entidade.</CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            {Object.entries(planDetails).filter(([key]) => key !== currentPlanKey).map(([key, plan]) => (
-                                <Card key={key} className="flex flex-col">
+                            {otherPlans.map((plan) => (
+                                <Card key={plan.id} className="flex flex-col">
                                     <CardHeader>
                                         <CardTitle>{plan.name}</CardTitle>
-                                        <p className="text-2xl font-bold">{plan.price}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
+                                        <p className="text-2xl font-bold">AOA {plan.price.toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
                                         <CardDescription>{plan.description}</CardDescription>
                                     </CardHeader>
                                     <CardContent className="flex-grow flex flex-col justify-between">
                                         <ul className="space-y-2 text-sm mb-6">
-                                            {plan.features.map((feature, i) => (
-                                                <li key={i} className="flex items-center gap-2">
-                                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                                    <span>{feature}</span>
-                                                </li>
-                                            ))}
+                                           <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /><span>Até {plan.limits.agents === -1 ? 'ilimitados' : plan.limits.agents} agentes</span></li>
+                                            <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /><span>{plan.limits.storageGb === -1 ? 'Ilimitado' : `${plan.limits.storageGb} GB`} de armazenamento</span></li>
+                                            <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /><span>{plan.limits.apiCalls === -1 ? 'Ilimitadas' : `${plan.limits.apiCalls.toLocaleString()}`} chamadas API/mês</span></li>
                                         </ul>
-                                        {key === 'enterprise' ? (
+                                        {plan.id === 'enterprise' ? (
                                             <Button className="w-full mt-auto" asChild>
                                                 <Link href="/governo/solicitar">
                                                     <Zap className="mr-2 h-4 w-4"/>
@@ -175,7 +180,7 @@ function BillingPage() {
                                         ) : (
                                             <Button 
                                                 className="w-full mt-auto" 
-                                                onClick={() => handlePlanChangeClick(key as SubscriptionPlan)}
+                                                onClick={() => handlePlanChangeClick(plan)}
                                             >
                                                 <Zap className="mr-2 h-4 w-4"/>
                                                 Fazer Upgrade

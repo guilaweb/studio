@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -231,8 +230,22 @@ export const InventoryPartSchema = z.object({
 });
 export type InventoryPart = z.infer<typeof InventoryPartSchema>;
 
-export const SubscriptionPlanEnum = z.enum(['basic', 'professional', 'enterprise', 'free']);
-export type SubscriptionPlan = z.infer<typeof SubscriptionPlanEnum>;
+export const SubscriptionPlanSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string(),
+    price: z.number(),
+    currency: z.string().default('AOA'),
+    limits: z.object({
+        agents: z.number().describe("Number of agents allowed. -1 for unlimited."),
+        storageGb: z.number().describe("Storage in GB. -1 for unlimited."),
+        apiCalls: z.number().describe("API calls per month. -1 for unlimited."),
+    }),
+    features: z.array(z.string()).optional(),
+    active: z.boolean().default(true),
+});
+export type SubscriptionPlan = z.infer<typeof SubscriptionPlanSchema>;
+
 
 export const SubscriptionStatusEnum = z.enum(['active', 'trialing', 'past_due', 'canceled', 'unpaid']);
 export type SubscriptionStatus = z.infer<typeof SubscriptionStatusEnum>;
@@ -240,17 +253,12 @@ export type SubscriptionStatus = z.infer<typeof SubscriptionStatusEnum>;
 export const SubscriptionSchema = z.object({
     id: z.string(),
     organizationId: z.string(),
-    plan: SubscriptionPlanEnum,
+    planId: z.string(),
     status: SubscriptionStatusEnum,
     currentPeriodStart: z.string(), // ISO string
     currentPeriodEnd: z.string(), // ISO string
     cancelAtPeriodEnd: z.boolean(),
     createdAt: z.string(),
-    limits: z.object({
-        agents: z.number(),
-        storageGb: z.number(),
-        apiCalls: z.number(),
-    })
 });
 export type Subscription = z.infer<typeof SubscriptionSchema>;
 
@@ -259,7 +267,7 @@ export const PaymentSchema = z.object({
     organizationId: z.string(),
     amount: z.number(),
     date: z.string(), // ISO string
-    plan: SubscriptionPlanEnum,
+    planId: z.string(),
     status: z.enum(['completed', 'pending', 'failed']),
     description: z.string(),
     invoiceUrl: z.string().optional(),
@@ -374,13 +382,7 @@ export const queueTimeLabelMap: Record<QueueTime, string> = {
 };
 
 
-// SAAS Plan Details
-export const planDetails = {
-    free: { name: "Plano Gratuito", price: "AOA 0", description: "Para experimentar e explorar a plataforma.", features: ["5 Agentes", "1GB Armazenamento", "1,000 Chamadas API/mês"], limits: { agents: 5, storageGb: 1, apiCalls: 1000 } },
-    basic: { name: "Plano Básico", price: "AOA 49,990", description: "Ideal para municípios pequenos e projetos piloto.", features: ["20 Agentes", "10GB Armazenamento", "10,000 Chamadas API/mês", "Suporte Padrão"], limits: { agents: 20, storageGb: 10, apiCalls: 10000 } },
-    professional: { name: "Plano Profissional", price: "AOA 149,990", description: "O mais popular, para uma gestão municipal completa.", features: ["100 Agentes", "50GB Armazenamento", "100,000 Chamadas API/mês", "Suporte Prioritário", "Análise Preditiva IA"], limits: { agents: 100, storageGb: 50, apiCalls: 100000 } },
-    enterprise: { name: "Plano Empresarial", price: "Contacte-nos", description: "Soluções à medida para grandes cidades e necessidades específicas.", features: ["Agentes Ilimitados", "Armazenamento Ilimitado", "API Dedicada", "Suporte 24/7", "Módulos Customizados"], limits: { agents: -1, storageGb: -1, apiCalls: -1 } }, // -1 for unlimited
-};
+// SAAS Plan Details (DEPRECATED - Now fetched from Firestore)
 
 
 // Schemas for AI Flows
