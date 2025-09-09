@@ -1,20 +1,19 @@
 
-      
-
 "use client";
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
-import type { Subscription, SubscriptionPlan } from '@/lib/data';
+import { doc, onSnapshot, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import type { Subscription, SubscriptionPlan, UserProfile } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
 import { planDetails } from '@/lib/data';
 import { addDays, formatISO } from 'date-fns';
 
-// Hook to get the subscription for the current user's organization
+// Hook to get the subscription and usage for the current user's organization
 export const useSubscription = () => {
     const { profile, loading: authLoading } = useAuth();
     const [subscription, setSubscription] = useState<Subscription | null>(null);
+    const [usage, setUsage] = useState<{ agents: number }>({ agents: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +23,6 @@ export const useSubscription = () => {
         }
 
         if (!profile) {
-            // If not loading and still no profile, it might be a non-org user or loading profile failed.
             setLoading(false);
             setSubscription(null);
             return;
@@ -50,7 +48,7 @@ export const useSubscription = () => {
 
         const subscriptionDocRef = doc(db, 'subscriptions', profile.organizationId);
         
-        const unsubscribe = onSnapshot(subscriptionDocRef, (doc) => {
+        const unsubscribeSub = onSnapshot(subscriptionDocRef, (doc) => {
             if (doc.exists()) {
                 setSubscription({ id: doc.id, ...doc.data() } as Subscription);
             } else {
@@ -65,10 +63,21 @@ export const useSubscription = () => {
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        // Fetch usage data
+        const usersCollectionRef = collection(db, 'users');
+        const q = query(usersCollectionRef, where("organizationId", "==", profile.organizationId), where("role", "==", "Agente Municipal"));
+
+        const unsubscribeUsage = onSnapshot(q, (snapshot) => {
+            setUsage({ agents: snapshot.size });
+        });
+
+        return () => {
+            unsubscribeSub();
+            unsubscribeUsage();
+        };
     }, [profile, authLoading]);
 
-    return { subscription, loading, error };
+    return { subscription, usage, loading, error };
 };
 
 // Function to change the subscription plan for an organization
@@ -100,6 +109,4 @@ export const changeSubscriptionPlan = async (organizationId: string, newPlan: Su
         throw new Error("Failed to change subscription plan.");
     }
 };
-
-
     

@@ -1,5 +1,4 @@
 
-      
 "use client";
 
 import * as React from "react";
@@ -16,10 +15,12 @@ import { Badge } from "@/components/ui/badge";
 import { planDetails } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 import type { SubscriptionPlan } from "@/lib/data";
+import { Separator } from "@/components/ui/separator";
+import UsageProgressBar from "@/components/usage-progress-bar";
 
 
 function BillingPage() {
-    const { subscription, loading } = useSubscription();
+    const { subscription, usage, loading } = useSubscription();
     const { profile } = useAuth();
     const { toast } = useToast();
     const [isChangingPlan, setIsChangingPlan] = React.useState<SubscriptionPlan | null>(null);
@@ -82,7 +83,7 @@ function BillingPage() {
                     </CardHeader>
                     <CardContent>
                         {loading ? (
-                            <Skeleton className="h-32 w-full" />
+                            <Skeleton className="h-48 w-full" />
                         ) : (
                              <Card className="bg-primary/5 border-primary/20">
                                 <CardHeader className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
@@ -92,7 +93,8 @@ function BillingPage() {
                                     </div>
                                     <div className="text-left md:text-right">
                                         <p className="text-3xl font-bold">{currentPlan.price}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
-                                        {subscription && <p className="text-xs text-muted-foreground">Renova em {format(new Date(subscription.currentPeriodEnd), "dd 'de' MMMM, yyyy", { locale: pt })}</p>}
+                                        {subscription && subscription.status !== 'trialing' && <p className="text-xs text-muted-foreground">Renova em {format(new Date(subscription.currentPeriodEnd), "dd 'de' MMMM, yyyy", { locale: pt })}</p>}
+                                        {subscription?.status === 'trialing' && <p className="text-xs text-muted-foreground">O seu período de teste termina em {format(new Date(subscription.currentPeriodEnd), "dd 'de' MMMM, yyyy", { locale: pt })}</p>}
                                     </div>
                                 </CardHeader>
                                 <CardContent>
@@ -104,6 +106,27 @@ function BillingPage() {
                                             </li>
                                         ))}
                                     </ul>
+                                    <Separator className="my-6" />
+                                    <div>
+                                        <h4 className="text-md font-semibold mb-4">Utilização dos Recursos</h4>
+                                        <div className="space-y-4">
+                                             <UsageProgressBar
+                                                label="Agentes Municipais"
+                                                currentValue={usage.agents}
+                                                limit={subscription?.limits.agents ?? 0}
+                                            />
+                                             <UsageProgressBar
+                                                label="Armazenamento (GB)"
+                                                currentValue={0.5} // Placeholder
+                                                limit={subscription?.limits.storageGb ?? 0}
+                                            />
+                                             <UsageProgressBar
+                                                label="Chamadas API"
+                                                currentValue={120} // Placeholder
+                                                limit={subscription?.limits.apiCalls ?? 0}
+                                            />
+                                        </div>
+                                    </div>
                                 </CardContent>
                             </Card>
                         )}
@@ -135,7 +158,7 @@ function BillingPage() {
                                     <Button 
                                         className="w-full mt-auto" 
                                         onClick={() => handlePlanChange(key as SubscriptionPlan)}
-                                        disabled={isChangingPlan !== null}
+                                        disabled={isChangingPlan !== null || key === 'enterprise'}
                                     >
                                         {isChangingPlan === key ? (
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
@@ -155,5 +178,3 @@ function BillingPage() {
 }
 
 export default withAuth(BillingPage, ['Administrador']);
-
-    
