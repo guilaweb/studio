@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -471,26 +472,41 @@ export default function LandingPage() {
                     </div>
                     </section>
                 </main>
-                <footer className="flex flex-col gap-4 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t bg-background">
-                    <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-muted-foreground">
-                        <p>&copy; 2024 MUNITU. Todos os direitos reservados.</p>
-                        <Link href="/governo" className="underline hover:text-primary">Soluções para Governo</Link>
-                        <Link href="/docs" className="underline hover:text-primary">Documentação Técnica</Link>
-                        <Link href="/artigo-cientifico" className="underline hover:text-primary">Artigo Científico</Link>
-                        <Link href="/funcionalidades" className="underline hover:text-primary">Funcionalidades</Link>
-                        <Link href="/exemplos-de-uso" className="underline hover:text-primary">Exemplos de Uso</Link>
-                        <Link href="/monetizacao" className="underline hover:text-primary">Monetização</Link>
-                        <Link href="/oportunidades" className="underline hover:text-primary">Oportunidades</Link>
-                        <Link href="/solucoes-empresas" className="underline hover:text-primary">Soluções para Empresas</Link>
-                        <Link href="/termos-e-condicoes" className="underline hover:text-primary">Termos e Condições</Link>
-                        <Link href="/politica-de-privacidade" className="underline hover:text-primary">Política de Privacidade</Link>
-                        <Link href="/help" className="underline hover:text-primary">Ajuda</Link>
+                <footer className="w-full border-t bg-background/95 backdrop-blur-sm">
+                    <div className="container grid grid-cols-2 md:grid-cols-4 gap-8 py-12">
+                        <div className="grid gap-2 col-span-2 md:col-span-1">
+                            <Link href="/" className="flex items-center gap-2 mb-2" prefetch={false}>
+                                <Logo className="h-6 w-6 text-primary" />
+                                <span className="font-semibold text-lg">MUNITU</span>
+                            </Link>
+                            <p className="text-sm text-muted-foreground">Você faz a cidade. A plataforma digital que conecta cidadãos, empresas e o município para uma governação transparente e eficiente.</p>
+                        </div>
+                        <div className="grid gap-2 text-sm">
+                            <h3 className="font-semibold">Plataforma</h3>
+                            <Link href="/funcionalidades" className="text-muted-foreground hover:text-primary" prefetch={false}>Funcionalidades</Link>
+                            <Link href="/exemplos-de-uso" className="text-muted-foreground hover:text-primary" prefetch={false}>Exemplos de Uso</Link>
+                            <Link href="/solucoes-empresas" className="text-muted-foreground hover:text-primary" prefetch={false}>Soluções para Empresas</Link>
+                            <Link href="/governo" className="text-muted-foreground hover:text-primary" prefetch={false}>Soluções para Governo</Link>
+                        </div>
+                        <div className="grid gap-2 text-sm">
+                            <h3 className="font-semibold">Recursos</h3>
+                            <Link href="/docs" className="text-muted-foreground hover:text-primary" prefetch={false}>Documentação Técnica</Link>
+                            <Link href="/artigo-cientifico" className="text-muted-foreground hover:text-primary" prefetch={false}>Artigo Científico</Link>
+                            <Link href="/monetizacao" className="text-muted-foreground hover:text-primary" prefetch={false}>Monetização</Link>
+                            <Link href="/oportunidades" className="text-muted-foreground hover:text-primary" prefetch={false}>Oportunidades</Link>
+                            <Link href="/help" className="text-muted-foreground hover:text-primary" prefetch={false}>Ajuda</Link>
+                        </div>
+                        <div className="grid gap-2 text-sm">
+                            <h3 className="font-semibold">Legal</h3>
+                            <Link href="/termos-e-condicoes" className="text-muted-foreground hover:text-primary" prefetch={false}>Termos e Condições</Link>
+                            <Link href="/politica-de-privacidade" className="text-muted-foreground hover:text-primary" prefetch={false}>Política de Privacidade</Link>
+                        </div>
                     </div>
-                    <div className="sm:ml-auto flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground text-center sm:text-right">
-                        <div>
+                    <div className="container flex flex-col sm:flex-row items-center justify-between gap-4 py-6 border-t">
+                        <p className="text-xs text-muted-foreground">&copy; 2024 MUNITU. Todos os direitos reservados.</p>
+                        <div className="text-xs text-muted-foreground text-center sm:text-right">
                             <p className="font-semibold">Dianguila Empreendimentos, (SU), Lda.</p>
                             <p>NIF: 5001706802 | Matrícula: 39110-23/231102</p>
-                            <p>Acto de Constituição: Insc.1 Ap.419/231102</p>
                         </div>
                     </div>
                 </footer>
