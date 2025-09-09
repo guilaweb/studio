@@ -40,7 +40,7 @@ const mapStyles: google.maps.MapTypeStyle[] = [
 
 const formSchema = z.object({
   entityName: z.string().min(5, "O nome da entidade é obrigatório."),
-  entityType: z.enum(["Administração Municipal", "Governo Provincial", "Empresa Pública"]),
+  entityType: z.enum(["Administração Municipal", "Governo Provincial", "Empresa Pública", "Empresa Privada"]),
   province: z.string().min(1, "A província é obrigatória."),
   municipality: z.string().min(1, "O município é obrigatório."),
   nif: z.string().regex(/^\d{9}$/, "O NIF deve ter 9 dígitos."),
@@ -151,6 +151,7 @@ export default function InstitutionalRequestPage() {
                                                                 <SelectItem value="Administração Municipal">Administração Municipal</SelectItem>
                                                                 <SelectItem value="Governo Provincial">Governo Provincial</SelectItem>
                                                                 <SelectItem value="Empresa Pública">Empresa Pública</SelectItem>
+                                                                <SelectItem value="Empresa Privada">Empresa Privada</SelectItem>
                                                             </SelectContent>
                                                         </Select>
                                                         <FormMessage />
