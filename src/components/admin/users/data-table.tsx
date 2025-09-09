@@ -34,6 +34,8 @@ interface UserDataTableProps {
   onUpdateUserRole: (uid: string, role: UserProfile['role']) => Promise<void>,
   onUpdateUserProfile: (uid: string, data: Partial<UserProfile>) => Promise<void>,
   onEditVehicle: (user: UserProfile) => void;
+  agentCount: number;
+  agentLimit: number;
 }
 
 export function UserDataTable({
@@ -41,7 +43,9 @@ export function UserDataTable({
   data,
   onUpdateUserRole,
   onUpdateUserProfile,
-  onEditVehicle
+  onEditVehicle,
+  agentCount,
+  agentLimit,
 }: UserDataTableProps) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -63,6 +67,8 @@ export function UserDataTable({
             onUpdateUserRole,
             onUpdateUserProfile,
             onEditVehicle,
+            agentCount,
+            agentLimit,
         }
     });
 
@@ -77,6 +83,9 @@ export function UserDataTable({
                 }
                 className="max-w-sm h-9"
             />
+             <div className="text-sm text-muted-foreground">
+                Agentes Municipais: <strong>{agentCount}</strong> / <strong>{agentLimit === -1 ? 'Ilimitados' : agentLimit}</strong>
+            </div>
         </div>
         <div className="rounded-md border">
         <Table>
@@ -143,3 +152,4 @@ export function UserDataTable({
     </div>
   )
 }
+

@@ -14,13 +14,15 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { columns } from "@/components/admin/users/columns";
 import VehicleEditorDialog from "@/components/admin/users/vehicle-editor-dialog";
+import { useSubscription } from "@/services/subscription-service";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 function AdminUsersPage() {
     const { users, loading: loadingUsers, error, updateUserRole, updateUserProfile } = useUsers();
     const { allData: allPoints, loading: loadingPoints } = usePoints();
+    const { subscription, loading: loadingSub } = useSubscription();
     const [userToEditVehicle, setUserToEditVehicle] = React.useState<UserProfile | null>(null);
-
 
     const usersWithStats: UserProfileWithStats[] = React.useMemo(() => {
         if (loadingUsers || loadingPoints) return [];
@@ -38,10 +40,26 @@ function AdminUsersPage() {
             }
         })
     }, [users, allPoints, loadingUsers, loadingPoints]);
+    
+    const currentAgentCount = React.useMemo(() => {
+        return users.filter(u => u.role === 'Agente Municipal').length;
+    }, [users]);
 
 
-    if (loadingUsers || loadingPoints) {
-        return <div>A carregar dados...</div>;
+    if (loadingUsers || loadingPoints || loadingSub) {
+        return (
+             <div className="flex min-h-screen w-full flex-col bg-muted/40 p-6">
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-8 w-1/2" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {[...Array(7)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+                    </CardContent>
+                </Card>
+            </div>
+        )
     }
 
     if (error) {
@@ -77,6 +95,8 @@ function AdminUsersPage() {
                                 onUpdateUserRole={updateUserRole}
                                 onUpdateUserProfile={updateUserProfile}
                                 onEditVehicle={setUserToEditVehicle}
+                                agentCount={currentAgentCount}
+                                agentLimit={subscription?.limits?.agents ?? 0}
                             />
                         </CardContent>
                     </Card>
