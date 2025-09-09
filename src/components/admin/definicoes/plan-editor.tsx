@@ -16,13 +16,13 @@ import { saveSubscriptionPlan } from '@/services/plans-service';
 import { Textarea } from '@/components/ui/textarea';
 
 interface PlanEditorProps {
-  planToEdit: SubscriptionPlan | null;
+  plan: SubscriptionPlan | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 const formSchema = z.object({
-  id: z.string().min(1, "O ID do plano é obrigatório (ex: free, professional)"),
+  id: z.string().min(1, "O ID do plano é obrigatório (ex: free, professional)").regex(/^[a-z0-9-]+$/, "O ID só pode conter letras minúsculas, números e hífenes."),
   name: z.string().min(3, "O nome do plano é obrigatório."),
   description: z.string().min(10, "A descrição é obrigatória."),
   price: z.coerce.number().min(0, "O preço não pode ser negativo."),
@@ -33,38 +33,48 @@ const formSchema = z.object({
   })
 });
 
-export default function PlanEditor({ open, onOpenChange, planToEdit }: PlanEditorProps) {
+export default function PlanEditor({ open, onOpenChange, plan }: PlanEditorProps) {
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
+  
+  const isEditing = !!plan;
 
   React.useEffect(() => {
-    if (open && planToEdit) {
-      form.reset({
-        id: planToEdit.id,
-        name: planToEdit.name,
-        description: planToEdit.description,
-        price: planToEdit.price,
-        limits: planToEdit.limits,
-      });
-    } else if(open) {
-      form.reset({
-        id: '',
-        name: '',
-        description: '',
-        price: 0,
-        limits: { agents: 0, storageGb: 0, apiCalls: 0 },
-      });
+    if (open) {
+        if (plan) {
+            form.reset({
+                id: plan.id,
+                name: plan.name,
+                description: plan.description,
+                price: plan.price,
+                limits: plan.limits,
+            });
+        } else {
+            form.reset({
+                id: '',
+                name: '',
+                description: '',
+                price: 0,
+                limits: { agents: 0, storageGb: 0, apiCalls: 0 },
+            });
+        }
     }
-  }, [planToEdit, open, form]);
+  }, [plan, open, form]);
 
   const { isSubmitting } = form.formState;
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-        const isEditing = !!planToEdit;
-        await saveSubscriptionPlan(values, isEditing);
+        const planData: SubscriptionPlan = {
+            ...values,
+            currency: 'AOA',
+            active: plan?.active ?? true,
+            features: plan?.features ?? [],
+        };
+        
+        await saveSubscriptionPlan(planData, isEditing);
         toast({ title: 'Plano Guardado!', description: `O plano "${values.name}" foi guardado com sucesso.` });
         onOpenChange(false);
     } catch (error) {
@@ -76,7 +86,7 @@ export default function PlanEditor({ open, onOpenChange, planToEdit }: PlanEdito
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{planToEdit ? 'Editar Plano de Subscrição' : 'Novo Plano de Subscrição'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar Plano de Subscrição' : 'Novo Plano de Subscrição'}</DialogTitle>
           <DialogDescription>
             Defina os detalhes, preços e limites para este plano.
           </DialogDescription>
@@ -84,7 +94,7 @@ export default function PlanEditor({ open, onOpenChange, planToEdit }: PlanEdito
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
             <FormField control={form.control} name="id" render={({ field }) => (
-              <FormItem><FormLabel>ID do Plano</FormLabel><FormControl><Input placeholder="Ex: professional" {...field} disabled={!!planToEdit} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel>ID do Plano</FormLabel><FormControl><Input placeholder="Ex: professional" {...field} disabled={isEditing} /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem><FormLabel>Nome do Plano</FormLabel><FormControl><Input placeholder="Ex: Plano Profissional" {...field} /></FormControl><FormMessage /></FormItem>

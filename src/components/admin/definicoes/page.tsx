@@ -7,9 +7,9 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, EyeOff, Eye, Globe, Plus, Loader2, Trash2, MapPin, Wrench, Fuel } from "lucide-react";
+import { ArrowLeft, Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, EyeOff, Eye, Globe, Plus, Loader2, Trash2, MapPin, Wrench, Fuel, CreditCard } from "lucide-react";
 import { usePublicLayerSettings, updatePublicLayerSettings } from "@/services/settings-service";
-import type { ActiveLayers, Layer } from "@/lib/data";
+import type { ActiveLayers, Layer, SubscriptionPlan } from "@/lib/data";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,8 +23,10 @@ import { useGeofences, deleteGeofence } from "@/services/geofence-service";
 import type { Geofence } from "@/services/geofence-service";
 import GeofenceEditorDialog from "@/components/geofence-editor-dialog";
 import { useMaintenancePlans, addMaintenancePlan, deleteMaintenancePlan } from "@/services/maintenance-service";
-import type { MaintenancePlan } from "@/services/maintenance-service";
+import type { MaintenancePlan as MaintenancePlanType } from "@/services/maintenance-service";
 import { APIProvider } from "@vis.gl/react-google-maps";
+import PlanEditor from "@/components/admin/definicoes/plan-editor";
+import { useSubscriptionPlans } from "@/services/plans-service";
 
 const layerConfig = [
   { id: "atm", label: "Caixas Eletrônicos", Icon: Landmark },
@@ -43,6 +45,8 @@ function AdminSettingsPage() {
     const { externalLayers, loading: loadingExternalLayers } = useExternalLayers();
     const { geofences, loading: loadingGeofences } = useGeofences();
     const { maintenancePlans, loading: loadingMaintenancePlans } = useMaintenancePlans();
+    const { subscriptionPlans, loading: loadingPlans } = useSubscriptionPlans();
+
     
     // State for External Layers
     const [newLayerName, setNewLayerName] = React.useState("");
@@ -59,10 +63,13 @@ function AdminSettingsPage() {
     
     // State for Maintenance Plans
     const [newPlanName, setNewPlanName] = React.useState("");
-    const [newPlanType, setNewPlanType] = React.useState<MaintenancePlan['type']>('distance');
+    const [newPlanType, setNewPlanType] = React.useState<MaintenancePlanType['type']>('distance');
     const [newPlanInterval, setNewPlanInterval] = React.useState<number | "">("");
     const [isAddingPlan, setIsAddingPlan] = React.useState(false);
     const [planToDelete, setPlanToDelete] = React.useState<string | null>(null);
+    
+    const [plan, setPlan] = React.useState<SubscriptionPlan | null>(null);
+    const [isEditorOpen, setIsEditorOpen] = React.useState(false);
 
     
     const { toast } = useToast();
@@ -192,8 +199,18 @@ function AdminSettingsPage() {
         return null;
     }
     const thingToDelete = getThingToDelete();
+    
+    const handleEditPlan = (plan: SubscriptionPlan) => {
+        setPlan(plan);
+        setIsEditorOpen(true);
+    }
+    
+    const handleAddNewPlan = () => {
+        setPlan(null);
+        setIsEditorOpen(true);
+    }
 
-    if (loadingPublicLayers || !localLayers || loadingExternalLayers || loadingGeofences || loadingMaintenancePlans) {
+    if (loadingPublicLayers || !localLayers || loadingExternalLayers || loadingGeofences || loadingMaintenancePlans || loadingPlans) {
         return (
             <div className="flex min-h-screen w-full flex-col bg-muted/40 p-6">
                 <Card>
@@ -404,6 +421,34 @@ function AdminSettingsPage() {
                                 </div>
                             </CardContent>
                         </Card>
+                         <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <CreditCard className="h-5 w-5"/>
+                                    Gestão de Planos de Subscrição
+                                </CardTitle>
+                                <CardDescription>Crie e edite os planos SaaS oferecidos na plataforma.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <Button onClick={handleAddNewPlan} className="w-full">
+                                    <Plus className="mr-2 h-4 w-4" /> Adicionar Novo Plano
+                                </Button>
+                                <div className="space-y-2">
+                                     {subscriptionPlans.map(p => (
+                                        <div key={p.id} className="flex items-center justify-between rounded-lg border p-3">
+                                            <div className="flex items-center gap-3">
+                                                <CreditCard className="h-5 w-5 text-muted-foreground" />
+                                                <div>
+                                                    <span className="font-medium text-sm">{p.name}</span>
+                                                    <p className="text-xs text-muted-foreground">AOA {p.price.toLocaleString()} / mês</p>
+                                                </div>
+                                            </div>
+                                            <Button variant="outline" size="sm" onClick={() => handleEditPlan(p)}>Editar</Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </main>
             </div>
@@ -423,6 +468,11 @@ function AdminSettingsPage() {
                 open={isGeofenceEditorOpen}
                 onOpenChange={setIsGeofenceEditorOpen}
                 geofenceToEdit={geofenceToEdit}
+            />
+            <PlanEditor
+                open={isEditorOpen}
+                onOpenChange={setIsEditorOpen}
+                plan={plan}
             />
         </APIProvider>
     );
