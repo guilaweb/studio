@@ -114,4 +114,3 @@ function AdminUsersPage() {
 
 
 export default withAuth(AdminUsersPage, ['Administrador']);
-
