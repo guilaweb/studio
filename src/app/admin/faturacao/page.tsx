@@ -32,7 +32,7 @@ function BillingPage() {
         switch (status) {
             case 'active':
             case 'trialing':
-                return <Badge className="bg-green-600">Ativo</Badge>;
+                return <Badge className="bg-green-600 hover:bg-green-600">Ativo</Badge>;
             case 'past_due':
             case 'unpaid':
                 return <Badge variant="destructive">Pendente</Badge>;
