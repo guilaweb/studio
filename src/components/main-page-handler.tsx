@@ -22,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap, HardHat } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -41,7 +41,7 @@ import { usePublicLayerSettings } from "@/services/settings-service";
 import AnnouncementReport from "./announcement-report";
 import ConstructionEdit from "./construction-edit";
 import CroquiReport from "./croqui-report";
-import WaterResourceReport from "./water-resource-report";
+import InfrastructureReport from "./infrastructure-report";
 import PollutionReport from "./pollution-report";
 import DirectionsRenderer from "./directions-renderer";
 import { Separator } from "./ui/separator";
@@ -52,7 +52,7 @@ import LightingPoleReport from "./lighting-pole-report";
 import PTReport from "./pt-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource' | 'pollution' | 'fuel_station' | 'health_unit' | 'lighting_pole' | 'pt';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'infrastructure' | 'pollution' | 'fuel_station' | 'health_unit' | 'lighting_pole' | 'pt';
 type EditMode = 'edit' | 'divide' | null;
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
@@ -72,6 +72,8 @@ const defaultActiveLayers: ActiveLayers = {
     health_case: false,
     lighting_pole: false,
     pt: false,
+    electrical_cabin: false,
+    electrical_network_segment: false,
 };
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -955,21 +957,27 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
   
-  const handleAddNewWaterResource = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'polyline' | 'polygon'> & { photoDataUri?: string }) => {
+  const handleAddNewInfrastructure = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'polyline' | 'polygon'> & { photoDataUri?: string }) => {
      if (!user || !profile) {
         toast({
             variant: "destructive",
             title: "Ação necessária",
-            description: "Por favor, faça login para mapear um recurso hídrico.",
+            description: "Por favor, faça login para mapear.",
         });
         return;
     }
     handleSheetOpenChange(false);
     const timestamp = new Date().toISOString();
+    
+    let type: PointOfInterest['type'] = 'water_resource'; // default
+    if (data.title?.toLowerCase().includes('elétrica') || data.title?.toLowerCase().includes('eléctrica')) {
+        type = data.polyline ? 'electrical_network_segment' : 'electrical_cabin';
+    }
+
 
     const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
-      id: `water_resource-${Date.now()}`,
-      type: 'water_resource',
+      id: `${type}-${Date.now()}`,
+      type: type,
       title: data.title,
       authorId: user.uid,
       authorDisplayName: profile.displayName,
@@ -981,7 +989,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       polygon: data.polygon,
       customData: data.customData,
       updates: [{
-          text: `Recurso Hídrico mapeado: ${data.description}`,
+          text: `Infraestrutura mapeada: ${data.description}`,
           authorId: user.uid,
           authorDisplayName: profile.displayName,
           timestamp: timestamp,
@@ -992,8 +1000,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     addPoint(pointToAdd as any);
 
     toast({
-      title: "Recurso Hídrico Mapeado!",
-      description: "Obrigado por ajudar a construir o cadastro nacional de águas.",
+      title: "Infraestrutura Mapeada!",
+      description: "Obrigado por ajudar a construir o cadastro nacional.",
     });
   }
   
@@ -1064,7 +1072,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     let canEdit = false;
     
     if (canManage) {
-        // Managers can edit most things, but not the content of incidents they don't own.
+        // Managers can edit anything except incidents they don't own.
         if (poi.type === 'incident' && !isOwner) {
             // A manager can still change status or priority, but not edit the core report.
             // This logic is handled in the details panel, not the edit sheet.
@@ -1235,9 +1243,9 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                                     <Megaphone className="mr-2 h-4 w-4" />
                                     Criar Anúncio
                                 </DropdownMenuItem>
-                                 <DropdownMenuItem onClick={() => handleStartReporting('water_resource')}>
-                                    <Droplets className="mr-2 h-4 w-4" />
-                                    Mapear Recurso Hídrico
+                                 <DropdownMenuItem onClick={() => handleStartReporting('infrastructure')}>
+                                    <HardHat className="mr-2 h-4 w-4" />
+                                    Mapear Infraestrutura
                                 </DropdownMenuItem>
                             </>
                         )}
@@ -1363,9 +1371,9 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                                     <Megaphone className="mr-2 h-4 w-4" />
                                     Criar Anúncio
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleStartReporting('water_resource')}>
-                                    <Droplets className="mr-2 h-4 w-4" />
-                                    Mapear Recurso Hídrico
+                                <DropdownMenuItem onClick={() => handleStartReporting('infrastructure')}>
+                                    <HardHat className="mr-2 h-4 w-4" />
+                                    Mapear Infraestrutura
                                 </DropdownMenuItem>
                             </>
                         )}
@@ -1384,7 +1392,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             }
             }}
             onPoiStatusChange={handlePoiStatusChange}
-            onAddUpdate={handleAddUpdate}
+            onAddUpdate={onAddUpdate}
             onEdit={handleStartEditing}
         />
         <IncidentReport 
@@ -1481,10 +1489,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             poiToEdit={poiToEdit}
             editMode={editMode}
         />
-        <WaterResourceReport
-            open={activeSheet === 'water_resource'}
+        <InfrastructureReport
+            open={activeSheet === 'infrastructure'}
             onOpenChange={handleSheetOpenChange}
-            onWaterResourceSubmit={handleAddNewWaterResource}
+            onInfrastructureSubmit={handleAddNewInfrastructure}
             initialCenter={mapCenter}
         />
         <HealthUnitReport
