@@ -13,35 +13,20 @@ import { Logo } from "@/components/icons";
 import { Compass, MapPin, Share2, Phone, FileSignature } from "lucide-react";
 import { GenericPolygonsRenderer } from "@/components/generic-polygons-renderer";
 import Link from "next/link";
+import DirectionsRenderer from "@/components/directions-renderer";
 
-const RouteRenderer: React.FC<{
-    route: google.maps.LatLngLiteral[];
-}> = ({ route }) => {
-    const map = useMap();
-
-    React.useEffect(() => {
-        if (!map || !route || route.length === 0) return;
-        
-        const polyline = new google.maps.Polyline({
-            path: route,
-            geodesic: true,
-            strokeColor: 'hsl(var(--accent))',
-            strokeOpacity: 0.9,
-            strokeWeight: 5,
-            icons: [{
-                icon: { path: google.maps.SymbolPath.FORWARD_OPEN_ARROW },
-                offset: '100%',
-                repeat: '50px'
-            }],
-            map: map,
-        });
-
-        return () => {
-            polyline.setMap(null);
-        };
-    }, [map, route]);
-
-    return null;
+const RoutePointsRenderer: React.FC<{
+    points: { position: google.maps.LatLngLiteral; label: string; }[];
+}> = ({ points }) => {
+    return (
+        <>
+            {points.map((point, index) => (
+                <AdvancedMarker key={index} position={point.position} title={point.label}>
+                    <Pin background={'#FB923C'} borderColor={'#F97316'} glyphColor={'#ffffff'} />
+                </AdvancedMarker>
+            ))}
+        </>
+    );
 };
 
 
@@ -148,13 +133,9 @@ export default function PublicCroquiPage() {
                                </Pin>
                             </AdvancedMarker>
                             
-                            {croqui.croquiPoints?.map((point, index) => (
-                                <AdvancedMarker key={index} position={point.position} title={point.label}>
-                                    <Pin background={'#FB923C'} borderColor={'#F97316'} glyphColor={'#ffffff'} />
-                                </AdvancedMarker>
-                            ))}
+                            {croqui.croquiPoints && <RoutePointsRenderer points={croqui.croquiPoints} />}
                             
-                            {croqui.croquiRoute && <RouteRenderer route={croqui.croquiRoute} />}
+                            {croqui.croquiRoute && <DirectionsRenderer path={croqui.croquiRoute} />}
                             {croqui.polygon && (
                                 <GenericPolygonsRenderer
                                     plots={[croqui]}
