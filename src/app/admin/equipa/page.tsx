@@ -345,266 +345,262 @@ function TeamManagementPage() {
     }
 
     return (
-        <>
-            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!} libraries={['geometry']}>
-                <div className="flex min-h-screen w-full flex-col bg-muted/40">
-                    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-                        <Button size="icon" variant="outline" asChild>
-                            <Link href="/">
-                                <ArrowLeft className="h-5 w-5" />
-                                <span className="sr-only">Voltar</span>
-                            </Link>
+        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!} libraries={['geometry']}>
+            <div className="flex min-h-screen w-full flex-col bg-muted/40">
+                <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+                    <Button size="icon" variant="outline" asChild>
+                        <Link href="/">
+                            <ArrowLeft className="h-5 w-5" />
+                            <span className="sr-only">Voltar</span>
+                        </Link>
+                    </Button>
+                    <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+                        Gestão de Equipa e Despacho
+                    </h1>
+                    <div className="ml-auto">
+                        <Button onClick={() => setIncidentReportOpen(true)}>
+                            <Plus className="mr-2 h-4 w-4" /> Nova Tarefa
                         </Button>
-                        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                            Gestão de Equipa e Despacho
-                        </h1>
-                        <div className="ml-auto">
-                            <Button onClick={() => setIncidentReportOpen(true)}>
-                                <Plus className="mr-2 h-4 w-4" /> Nova Tarefa
-                            </Button>
-                        </div>
-                    </header>
-                    <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-4">
-                        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-                            <Card>
-                                <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Veículos em Rota</CardTitle><Truck className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                                <CardContent><div className="text-2xl font-bold">{kpis.emRota}</div><p className="text-xs text-muted-foreground">de {kpis.total} veículos totais</p></CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Alertas do Dia</CardTitle><AlertTriangle className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                                <CardContent><div className="text-2xl font-bold">{maintenanceAlerts.filter(a => a.level === 'critical').length}</div><p className="text-xs text-muted-foreground">{maintenanceAlerts.length} alertas no total</p></CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Manutenções</CardTitle><Wrench className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                                <CardContent><div className="text-2xl font-bold">{upcomingMaintenanceCount}</div><p className="text-xs text-muted-foreground">Vencem esta semana</p></CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Consumo Médio</CardTitle><Fuel className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                                <CardContent><div className="text-2xl font-bold">{fleetConsumption}</div><p className="text-xs text-muted-foreground">Média da frota</p></CardContent>
-                            </Card>
-                        </div>
+                    </div>
+                </header>
+                <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                        <Card>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Veículos em Rota</CardTitle><Truck className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">{kpis.emRota}</div><p className="text-xs text-muted-foreground">de {kpis.total} veículos totais</p></CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Alertas do Dia</CardTitle><AlertTriangle className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">{maintenanceAlerts.filter(a => a.level === 'critical').length}</div><p className="text-xs text-muted-foreground">{maintenanceAlerts.length} alertas no total</p></CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Manutenções</CardTitle><Wrench className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">{upcomingMaintenanceCount}</div><p className="text-xs text-muted-foreground">Vencem esta semana</p></CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Consumo Médio</CardTitle><Fuel className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">{fleetConsumption}</div><p className="text-xs text-muted-foreground">Média da frota</p></CardContent>
+                        </Card>
+                    </div>
 
-                        <div className="grid flex-1 items-start gap-4 md:grid-cols-3 lg:grid-cols-4">
-                            <div className="md:col-span-1 lg:col-span-1 space-y-4">
+                    <div className="grid flex-1 items-start gap-4 md:grid-cols-3 lg:grid-cols-4">
+                        <div className="md:col-span-1 lg:col-span-1 space-y-4">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Equipa Ativa</CardTitle>
+                                    <CardDescription>Localização e estado dos técnicos.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="relative">
+                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            type="search"
+                                            placeholder="Pesquisar por nome..."
+                                            className="pl-8"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Filtrar por estado" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Todos">Todos os Estados</SelectItem>
+                                                    <SelectItem value="Disponível">Disponível</SelectItem>
+                                                    <SelectItem value="Em Rota">Em Rota</SelectItem>
+                                                    <SelectItem value="Ocupado">Ocupado</SelectItem>
+                                                    <SelectItem value="Offline">Offline</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <Select value={teamFilter} onValueChange={setTeamFilter}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Filtrar por equipa" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Todos">Todas as Equipas</SelectItem>
+                                                    <SelectItem value="Saneamento">Saneamento</SelectItem>
+                                                    <SelectItem value="Eletricidade">Eletricidade</SelectItem>
+                                                    <SelectItem value="Geral">Geral</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3 max-h-[40vh] overflow-y-auto">
+                                        {filteredMembers.map(member => (
+                                            <div key={member.uid} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted relative", selectedMember?.uid === member.uid ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
+                                                {suggestedTechnicians.find(s => s.technicianId === member.uid) && <SuggestionBadge rank={suggestedTechnicians.find(s => s.technicianId === member.uid)!.rank} />}
+                                                <div className="flex items-center gap-3">
+                                                    <TeamMemberMarker {...member} />
+                                                    <div>
+                                                        <p className="font-semibold text-sm">{member.displayName}</p>
+                                                        {member.status && (
+                                                            <Badge variant="secondary" className={cn(statusBadgeVariant(member.status), 'text-white')}>
+                                                                {member.status}
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                    <div>
+                                        <CardTitle>Tarefas Não Atribuídas</CardTitle>
+                                        <CardDescription>Clique numa tarefa para ver sugestões.</CardDescription>
+                                    </div>
+                                    <Button size="sm" onClick={handleOptimizeRoute} disabled={selectedTasks.length < 2}>
+                                        <Route className="mr-2 h-4 w-4" />
+                                        Otimizar ({selectedTasks.length})
+                                    </Button>
+                                </CardHeader>
+                                <CardContent className="space-y-3 max-h-[30vh] overflow-auto">
+                                {isSuggesting === null && assignedTeamForTask && (
+                                    <div className="p-2 text-sm text-center bg-blue-50 border border-blue-200 text-blue-800 rounded-md">
+                                        Equipa recomendada para esta zona: <span className="font-bold">{assignedTeamForTask}</span>
+                                    </div>
+                                )}
+                                {localTasks.map(task => (
+                                        <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background hover:bg-muted">
+                                            <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                                                <Checkbox id={`task-${task.id}`} onCheckedChange={(checked) => handleTaskCheckboxChange(task.id, !!checked)} />
+                                                <div className="flex-1 cursor-pointer" onClick={() => handleTaskSelect(task)}>
+                                                    {isSuggesting === task.id ? <Loader2 className="h-5 w-5 text-muted-foreground animate-spin"/> : <Package className="h-5 w-5 text-muted-foreground inline-block" />}
+                                                    <p className="font-semibold text-sm inline-block ml-2 truncate">{task.title}</p>
+                                                </div>
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleAssignTask(task); }}>
+                                                <Send className="h-4 w-4 text-muted-foreground" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+                            <RecentAlerts alerts={maintenanceAlerts} />
+                        </div>
+                        <div className={`transition-all duration-300 ${selectedMember ? 'md:col-span-2' : 'md:col-span-3'}`}>
+                            <Card className="h-[calc(100vh-16rem)]">
+                                <Map
+                                    mapId="team-management-map"
+                                    defaultCenter={{ lat: -12.5, lng: 18.5 }}
+                                    defaultZoom={6}
+                                    gestureHandling={'greedy'}
+                                    disableDefaultUI={true}
+                                >
+                                    <DashboardClusterer points={filteredMembers.map(m => ({...m, type: 'atm'}))} />
+                                    {localTasks.map(task => (
+                                            <AdvancedMarker key={task.id} position={task.position} title={task.title} onClick={() => handleTaskSelect(task)}>
+                                                <Pin background={'#F97316'} borderColor={'#EA580C'} glyphColor={'#ffffff'}>
+                                                    <Package />
+                                                </Pin>
+                                        </AdvancedMarker>
+                                    ))}
+                                    {selectedMember && selectedMember.path && <TeamMemberPath path={selectedMember.path} color="#22c55e" />}
+                                    {selectedMember && selectedMember.currentTask && (selectedMember.currentTask as PointOfInterest).polyline && <TeamMemberPath path={(selectedMember.currentTask as PointOfInterest).polyline!} color="#3b82f6" />}
+                                    <DirectionsRenderer waypoints={routeToDisplay} path={snappedPath} avoidBadWeather={simulateBadWeather} />
+                                    <GeofenceRenderer />
+                                </Map>
+                            </Card>
+                        </div>
+                        {selectedMember && (
+                            <div className="md:col-span-1 space-y-4 animate-in fade-in-50">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Equipa Ativa</CardTitle>
-                                        <CardDescription>Localização e estado dos técnicos.</CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <div className="relative">
-                                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                            <Input
-                                                type="search"
-                                                placeholder="Pesquisar por nome..."
-                                                className="pl-8"
-                                                value={searchQuery}
-                                                onChange={(e) => setSearchQuery(e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Filtrar por estado" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="Todos">Todos os Estados</SelectItem>
-                                                        <SelectItem value="Disponível">Disponível</SelectItem>
-                                                        <SelectItem value="Em Rota">Em Rota</SelectItem>
-                                                        <SelectItem value="Ocupado">Ocupado</SelectItem>
-                                                        <SelectItem value="Offline">Offline</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                                <Select value={teamFilter} onValueChange={setTeamFilter}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Filtrar por equipa" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="Todos">Todas as Equipas</SelectItem>
-                                                        <SelectItem value="Saneamento">Saneamento</SelectItem>
-                                                        <SelectItem value="Eletricidade">Eletricidade</SelectItem>
-                                                        <SelectItem value="Geral">Geral</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-12 w-12">
+                                                    <AvatarImage src={selectedMember.photoURL || undefined} alt={selectedMember.displayName} />
+                                                    <AvatarFallback>{selectedMember.displayName.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <CardTitle className="text-lg">{selectedMember.displayName}</CardTitle>
+                                                    <CardDescription>ID: {selectedMember.uid}</CardDescription>
+                                                </div>
                                             </div>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSelectedMember(null)}><X className="h-4 w-4" /></Button>
                                         </div>
-                                        <div className="space-y-3 max-h-[40vh] overflow-y-auto">
-                                            {filteredMembers.map(member => (
-                                                <div key={member.uid} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted relative", selectedMember?.uid === member.uid ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
-                                                    {suggestedTechnicians.find(s => s.technicianId === member.uid) && <SuggestionBadge rank={suggestedTechnicians.find(s => s.technicianId === member.uid)!.rank} />}
-                                                    <div className="flex items-center gap-3">
-                                                        <TeamMemberMarker {...member} />
-                                                        <div>
-                                                            <p className="font-semibold text-sm">{member.displayName}</p>
-                                                            {member.status && (
-                                                                <Badge variant="secondary" className={cn(statusBadgeVariant(member.status), 'text-white')}>
-                                                                    {member.status}
-                                                                </Badge>
-                                                            )}
-                                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4 text-sm">
+                                        <div className="space-y-2">
+                                            <h4 className="font-semibold text-xs text-muted-foreground">Fila de Tarefas ({selectedMember.taskQueue?.length || 0})</h4>
+                                            <div className="space-y-1 max-h-24 overflow-y-auto">
+                                                {selectedMember.taskQueue && selectedMember.taskQueue.length > 0 ? selectedMember.taskQueue.map(task => (
+                                                    <div key={task.id} className="flex items-center gap-2 p-1.5 rounded bg-muted">
+                                                        <ListTodo className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="text-xs">{task.title}</span>
                                                     </div>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                                                )) : <p className="text-xs text-muted-foreground">Fila vazia.</p>}
+                                            </div>
+                                            {selectedMember.taskQueue && selectedMember.taskQueue.length > 1 && (
+                                                 <div className="flex gap-2 pt-2">
+                                                    <Button variant="outline" size="sm" className="flex-1" onClick={() => { setRouteToDisplay(selectedMember.taskQueue || []); setSnappedPath(null); }}>
+                                                        <Route className="mr-2 h-4 w-4" /> Otimizar Rota
+                                                    </Button>
+                                                    <Button variant="secondary" size="sm" onClick={() => setSimulateBadWeather(prev => !prev)} disabled={!routeToDisplay}>
+                                                        <CloudRain className="mr-2 h-4 w-4" /> {simulateBadWeather ? 'Rota Normal' : 'Mau Tempo'}
                                                     </Button>
                                                 </div>
-                                            ))}
+                                            )}
                                         </div>
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                        <div>
-                                            <CardTitle>Tarefas Não Atribuídas</CardTitle>
-                                            <CardDescription>Clique numa tarefa para ver sugestões.</CardDescription>
-                                        </div>
-                                        <Button size="sm" onClick={handleOptimizeRoute} disabled={selectedTasks.length < 2}>
-                                            <Route className="mr-2 h-4 w-4" />
-                                            Otimizar ({selectedTasks.length})
-                                        </Button>
-                                    </CardHeader>
-                                    <CardContent className="space-y-3 max-h-[30vh] overflow-auto">
-                                    {isSuggesting === null && assignedTeamForTask && (
-                                        <div className="p-2 text-sm text-center bg-blue-50 border border-blue-200 text-blue-800 rounded-md">
-                                            Equipa recomendada para esta zona: <span className="font-bold">{assignedTeamForTask}</span>
-                                        </div>
-                                    )}
-                                    {localTasks.map(task => (
-                                            <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background hover:bg-muted">
-                                                <div className="flex items-center gap-3 flex-1 overflow-hidden">
-                                                    <Checkbox id={`task-${task.id}`} onCheckedChange={(checked) => handleTaskCheckboxChange(task.id, !!checked)} />
-                                                    <div className="flex-1 cursor-pointer" onClick={() => handleTaskSelect(task)}>
-                                                        {isSuggesting === task.id ? <Loader2 className="h-5 w-5 text-muted-foreground animate-spin"/> : <Package className="h-5 w-5 text-muted-foreground inline-block" />}
-                                                        <p className="font-semibold text-sm inline-block ml-2 truncate">{task.title}</p>
-                                                    </div>
-                                                </div>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleAssignTask(task); }}>
-                                                    <Send className="h-4 w-4 text-muted-foreground" />
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </CardContent>
-                                </Card>
-                                <RecentAlerts alerts={maintenanceAlerts} />
-                            </div>
-                            <div className={`transition-all duration-300 ${selectedMember ? 'md:col-span-2' : 'md:col-span-3'}`}>
-                                <Card className="h-[calc(100vh-16rem)]">
-                                    <Map
-                                        mapId="team-management-map"
-                                        defaultCenter={{ lat: -12.5, lng: 18.5 }}
-                                        defaultZoom={6}
-                                        gestureHandling={'greedy'}
-                                        disableDefaultUI={true}
-                                    >
-                                        <DashboardClusterer points={filteredMembers.map(m => ({...m, type: 'atm'}))} />
-                                        {localTasks.map(task => (
-                                                <AdvancedMarker key={task.id} position={task.position} title={task.title} onClick={() => handleTaskSelect(task)}>
-                                                    <Pin background={'#F97316'} borderColor={'#EA580C'} glyphColor={'#ffffff'}>
-                                                        <Package />
-                                                    </Pin>
-                                            </AdvancedMarker>
-                                        ))}
-                                        {selectedMember && selectedMember.path && <TeamMemberPath path={selectedMember.path} color="#22c55e" />}
-                                        {selectedMember && selectedMember.currentTask && (selectedMember.currentTask as PointOfInterest).polyline && <TeamMemberPath path={(selectedMember.currentTask as PointOfInterest).polyline!} color="#3b82f6" />}
-                                        <DirectionsRenderer waypoints={routeToDisplay} path={snappedPath} avoidBadWeather={simulateBadWeather} />
-                                        <GeofenceRenderer />
-                                    </Map>
-                                </Card>
-                            </div>
-                            {selectedMember && (
-                                <div className="md:col-span-1 space-y-4 animate-in fade-in-50">
-                                    <Card>
-                                        <CardHeader>
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar className="h-12 w-12">
-                                                        <AvatarImage src={selectedMember.photoURL || undefined} alt={selectedMember.displayName} />
-                                                        <AvatarFallback>{selectedMember.displayName.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <CardTitle className="text-lg">{selectedMember.displayName}</CardTitle>
-                                                        <CardDescription>ID: {selectedMember.uid}</CardDescription>
-                                                    </div>
-                                                </div>
-                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSelectedMember(null)}><X className="h-4 w-4" /></Button>
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="space-y-4 text-sm">
-                                            <div className="space-y-2">
-                                                <h4 className="font-semibold text-xs text-muted-foreground">Fila de Tarefas ({selectedMember.taskQueue?.length || 0})</h4>
-                                                <div className="space-y-1 max-h-24 overflow-y-auto">
-                                                    {selectedMember.taskQueue && selectedMember.taskQueue.length > 0 ? selectedMember.taskQueue.map(task => (
-                                                        <div key={task.id} className="flex items-center gap-2 p-1.5 rounded bg-muted">
-                                                            <ListTodo className="h-4 w-4 text-muted-foreground" />
-                                                            <span className="text-xs">{task.title}</span>
-                                                        </div>
-                                                    )) : <p className="text-xs text-muted-foreground">Fila vazia.</p>}
-                                                </div>
-                                                {selectedMember.taskQueue && selectedMember.taskQueue.length > 1 && (
-                                                     <div className="flex gap-2 pt-2">
-                                                        <Button variant="outline" size="sm" className="flex-1" onClick={() => { setRouteToDisplay(selectedMember.taskQueue || []); setSnappedPath(null); }}>
-                                                            <Route className="mr-2 h-4 w-4" /> Otimizar Rota
-                                                        </Button>
-                                                        <Button variant="secondary" size="sm" onClick={() => setSimulateBadWeather(prev => !prev)} disabled={!routeToDisplay}>
-                                                            <CloudRain className="mr-2 h-4 w-4" /> {simulateBadWeather ? 'Rota Normal' : 'Mau Tempo'}
-                                                        </Button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <Separator />
-                                            <div className="space-y-2">
-                                                <h4 className="font-semibold text-xs text-muted-foreground">Veículo</h4>
-                                                {selectedMember.vehicle ? (
-                                                    <div className="flex items-center gap-2">
-                                                    <Car className="h-4 w-4 text-muted-foreground" />
-                                                    <div>
-                                                        <p className="font-medium text-xs">{selectedMember.vehicle.type}</p>
-                                                        <p className="text-xs text-muted-foreground">{selectedMember.vehicle.plate}</p>
-                                                    </div>
-                                                    </div>
-                                                ) : <p className="text-xs text-muted-foreground">Nenhum veículo atribuído.</p>}
-                                            </div>
-                                            <Separator />
-                                            <div className="space-y-2">
-                                                <h4 className="font-semibold text-xs text-muted-foreground">Desempenho (Hoje)</h4>
+                                        <Separator />
+                                        <div className="space-y-2">
+                                            <h4 className="font-semibold text-xs text-muted-foreground">Veículo</h4>
+                                            {selectedMember.vehicle ? (
                                                 <div className="flex items-center gap-2">
-                                                    <Check className="h-4 w-4 text-muted-foreground" />
-                                                    <p className="text-xs">{selectedMember.stats?.completed || 0} tarefas concluídas</p>
+                                                <Car className="h-4 w-4 text-muted-foreground" />
+                                                <div>
+                                                    <p className="font-medium text-xs">{selectedMember.vehicle.type}</p>
+                                                    <p className="text-xs text-muted-foreground">{selectedMember.vehicle.plate}</p>
                                                 </div>
+                                                </div>
+                                            ) : <p className="text-xs text-muted-foreground">Nenhum veículo atribuído.</p>}
+                                        </div>
+                                        <Separator />
+                                        <div className="space-y-2">
+                                            <h4 className="font-semibold text-xs text-muted-foreground">Desempenho (Hoje)</h4>
+                                            <div className="flex items-center gap-2">
+                                                <Check className="h-4 w-4 text-muted-foreground" />
+                                                <p className="text-xs">{selectedMember.stats?.completed || 0} tarefas concluídas</p>
                                             </div>
-                                            <Separator />
-                                            <div className="flex gap-2 pt-2">
-                                                <Button variant="outline" size="sm" className="flex-1" asChild>
-                                                    <a href={`tel:${selectedMember.phoneNumber}`}>
-                                                        <Phone className="mr-2 h-4 w-4" /> Ligar
-                                                    </a>
-                                                </Button>
-                                                <Button variant="outline" size="sm" className="flex-1" asChild>
-                                                    <a href={`https://wa.me/${selectedMember.phoneNumber}`} target="_blank" rel="noopener noreferrer">
-                                                        <MessageSquare className="mr-2 h-4 w-4" /> WhatsApp
-                                                    </a>
-                                                </Button>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            )}
-                        </div>
-                    </main>
-                </div>
-            </APIProvider>
-            <IncidentReport
-                open={incidentReportOpen}
-                onOpenChange={setIncidentReportOpen}
-                onIncidentSubmit={addPoint as any} // The types are compatible enough for this use case
-                onIncidentEdit={updatePointDetails as any}
-                initialCenter={{ lat: -8.83, lng: 13.23 }}
-                incidentToEdit={null}
-            />
-        </>
+                                        </div>
+                                        <Separator />
+                                        <div className="flex gap-2 pt-2">
+                                            <Button variant="outline" size="sm" className="flex-1" asChild>
+                                                <a href={`tel:${selectedMember.phoneNumber}`}>
+                                                    <Phone className="mr-2 h-4 w-4" /> Ligar
+                                                </a>
+                                            </Button>
+                                            <Button variant="outline" size="sm" className="flex-1" asChild>
+                                                <a href={`https://wa.me/${selectedMember.phoneNumber}`} target="_blank" rel="noopener noreferrer">
+                                                    <MessageSquare className="mr-2 h-4 w-4" /> WhatsApp
+                                                </a>
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
+                    </div>
+                </main>
+                 <IncidentReport
+                    open={incidentReportOpen}
+                    onOpenChange={setIncidentReportOpen}
+                    onIncidentSubmit={addPoint as any} // The types are compatible enough for this use case
+                    onIncidentEdit={updatePointDetails as any}
+                    initialCenter={{ lat: -8.83, lng: 13.23 }}
+                    incidentToEdit={null}
+                />
+            </div>
+        </APIProvider>
     );
 }
 
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
-
-    
