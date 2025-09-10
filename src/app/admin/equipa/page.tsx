@@ -57,6 +57,8 @@ function TeamManagementPage() {
     const [selectedTasks, setSelectedTasks] = React.useState<string[]>([]);
     const [assignedTeamForTask, setAssignedTeamForTask] = React.useState<UserProfile['team'] | null>(null);
     const [incidentReportOpen, setIncidentReportOpen] = React.useState(false);
+    const [taskToAssign, setTaskToAssign] = React.useState<PointOfInterest | null>(null);
+
 
     const { toast } = useToast();
     const { user: currentUser, profile: currentProfile } = useAuth();
@@ -225,40 +227,21 @@ function TeamManagementPage() {
     const upcomingMaintenanceCount = React.useMemo(() => {
         return maintenanceAlerts.filter(a => a.level === 'warning' || a.level === 'critical').length;
     }, [maintenanceAlerts]);
-
-    const handleAssignTask = (task: PointOfInterest) => {
-        if (!suggestedTechnicians.length) {
-            toast({
-                variant: 'destructive',
-                title: 'Sem Sugestões Ativas',
-                description: 'Por favor, selecione uma tarefa primeiro para obter sugestões de técnicos.',
-            });
-            return;
-        }
-        const topSuggestion = suggestedTechnicians.find(s => s.rank === 1);
-        if (!topSuggestion) {
-            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi encontrada uma sugestão principal.'});
-            return;
-        }
-
-        const technicianToAssign = teamMembers.find(t => t.uid === topSuggestion.technicianId);
-        if (!technicianToAssign) {
-             toast({ variant: 'destructive', title: 'Erro', description: 'O técnico sugerido não foi encontrado.'});
-            return;
-        }
+    
+    const handleAssignTask = (technicianToAssign: UserProfile, task: PointOfInterest) => {
+        if (!technicianToAssign || !task) return;
 
         const updatedTechnician: Partial<UserProfile> = {
             status: 'Ocupado',
             taskQueue: [...(technicianToAssign.taskQueue || []), task],
         };
-        
-        updateUserProfile(technicianToAssign.uid, updatedTechnician);
 
-        // Remove task from local list of unassigned tasks
+        updateUserProfile(technicianToAssign.uid, updatedTechnician);
         setLocalTasks(prev => prev.filter(t => t.id !== task.id));
-        setSuggestedTechnicians([]); // Clear suggestions after assignment
+        
+        setSuggestedTechnicians([]);
+        setTaskToAssign(null);
         setAssignedTeamForTask(null);
-        setIsSuggesting(null);
 
         toast({
             title: 'Tarefa Atribuída!',
@@ -267,12 +250,12 @@ function TeamManagementPage() {
     };
     
     const handleTaskSelect = async (task: PointOfInterest) => {
+        setTaskToAssign(task);
         setIsSuggesting(task.id);
         setSuggestedTechnicians([]);
         setAssignedTeamForTask(null);
         let teamForTask: UserProfile['team'] | undefined = undefined;
 
-        // Check for geofence assignment
         if (geometry) {
             const taskPosition = new google.maps.LatLng(task.position.lat, task.position.lng);
             for (const geofence of geofences) {
@@ -281,28 +264,18 @@ function TeamManagementPage() {
                      if(geometry.poly.containsLocation(taskPosition, polygon)) {
                          teamForTask = geofence.assignedTeam;
                          setAssignedTeamForTask(teamForTask);
-                         break; // Stop at first match
+                         break;
                      }
                 }
             }
         }
 
-
         try {
             const result = await suggestTechnicianFlow({
-                task: {
-                    id: task.id,
-                    title: task.title,
-                    location: task.position
-                },
+                task: { id: task.id, title: task.title, location: task.position },
                 technicians: teamMembers.map(t => ({
-                    id: t.uid,
-                    name: t.displayName,
-                    location: t.location!,
-                    status: t.status!,
-                    skills: t.skills || [],
-                    taskQueueSize: t.taskQueue?.length || 0,
-                    team: t.team
+                    id: t.uid, name: t.displayName, location: t.location!, status: t.status!,
+                    skills: t.skills || [], taskQueueSize: t.taskQueue?.length || 0, team: t.team
                 })),
                 assignedTeam: teamForTask,
             });
@@ -317,6 +290,15 @@ function TeamManagementPage() {
         }
     }
     
+    const handleMemberClick = (member: UserProfile) => {
+        if (taskToAssign) {
+            handleAssignTask(member, taskToAssign);
+        } else {
+            setSelectedMember(member);
+        }
+    };
+    
+
     const handleMarkerDragEnd = (memberId: string, event: google.maps.MapMouseEvent) => {
         if (!event.latLng) return;
         const newLocation = event.latLng.toJSON();
@@ -388,7 +370,7 @@ function TeamManagementPage() {
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Equipa Ativa</CardTitle>
-                                    <CardDescription>Localização e estado dos técnicos.</CardDescription>
+                                    <CardDescription>{taskToAssign ? 'Selecione um técnico para atribuir a tarefa.' : 'Localização e estado dos técnicos.'}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="relative">
@@ -430,7 +412,7 @@ function TeamManagementPage() {
                                     </div>
                                     <div className="space-y-3 max-h-[40vh] overflow-y-auto">
                                         {filteredMembers.map(member => (
-                                            <div key={member.uid} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted relative", selectedMember?.uid === member.uid ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
+                                            <div key={member.uid} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted relative", selectedMember?.uid === member.uid && !taskToAssign ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => handleMemberClick(member)}>
                                                 {suggestedTechnicians.find(s => s.technicianId === member.uid) && <SuggestionBadge rank={suggestedTechnicians.find(s => s.technicianId === member.uid)!.rank} />}
                                                 <div className="flex items-center gap-3">
                                                     <TeamMemberMarker {...member} />
@@ -455,7 +437,7 @@ function TeamManagementPage() {
                                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                                     <div>
                                         <CardTitle>Tarefas Não Atribuídas</CardTitle>
-                                        <CardDescription>Clique numa tarefa para ver sugestões.</CardDescription>
+                                        <CardDescription>Clique numa tarefa para obter sugestões.</CardDescription>
                                     </div>
                                     <Button size="sm" onClick={handleOptimizeRoute} disabled={selectedTasks.length < 2}>
                                         <Route className="mr-2 h-4 w-4" />
@@ -469,7 +451,7 @@ function TeamManagementPage() {
                                     </div>
                                 )}
                                 {localTasks.map(task => (
-                                        <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background hover:bg-muted">
+                                        <div key={task.id} className={cn("flex items-center justify-between p-2 rounded-md border hover:bg-muted", taskToAssign?.id === task.id ? 'bg-primary/10' : 'bg-background')}>
                                             <div className="flex items-center gap-3 flex-1 overflow-hidden">
                                                 <Checkbox id={`task-${task.id}`} onCheckedChange={(checked) => handleTaskCheckboxChange(task.id, !!checked)} />
                                                 <div className="flex-1 cursor-pointer" onClick={() => handleTaskSelect(task)}>
@@ -477,9 +459,6 @@ function TeamManagementPage() {
                                                     <p className="font-semibold text-sm inline-block ml-2 truncate">{task.title}</p>
                                                 </div>
                                             </div>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleAssignTask(task); }}>
-                                                <Send className="h-4 w-4 text-muted-foreground" />
-                                            </Button>
                                         </div>
                                     ))}
                                 </CardContent>
@@ -593,7 +572,7 @@ function TeamManagementPage() {
                  <IncidentReport
                     open={incidentReportOpen}
                     onOpenChange={setIncidentReportOpen}
-                    onIncidentSubmit={addPoint as any} // The types are compatible enough for this use case
+                    onIncidentSubmit={addPoint as any}
                     onIncidentEdit={updatePointDetails as any}
                     initialCenter={{ lat: -8.83, lng: 13.23 }}
                     incidentToEdit={null}
