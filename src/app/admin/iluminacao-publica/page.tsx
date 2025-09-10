@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Lightbulb, LightbulbOff, Zap, CheckCircle, MapPin } from "lucide-react";
+import { ArrowLeft, Lightbulb, LightbulbOff, Zap, CheckCircle, MapPin, DollarSign } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
@@ -15,24 +15,9 @@ import { columns } from "@/components/admin/iluminacao-publica/columns";
 import { useRouter } from "next/navigation";
 import LightingPoleReport from "@/components/lighting-pole-report";
 import PTReport from "@/components/pt-report";
-import { PointOfInterestMarker } from "@/components/map-component";
-import { GenericPolygonsRenderer } from "@/components/generic-polygons-renderer";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
+import { GenericPolygonsRenderer } from "@/components/generic-polygons-renderer";
 
-const getDistance = (pos1: { lat: number; lng: number }, pos2: { lat: number; lng: number }): number => {
-    const R = 6371e3; // metres
-    const φ1 = pos1.lat * Math.PI / 180;
-    const φ2 = pos2.lat * Math.PI / 180;
-    const Δφ = (pos2.lat - pos1.lat) * Math.PI / 180;
-    const Δλ = (pos2.lng - pos1.lng) * Math.PI / 180;
-
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c; // in metres
-};
 
 function PublicLightingPage() {
     const { allData, loading, addPoint, updatePointDetails, updatePointStatus, addUpdateToPoint, deletePoint } = usePoints();
@@ -40,8 +25,7 @@ function PublicLightingPage() {
     const [sheetOpen, setSheetOpen] = React.useState<null | 'pole' | 'pt'>(null);
     const [poiToEdit, setPoiToEdit] = React.useState<PointOfInterest | null>(null);
     const [selectedAsset, setSelectedAsset] = React.useState<PointOfInterest | null>(null);
-    const [nearbyFaults, setNearbyFaults] = React.useState<PointOfInterest[]>([]);
-
+    
     const lightingAssets = React.useMemo(() => {
         return allData.filter(p => 
             p.type === 'lighting_pole' || 
@@ -50,11 +34,7 @@ function PublicLightingPage() {
             p.type === 'electrical_network_segment'
         );
     }, [allData]);
-
-    const lightingFaultReports = React.useMemo(() => {
-        return allData.filter(p => p.title === 'Iluminação pública com defeito');
-    }, [allData]);
-
+    
     const stats = React.useMemo(() => {
         const poles = lightingAssets.filter(p => p.type === 'lighting_pole');
         const working = poles.filter(p => p.status === 'funcional').length;
@@ -69,18 +49,8 @@ function PublicLightingPage() {
     
     const handleSelectAsset = (assetId: string) => {
         const asset = allData.find(p => p.id === assetId);
-        if (!asset) return;
-
-        setSelectedAsset(asset);
-        
-        if (asset.type === 'lighting_pole' || asset.type === 'pt') {
-            const faults = lightingFaultReports.filter(fault => 
-                !fault.maintenanceId &&
-                getDistance(asset.position, fault.position) < 50 // 50 meter radius
-            );
-            setNearbyFaults(faults);
-        } else {
-            setNearbyFaults([]);
+        if (asset) {
+            setSelectedAsset(asset);
         }
     }
     
@@ -119,6 +89,13 @@ function PublicLightingPage() {
                     <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
                         Gestão de Iluminação Pública
                     </h1>
+                     <div className="ml-auto">
+                        <Button asChild>
+                            <Link href="/admin/iluminacao-publica/analise-custos">
+                                <DollarSign className="mr-2 h-4 w-4" /> Análise de Custos
+                            </Link>
+                        </Button>
+                    </div>
                 </header>
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6">
                      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
@@ -169,15 +146,15 @@ function PublicLightingPage() {
                 open={sheetOpen === 'pole'}
                 onOpenChange={handleSheetClose}
                 onLightingPoleSubmit={poiToEdit ? updatePointDetails : addPoint}
-                initialCenter={{ lat: -8.83, lng: 13.23 }}
                 poiToEdit={poiToEdit}
+                initialCenter={poiToEdit?.position || { lat: -8.83, lng: 13.23 }}
             />
             <PTReport
                 open={sheetOpen === 'pt'}
                 onOpenChange={handleSheetClose}
                 onPTSubmit={poiToEdit ? updatePointDetails : addPoint}
-                initialCenter={{ lat: -8.83, lng: 13.23 }}
                 poiToEdit={poiToEdit}
+                initialCenter={poiToEdit?.position || { lat: -8.83, lng: 13.23 }}
             />
         </APIProvider>
     );
