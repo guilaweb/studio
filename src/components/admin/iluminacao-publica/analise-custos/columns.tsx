@@ -45,11 +45,11 @@ export const columns: ColumnDef<AssetCost>[] = [
     ),
     cell: ({ row }) => (
       <div className="text-right font-mono">
-        {row.original.totalPartsCost.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}
+        {(row.original.totalPartsCost ?? 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}
       </div>
     ),
   },
-  {
+    {
     accessorKey: "totalLaborCost",
     header: ({ column }) => (
       <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
@@ -58,7 +58,7 @@ export const columns: ColumnDef<AssetCost>[] = [
     ),
     cell: ({ row }) => (
       <div className="text-right font-mono">
-        {row.original.totalLaborCost.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}
+        {(row.original.totalLaborCost ?? 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}
       </div>
     ),
   },
