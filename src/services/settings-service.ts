@@ -22,6 +22,7 @@ const initialPublicLayers: ActiveLayers = {
     health_unit: false,
     health_case: false,
     lighting_pole: false,
+    pt: false,
 };
 
 // Hook to read public layer settings
@@ -34,13 +35,15 @@ export const usePublicLayerSettings = () => {
         const settingsDocRef = doc(db, 'settings', SETTINGS_DOC_ID);
         const unsubscribe = onSnapshot(settingsDocRef, (doc) => {
             if (doc.exists()) {
-                setPublicLayers(doc.data() as ActiveLayers);
+                // Merge initial settings with saved settings to ensure new layers are included
+                const savedSettings = doc.data() as Partial<ActiveLayers>;
+                setPublicLayers({ ...initialPublicLayers, ...savedSettings });
             } else {
                 // If the document doesn't exist, you might want to initialize it
                 console.log("Settings document not found, creating with initial settings.");
                 setPublicLayers(initialPublicLayers);
                 // Optionally, write the initial settings back to Firestore
-                // setDoc(settingsDocRef, initialPublicLayers);
+                setDoc(settingsDocRef, initialPublicLayers);
             }
             setLoading(false);
         }, (err) => {

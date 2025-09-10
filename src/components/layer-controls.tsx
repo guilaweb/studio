@@ -4,7 +4,7 @@
 
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, Droplets, Share2, Fuel, Hospital, Stethoscope, Lightbulb } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Droplet, Square, Megaphone, Droplets, Share2, Fuel, Hospital, Stethoscope, Lightbulb, Zap } from "lucide-react";
 import type { ActiveLayers, Layer } from "@/lib/data";
 
 type LayerControlsProps = {
@@ -21,6 +21,7 @@ const layerConfig = [
   { id: "sanitation", label: "Saneamento", Icon: Trash },
   { id: "fuel_station", label: "Postos de Combustível", Icon: Fuel },
   { id: "lighting_pole", label: "Postes de Iluminação", Icon: Lightbulb },
+  { id: "pt", label: "Postos de Transformação", Icon: Zap },
   { id: "water", label: "Rede de Água", Icon: Droplet },
   { id: "water_resource", label: "Recursos Hídricos", Icon: Droplets },
   { id: "land_plot", label: "Lotes de Terreno", Icon: Square },

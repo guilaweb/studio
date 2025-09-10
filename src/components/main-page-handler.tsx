@@ -22,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -49,9 +49,10 @@ import CompetitorAnalysis from "./competitor-analysis";
 import FuelStationReport from "./fuel-station-report";
 import HealthUnitReport from "./health-unit-report";
 import LightingPoleReport from "./lighting-pole-report";
+import PTReport from "./pt-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource' | 'pollution' | 'fuel_station' | 'health_unit' | 'lighting_pole';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource' | 'pollution' | 'fuel_station' | 'health_unit' | 'lighting_pole' | 'pt';
 type EditMode = 'edit' | 'divide' | null;
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
@@ -70,6 +71,7 @@ const defaultActiveLayers: ActiveLayers = {
     health_unit: false,
     health_case: false,
     lighting_pole: false,
+    pt: false,
 };
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -451,6 +453,44 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     toast({
       title: "Poste de Iluminação Mapeado!",
       description: "O novo poste foi adicionado ao cadastro de iluminação pública.",
+    });
+  }
+
+  const handleAddNewPT = async (
+    data: Pick<PointOfInterest, 'title' | 'position' | 'status' | 'customData'>
+  ) => {
+    if (!user || !profile) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para mapear um PT.",
+        });
+        return;
+    }
+    handleSheetOpenChange(false);
+    const timestamp = new Date().toISOString();
+
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `pt-${Date.now()}`,
+      type: 'pt',
+      authorId: user.uid,
+      authorDisplayName: profile.displayName,
+      lastReported: timestamp,
+      description: `Posto de Transformação ${data.title} com capacidade de ${data.customData?.capacity || 'N/A'} kVA.`,
+      ...data,
+      updates: [{
+          text: `PT mapeado com estado "${statusLabelMap[data.status!]}".`,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+      }]
+    };
+    
+    addPoint(pointToAdd as any);
+
+    toast({
+      title: "Posto de Transformação Mapeado!",
+      description: "O novo PT foi adicionado ao cadastro da rede elétrica.",
     });
   }
 
@@ -1060,6 +1100,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         'croqui': 'croqui',
         'health_unit': 'health_unit',
         'lighting_pole': 'lighting_pole',
+        'pt': 'pt',
     };
 
     const sheet = sheetTypeMap[poi.type] || 'incident'; // Fallback to incident, though should be covered by canEdit
@@ -1181,6 +1222,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                                 <DropdownMenuItem onClick={() => handleStartReporting('lighting_pole')}>
                                     <Lightbulb className="mr-2 h-4 w-4" />
                                     Mapear Poste de Iluminação
+                                </DropdownMenuItem>
+                                 <DropdownMenuItem onClick={() => handleStartReporting('pt')}>
+                                    <Zap className="mr-2 h-4 w-4" />
+                                    Mapear Posto de Transformação
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
                                     <Square className="mr-2 h-4 w-4" />
@@ -1305,6 +1350,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                                 <DropdownMenuItem onClick={() => handleStartReporting('lighting_pole')}>
                                     <Lightbulb className="mr-2 h-4 w-4" />
                                     Mapear Poste de Iluminação
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStartReporting('pt')}>
+                                    <Zap className="mr-2 h-4 w-4" />
+                                    Mapear Posto de Transformação
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
                                     <Square className="mr-2 h-4 w-4" />
@@ -1448,6 +1497,13 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             open={activeSheet === 'lighting_pole'}
             onOpenChange={handleSheetOpenChange}
             onLightingPoleSubmit={handleAddNewLightingPole}
+            initialCenter={mapCenter}
+            poiToEdit={poiToEdit}
+        />
+        <PTReport
+            open={activeSheet === 'pt'}
+            onOpenChange={handleSheetOpenChange}
+            onPTSubmit={handleAddNewPT}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
         />
