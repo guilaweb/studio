@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Lightbulb, LightbulbOff, Zap, CheckCircle } from "lucide-react";
+import { ArrowLeft, Lightbulb, LightbulbOff, Zap, CheckCircle, MapPin } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
@@ -17,12 +17,30 @@ import LightingPoleReport from "@/components/lighting-pole-report";
 import PTReport from "@/components/pt-report";
 import { PointOfInterestMarker } from "@/components/map-component";
 import { GenericPolygonsRenderer } from "@/components/generic-polygons-renderer";
+import PointOfInterestDetails from "@/components/point-of-interest-details";
+
+const getDistance = (pos1: { lat: number; lng: number }, pos2: { lat: number; lng: number }): number => {
+    const R = 6371e3; // metres
+    const φ1 = pos1.lat * Math.PI / 180;
+    const φ2 = pos2.lat * Math.PI / 180;
+    const Δφ = (pos2.lat - pos1.lat) * Math.PI / 180;
+    const Δλ = (pos2.lng - pos1.lng) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // in metres
+};
 
 function PublicLightingPage() {
-    const { allData, loading, addPoint, updatePointDetails } = usePoints();
+    const { allData, loading, addPoint, updatePointDetails, updatePointStatus, deletePoint } = usePoints();
     const router = useRouter();
     const [sheetOpen, setSheetOpen] = React.useState<null | 'pole' | 'pt'>(null);
     const [poiToEdit, setPoiToEdit] = React.useState<PointOfInterest | null>(null);
+    const [selectedAsset, setSelectedAsset] = React.useState<PointOfInterest | null>(null);
+    const [nearbyFaults, setNearbyFaults] = React.useState<PointOfInterest[]>([]);
 
     const lightingAssets = React.useMemo(() => {
         return allData.filter(p => 
@@ -31,6 +49,10 @@ function PublicLightingPage() {
             p.type === 'electrical_cabin' ||
             p.type === 'electrical_network_segment'
         );
+    }, [allData]);
+
+    const lightingFaultReports = React.useMemo(() => {
+        return allData.filter(p => p.title === 'Iluminação pública com defeito');
     }, [allData]);
 
     const stats = React.useMemo(() => {
@@ -44,9 +66,22 @@ function PublicLightingPage() {
             totalPTs: lightingAssets.filter(p => p.type === 'pt').length,
         }
     }, [lightingAssets]);
-
+    
+    const handleSelectAsset = (asset: PointOfInterest) => {
+        setSelectedAsset(asset);
+        // Find nearby faults that haven't been assigned yet
+        const faults = lightingFaultReports.filter(fault => 
+            !fault.maintenanceId &&
+            getDistance(asset.position, fault.position) < 50 // 50 meter radius
+        );
+        setNearbyFaults(faults);
+    }
+    
     const handleViewOnMap = (poiId: string) => {
-        router.push(`/?poi=${poiId}`);
+        const asset = lightingAssets.find(p => p.id === poiId);
+        if (asset) {
+            handleSelectAsset(asset);
+        }
     };
     
     const handleEdit = (poi: PointOfInterest) => {
@@ -116,6 +151,16 @@ function PublicLightingPage() {
                     </Card>
                 </main>
             </div>
+             {selectedAsset && (
+                 <PointOfInterestDetails
+                    poi={selectedAsset}
+                    open={!!selectedAsset}
+                    onOpenChange={(isOpen) => !isOpen && setSelectedAsset(null)}
+                    onPoiStatusChange={updatePointStatus}
+                    onAddUpdate={addUpdateToPoint}
+                    onEdit={handleEdit}
+                />
+             )}
              <LightingPoleReport
                 open={sheetOpen === 'pole'}
                 onOpenChange={handleSheetClose}
@@ -135,3 +180,4 @@ function PublicLightingPage() {
 }
 
 export default withAuth(PublicLightingPage, ['Agente Municipal', 'Administrador']);
+

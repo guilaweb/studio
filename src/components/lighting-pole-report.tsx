@@ -43,7 +43,7 @@ const formSchema = z.object({
 type LightingPoleReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onLightingPoleSubmit: (data: any) => void;
+  onLightingPoleSubmit: (idOrData: any, data?: any) => void;
   poiToEdit: PointOfInterest | null;
   initialCenter: google.maps.LatLngLiteral;
 };

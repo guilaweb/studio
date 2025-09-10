@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from "react";
@@ -659,7 +658,7 @@ const CroquiActions = ({ poi }: { poi: PointOfInterest }) => {
                 break;
             case 'copy':
                 navigator.clipboard.writeText(shareUrl);
-                toast({ title: "Link copiado!" });
+                toast({title: 'Link do Croqui Copiado!'});
                 break;
         }
     };
