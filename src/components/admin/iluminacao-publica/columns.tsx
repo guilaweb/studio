@@ -4,7 +4,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { PointOfInterest, statusLabelMap, typeLabelMap } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, ChevronsUpDown, MoreHorizontal, Lightbulb, Zap, Edit, MapPin } from "lucide-react";
+import { ArrowUpDown, ChevronsUpDown, MoreHorizontal, Lightbulb, Zap, Edit, MapPin, HardHat } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,7 +39,10 @@ export const columns: ColumnDef<PointOfInterest>[] = [
     header: "Tipo",
     cell: ({ row }) => {
         const type = row.original.type;
-        const Icon = type === 'lighting_pole' ? Lightbulb : Zap;
+        let Icon = HardHat; // Default
+        if (type === 'lighting_pole') Icon = Lightbulb;
+        if (type === 'pt') Icon = Zap;
+        if (type === 'electrical_cabin') Icon = Zap;
         return <div className="flex items-center gap-2">
             <Icon className="h-4 w-4 text-muted-foreground" />
             <span>{typeLabelMap[type]}</span>
@@ -54,11 +57,21 @@ export const columns: ColumnDef<PointOfInterest>[] = [
     header: "Estado Operacional",
     cell: ({ row }) => {
         const status = row.original.status;
-        if (!status) return "N/A";
+        if (!status) return <div className="text-center">-</div>;
         const isFunctional = status === 'funcional';
-        return <Badge variant={isFunctional ? "default" : "destructive"} className={isFunctional ? "bg-green-600" : ""}>
-            {statusLabelMap[status]}
-        </Badge>
+        const isDamaged = status === 'danificado' || status === 'desligado';
+        
+        if (isFunctional) {
+            return <Badge variant="default" className="bg-green-600">
+                {statusLabelMap[status]}
+            </Badge>
+        }
+        if (isDamaged) {
+             return <Badge variant="destructive">
+                {statusLabelMap[status]}
+            </Badge>
+        }
+        return <Badge variant="secondary">{statusLabelMap[status]}</Badge>
     },
      filterFn: (row, id, value) => {
         return value.includes(row.getValue(id))
@@ -68,7 +81,7 @@ export const columns: ColumnDef<PointOfInterest>[] = [
     accessorKey: "lastReported",
     header: ({ column }) => (
       <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Data de Instalação
+        Data de Instalação/Update
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -97,9 +110,11 @@ export const columns: ColumnDef<PointOfInterest>[] = [
                     <DropdownMenuItem onClick={() => onViewOnMap(asset.id)}>
                         <MapPin className="mr-2 h-4 w-4"/> Ver no Mapa
                     </DropdownMenuItem>
-                     <DropdownMenuItem onClick={() => onEdit(asset)}>
-                        <Edit className="mr-2 h-4 w-4"/> Editar Ativo
-                    </DropdownMenuItem>
+                    {['lighting_pole', 'pt'].includes(asset.type) && (
+                         <DropdownMenuItem onClick={() => onEdit(asset)}>
+                            <Edit className="mr-2 h-4 w-4"/> Editar Ativo
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
         )

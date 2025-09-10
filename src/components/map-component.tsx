@@ -4,7 +4,7 @@
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2, AlertTriangle, Fuel, Hospital, Stethoscope, Lightbulb, Zap } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2, AlertTriangle, Fuel, Hospital, Stethoscope, Lightbulb, Zap, HardHat } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 import { GenericPolygonsRenderer } from "./generic-polygons-renderer";
@@ -57,6 +57,7 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
     case "lighting_pole":
         return <Lightbulb className={commonClasses} />;
     case "pt":
+    case "electrical_cabin":
         return <Zap className={commonClasses} />;
     default:
       return null;
@@ -140,7 +141,7 @@ export const getPinStyle = (point: PointOfInterest) => {
                 return { background: '#a1a1aa', borderColor: '#71717a', glyphColor: '#ffffff' }; // gray
         }
     }
-    if (point.type === 'lighting_pole' || point.type === 'pt') {
+    if (point.type === 'lighting_pole' || point.type === 'pt' || point.type === 'electrical_cabin') {
         switch (point.status) {
             case 'funcional':
                  return { background: '#facc15', borderColor: '#eab308', glyphColor: '#422006' }; // yellow
@@ -215,7 +216,15 @@ const LineRenderer: React.FC<{
                     strokeOpacity: 0.8,
                     strokeWeight: 4,
                 };
+            } else if (point.type === 'electrical_network_segment' && point.polyline) {
+                path = point.polyline;
+                options = {
+                    strokeColor: '#facc15', // yellow
+                    strokeOpacity: 0.9,
+                    strokeWeight: 3,
+                };
             }
+
 
             if (!path) return null;
 

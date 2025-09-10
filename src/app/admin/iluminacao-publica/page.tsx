@@ -15,6 +15,8 @@ import { columns } from "@/components/admin/iluminacao-publica/columns";
 import { useRouter } from "next/navigation";
 import LightingPoleReport from "@/components/lighting-pole-report";
 import PTReport from "@/components/pt-report";
+import { PointOfInterestMarker } from "@/components/map-component";
+import { GenericPolygonsRenderer } from "@/components/generic-polygons-renderer";
 
 function PublicLightingPage() {
     const { allData, loading, addPoint, updatePointDetails } = usePoints();
@@ -23,7 +25,12 @@ function PublicLightingPage() {
     const [poiToEdit, setPoiToEdit] = React.useState<PointOfInterest | null>(null);
 
     const lightingAssets = React.useMemo(() => {
-        return allData.filter(p => p.type === 'lighting_pole' || p.type === 'pt');
+        return allData.filter(p => 
+            p.type === 'lighting_pole' || 
+            p.type === 'pt' ||
+            p.type === 'electrical_cabin' ||
+            p.type === 'electrical_network_segment'
+        );
     }, [allData]);
 
     const stats = React.useMemo(() => {
@@ -112,14 +119,14 @@ function PublicLightingPage() {
              <LightingPoleReport
                 open={sheetOpen === 'pole'}
                 onOpenChange={handleSheetClose}
-                onLightingPoleSubmit={poiToEdit ? (data) => updatePointDetails(poiToEdit.id, data) : addPoint}
+                onLightingPoleSubmit={poiToEdit ? updatePointDetails : addPoint}
                 initialCenter={{ lat: -8.83, lng: 13.23 }}
                 poiToEdit={poiToEdit}
             />
             <PTReport
                 open={sheetOpen === 'pt'}
                 onOpenChange={handleSheetClose}
-                onPTSubmit={poiToEdit ? (data) => updatePointDetails(poiToEdit.id, data) : addPoint}
+                onPTSubmit={poiToEdit ? updatePointDetails : addPoint}
                 initialCenter={{ lat: -8.83, lng: 13.23 }}
                 poiToEdit={poiToEdit}
             />
