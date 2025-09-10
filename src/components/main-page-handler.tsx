@@ -22,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -1130,7 +1130,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                             <CircleDashed className="mr-2 h-4 w-4" />
                             Reportar Buraco na Via
                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={() => handleStartReporting('construction')}>
+                        <DropdownMenuItem onClick={() => handleStartReporting('construction')}>
                             <Construction className="mr-2 h-4 w-4" />
                             Mapear Obra/Projeto
                         </DropdownMenuItem>

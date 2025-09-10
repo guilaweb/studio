@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -41,6 +42,7 @@ import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "./ui/card";
+import DirectionsRenderer from "./directions-renderer";
 
 
 const formSchema = z.object({
@@ -443,6 +445,7 @@ export default function CroquiReport({
                             <Pin background={'hsl(var(--primary))'} borderColor={'hsl(var(--primary))'} glyphColor={'hsl(var(--primary-foreground))'} />
                             </AdvancedMarker>
                         )}
+                        {drawnRoute && <DirectionsRenderer path={drawnRoute.getPath().getArray().map(p => p.toJSON())} />}
                     </Map>
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
                         <MapPin className="text-primary h-10 w-10" />

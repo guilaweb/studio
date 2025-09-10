@@ -15,11 +15,10 @@ interface DirectionsRendererProps {
 const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, path, avoidBadWeather }) => {
     const map = useMap();
     const routesLibrary = useMapsLibrary('routes');
-    const geometryLibrary = useMapsLibrary('geometry'); // Needed for path analysis
     const { toast } = useToast();
     
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
-    const [snappedPathPolyline, setSnappedPathPolyline] = useState<google.maps.Polyline | null>(null);
+    const [pathPolyline, setPathPolyline] = useState<google.maps.Polyline | null>(null);
 
     // Initialize DirectionsRenderer for waypoints
     useEffect(() => {
@@ -35,25 +34,44 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, path
             }));
         }
     }, [map, routesLibrary, directionsRenderer]);
+    
+    // Initialize Polyline for simple path
+     useEffect(() => {
+        if (!map) return;
+        if (!pathPolyline) {
+            setPathPolyline(new google.maps.Polyline({
+                strokeColor: 'hsl(var(--accent))',
+                strokeOpacity: 0.9,
+                strokeWeight: 5,
+                 icons: [{
+                    icon: { path: google.maps.SymbolPath.FORWARD_OPEN_ARROW },
+                    offset: '100%',
+                    repeat: '50px'
+                }],
+            }));
+        }
+    }, [map, pathPolyline]);
 
-    // Cleanup and attach renderer to map
-    useEffect(() => {
-        if (!directionsRenderer) return;
-        directionsRenderer.setMap(map);
-        return () => directionsRenderer.setMap(null);
-    }, [directionsRenderer, map]);
 
-    // Cleanup snapped polyline
+    // Cleanup and attach renderers to map
     useEffect(() => {
-        if (!snappedPathPolyline) return;
-        snappedPathPolyline.setMap(map);
-        return () => snappedPathPolyline.setMap(null);
-    }, [snappedPathPolyline, map]);
+        if (!map) return;
+        if (directionsRenderer) directionsRenderer.setMap(map);
+        if (pathPolyline) pathPolyline.setMap(map);
+        
+        return () => {
+             if (directionsRenderer) directionsRenderer.setMap(null);
+             if (pathPolyline) pathPolyline.setMap(null);
+        }
+    }, [directionsRenderer, pathPolyline, map]);
 
     // Handle waypoint routing
     useEffect(() => {
-        if (!routesLibrary || !directionsRenderer || !waypoints || waypoints.length < 2) {
-            directionsRenderer?.setDirections({ routes: [] }); // Clear previous routes
+        if (!routesLibrary || !directionsRenderer) {
+            return;
+        }
+        if (!waypoints || waypoints.length < 2) {
+            directionsRenderer.setDirections({ routes: [] }); // Clear previous routes
             return;
         }
         
@@ -92,38 +110,18 @@ const DirectionsRenderer: React.FC<DirectionsRendererProps> = ({ waypoints, path
         });
 
     }, [routesLibrary, directionsRenderer, waypoints, toast]);
-
-    // Handle road snapping for a single path
+    
+    // Handle simple path rendering
     useEffect(() => {
-        if (!map || !path || path.length < 2) {
-            if (snappedPathPolyline) snappedPathPolyline.setMap(null); // Clear previous path
-            return;
+        if (!pathPolyline) return;
+
+        if (!path || path.length < 2) {
+             pathPolyline.setPath([]); // Clear previous path
+             return;
         }
+        pathPolyline.setPath(path);
 
-        const roadsService = new google.maps.roads.RoadsService();
-
-        roadsService.snapToRoads({ path, interpolate: true }, (result, status) => {
-            if (status === 'OK' && result) {
-                const snappedPoints = result.map(p => p.location.toJSON());
-                 if (snappedPathPolyline) {
-                    snappedPathPolyline.setPath(snappedPoints);
-                } else {
-                    const newPolyline = new google.maps.Polyline({
-                        path: snappedPoints,
-                        strokeColor: '#0ea5e9', // A different color to distinguish snapped paths
-                        strokeOpacity: 0.9,
-                        strokeWeight: 4
-                    });
-                    newPolyline.setMap(map);
-                    setSnappedPathPolyline(newPolyline);
-                }
-            } else {
-                console.error(`Error snapping to roads: ${status}`, result);
-                toast({ variant: 'destructive', title: 'Erro de Correção', description: 'Não foi possível ajustar o percurso à estrada.'})
-            }
-        })
-
-    }, [map, path, snappedPathPolyline, toast]);
+    }, [pathPolyline, path]);
 
 
     return null;

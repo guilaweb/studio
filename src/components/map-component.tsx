@@ -10,6 +10,7 @@ import MapInfoWindow from "./map-infowindow";
 import { GenericPolygonsRenderer } from "./generic-polygons-renderer";
 import { useExternalLayers } from "@/services/external-layers-service";
 import GeofenceRenderer from "./geofence-renderer";
+import DirectionsRenderer from "./directions-renderer";
 
 
 type MapComponentProps = {
@@ -198,18 +199,6 @@ const LineRenderer: React.FC<{
                     strokeColor: '#0ea5e9',
                     strokeOpacity: 0.8,
                     strokeWeight: 4,
-                };
-            } else if (point.type === 'croqui' && point.croquiRoute) {
-                 path = point.croquiRoute;
-                 options = {
-                    strokeColor: 'hsl(var(--accent))',
-                    strokeOpacity: 0.9,
-                    strokeWeight: 5,
-                    icons: [{
-                        icon: { path: google.maps.SymbolPath.FORWARD_OPEN_ARROW },
-                        offset: '100%',
-                        repeat: '50px'
-                    }]
                 };
             }
 
@@ -402,7 +391,12 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
 
     const polylinePoints = React.useMemo(() => {
         if (!activeLayers) return [];
-        return data.filter(p => activeLayers[p.type] && (p.polyline || p.croquiRoute));
+        return data.filter(p => activeLayers[p.type] && (p.polyline));
+    }, [data, activeLayers]);
+    
+     const routePoints = React.useMemo(() => {
+        if (!activeLayers) return [];
+        return data.filter(p => activeLayers['croqui'] && p.type === 'croqui' && p.croquiRoute);
     }, [data, activeLayers]);
 
 
@@ -441,6 +435,10 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
                     points={polylinePoints}
                     onPolylineClick={onMarkerClick}
                 />
+                
+                {routePoints.map(point => (
+                     <DirectionsRenderer key={point.id} path={point.croquiRoute} />
+                ))}
                 
                 <GeofenceRenderer />
 
