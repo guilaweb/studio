@@ -14,7 +14,7 @@ import { Layer, PointOfInterest } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, ChevronDown, Map as MapIcon } from "lucide-react";
+import { ArrowLeft, ChevronDown, Map as MapIcon, LightbulbOff } from "lucide-react";
 import { DataTable } from "@/components/dashboard/data-table";
 import { columns } from "@/components/dashboard/columns";
 import { useRouter } from "next/navigation";
@@ -140,13 +140,14 @@ const getKPIs = (data: PointOfInterest[]) => {
     }
 }
 
+type MapView = 'heatmap_all' | 'heatmap_lighting' | 'cluster';
 type MapStyle = 'default' | 'night' | 'logistics';
 
 function DashboardPage() {
   const { allData } = usePoints();
   const { publicLayers, loading: loadingLayers } = usePublicLayerSettings();
   const router = useRouter();
-  const [mapView, setMapView] = React.useState<'heatmap' | 'cluster'>('heatmap');
+  const [mapView, setMapView] = React.useState<MapView>('heatmap_all');
   const [mapStyle, setMapStyle] = React.useState<MapStyle>('default');
   const [isClient, setIsClient] = React.useState(false);
 
@@ -191,8 +192,13 @@ function DashboardPage() {
   };
 
   const mapData = React.useMemo(() => {
+    if (mapView === 'heatmap_lighting') {
+        return allData
+            .filter(p => p.type === 'incident' && p.title === 'Iluminação pública com defeito')
+            .map(p => p.position);
+    }
     return allData.filter(p => p.type !== 'land_plot').map(p => p.position)
-  }, [allData]);
+  }, [allData, mapView]);
   
   const avgResolutionTime = isClient && kpis.avgResolutionTimeMs
     ? formatDistanceStrict(new Date(0), new Date(kpis.avgResolutionTimeMs), { locale: pt })
@@ -279,12 +285,13 @@ function DashboardPage() {
                             <div>
                                 <CardTitle>Mapa Operacional</CardTitle>
                                 <CardDescription>
-                                    Alterne entre a visualização de pontos quentes e agrupamentos.
+                                    Alterne entre as visualizações de dados no mapa.
                                 </CardDescription>
                             </div>
                             <div className="flex items-center gap-2">
                                 <TabsList>
-                                    <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+                                    <TabsTrigger value="heatmap_all">Heatmap (Geral)</TabsTrigger>
+                                    <TabsTrigger value="heatmap_lighting">Heatmap (Iluminação)</TabsTrigger>
                                     <TabsTrigger value="cluster">Clusters</TabsTrigger>
                                 </TabsList>
                                 <DropdownMenu>
@@ -313,7 +320,7 @@ function DashboardPage() {
                                     disableDefaultUI={true}
                                     styles={currentMapStyle}
                                 >
-                                    {mapView === 'heatmap' && <HeatmapLayer data={mapData} />}
+                                    {(mapView === 'heatmap_all' || mapView === 'heatmap_lighting') && <HeatmapLayer data={mapData} />}
                                     {mapView === 'cluster' && <DashboardClusterer points={allData.filter(p => p.type !== 'land_plot')} />}
                                 </Map>
                             </APIProvider>
