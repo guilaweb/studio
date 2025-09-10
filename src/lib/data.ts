@@ -29,7 +29,6 @@ export const PointOfInterestUpdateSchema = z.object({
       name: z.string(),
       quantity: z.number(),
   })).optional(),
-  assetId: z.string().optional(), // To link a repair to a specific asset
 });
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
@@ -236,6 +235,7 @@ export const InventoryPartSchema = z.object({
     createdAt: z.string(),
 });
 export type InventoryPart = z.infer<typeof InventoryPartSchema>;
+
 
 export const SubscriptionPlanSchema = z.object({
     id: z.string(),
