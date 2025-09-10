@@ -5,7 +5,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime, PointOfInterestStatus } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical, Waves, Hospital, BedDouble, Stethoscope, HeartPulse, Fuel, HardHat, Lightbulb, Zap, Wrench } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical, Waves, Hospital, BedDouble, Stethoscope, HeartPulse, Fuel, HardHat, Lightbulb, Zap, Wrench, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,12 +26,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import Timeline from "./timeline";
 import StreetViewPanorama from "./street-view-panorama";
 import FuelAvailabilityReport from "./fuel-availability-report";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 
 type PointOfInterestDetailsProps = {
   poi: PointOfInterest | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPoiStatusChange: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[]) => void;
+  onPoiStatusChange: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[], partsCost?: number, laborCost?: number) => void;
   onAddUpdate: (pointId: string, updateText: string, photoDataUri?: string) => void;
   onEdit: (poi: PointOfInterest, mode?: 'edit' | 'divide') => void;
 };
@@ -51,6 +52,7 @@ const layerConfig = {
     lighting_pole: { label: "Poste de Iluminação", Icon: Lightbulb, variant: "default" as const },
     pt: { label: "Posto de Transformação", Icon: Zap, variant: "default" as const },
     electrical_cabin: { label: "Cabine Elétrica", Icon: HardHat, variant: "default" as const },
+    electrical_network_segment: { label: "Segmento de Rede", Icon: GitBranch, variant: "default" as const },
 };
 
 const priorityConfig = {
@@ -262,7 +264,10 @@ const SanitationTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInte
 }
 
 const IncidentTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfInterest, onPoiStatusChange: PointOfInterestDetailsProps['onPoiStatusChange'], canUpdate: boolean}) => {
-    
+    const [isCostDialogOpen, setIsCostDialogOpen] = React.useState(false);
+    const [partsCost, setPartsCost] = React.useState('');
+    const [laborCost, setLaborCost] = React.useState('');
+
     if (poi.type !== 'incident' && poi.type !== 'water') return null;
 
     const getStatusBadge = () => {
@@ -271,7 +276,21 @@ const IncidentTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfIntere
         return <Badge variant="secondary">Pendente</Badge>
     }
 
+    const handleResolve = () => {
+        if (poi.maintenanceId) {
+            setIsCostDialogOpen(true);
+        } else {
+            onPoiStatusChange(poi.id, 'resolved');
+        }
+    };
+    
+    const handleCostConfirm = () => {
+        onPoiStatusChange(poi.id, 'resolved', undefined, undefined, undefined, undefined, Number(partsCost), Number(laborCost));
+        setIsCostDialogOpen(false);
+    }
+
     return (
+        <>
         <div className="mt-4 space-y-4">
              <div className="p-4 rounded-lg bg-muted/50">
                 <h3 className="font-semibold mb-2">Estado do Reporte</h3>
@@ -284,13 +303,38 @@ const IncidentTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfIntere
                         <Button variant="outline" className="bg-blue-100 border-blue-500 text-blue-700 hover:bg-blue-200" onClick={() => onPoiStatusChange(poi.id, 'in_progress')}>
                             <Truck className="mr-2"/> Em Resolução
                         </Button>
-                        <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={() => onPoiStatusChange(poi.id, 'resolved')}>
+                        <Button variant="outline" className="bg-green-100 border-green-500 text-green-700 hover:bg-green-200" onClick={handleResolve}>
                             <CheckCircle className="mr-2"/> Marcar como Resolvido
                         </Button>
                     </div>
                  )}
              </div>
         </div>
+        <AlertDialog open={isCostDialogOpen} onOpenChange={setIsCostDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Registar Custos de Manutenção</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Insira os custos associados a esta reparação para manter um histórico financeiro do ativo.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="grid grid-cols-2 gap-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="parts-cost">Custo de Peças (AOA)</Label>
+                        <Input id="parts-cost" type="number" value={partsCost} onChange={e => setPartsCost(e.target.value)} placeholder="0.00"/>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="labor-cost">Custo de Mão-de-Obra (AOA)</Label>
+                        <Input id="labor-cost" type="number" value={laborCost} onChange={e => setLaborCost(e.target.value)} placeholder="0.00"/>
+                    </div>
+                </div>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => onPoiStatusChange(poi.id, 'resolved')}>Concluir Sem Custo</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleCostConfirm}>Guardar Custos e Concluir</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+        </>
     )
 }
 
@@ -719,26 +763,6 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
       }
       canDivide = isOwner && (poi.type === 'croqui' || poi.type === 'land_plot');
   }
-  
-   const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[]) => {
-    if (!user) {
-        toast({
-            variant: "destructive",
-            title: "Ação necessária",
-            description: "Por favor, faça login para atualizar o estado.",
-        });
-        return;
-    }
-    
-    const text = updateText || `Estado atualizado para: ${statusLabelMap[status!] || status}`;
-
-    onPoiStatusChange(pointId, status, text, availableNotes, queueTime, availableFuels);
-    
-    toast({
-        title: "Estado atualizado!",
-        description: "Obrigado pela sua contribuição.",
-    })
-  };
 
   const handleDelete = () => {
     if (!isAdmin && !isOwner) {
@@ -842,13 +866,13 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 
                 {poi.type === 'incident' && <IncidentTags description={poi.description} />}
                 
-                <IncidentTicket poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={isAgentOrAdmin} />
+                <IncidentTicket poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={isAgentOrAdmin} />
 
-                {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />}
+                {poi.type === 'atm' && <ATMStatus poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
                 
-                {poi.type === 'fuel_station' && <FuelStationStatus poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />}
+                {poi.type === 'fuel_station' && <FuelStationStatus poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />}
 
-                {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={isAgentOrAdmin} />}
+                {poi.type === 'sanitation' && <SanitationTicket poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={isAgentOrAdmin} />}
                 
                 <LandPlotDetails plot={poi.type === 'land_plot' ? poi : landPlotForCroqui} />
                 
@@ -860,7 +884,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
 
                 <TechnicalDetails poi={poi} />
                 
-                <CommunityWaterMonitor poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />
+                <CommunityWaterMonitor poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />
 
                 <CustomDataDetails poi={poi} />
                 

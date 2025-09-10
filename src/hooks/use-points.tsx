@@ -13,7 +13,7 @@ import { useAuth } from './use-auth';
 interface PointsContextType {
   allData: PointOfInterest[];
   addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }, propertyIdToLink?: string) => Promise<void>;
-  updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[]) => Promise<void>;
+  updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[], partsCost?: number, laborCost?: number) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
   updatePointDetails: (pointId: string, updates: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>) => Promise<void>;
   deletePoint: (pointId: string) => Promise<void>;
@@ -103,6 +103,10 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         licensingStatus: data.licensingStatus,
         lastInspectionDate: data.lastInspectionDate,
         capacity: data.capacity,
+        // Lighting Pole Specific
+        lampType: data.lampType,
+        poleType: data.poleType,
+        poleHeight: data.poleHeight,
     };
 };
 
@@ -195,7 +199,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updatePointStatus = async (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[]) => {
+  const updatePointStatus = async (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[], partsCost?: number, laborCost?: number) => {
     if (!user || !profile) {
       toast({ variant: "destructive", title: "Erro de Permissão", description: "Utilizador não autenticado." });
       return;
@@ -213,18 +217,35 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             availableNotes: availableNotes,
             queueTime: queueTime,
             availableFuels: availableFuels,
+            partsCost: partsCost,
+            laborCost: laborCost,
         };
 
         const updateWithId = {
             ...statusUpdate,
             id: `upd-${pointId}-${Date.now()}-${Math.random()}`
         }
-
-        await updateDoc(pointRef, {
+        
+        const updatePayload: Record<string, any> = {
             status: status,
             lastReported: new Date().toISOString(),
             updates: arrayUnion(removeUndefinedFields(updateWithId))
-        });
+        };
+        
+        // If costs are provided, also update the main POI document
+        if (partsCost !== undefined) {
+            updatePayload.partsCost = partsCost;
+        }
+        if (laborCost !== undefined) {
+            updatePayload.laborCost = laborCost;
+        }
+        if (partsCost !== undefined || laborCost !== undefined) {
+            const currentPoint = allData.find(p => p.id === pointId);
+            const currentTotalCost = currentPoint?.cost || 0;
+            updatePayload.cost = currentTotalCost + (partsCost || 0) + (laborCost || 0);
+        }
+
+        await updateDoc(pointRef, updatePayload);
     } catch (error) {
         console.error("Error updating point status: ", error);
     }
