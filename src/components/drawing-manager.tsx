@@ -7,7 +7,7 @@ import { Button } from "./ui/button";
 import { Trash2 } from "lucide-react";
 
 interface DrawingManagerProps {
-  onPolygonComplete: (polygon: google.maps.Polygon) => void;
+  onPolygonComplete: (polygon: google.maps.Polygon | null) => void;
   initialPolygonPath?: google.maps.LatLngLiteral[] | null;
 }
 
@@ -73,7 +73,7 @@ const DrawingManager: React.FC<DrawingManagerProps> = ({
     if (currentPolygon) {
         currentPolygon.setMap(null);
     }
-    onPolygonComplete(new google.maps.Polygon()); // Inform parent that polygon is cleared
+    onPolygonComplete(null); // Inform parent that polygon is cleared
     setCurrentPolygon(null);
     if (drawingManager) {
         drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);

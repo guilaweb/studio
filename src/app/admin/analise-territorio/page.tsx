@@ -28,13 +28,14 @@ function TerritoryAnalysisPage() {
     const [pointsInPolygon, setPointsInPolygon] = React.useState<PointOfInterest[]>([]);
     const geometry = useMapsLibrary('geometry');
 
-    const handlePolygonComplete = (poly: google.maps.Polygon) => {
+    const handlePolygonComplete = (poly: google.maps.Polygon | null) => {
         if (drawnPolygon) {
             drawnPolygon.setMap(null); // Clear previous polygon if it exists
         }
         setDrawnPolygon(poly);
-        setAnalysisResult(null); // Clear previous results when a new polygon is drawn
-        setPointsInPolygon([]);
+        if(!poly) {
+             handleClearAnalysis(); // Clear results if polygon is cleared
+        }
     };
     
     const handleRunAnalysis = () => {
@@ -107,7 +108,7 @@ function TerritoryAnalysisPage() {
                                 <CardDescription>Desenhe um polígono no mapa e depois clique em "Analisar Área" para ver os resultados.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <Button onClick={handleRunAnalysis} disabled={!drawnPolygon || drawnPolygon.getPath().getLength() === 0}>
+                                <Button onClick={handleRunAnalysis} disabled={!drawnPolygon}>
                                     <Search className="mr-2 h-4 w-4"/>
                                     Analisar Área
                                 </Button>
