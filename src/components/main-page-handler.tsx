@@ -1034,7 +1034,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     setSelectedPoi(null);
   };
 
-  const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime) => {
+  const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[]) => {
     if (!user) {
         toast({
             variant: "destructive",
@@ -1047,7 +1047,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     const statusLabel = status ? (statusLabelMap[status] || status) : 'desconhecido';
     const text = updateText || `Estado atualizado para: ${statusLabel}`;
 
-    updatePointStatus(pointId, status, text, availableNotes, queueTime);
+    updatePointStatus(pointId, status, text, availableNotes, queueTime, availableFuels);
     setSelectedPoi(prevPoi => prevPoi ? { ...prevPoi, status, lastReported: new Date().toISOString() } : null);
     toast({
         title: "Estado atualizado!",
