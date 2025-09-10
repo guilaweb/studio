@@ -96,7 +96,7 @@ function TeamManagementPage() {
         return teamMembers.filter(member => {
             const nameMatch = member.displayName.toLowerCase().includes(searchQuery.toLowerCase());
             const statusMatch = statusFilter === 'Todos' || member.status === statusFilter;
-            const teamMatch = teamFilter === 'Todos' || member.team === teamFilter;
+            const teamMatch = teamFilter === 'Todos' || member.team === teamMatch;
             return nameMatch && statusMatch && teamMatch;
         });
     }, [teamMembers, searchQuery, statusFilter, teamFilter]);
@@ -345,7 +345,7 @@ function TeamManagementPage() {
     }
 
     return (
-        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!} libraries={['geometry']}>
+        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!} libraries={['geometry', 'routes']}>
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
                 <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
                     <Button size="icon" variant="outline" asChild>
