@@ -158,7 +158,7 @@ export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource' | 'croqui' | 'fuel_station' | 'health_unit' | 'health_case' | 'lighting_pole' | 'pt' | 'electrical_cabin' | 'electrical_network_segment';
 
 export type ActiveLayers = {
-  [key in Layer]: boolean;
+  [key in Layer]?: boolean;
 };
 
 
@@ -331,7 +331,7 @@ export const typeLabelMap: Partial<Record<PointOfInterestType, string>> = {
     fuel_station: "Posto de Combustível",
     health_unit: "Unidade Sanitária",
     health_case: "Caso Clínico",
-    lighting_pole: "Iluminação Pública",
+    lighting_pole: "Poste de Iluminação",
     pt: "Posto de Transformação",
     electrical_cabin: "Cabine Elétrica",
     electrical_network_segment: "Segmento de Rede",

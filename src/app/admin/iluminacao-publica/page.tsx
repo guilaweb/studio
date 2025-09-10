@@ -17,6 +17,7 @@ import LightingPoleReport from "@/components/lighting-pole-report";
 import PTReport from "@/components/pt-report";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { GenericPolygonsRenderer } from "@/components/generic-polygons-renderer";
+import MapComponent from "@/components/map-component";
 
 
 function PublicLightingPage() {
@@ -25,6 +26,8 @@ function PublicLightingPage() {
     const [sheetOpen, setSheetOpen] = React.useState<null | 'pole' | 'pt'>(null);
     const [poiToEdit, setPoiToEdit] = React.useState<PointOfInterest | null>(null);
     const [selectedAsset, setSelectedAsset] = React.useState<PointOfInterest | null>(null);
+    const [mapCenter, setMapCenter] = React.useState({ lat: -12.5, lng: 18.5 });
+    const [zoom, setZoom] = React.useState(6);
     
     const lightingAssets = React.useMemo(() => {
         return allData.filter(p => 
@@ -57,7 +60,12 @@ function PublicLightingPage() {
     }
     
     const handleViewOnMap = (poiId: string) => {
-        handleSelectAsset(poiId);
+        const poi = allData.find(p => p.id === poiId);
+        if (poi) {
+            setMapCenter(poi.position);
+            setZoom(17);
+            setSelectedAsset(poi);
+        }
     };
     
     const handleEdit = (poi: PointOfInterest) => {
@@ -126,20 +134,42 @@ function PublicLightingPage() {
                             <CardContent><div className="text-2xl font-bold">{stats.faultyPoles}</div></CardContent>
                         </Card>
                     </div>
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Cadastro de Ativos de Iluminação</CardTitle>
-                            <CardDescription>Pesquise, filtre e gira todos os postes e PTs da rede.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <DataTable 
-                                columns={columns} 
-                                data={lightingAssets} 
-                                onViewOnMap={handleViewOnMap}
-                                onEdit={handleEdit}
-                            />
-                        </CardContent>
-                    </Card>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                        <Card className="lg:col-span-3">
+                            <CardHeader>
+                                <CardTitle>Cadastro de Ativos de Iluminação</CardTitle>
+                                <CardDescription>Pesquise, filtre e gira todos os postes e PTs da rede.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <DataTable 
+                                    columns={columns} 
+                                    data={lightingAssets} 
+                                    onViewOnMap={handleViewOnMap}
+                                    onEdit={handleEdit}
+                                />
+                            </CardContent>
+                        </Card>
+                         <Card className="lg:col-span-4">
+                            <CardContent className="h-[calc(100vh-22rem)] p-0">
+                                 <MapComponent
+                                    activeLayers={{
+                                        lighting_pole: true,
+                                        pt: true,
+                                        electrical_cabin: true,
+                                        electrical_network_segment: true,
+                                    }}
+                                    data={lightingAssets}
+                                    center={mapCenter}
+                                    zoom={zoom}
+                                    onCenterChanged={setMapCenter}
+                                    onZoomChanged={setZoom}
+                                    onMarkerClick={handleSelectAsset}
+                                    userPosition={null}
+                                    searchedPlace={null}
+                                />
+                            </CardContent>
+                        </Card>
+                    </div>
                 </main>
             </div>
              {selectedAsset && (
