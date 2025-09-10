@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -21,8 +22,8 @@ const initialPublicLayers: ActiveLayers = {
     fuel_station: true,
     health_unit: false,
     health_case: false,
-    lighting_pole: false,
-    pt: false,
+    lighting_pole: true,
+    pt: true,
 };
 
 // Hook to read public layer settings

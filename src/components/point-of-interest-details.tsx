@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React from "react";
@@ -27,6 +28,7 @@ import Timeline from "./timeline";
 import StreetViewPanorama from "./street-view-panorama";
 import FuelAvailabilityReport from "./fuel-availability-report";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
+import { calculateIncidentPriorityFlow } from "@/ai/flows/calculate-incident-priority-flow";
 
 type PointOfInterestDetailsProps = {
   poi: PointOfInterest | null;
@@ -49,6 +51,7 @@ const layerConfig = {
     croqui: { label: "Croqui de Localização", Icon: Share2, variant: "default" as const },
     fuel_station: { label: "Posto de Combustível", Icon: Fuel, variant: "default" as const },
     health_unit: { label: "Unidade Sanitária", Icon: Hospital, variant: "default" as const },
+    health_case: { label: "Caso Clínico", Icon: Stethoscope, variant: "default" as const },
     lighting_pole: { label: "Poste de Iluminação", Icon: Lightbulb, variant: "default" as const },
     pt: { label: "Posto de Transformação", Icon: Zap, variant: "default" as const },
     electrical_cabin: { label: "Cabine Elétrica", Icon: HardHat, variant: "default" as const },
@@ -335,6 +338,66 @@ const IncidentTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfIntere
             </AlertDialogContent>
         </AlertDialog>
         </>
+    )
+}
+
+const LightingAssetReport = ({ poi }: { poi: PointOfInterest }) => {
+    const { addPoint } = usePoints();
+    const { user, profile } = useAuth();
+    const { toast } = useToast();
+
+    if (!['lighting_pole', 'pt'].includes(poi.type)) return null;
+    if (!user) return null; // Only logged in users can report
+    
+    const handleReportFault = async () => {
+        if (!user || !profile) return;
+        
+        let priority: PointOfInterest['priority'] | undefined = 'low';
+        try {
+            const result = await calculateIncidentPriorityFlow({
+                title: "Iluminação pública com defeito",
+                description: `Avaria reportada no ativo: ${poi.title} (${poi.id})`,
+            });
+            priority = result.priority;
+        } catch (error) {
+            console.error("Error calculating priority, defaulting to low:", error);
+        }
+
+        const incidentToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+            id: `incident-${Date.now()}`,
+            type: 'incident',
+            title: "Iluminação pública com defeito",
+            description: `Avaria reportada no ativo: ${poi.title} (${poi.id}).`,
+            authorId: user.uid,
+            authorDisplayName: profile.displayName,
+            position: poi.position,
+            lastReported: new Date().toISOString(),
+            incidentDate: new Date().toISOString(),
+            status: 'unknown',
+            priority: priority,
+            maintenanceId: poi.id, // Link the incident to the asset
+            updates: [{
+                text: `Avaria reportada por ${profile.displayName}.`,
+                authorId: user.uid,
+                authorDisplayName: profile.displayName,
+                timestamp: new Date().toISOString(),
+            }]
+        };
+        
+        addPoint(incidentToAdd as any);
+        toast({
+            title: "Avaria Reportada!",
+            description: `Obrigado por reportar a avaria em ${poi.title}. A equipa de manutenção foi notificada.`
+        });
+    }
+
+    return (
+        <div className="mt-4 p-4 rounded-lg bg-muted/50">
+            <h3 className="font-semibold mb-2">Ações do Cidadão</h3>
+            <Button className="w-full" onClick={handleReportFault} variant="destructive">
+                <AlertTriangle className="mr-2 h-4 w-4" /> Reportar Avaria
+            </Button>
+        </div>
     )
 }
 
@@ -884,6 +947,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
 
                 <TechnicalDetails poi={poi} />
                 
+                <LightingAssetReport poi={poi} />
+
                 <CommunityWaterMonitor poi={poi} onPoiStatusChange={onPoiStatusChange} canUpdate={!!user} />
 
                 <CustomDataDetails poi={poi} />
