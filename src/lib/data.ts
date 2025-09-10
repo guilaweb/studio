@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 export const QueueTimeEnum = z.enum(['none', 'short', 'medium', 'long']);
@@ -605,3 +606,24 @@ export const SuggestTechnicianOutputSchema = z.object({
     suggestions: z.array(SuggestionSchema),
 });
 export type SuggestTechnicianOutput = z.infer<typeof SuggestTechnicianOutputSchema>;
+
+export const PredictMaintenanceInputSchema = z.object({
+    input: z.object({
+        vehicleType: z.string(),
+        mileage: z.number(),
+        ageInYears: z.number(),
+        telemetryEvents: z.array(z.string()),
+    })
+});
+export type PredictMaintenanceInput = z.infer<typeof PredictMaintenanceInputSchema>;
+
+export const PredictMaintenanceOutputSchema = z.object({
+    predictions: z.array(z.object({
+        taskDescription: z.string(),
+        reason: z.string(),
+        priority: PointOfInterestPriorityEnum,
+    })),
+});
+export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
+
+    
