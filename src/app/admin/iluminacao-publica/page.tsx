@@ -61,7 +61,7 @@ function PublicLightingPage() {
     }
 
     return (
-         <>
+        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
                 <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
                     <Button size="icon" variant="outline" asChild>
@@ -112,20 +112,19 @@ function PublicLightingPage() {
              <LightingPoleReport
                 open={sheetOpen === 'pole'}
                 onOpenChange={handleSheetClose}
-                onLightingPoleSubmit={(data) => updatePointDetails(poiToEdit!.id, data)}
+                onLightingPoleSubmit={poiToEdit ? (data) => updatePointDetails(poiToEdit.id, data) : addPoint}
                 initialCenter={{ lat: -8.83, lng: 13.23 }}
                 poiToEdit={poiToEdit}
             />
             <PTReport
                 open={sheetOpen === 'pt'}
                 onOpenChange={handleSheetClose}
-                onPTSubmit={(data) => updatePointDetails(poiToEdit!.id, data)}
+                onPTSubmit={poiToEdit ? (data) => updatePointDetails(poiToEdit.id, data) : addPoint}
                 initialCenter={{ lat: -8.83, lng: 13.23 }}
                 poiToEdit={poiToEdit}
             />
-        </>
+        </APIProvider>
     );
 }
 
 export default withAuth(PublicLightingPage, ['Agente Municipal', 'Administrador']);
-
