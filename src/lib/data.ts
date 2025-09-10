@@ -331,7 +331,7 @@ export const typeLabelMap: Partial<Record<PointOfInterestType, string>> = {
     fuel_station: "Posto de Combustível",
     health_unit: "Unidade Sanitária",
     health_case: "Caso Clínico",
-    lighting_pole: "Poste de Iluminação",
+    lighting_pole: "Iluminação Pública",
     pt: "Posto de Transformação",
     electrical_cabin: "Cabine Elétrica",
     electrical_network_segment: "Segmento de Rede",
@@ -625,5 +625,3 @@ export const PredictMaintenanceOutputSchema = z.object({
     })),
 });
 export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
-
-    

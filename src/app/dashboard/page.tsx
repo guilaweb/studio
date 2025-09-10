@@ -10,7 +10,7 @@ import {
   ChartConfig,
 } from "@/components/ui/chart";
 import { usePoints } from "@/hooks/use-points";
-import { Layer, PointOfInterest } from "@/lib/data";
+import { Layer, PointOfInterest, typeLabelMap } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -140,15 +140,17 @@ const getKPIs = (data: PointOfInterest[]) => {
     }
 }
 
-type MapView = 'heatmap_all' | 'heatmap_lighting' | 'cluster';
+type MapView = 'heatmap' | 'cluster';
 type MapStyle = 'default' | 'night' | 'logistics';
+type DataFilter = Layer | 'all';
 
 function DashboardPage() {
   const { allData } = usePoints();
   const { publicLayers, loading: loadingLayers } = usePublicLayerSettings();
   const router = useRouter();
-  const [mapView, setMapView] = React.useState<MapView>('heatmap_all');
+  const [mapView, setMapView] = React.useState<MapView>('heatmap');
   const [mapStyle, setMapStyle] = React.useState<MapStyle>('default');
+  const [dataFilter, setDataFilter] = React.useState<DataFilter>('all');
   const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
@@ -192,13 +194,16 @@ function DashboardPage() {
   };
 
   const mapData = React.useMemo(() => {
-    if (mapView === 'heatmap_lighting') {
-        return allData
-            .filter(p => p.type === 'incident' && p.title === 'Iluminação pública com defeito')
-            .map(p => p.position);
+    const dataToFilter = dataFilter === 'all'
+        ? allData
+        : allData.filter(p => p.type === dataFilter);
+    
+    if (mapView === 'heatmap') {
+        return dataToFilter.map(p => p.position);
     }
-    return allData.filter(p => p.type !== 'land_plot').map(p => p.position)
-  }, [allData, mapView]);
+    // For cluster view, we pass the full point data
+    return dataToFilter.filter(p => p.type !== 'land_plot');
+  }, [allData, mapView, dataFilter]);
   
   const avgResolutionTime = isClient && kpis.avgResolutionTimeMs
     ? formatDistanceStrict(new Date(0), new Date(kpis.avgResolutionTimeMs), { locale: pt })
@@ -210,6 +215,14 @@ function DashboardPage() {
       { key: 'logistics', label: 'Logística', styles: logisticsMapStyle },
   ];
   const currentMapStyle = mapStyleOptions.find(s => s.key === mapStyle)?.styles;
+
+  const dataFilterOptions: { key: DataFilter, label: string }[] = [
+    { key: 'all', label: 'Todos os Reportes' },
+    { key: 'incident', label: 'Incidentes'},
+    { key: 'sanitation', label: 'Saneamento'},
+    { key: 'lighting_pole', label: 'Iluminação Pública'},
+  ];
+  const currentDataFilterLabel = dataFilterOptions.find(o => o.key === dataFilter)?.label || "Filtrar Dados";
 
   if (loadingLayers) {
     return <div className="flex h-screen w-full items-center justify-center">A carregar dashboard...</div>
@@ -285,13 +298,27 @@ function DashboardPage() {
                             <div>
                                 <CardTitle>Mapa Operacional</CardTitle>
                                 <CardDescription>
-                                    Alterne entre as visualizações de dados no mapa.
+                                    Alterne entre as visualizações e filtre os dados no mapa.
                                 </CardDescription>
                             </div>
                             <div className="flex items-center gap-2">
+                                 <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline">
+                                            {currentDataFilterLabel}
+                                            <ChevronDown className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        {dataFilterOptions.map(option => (
+                                            <DropdownMenuItem key={option.key} onClick={() => setDataFilter(option.key)}>
+                                                {option.label}
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                                 <TabsList>
-                                    <TabsTrigger value="heatmap_all">Heatmap (Geral)</TabsTrigger>
-                                    <TabsTrigger value="heatmap_lighting">Heatmap (Iluminação)</TabsTrigger>
+                                    <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
                                     <TabsTrigger value="cluster">Clusters</TabsTrigger>
                                 </TabsList>
                                 <DropdownMenu>
@@ -320,8 +347,8 @@ function DashboardPage() {
                                     disableDefaultUI={true}
                                     styles={currentMapStyle}
                                 >
-                                    {(mapView === 'heatmap_all' || mapView === 'heatmap_lighting') && <HeatmapLayer data={mapData} />}
-                                    {mapView === 'cluster' && <DashboardClusterer points={allData.filter(p => p.type !== 'land_plot')} />}
+                                    {mapView === 'heatmap' && <HeatmapLayer data={mapData as google.maps.LatLngLiteral[]} />}
+                                    {mapView === 'cluster' && <DashboardClusterer points={mapData as PointOfInterest[]} />}
                                 </Map>
                             </APIProvider>
                         </CardContent>
