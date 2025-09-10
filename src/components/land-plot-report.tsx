@@ -83,6 +83,14 @@ export default function LandPlotReport({
     resolver: zodResolver(formSchema),
     defaultValues: {
       status: "available",
+      plotNumber: "",
+      registrationCode: "",
+      zoningInfo: "",
+      maxHeight: undefined,
+      buildingRatio: undefined,
+      minLotArea: undefined,
+      roadCession: undefined,
+      greenSpaceCession: undefined,
     },
   });
   

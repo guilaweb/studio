@@ -74,7 +74,7 @@ export default function PTReport({
   const clearForm = () => {
     form.reset({
       title: "",
-      capacity: undefined,
+      capacity: 0,
       status: "funcional",
     });
     setCoords('');
@@ -163,6 +163,7 @@ export default function PTReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[35vh] bg-muted">
                 <Map
+                    mapId="pt-report-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
@@ -199,7 +200,7 @@ export default function PTReport({
                         <FormItem>
                         <FormLabel>Capacidade (kVA)</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="Ex: 250" {...field} />
+                            <Input type="number" placeholder="Ex: 250" {...field} value={field.value ?? ''} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
