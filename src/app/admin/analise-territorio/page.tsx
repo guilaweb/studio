@@ -145,7 +145,6 @@ function TerritoryAnalysisPage() {
                     <div className="md:col-span-2 lg:col-span-3">
                         <Card className="h-[calc(100vh-10rem)]">
                              <Map
-                                mapId="territory-analysis-map"
                                 defaultCenter={{ lat: -12.5, lng: 18.5 }}
                                 defaultZoom={6}
                                 gestureHandling={'greedy'}

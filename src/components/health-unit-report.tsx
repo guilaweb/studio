@@ -223,7 +223,6 @@ export default function HealthUnitReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[30vh] bg-muted">
                 <Map
-                    mapId="health-unit-report-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}

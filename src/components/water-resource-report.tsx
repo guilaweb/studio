@@ -375,7 +375,6 @@ export default function WaterResourceReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[35vh] bg-muted">
                 <Map
-                    mapId="water-resource-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
@@ -433,7 +432,7 @@ export default function WaterResourceReport({
                         <FormMessage />
                         </FormItem>
                     )}
-                />
+                 />
                  <div>
                     <Label>Ferramentas de Desenho (Opcional)</Label>
                     <div className="flex gap-2 mt-2">

@@ -307,7 +307,6 @@ function DashboardPage() {
                         <CardContent className="h-[500px] p-0">
                             <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
                                 <Map
-                                    mapId={'dashboard-map'}
                                     defaultCenter={{ lat: -12.5, lng: 18.5 }}
                                     defaultZoom={6}
                                     gestureHandling={'greedy'}

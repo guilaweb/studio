@@ -190,7 +190,6 @@ export default function SanitationReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[50vh] bg-muted">
                 <Map
-                    mapId="sanitation-report-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}

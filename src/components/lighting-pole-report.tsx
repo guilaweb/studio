@@ -68,7 +68,7 @@ export default function LightingPoleReport({
     resolver: zodResolver(formSchema),
     defaultValues: {
         title: "",
-        poleHeight: undefined,
+        poleHeight: 0,
         status: "funcional",
     }
   });
@@ -78,7 +78,7 @@ export default function LightingPoleReport({
       title: "",
       lampType: undefined,
       poleType: undefined,
-      poleHeight: undefined,
+      poleHeight: 0,
       status: "funcional",
     });
     setCoords('');
@@ -166,7 +166,6 @@ export default function LightingPoleReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[35vh] bg-muted">
                 <Map
-                    mapId="lighting-pole-report-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}

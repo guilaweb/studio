@@ -102,7 +102,6 @@ export default function CroquiDocumentPage() {
                 <div className="grid grid-cols-2 gap-4 mb-6 print:gap-2">
                     <div className={mapContainerClass}>
                          <Map
-                            mapId={`croqui-doc-sat-${croqui.id}`}
                             defaultCenter={croqui.position}
                             defaultZoom={17}
                             gestureHandling="greedy"
@@ -116,7 +115,6 @@ export default function CroquiDocumentPage() {
                     </div>
                      <div className={mapContainerClass}>
                          <Map
-                            mapId={`croqui-doc-map-${croqui.id}`}
                             defaultCenter={croqui.position}
                             defaultZoom={17}
                             gestureHandling="greedy"

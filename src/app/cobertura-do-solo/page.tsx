@@ -135,7 +135,6 @@ function LandUsePage() {
                     <div className="md:col-span-2 lg:col-span-3">
                         <Card className="h-[calc(100vh-10rem)]">
                              <Map
-                                mapId="land-use-map"
                                 defaultCenter={{ lat: -12.5, lng: 18.5 }} // Centered broadly on Angola
                                 defaultZoom={6}
                                 gestureHandling={'greedy'}

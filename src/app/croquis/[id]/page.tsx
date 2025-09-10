@@ -122,7 +122,6 @@ export default function PublicCroquiPage() {
                     </aside>
                     <main className="md:col-span-2 h-full w-full">
                         <Map
-                            mapId={`croqui-view-${croqui.id}`}
                             defaultCenter={croqui.position}
                             defaultZoom={16}
                             gestureHandling="greedy"

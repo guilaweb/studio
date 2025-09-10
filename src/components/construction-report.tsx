@@ -34,7 +34,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { addDays, format } from "date-fns";
 import { pt } from "date-fns/locale";
-import { Calendar } from "./ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import { DateRange } from "react-day-picker";
 import { useToast } from "@/hooks/use-toast";
 
@@ -220,7 +220,6 @@ export default function ConstructionReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[35vh] bg-muted">
                 <Map
-                    mapId="construction-report-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
