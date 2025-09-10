@@ -66,6 +66,11 @@ export default function LightingPoleReport({
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+        title: "",
+        poleHeight: undefined,
+        status: "funcional",
+    }
   });
   
   const clearForm = () => {
@@ -103,6 +108,7 @@ export default function LightingPoleReport({
             clearForm();
         }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialCenter, form, poiToEdit]);
   
   const handleLocateFromCoords = () => {
@@ -235,7 +241,7 @@ export default function LightingPoleReport({
                         <FormItem>
                         <FormLabel>Altura do Poste (metros)</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="Ex: 9" {...field} />
+                            <Input type="number" placeholder="Ex: 9" {...field} value={field.value ?? ''} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
