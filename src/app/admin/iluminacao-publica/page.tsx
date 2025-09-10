@@ -106,6 +106,7 @@ function PublicLightingPage() {
                     <div className="md:col-span-2 lg:col-span-3">
                         <Card className="h-[calc(100vh-10rem)]">
                              <Map
+                                mapId="lighting-management-map"
                                 defaultCenter={{ lat: -8.83, lng: 13.23 }}
                                 defaultZoom={13}
                                 gestureHandling={'greedy'}

@@ -422,6 +422,7 @@ export default function CroquiReport({
               <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
                   <div className="relative h-[40vh] bg-muted">
                       <Map
+                          mapId="croqui-report-map"
                           center={mapCenter}
                           zoom={mapZoom}
                           onCenterChanged={(e) => setMapCenter(e.detail.center)}

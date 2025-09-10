@@ -166,6 +166,7 @@ function AdminVerificationDetailPage() {
                             </CardHeader>
                             <CardContent className="flex-grow p-0">
                                 <Map
+                                    mapId="verification-map"
                                     defaultCenter={property.position}
                                     defaultZoom={15}
                                     gestureHandling={'greedy'}
@@ -222,7 +223,3 @@ function AdminVerificationDetailPage() {
 }
 
 export default withAuth(AdminVerificationDetailPage, ['Agente Municipal', 'Administrador']);
-
-    
-
-    
