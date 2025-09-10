@@ -40,6 +40,3 @@ const TeamMemberPath: React.FC<TeamMemberPathProps> = ({ path, color = '#4A90E2'
 };
 
 export default TeamMemberPath;
-
-    
-

@@ -87,5 +87,3 @@ const MaintenancePlanSelector: React.FC<MaintenancePlanSelectorProps> = ({ user,
 };
 
 export default MaintenancePlanSelector;
-
-    

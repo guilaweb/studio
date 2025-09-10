@@ -498,7 +498,7 @@ function TeamManagementPage() {
                                             </AdvancedMarker>
                                         ))}
                                         {selectedMember && selectedMember.path && <TeamMemberPath path={selectedMember.path} color="#22c55e" />}
-                                        {selectedMember && selectedMember.currentTask && selectedMember.currentTask.path && <TeamMemberPath path={selectedMember.currentTask.path} color="#3b82f6" />}
+                                        {selectedMember && selectedMember.currentTask && (selectedMember.currentTask as PointOfInterest).polyline && <TeamMemberPath path={(selectedMember.currentTask as PointOfInterest).polyline!} color="#3b82f6" />}
                                         <DirectionsRenderer waypoints={routeToDisplay} path={snappedPath} avoidBadWeather={simulateBadWeather} />
                                         <GeofenceRenderer />
                                     </Map>
