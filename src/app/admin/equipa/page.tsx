@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -35,6 +36,23 @@ import IncidentReport from "@/components/incident-report";
 
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
+const removeUndefinedFields = (obj: any): any => {
+    if (Array.isArray(obj)) {
+        return obj.map(removeUndefinedFields);
+    } else if (obj !== null && typeof obj === 'object') {
+        const newObj: { [key: string]: any } = {};
+        for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                const value = obj[key];
+                if (value !== undefined) {
+                    newObj[key] = removeUndefinedFields(value);
+                }
+            }
+        }
+        return newObj;
+    }
+    return obj;
+};
 
 function TeamManagementPage() {
     const { users, loading: loadingUsers, updateUserProfile } = useUsers();
@@ -231,9 +249,11 @@ function TeamManagementPage() {
     const handleAssignTask = (technicianToAssign: UserProfile, task: PointOfInterest) => {
         if (!technicianToAssign || !task) return;
 
+        const cleanedTask = removeUndefinedFields(task);
+
         const updatedTechnician: Partial<UserProfile> = {
             status: 'Ocupado',
-            taskQueue: [...(technicianToAssign.taskQueue || []), task],
+            taskQueue: [...(technicianToAssign.taskQueue || []), cleanedTask],
         };
 
         updateUserProfile(technicianToAssign.uid, updatedTechnician);
@@ -583,3 +603,4 @@ function TeamManagementPage() {
 }
 
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
+
