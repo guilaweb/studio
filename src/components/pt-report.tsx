@@ -41,7 +41,7 @@ const formSchema = z.object({
 type PTReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPTSubmit: (data: Pick<PointOfInterest, 'title' | 'position' | 'status' | 'customData'>) => void;
+  onPTSubmit: (data: any) => void;
   poiToEdit: PointOfInterest | null;
   initialCenter: google.maps.LatLngLiteral;
 };
@@ -126,14 +126,20 @@ export default function PTReport({
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalPosition = mapCenter;
-    onPTSubmit({ 
+    const submissionData = { 
         ...values,
         status: values.status as PointOfInterestStatus,
         customData: {
             capacity: values.capacity
         },
         position: finalPosition 
-    });
+    };
+
+    if (isEditMode && poiToEdit) {
+        onPTSubmit(poiToEdit.id, submissionData);
+    } else {
+        onPTSubmit(submissionData);
+    }
   }
 
 

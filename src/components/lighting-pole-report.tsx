@@ -43,7 +43,7 @@ const formSchema = z.object({
 type LightingPoleReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onLightingPoleSubmit: (data: Pick<PointOfInterest, 'title' | 'position' | 'lampType' | 'poleType' | 'poleHeight' | 'status'>) => void;
+  onLightingPoleSubmit: (data: any) => void;
   poiToEdit: PointOfInterest | null;
   initialCenter: google.maps.LatLngLiteral;
 };
@@ -132,11 +132,17 @@ export default function LightingPoleReport({
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalPosition = mapCenter;
-    onLightingPoleSubmit({ 
+    const submissionData = { 
         ...values,
         status: values.status as PointOfInterestStatus,
         position: finalPosition 
-    });
+    };
+
+    if (isEditMode && poiToEdit) {
+        onLightingPoleSubmit(poiToEdit.id, submissionData);
+    } else {
+        onLightingPoleSubmit(submissionData);
+    }
   }
 
 
