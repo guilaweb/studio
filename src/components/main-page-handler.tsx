@@ -529,7 +529,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
 
     const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
       id: `water-${Date.now()}`,
-      type: 'water',
+      type: 'incident', // Using 'incident' type for filtering purposes
       title: 'Reporte de Poluição',
       authorId: user.uid,
       authorDisplayName: profile.displayName,
