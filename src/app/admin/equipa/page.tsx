@@ -6,7 +6,7 @@ import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search, Loader2, Truck, AlertTriangle, Wrench, Fuel, Info, Route, CloudRain, Group } from "lucide-react";
+import { ArrowLeft, User, Package, MapPin, PersonStanding, Send, Phone, MessageSquare, X, Car, ListTodo, Check, Search, Loader2, Truck, AlertTriangle, Wrench, Fuel, Info, Route, CloudRain, Group, Plus } from "lucide-react";
 import { APIProvider, Map, AdvancedMarker, Pin, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Badge } from "@/components/ui/badge";
 import { TeamMemberMarker } from "@/components/team-management/team-member-marker";
@@ -31,13 +31,14 @@ import DirectionsRenderer from "@/components/directions-renderer";
 import { Checkbox } from "@/components/ui/checkbox";
 import GeofenceRenderer from "@/components/geofence-renderer";
 import { useGeofences } from "@/services/geofence-service";
+import IncidentReport from "@/components/incident-report";
 
 type StatusFilter = 'Todos' | 'Disponível' | 'Em Rota' | 'Ocupado' | 'Offline';
 
 
 function TeamManagementPage() {
     const { users, loading: loadingUsers, updateUserProfile } = useUsers();
-    const { allData: allPoints, loading: loadingPoints, addPoint } = usePoints();
+    const { allData: allPoints, loading: loadingPoints, addPoint, updatePointDetails } = usePoints();
     const { fuelEntries, loading: loadingFuel } = useFuelEntries();
     const { maintenancePlans, loading: loadingPlans } = useMaintenancePlans();
     const { geofences, loading: loadingGeofences } = useGeofences();
@@ -55,6 +56,7 @@ function TeamManagementPage() {
     const [simulateBadWeather, setSimulateBadWeather] = React.useState(false);
     const [selectedTasks, setSelectedTasks] = React.useState<string[]>([]);
     const [assignedTeamForTask, setAssignedTeamForTask] = React.useState<UserProfile['team'] | null>(null);
+    const [incidentReportOpen, setIncidentReportOpen] = React.useState(false);
 
     const { toast } = useToast();
     const { user: currentUser, profile: currentProfile } = useAuth();
@@ -343,143 +345,148 @@ function TeamManagementPage() {
     }
 
     return (
-        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!} libraries={['geometry']}>
-            <div className="flex min-h-screen w-full flex-col bg-muted/40">
-                <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-                    <Button size="icon" variant="outline" asChild>
-                        <Link href="/">
-                            <ArrowLeft className="h-5 w-5" />
-                            <span className="sr-only">Voltar</span>
-                        </Link>
-                    </Button>
-                    <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                        Gestão de Equipa e Despacho
-                    </h1>
-                </header>
-                <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-4">
-                     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-                        <Card>
-                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Veículos em Rota</CardTitle><Truck className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">{kpis.emRota}</div><p className="text-xs text-muted-foreground">de {kpis.total} veículos totais</p></CardContent>
-                        </Card>
-                         <Card>
-                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Alertas do Dia</CardTitle><AlertTriangle className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">{maintenanceAlerts.filter(a => a.level === 'critical').length}</div><p className="text-xs text-muted-foreground">{maintenanceAlerts.length} alertas no total</p></CardContent>
-                        </Card>
-                         <Card>
-                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Manutenções</CardTitle><Wrench className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">{upcomingMaintenanceCount}</div><p className="text-xs text-muted-foreground">Vencem esta semana</p></CardContent>
-                        </Card>
-                         <Card>
-                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Consumo Médio</CardTitle><Fuel className="h-4 w-4 text-muted-foreground"/></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">{fleetConsumption}</div><p className="text-xs text-muted-foreground">Média da frota</p></CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="grid flex-1 items-start gap-4 md:grid-cols-3 lg:grid-cols-4">
-                        <div className="md:col-span-1 lg:col-span-1 space-y-4">
+        <>
+            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!} libraries={['geometry']}>
+                <div className="flex min-h-screen w-full flex-col bg-muted/40">
+                    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+                        <Button size="icon" variant="outline" asChild>
+                            <Link href="/">
+                                <ArrowLeft className="h-5 w-5" />
+                                <span className="sr-only">Voltar</span>
+                            </Link>
+                        </Button>
+                        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+                            Gestão de Equipa e Despacho
+                        </h1>
+                        <div className="ml-auto">
+                            <Button onClick={() => setIncidentReportOpen(true)}>
+                                <Plus className="mr-2 h-4 w-4" /> Nova Tarefa
+                            </Button>
+                        </div>
+                    </header>
+                    <main className="flex-1 p-4 sm:px-6 sm:py-6 space-y-4">
+                        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Equipa Ativa</CardTitle>
-                                    <CardDescription>Localização e estado dos técnicos.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="relative">
-                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            type="search"
-                                            placeholder="Pesquisar por nome..."
-                                            className="pl-8"
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Filtrar por estado" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Todos">Todos os Estados</SelectItem>
-                                                    <SelectItem value="Disponível">Disponível</SelectItem>
-                                                    <SelectItem value="Em Rota">Em Rota</SelectItem>
-                                                    <SelectItem value="Ocupado">Ocupado</SelectItem>
-                                                    <SelectItem value="Offline">Offline</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <Select value={teamFilter} onValueChange={setTeamFilter}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Filtrar por equipa" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Todos">Todas as Equipas</SelectItem>
-                                                    <SelectItem value="Saneamento">Saneamento</SelectItem>
-                                                    <SelectItem value="Eletricidade">Eletricidade</SelectItem>
-                                                    <SelectItem value="Geral">Geral</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Veículos em Rota</CardTitle><Truck className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                                <CardContent><div className="text-2xl font-bold">{kpis.emRota}</div><p className="text-xs text-muted-foreground">de {kpis.total} veículos totais</p></CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Alertas do Dia</CardTitle><AlertTriangle className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                                <CardContent><div className="text-2xl font-bold">{maintenanceAlerts.filter(a => a.level === 'critical').length}</div><p className="text-xs text-muted-foreground">{maintenanceAlerts.length} alertas no total</p></CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Manutenções</CardTitle><Wrench className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                                <CardContent><div className="text-2xl font-bold">{upcomingMaintenanceCount}</div><p className="text-xs text-muted-foreground">Vencem esta semana</p></CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Consumo Médio</CardTitle><Fuel className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                                <CardContent><div className="text-2xl font-bold">{fleetConsumption}</div><p className="text-xs text-muted-foreground">Média da frota</p></CardContent>
+                            </Card>
+                        </div>
+
+                        <div className="grid flex-1 items-start gap-4 md:grid-cols-3 lg:grid-cols-4">
+                            <div className="md:col-span-1 lg:col-span-1 space-y-4">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Equipa Ativa</CardTitle>
+                                        <CardDescription>Localização e estado dos técnicos.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="relative">
+                                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                type="search"
+                                                placeholder="Pesquisar por nome..."
+                                                className="pl-8"
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                            />
                                         </div>
-                                    </div>
-                                    <div className="space-y-3 max-h-[40vh] overflow-y-auto">
-                                        {filteredMembers.map(member => (
-                                            <div key={member.uid} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted relative", selectedMember?.uid === member.uid ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
-                                                {suggestedTechnicians.find(s => s.technicianId === member.uid) && <SuggestionBadge rank={suggestedTechnicians.find(s => s.technicianId === member.uid)!.rank} />}
-                                                <div className="flex items-center gap-3">
-                                                    <TeamMemberMarker {...member} />
-                                                    <div>
-                                                        <p className="font-semibold text-sm">{member.displayName}</p>
-                                                        {member.status && (
-                                                            <Badge variant="secondary" className={cn(statusBadgeVariant(member.status), 'text-white')}>
-                                                                {member.status}
-                                                            </Badge>
-                                                        )}
+                                        <div className="space-y-2">
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Filtrar por estado" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="Todos">Todos os Estados</SelectItem>
+                                                        <SelectItem value="Disponível">Disponível</SelectItem>
+                                                        <SelectItem value="Em Rota">Em Rota</SelectItem>
+                                                        <SelectItem value="Ocupado">Ocupado</SelectItem>
+                                                        <SelectItem value="Offline">Offline</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <Select value={teamFilter} onValueChange={setTeamFilter}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Filtrar por equipa" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="Todos">Todas as Equipas</SelectItem>
+                                                        <SelectItem value="Saneamento">Saneamento</SelectItem>
+                                                        <SelectItem value="Eletricidade">Eletricidade</SelectItem>
+                                                        <SelectItem value="Geral">Geral</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3 max-h-[40vh] overflow-y-auto">
+                                            {filteredMembers.map(member => (
+                                                <div key={member.uid} className={cn("flex items-center justify-between p-2 rounded-md border cursor-pointer hover:bg-muted relative", selectedMember?.uid === member.uid ? 'bg-primary/10 border-primary' : 'bg-background')} onClick={() => setSelectedMember(member)}>
+                                                    {suggestedTechnicians.find(s => s.technicianId === member.uid) && <SuggestionBadge rank={suggestedTechnicians.find(s => s.technicianId === member.uid)!.rank} />}
+                                                    <div className="flex items-center gap-3">
+                                                        <TeamMemberMarker {...member} />
+                                                        <div>
+                                                            <p className="font-semibold text-sm">{member.displayName}</p>
+                                                            {member.status && (
+                                                                <Badge variant="secondary" className={cn(statusBadgeVariant(member.status), 'text-white')}>
+                                                                    {member.status}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                        <div>
+                                            <CardTitle>Tarefas Não Atribuídas</CardTitle>
+                                            <CardDescription>Clique numa tarefa para ver sugestões.</CardDescription>
+                                        </div>
+                                        <Button size="sm" onClick={handleOptimizeRoute} disabled={selectedTasks.length < 2}>
+                                            <Route className="mr-2 h-4 w-4" />
+                                            Otimizar ({selectedTasks.length})
+                                        </Button>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3 max-h-[30vh] overflow-auto">
+                                    {isSuggesting === null && assignedTeamForTask && (
+                                        <div className="p-2 text-sm text-center bg-blue-50 border border-blue-200 text-blue-800 rounded-md">
+                                            Equipa recomendada para esta zona: <span className="font-bold">{assignedTeamForTask}</span>
+                                        </div>
+                                    )}
+                                    {localTasks.map(task => (
+                                            <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background hover:bg-muted">
+                                                <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                                                    <Checkbox id={`task-${task.id}`} onCheckedChange={(checked) => handleTaskCheckboxChange(task.id, !!checked)} />
+                                                    <div className="flex-1 cursor-pointer" onClick={() => handleTaskSelect(task)}>
+                                                        {isSuggesting === task.id ? <Loader2 className="h-5 w-5 text-muted-foreground animate-spin"/> : <Package className="h-5 w-5 text-muted-foreground inline-block" />}
+                                                        <p className="font-semibold text-sm inline-block ml-2 truncate">{task.title}</p>
                                                     </div>
                                                 </div>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleAssignTask(task); }}>
+                                                    <Send className="h-4 w-4 text-muted-foreground" />
                                                 </Button>
                                             </div>
                                         ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                    <div>
-                                        <CardTitle>Tarefas Não Atribuídas</CardTitle>
-                                        <CardDescription>Clique numa tarefa para ver sugestões.</CardDescription>
-                                    </div>
-                                    <Button size="sm" onClick={handleOptimizeRoute} disabled={selectedTasks.length < 2}>
-                                        <Route className="mr-2 h-4 w-4" />
-                                        Otimizar ({selectedTasks.length})
-                                    </Button>
-                                </CardHeader>
-                                <CardContent className="space-y-3 max-h-[30vh] overflow-auto">
-                                {isSuggesting === null && assignedTeamForTask && (
-                                    <div className="p-2 text-sm text-center bg-blue-50 border border-blue-200 text-blue-800 rounded-md">
-                                        Equipa recomendada para esta zona: <span className="font-bold">{assignedTeamForTask}</span>
-                                    </div>
-                                )}
-                                {localTasks.map(task => (
-                                        <div key={task.id} className="flex items-center justify-between p-2 rounded-md border bg-background hover:bg-muted">
-                                             <div className="flex items-center gap-3 flex-1 overflow-hidden">
-                                                <Checkbox id={`task-${task.id}`} onCheckedChange={(checked) => handleTaskCheckboxChange(task.id, !!checked)} />
-                                                <div className="flex-1 cursor-pointer" onClick={() => handleTaskSelect(task)}>
-                                                    {isSuggesting === task.id ? <Loader2 className="h-5 w-5 text-muted-foreground animate-spin"/> : <Package className="h-5 w-5 text-muted-foreground inline-block" />}
-                                                    <p className="font-semibold text-sm inline-block ml-2 truncate">{task.title}</p>
-                                                </div>
-                                            </div>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleAssignTask(task); }}>
-                                                <Send className="h-4 w-4 text-muted-foreground" />
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </CardContent>
-                            </Card>
-                            <RecentAlerts alerts={maintenanceAlerts} />
-                        </div>
-                        <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    </CardContent>
+                                </Card>
+                                <RecentAlerts alerts={maintenanceAlerts} />
+                            </div>
                             <div className={`transition-all duration-300 ${selectedMember ? 'md:col-span-2' : 'md:col-span-3'}`}>
                                 <Card className="h-[calc(100vh-16rem)]">
                                     <Map
@@ -583,11 +590,21 @@ function TeamManagementPage() {
                                 </div>
                             )}
                         </div>
-                    </div>
-                </main>
-            </div>
-        </APIProvider>
+                    </main>
+                </div>
+            </APIProvider>
+            <IncidentReport
+                open={incidentReportOpen}
+                onOpenChange={setIncidentReportOpen}
+                onIncidentSubmit={addPoint as any} // The types are compatible enough for this use case
+                onIncidentEdit={updatePointDetails as any}
+                initialCenter={{ lat: -8.83, lng: 13.23 }}
+                incidentToEdit={null}
+            />
+        </>
     );
 }
 
 export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
+
+    

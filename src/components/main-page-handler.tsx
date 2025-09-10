@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -22,7 +21,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap, HardHat } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap, HardHat, DollarSign } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -1073,10 +1072,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     
     if (canManage) {
         // Managers can edit anything except incidents they don't own.
-        if (poi.type === 'incident' && !isOwner) {
-            // A manager can still change status or priority, but not edit the core report.
-            // This logic is handled in the details panel, not the edit sheet.
-            canEdit = false;
+        if (poi.type === 'incident') {
+            canEdit = isOwner;
         } else {
             canEdit = true;
         }
@@ -1504,17 +1501,19 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         <LightingPoleReport
             open={activeSheet === 'lighting_pole'}
             onOpenChange={handleSheetOpenChange}
-            onLightingPoleSubmit={handleAddNewLightingPole}
+            onLightingPoleSubmit={addPoint as any}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
         />
         <PTReport
             open={activeSheet === 'pt'}
             onOpenChange={handleSheetOpenChange}
-            onPTSubmit={handleAddNewPT}
+            onPTSubmit={addPoint as any}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
         />
       </SidebarProvider>
   );
 }
+
+    
