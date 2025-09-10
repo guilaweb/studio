@@ -41,6 +41,10 @@ function FuelLogPage() {
         resolver: zodResolver(formSchema),
         defaultValues: {
             date: new Date(),
+            vehicleId: '',
+            liters: '' as any,
+            cost: '' as any,
+            odometer: '' as any,
         },
     });
 
@@ -64,7 +68,7 @@ function FuelLogPage() {
                 cost: values.cost,
             });
             toast({ title: "Abastecimento Registado!", description: "O novo registo foi guardado com sucesso." });
-            form.reset({ date: new Date(), vehicleId: undefined, liters: undefined, cost: undefined, odometer: undefined });
+            form.reset({ date: new Date(), vehicleId: '', liters: '' as any, cost: '' as any, odometer: '' as any });
         } catch (error) {
             toast({ variant: "destructive", title: "Erro ao Registar", description: "Não foi possível guardar o registo de abastecimento." });
         }
