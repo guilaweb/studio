@@ -180,6 +180,7 @@ function VehicleDetailPage() {
                         </CardContent>
                     </Card>
                 </div>
+                {user && user.vehicle && <PredictiveMaintenanceAnalysis user={user} />}
                  <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
                     <Card className="lg:col-span-2">
                          <CardHeader>
@@ -254,7 +255,6 @@ function VehicleDetailPage() {
                         </Card>
                     </div>
                 </div>
-                {user && user.vehicle && <PredictiveMaintenanceAnalysis user={user} />}
             </main>
         </div>
     );
