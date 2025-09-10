@@ -12,7 +12,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, DollarSign, Fuel, Wrench } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CostItem } from "../relatorios/page";
+
+export interface CostItem {
+    id: string;
+    date: string;
+    vehicleId: string;
+    vehiclePlate: string;
+    driverName: string;
+    type: 'Combustível' | 'Manutenção';
+    description: string;
+    cost: number;
+    partsCost?: number;
+    laborCost?: number;
+}
+
 
 function CostAnalysisPage() {
     const { fuelEntries, loading: loadingFuel } = useFuelEntries();
