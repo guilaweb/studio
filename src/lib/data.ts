@@ -28,6 +28,7 @@ export const PointOfInterestUpdateSchema = z.object({
       name: z.string(),
       quantity: z.number(),
   })).optional(),
+  assetId: z.string().optional(), // To link a repair to a specific asset
 });
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
