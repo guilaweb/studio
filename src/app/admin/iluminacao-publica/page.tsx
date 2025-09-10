@@ -35,7 +35,7 @@ const getDistance = (pos1: { lat: number; lng: number }, pos2: { lat: number; ln
 };
 
 function PublicLightingPage() {
-    const { allData, loading, addPoint, updatePointDetails, updatePointStatus, deletePoint } = usePoints();
+    const { allData, loading, addPoint, updatePointDetails, updatePointStatus, addUpdateToPoint, deletePoint } = usePoints();
     const router = useRouter();
     const [sheetOpen, setSheetOpen] = React.useState<null | 'pole' | 'pt'>(null);
     const [poiToEdit, setPoiToEdit] = React.useState<PointOfInterest | null>(null);
@@ -67,21 +67,25 @@ function PublicLightingPage() {
         }
     }, [lightingAssets]);
     
-    const handleSelectAsset = (asset: PointOfInterest) => {
+    const handleSelectAsset = (assetId: string) => {
+        const asset = allData.find(p => p.id === assetId);
+        if (!asset) return;
+
         setSelectedAsset(asset);
-        // Find nearby faults that haven't been assigned yet
-        const faults = lightingFaultReports.filter(fault => 
-            !fault.maintenanceId &&
-            getDistance(asset.position, fault.position) < 50 // 50 meter radius
-        );
-        setNearbyFaults(faults);
+        
+        if (asset.type === 'lighting_pole' || asset.type === 'pt') {
+            const faults = lightingFaultReports.filter(fault => 
+                !fault.maintenanceId &&
+                getDistance(asset.position, fault.position) < 50 // 50 meter radius
+            );
+            setNearbyFaults(faults);
+        } else {
+            setNearbyFaults([]);
+        }
     }
     
     const handleViewOnMap = (poiId: string) => {
-        const asset = lightingAssets.find(p => p.id === poiId);
-        if (asset) {
-            handleSelectAsset(asset);
-        }
+        handleSelectAsset(poiId);
     };
     
     const handleEdit = (poi: PointOfInterest) => {
