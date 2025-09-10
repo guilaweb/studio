@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Lightbulb, LightbulbOff, Zap, CheckCircle, MapPin, DollarSign } from "lucide-react";
+import { ArrowLeft, Lightbulb, LightbulbOff, Zap, CheckCircle, MapPin, DollarSign, HardHat, GitBranch } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
@@ -44,6 +44,8 @@ function PublicLightingPage() {
             workingPoles: working,
             faultyPoles: faulty,
             totalPTs: lightingAssets.filter(p => p.type === 'pt').length,
+            totalCabins: lightingAssets.filter(p => p.type === 'electrical_cabin').length,
+            totalNetworkKm: lightingAssets.filter(p => p.type === 'electrical_network_segment').reduce((acc, p) => acc + (p.customData?.length_km || 0), 0)
         }
     }, [lightingAssets]);
     
@@ -98,7 +100,7 @@ function PublicLightingPage() {
                     </div>
                 </header>
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-6">
-                     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                         <Card>
                             <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Postes Totais</CardTitle><Lightbulb className="h-4 w-4 text-muted-foreground"/></CardHeader>
                             <CardContent><div className="text-2xl font-bold">{stats.totalPoles}</div></CardContent>
@@ -106,6 +108,14 @@ function PublicLightingPage() {
                         <Card>
                             <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Postos de Transformação</CardTitle><Zap className="h-4 w-4 text-muted-foreground"/></CardHeader>
                             <CardContent><div className="text-2xl font-bold">{stats.totalPTs}</div></CardContent>
+                        </Card>
+                         <Card>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Cabines Elétricas</CardTitle><HardHat className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">{stats.totalCabins}</div></CardContent>
+                        </Card>
+                         <Card>
+                            <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Rede Mapeada (km)</CardTitle><GitBranch className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">{stats.totalNetworkKm.toFixed(2)}</div></CardContent>
                         </Card>
                         <Card>
                             <CardHeader className="pb-2 flex-row items-center justify-between"><CardTitle className="text-sm font-medium">Postes Funcionais</CardTitle><CheckCircle className="h-4 w-4 text-green-500"/></CardHeader>
@@ -161,4 +171,3 @@ function PublicLightingPage() {
 }
 
 export default withAuth(PublicLightingPage, ['Agente Municipal', 'Administrador']);
-
