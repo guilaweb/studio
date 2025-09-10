@@ -31,10 +31,10 @@ export const PointOfInterestUpdateSchema = z.object({
 
 export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 
-export const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired', 'em_verificacao', 'verificado_ouro', 'verificado_prata', 'informacao_insuficiente', 'Privado', 'level_low', 'level_normal', 'level_flood', 'resolved']);
+export const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired', 'em_verificacao', 'verificado_ouro', 'verificado_prata', 'informacao_insuficiente', 'Privado', 'level_low', 'level_normal', 'level_flood', 'resolved', 'funcional', 'desligado']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
-export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui', 'fuel_station', 'health_unit', 'health_case']);
+export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui', 'fuel_station', 'health_unit', 'health_case', 'lighting_pole']);
 export type PointOfInterestType = z.infer<typeof PointOfInterestTypeEnum>;
 
 export const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
@@ -143,12 +143,16 @@ export const PointOfInterestSchema = z.object({
       icu_beds: z.number().optional(),
       daily_capacity: z.number().optional(),
   }).optional(),
+  // Lighting Pole Specific
+  lampType: z.enum(['led', 'sodio', 'mercurio', 'outra']).optional(),
+  poleType: z.enum(['betao', 'metalico', 'madeira']).optional(),
+  poleHeight: z.number().optional(),
 });
 
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 
 
-export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource' | 'croqui' | 'fuel_station' | 'health_unit' | 'health_case';
+export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource' | 'croqui' | 'fuel_station' | 'health_unit' | 'health_case' | 'lighting_pole';
 
 export type ActiveLayers = {
   [key in Layer]: boolean;
@@ -310,7 +314,7 @@ export type Conversation = z.infer<typeof ConversationSchema>;
 
 
 // Label Mappings
-export const typeLabelMap: Record<PointOfInterestType, string> = {
+export const typeLabelMap: Partial<Record<PointOfInterestType, string>> = {
     atm: "ATM",
     construction: "Obra/Projeto",
     incident: "Incidente",
@@ -323,6 +327,7 @@ export const typeLabelMap: Record<PointOfInterestType, string> = {
     fuel_station: "Posto de Combustível",
     health_unit: "Unidade Sanitária",
     health_case: "Caso Clínico",
+    lighting_pole: "Poste de Iluminação",
 };
 
 export const propertyTypeLabelMap: Record<PropertyType, string> = {
@@ -362,6 +367,8 @@ export const statusLabelMap: Partial<Record<PointOfInterestStatus, string>> = {
     level_normal: "Nível Normal",
     level_flood: "Nível de Cheia",
     resolved: "Resolvido",
+    funcional: "Funcional",
+    desligado: "Desligado",
 };
 
 export const priorityLabelMap: Record<PointOfInterestPriority, string> = {

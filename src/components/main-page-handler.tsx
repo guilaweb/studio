@@ -22,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -48,9 +48,10 @@ import { Separator } from "./ui/separator";
 import CompetitorAnalysis from "./competitor-analysis";
 import FuelStationReport from "./fuel-station-report";
 import HealthUnitReport from "./health-unit-report";
+import LightingPoleReport from "./lighting-pole-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource' | 'pollution' | 'fuel_station' | 'health_unit';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'water_resource' | 'pollution' | 'fuel_station' | 'health_unit' | 'lighting_pole';
 type EditMode = 'edit' | 'divide' | null;
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
@@ -68,6 +69,7 @@ const defaultActiveLayers: ActiveLayers = {
     fuel_station: true,
     health_unit: false,
     health_case: false,
+    lighting_pole: false,
 };
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -413,6 +415,45 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: "Obrigado por ajudar a manter o mapa de saneamento da cidade atualizado.",
     });
   }
+  
+    const handleAddNewLightingPole = async (
+    data: Pick<PointOfInterest, 'title' | 'position' | 'lampType' | 'poleType' | 'poleHeight' | 'status'>
+  ) => {
+    if (!user || !profile) {
+        toast({
+            variant: "destructive",
+            title: "Ação necessária",
+            description: "Por favor, faça login para mapear um poste.",
+        });
+        return;
+    }
+    handleSheetOpenChange(false);
+    const timestamp = new Date().toISOString();
+
+    const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `lighting_pole-${Date.now()}`,
+      type: 'lighting_pole',
+      authorId: user.uid,
+      authorDisplayName: profile.displayName,
+      lastReported: timestamp,
+      description: `Poste de ${data.poleHeight}m do tipo ${data.poleType} com lâmpada ${data.lampType}.`,
+      ...data,
+      updates: [{
+          text: `Poste de iluminação mapeado com estado "${statusLabelMap[data.status!]}".`,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+      }]
+    };
+    
+    addPoint(pointToAdd as any);
+
+    toast({
+      title: "Poste de Iluminação Mapeado!",
+      description: "O novo poste foi adicionado ao cadastro de iluminação pública.",
+    });
+  }
+
 
   const handleAddNewSpecializedIncident = async (
     incidentTitle: string,
@@ -1018,6 +1059,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         'announcement': 'announcement',
         'croqui': 'croqui',
         'health_unit': 'health_unit',
+        'lighting_pole': 'lighting_pole',
     };
 
     const sheet = sheetTypeMap[poi.type] || 'incident'; // Fallback to incident, though should be covered by canEdit
@@ -1136,6 +1178,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         </DropdownMenuItem>
                         {isManager && (
                             <>
+                                <DropdownMenuItem onClick={() => handleStartReporting('lighting_pole')}>
+                                    <Lightbulb className="mr-2 h-4 w-4" />
+                                    Mapear Poste de Iluminação
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
                                     <Square className="mr-2 h-4 w-4" />
                                     Mapear Lote de Terreno
@@ -1256,6 +1302,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         </DropdownMenuItem>
                         {isManager && (
                             <>
+                                <DropdownMenuItem onClick={() => handleStartReporting('lighting_pole')}>
+                                    <Lightbulb className="mr-2 h-4 w-4" />
+                                    Mapear Poste de Iluminação
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStartReporting('land_plot')}>
                                     <Square className="mr-2 h-4 w-4" />
                                     Mapear Lote de Terreno
@@ -1393,6 +1443,13 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             onOpenChange={handleSheetOpenChange}
             onHealthUnitSubmit={handleAddNewHealthUnit}
             initialCenter={mapCenter}
+        />
+        <LightingPoleReport
+            open={activeSheet === 'lighting_pole'}
+            onOpenChange={handleSheetOpenChange}
+            onLightingPoleSubmit={handleAddNewLightingPole}
+            initialCenter={mapCenter}
+            poiToEdit={poiToEdit}
         />
       </SidebarProvider>
   );

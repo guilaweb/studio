@@ -3,7 +3,7 @@
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2, AlertTriangle, Fuel, Hospital, Stethoscope } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2, AlertTriangle, Fuel, Hospital, Stethoscope, Lightbulb } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 import { GenericPolygonsRenderer } from "./generic-polygons-renderer";
@@ -53,6 +53,8 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
         return <Fuel className={commonClasses} />;
     case "health_unit":
         return <Hospital className={commonClasses} />;
+    case "lighting_pole":
+        return <Lightbulb className={commonClasses} />;
     default:
       return null;
   }
@@ -133,6 +135,17 @@ export const getPinStyle = (point: PointOfInterest) => {
                 return { background: '#0e7490', borderColor: '#155e75', glyphColor: '#ffffff' }; // cyan
             default:
                 return { background: '#a1a1aa', borderColor: '#71717a', glyphColor: '#ffffff' }; // gray
+        }
+    }
+    if (point.type === 'lighting_pole') {
+        switch (point.status) {
+            case 'funcional':
+                 return { background: '#facc15', borderColor: '#eab308', glyphColor: '#422006' }; // yellow
+            case 'danificado':
+            case 'desligado':
+                 return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
+            default:
+                 return { background: '#a1a1aa', borderColor: '#71717a', glyphColor: '#ffffff' }; // gray
         }
     }
     return {};

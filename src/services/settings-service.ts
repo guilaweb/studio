@@ -21,6 +21,7 @@ const initialPublicLayers: ActiveLayers = {
     fuel_station: true,
     health_unit: false,
     health_case: false,
+    lighting_pole: false,
 };
 
 // Hook to read public layer settings
