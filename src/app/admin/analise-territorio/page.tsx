@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Layers, PieChart, Trash2 } from "lucide-react";
+import { ArrowLeft, Layers, PieChart, Trash2, Search } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import DrawingManager from "@/components/drawing-manager";
@@ -33,9 +33,11 @@ function TerritoryAnalysisPage() {
             drawnPolygon.setMap(null); // Clear previous polygon if it exists
         }
         setDrawnPolygon(poly);
+        setAnalysisResult(null); // Clear previous results when a new polygon is drawn
+        setPointsInPolygon([]);
     };
     
-    React.useEffect(() => {
+    const handleRunAnalysis = () => {
         if (!drawnPolygon || !geometry || !drawnPolygon.getMap()) {
             setAnalysisResult(null);
             setPointsInPolygon([]);
@@ -71,8 +73,7 @@ function TerritoryAnalysisPage() {
             pointsByType,
             area
         });
-
-    }, [drawnPolygon, allData, geometry]);
+    };
     
      const handleClearAnalysis = () => {
         if (drawnPolygon) {
@@ -103,9 +104,13 @@ function TerritoryAnalysisPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2"><PieChart className="h-5 w-5"/> Painel de Análise</CardTitle>
-                                <CardDescription>Desenhe um polígono no mapa para analisar os ativos e pontos de interesse dentro dessa área.</CardDescription>
+                                <CardDescription>Desenhe um polígono no mapa e depois clique em "Analisar Área" para ver os resultados.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
+                                <Button onClick={handleRunAnalysis} disabled={!drawnPolygon || drawnPolygon.getPath().getLength() === 0}>
+                                    <Search className="mr-2 h-4 w-4"/>
+                                    Analisar Área
+                                </Button>
                                 {analysisResult ? (
                                     <>
                                         <div className="p-3 bg-primary/10 rounded-md">
@@ -136,7 +141,7 @@ function TerritoryAnalysisPage() {
                                     </>
                                 ) : (
                                      <div className="text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
-                                        Use as ferramentas no topo do mapa para desenhar uma área e iniciar a análise.
+                                        Use as ferramentas no topo do mapa para desenhar uma área e depois clique em "Analisar Área".
                                      </div>
                                 )}
                             </CardContent>
