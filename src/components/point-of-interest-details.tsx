@@ -6,7 +6,7 @@ import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime, PointOfInterestStatus } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical, Waves, Hospital, BedDouble, Stethoscope, HeartPulse, Fuel } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical, Waves, Hospital, BedDouble, Stethoscope, HeartPulse, Fuel, HardHat, Lightbulb, Zap, Wrench } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -49,6 +49,9 @@ const layerConfig = {
     croqui: { label: "Croqui de Localização", Icon: Share2, variant: "default" as const },
     fuel_station: { label: "Posto de Combustível", Icon: Fuel, variant: "default" as const },
     health_unit: { label: "Unidade Sanitária", Icon: Hospital, variant: "default" as const },
+    lighting_pole: { label: "Poste de Iluminação", Icon: Lightbulb, variant: "default" as const },
+    pt: { label: "Posto de Transformação", Icon: Zap, variant: "default" as const },
+    electrical_cabin: { label: "Cabine Elétrica", Icon: HardHat, variant: "default" as const },
 };
 
 const priorityConfig = {
@@ -578,6 +581,35 @@ const HealthUnitDetails = ({ poi }: { poi: PointOfInterest }) => {
     )
 }
 
+const TechnicalDetails = ({ poi }: { poi: PointOfInterest }) => {
+    if (!['lighting_pole', 'pt'].includes(poi.type)) {
+        return null;
+    }
+    return (
+        <>
+            <Separator />
+            <div className="py-4">
+                <h3 className="font-semibold mb-2">Detalhes Técnicos</h3>
+                 <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">ID do Ativo</span>
+                        <span className="font-mono">{poi.title}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Estado Operacional</span>
+                        <span className="font-medium">{statusLabelMap[poi.status!] || 'N/A'}</span>
+                    </div>
+                    {poi.lampType && <div className="flex justify-between"><span className="text-muted-foreground">Tipo de Lâmpada</span><span>{poi.lampType}</span></div>}
+                    {poi.poleType && <div className="flex justify-between"><span className="text-muted-foreground">Tipo de Poste</span><span>{poi.poleType}</span></div>}
+                    {poi.poleHeight && <div className="flex justify-between"><span className="text-muted-foreground">Altura</span><span>{poi.poleHeight}m</span></div>}
+                    {poi.customData?.capacity && <div className="flex justify-between"><span className="text-muted-foreground">Capacidade</span><span>{poi.customData.capacity} kVA</span></div>}
+                 </div>
+            </div>
+        </>
+    );
+};
+
+
 const labelMap: Record<string, string> = {
     requesterName: "Requerente",
     province: "Província",
@@ -589,7 +621,7 @@ const labelMap: Record<string, string> = {
 
 const CustomDataDetails = ({ poi }: { poi: PointOfInterest }) => {
     // Hide for water resources as they have a dedicated component now
-    if (!poi.customData || Object.keys(poi.customData).length === 0 || poi.type === 'water_resource') {
+    if (!poi.customData || Object.keys(poi.customData).length === 0 || poi.type === 'water_resource' || poi.type === 'pt') {
         return null;
     }
 
@@ -664,9 +696,9 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
 
   if (!poi) return null;
 
-  const config = layerConfig[poi.type];
+  const config = layerConfig[poi.type as keyof typeof layerConfig];
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
-  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui', 'health_unit'].includes(poi.type);
+  const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui', 'health_unit', 'lighting_pole', 'pt'].includes(poi.type);
   const isAdmin = profile?.role === 'Administrador';
   const isAgentOrAdmin = profile?.role === 'Agente Municipal' || isAdmin;
   const isOwner = poi.authorId === user?.uid;
@@ -676,14 +708,14 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   // Allow editing for owners or managers, with specific restrictions
   if (user && profile) {
       if (isAgentOrAdmin) {
-        // Managers can edit anything except incidents they don't own
+        // Managers can edit anything except incidents they don't own.
         if (poi.type === 'incident') {
             canEdit = isOwner;
         } else {
             canEdit = true;
         }
       } else {
-        // Regular users can only edit what they own, and only specific types
+        // Regular users can only edit what they own, and only specific types.
         canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement' || poi.type === 'croqui');
       }
       canDivide = isOwner && (poi.type === 'croqui' || poi.type === 'land_plot');
@@ -826,6 +858,8 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
                 {poi.type === 'construction' && <DocumentList poi={poi} />}
 
                 {poi.type === 'water_resource' && <SensorDataDetails poi={poi} />}
+
+                <TechnicalDetails poi={poi} />
                 
                 <CommunityWaterMonitor poi={poi} onPoiStatusChange={handlePoiStatusChange} canUpdate={!!user} />
 
