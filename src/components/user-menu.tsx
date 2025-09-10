@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, AreaChart, Fuel, Wrench, Sun, Hospital, Stethoscope, CreditCard, Package, Bus } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, AreaChart, Fuel, Wrench, Sun, Hospital, Stethoscope, CreditCard, Package, Bus, ListTodo } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -110,7 +110,7 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                     <DropdownMenuItem asChild>
                         <Link href="/meus-croquis">
                             <Package className="mr-2 h-4 w-4" />
-                            <span>Meus Croquis</span>
+                            <span>Mapas de Localização</span>
                         </Link>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
@@ -132,6 +132,7 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent>
                                 <DropdownMenuItem asChild><Link href="/admin/equipa">Gestão de Equipa</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/equipa/minhas-tarefas">Minhas Tarefas</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/abastecimento">Registar Abastecimento</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/analise-custos">Análise de Custos</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/relatorios">Relatórios Financeiros</Link></DropdownMenuItem>
@@ -236,4 +237,3 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
         </DropdownMenu>
     )
   }
-
