@@ -31,8 +31,6 @@ import { detectDuplicate } from "@/ai/flows/detect-duplicate-flow";
 import { calculateIncidentPriorityFlow } from "@/ai/flows/calculate-incident-priority-flow";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import TrafficLightReport from "./traffic-light-report";
-import PotholeReport from "./pothole-report";
-import PublicLightingReport from "./public-lighting-report";
 import ConstructionReport from "./construction-report";
 import AtmReport from "./atm-report";
 import WaterLeakReport from "./water-leak-report";
@@ -644,18 +642,6 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       title: "Reporte de Poluição Recebido!",
       description: "A sua denúncia foi registada e será analisada. Obrigado!",
     });
-  }
-
-  const handleAddNewTrafficLightReport = (data: SpecializedIncidentData) => {
-    handleAddNewSpecializedIncident("Semáforo com defeito", data);
-  }
-
-  const handleAddNewPotholeReport = (data: SpecializedIncidentData) => {
-     handleAddNewSpecializedIncident("Buraco na via", data);
-  }
-
-  const handleAddNewPublicLightingReport = (data: SpecializedIncidentData) => {
-      handleAddNewSpecializedIncident("Iluminação pública com defeito", data);
   }
 
   const handleAddNewConstructionProject = async (
@@ -1460,35 +1446,23 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             onEdit={handleStartEditing}
         />
         <IncidentReport 
-            open={activeSheet === 'incident'}
+            open={activeSheet === 'incident' || activeSheet === 'pothole' || activeSheet === 'public_lighting' || activeSheet === 'traffic_light'}
             onOpenChange={handleSheetOpenChange}
             onIncidentSubmit={handleAddNewIncident}
             onIncidentEdit={handleEditIncident}
             initialCenter={mapCenter}
             incidentToEdit={poiToEdit}
+            incidentType={
+                activeSheet === 'pothole' ? 'Buraco na via' :
+                activeSheet === 'public_lighting' ? 'Iluminação pública com defeito' :
+                activeSheet === 'traffic_light' ? 'Semáforo com defeito' :
+                undefined
+            }
         />
         <SanitationReport 
             open={activeSheet === 'sanitation'}
             onOpenChange={handleSheetOpenChange}
             onSanitationSubmit={handleAddNewSanitationPoint}
-            initialCenter={mapCenter}
-        />
-        <TrafficLightReport
-            open={activeSheet === 'traffic_light'}
-            onOpenChange={handleSheetOpenChange}
-            onTrafficLightSubmit={handleAddNewTrafficLightReport}
-            initialCenter={mapCenter}
-        />
-        <PotholeReport
-            open={activeSheet === 'pothole'}
-            onOpenChange={handleSheetOpenChange}
-            onPotholeSubmit={handleAddNewPotholeReport}
-            initialCenter={mapCenter}
-        />
-        <PublicLightingReport
-            open={activeSheet === 'public_lighting'}
-            onOpenChange={handleSheetOpenChange}
-            onPublicLightingSubmit={handleAddNewPublicLightingReport}
             initialCenter={mapCenter}
         />
         <ConstructionReport
