@@ -22,6 +22,8 @@ import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   displayName: z.string().min(1, "O nome é obrigatório."),
@@ -51,7 +53,7 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] },
 ];
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -238,4 +240,12 @@ export default function RegisterPage() {
         </div>
     </APIProvider>
   );
+}
+
+export default function RegisterPage() {
+    return (
+        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            <RegisterPageContent />
+        </Suspense>
+    )
 }

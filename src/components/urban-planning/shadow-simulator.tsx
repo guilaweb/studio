@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Sun, Trash2 } from 'lucide-react';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from 'three-stdlib';
 import { ThreeJSOverlayView } from '@googlemaps/three';
 
 const GLB_URL = 'https://storage.googleapis.com/munitu-assets/building_model.glb';
