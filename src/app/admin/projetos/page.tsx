@@ -61,4 +61,4 @@ function AdminProjectsPage() {
     );
 }
 
-export default withAuth(AdminProjectsPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(AdminProjectsPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

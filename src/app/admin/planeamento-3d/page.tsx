@@ -65,6 +65,5 @@ function UrbanPlanning3DPage() {
     );
 }
 
-export default withAuth(UrbanPlanning3DPage, ['Agente Municipal', 'Administrador']);
-
+export default withAuth(UrbanPlanning3DPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);
     

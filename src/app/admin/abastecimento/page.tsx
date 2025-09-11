@@ -201,4 +201,4 @@ function FuelLogPage() {
     );
 }
 
-export default withAuth(FuelLogPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(FuelLogPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

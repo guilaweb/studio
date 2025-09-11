@@ -99,4 +99,4 @@ function FinancialReportsPage() {
     );
 }
 
-export default withAuth(FinancialReportsPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(FinancialReportsPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

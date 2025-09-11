@@ -143,4 +143,4 @@ function InventoryPage() {
     );
 }
 
-export default withAuth(InventoryPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(InventoryPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

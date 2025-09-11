@@ -106,4 +106,4 @@ function LightingCostAnalysisPage() {
     );
 }
 
-export default withAuth(LightingCostAnalysisPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(LightingCostAnalysisPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

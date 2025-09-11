@@ -114,7 +114,7 @@ function HealthUnitDetailPage() {
         return <div className="flex min-h-screen items-center justify-center">Unidade Sanitária não encontrada.</div>;
     }
 
-    const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador' || profile?.role === 'Epidemiologista';
+    const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador' || profile?.role === 'Super Administrador' || profile?.role === 'Epidemiologista';
 
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -186,4 +186,4 @@ function HealthUnitDetailPage() {
     );
 }
 
-export default withAuth(HealthUnitDetailPage, ['Agente Municipal', 'Administrador', 'Epidemiologista']);
+export default withAuth(HealthUnitDetailPage, ['Agente Municipal', 'Administrador', 'Super Administrador', 'Epidemiologista']);

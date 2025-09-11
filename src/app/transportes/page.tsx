@@ -89,4 +89,4 @@ function PublicTransportPage() {
     );
 }
 
-export default withAuth(PublicTransportPage);
+export default withAuth(PublicTransportPage, ['Cidadao', 'Agente Municipal', 'Administrador', 'Super Administrador']);

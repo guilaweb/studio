@@ -64,4 +64,4 @@ function EnvironmentalInspectionPage() {
     );
 }
 
-export default withAuth(EnvironmentalInspectionPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(EnvironmentalInspectionPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

@@ -162,8 +162,8 @@ function GreenAreasPage() {
     );
 }
 
-export default withAuth(GreenAreasPage, ['Agente Municipal', 'Administrador']);
-
+export default withAuth(GreenAreasPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);
     
 
     
+

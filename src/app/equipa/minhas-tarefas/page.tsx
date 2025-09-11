@@ -106,4 +106,4 @@ function MyTasksPage() {
     );
 }
 
-export default withAuth(MyTasksPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(MyTasksPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

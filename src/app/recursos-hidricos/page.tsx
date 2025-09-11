@@ -450,4 +450,4 @@ function WaterResourcesPage() {
     );
 }
 
-export default withAuth(WaterResourcesPage, ['Agente Municipal', 'Administrador', 'Epidemiologista']);
+export default withAuth(WaterResourcesPage, ['Agente Municipal', 'Administrador', 'Super Administrador', 'Epidemiologista']);

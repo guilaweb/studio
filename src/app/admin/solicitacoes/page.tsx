@@ -136,4 +136,4 @@ function InstitutionalRequestsPage() {
     );
 }
 
-export default withAuth(InstitutionalRequestsPage, ['Administrador']);
+export default withAuth(InstitutionalRequestsPage, ['Administrador', 'Super Administrador']);

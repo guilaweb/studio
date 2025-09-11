@@ -171,4 +171,4 @@ function SuppliersPage() {
     );
 }
 
-export default withAuth(SuppliersPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(SuppliersPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

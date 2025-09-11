@@ -115,4 +115,4 @@ function AdminMessagesPage() {
     );
 }
 
-export default withAuth(AdminMessagesPage, ['Administrador']);
+export default withAuth(AdminMessagesPage, ['Administrador', 'Super Administrador']);

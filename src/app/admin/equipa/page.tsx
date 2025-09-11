@@ -602,5 +602,4 @@ function TeamManagementPage() {
     );
 }
 
-export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador']);
-
+export default withAuth(TeamManagementPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

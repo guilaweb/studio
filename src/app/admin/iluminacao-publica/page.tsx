@@ -200,4 +200,4 @@ function PublicLightingPage() {
     );
 }
 
-export default withAuth(PublicLightingPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(PublicLightingPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

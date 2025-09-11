@@ -255,5 +255,4 @@ function BikeLanePlanningPage() {
     );
 }
 
-export default withAuth(BikeLanePlanningPage, ['Agente Municipal', 'Administrador']);
-
+export default withAuth(BikeLanePlanningPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

@@ -63,4 +63,4 @@ function AdminAnnouncementsPage() {
     );
 }
 
-export default withAuth(AdminAnnouncementsPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(AdminAnnouncementsPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

@@ -474,5 +474,4 @@ function AdminSettingsPage() {
     );
 }
 
-export default withAuth(AdminSettingsPage, ['Administrador']);
-
+export default withAuth(AdminSettingsPage, ['Administrador', 'Super Administrador']);

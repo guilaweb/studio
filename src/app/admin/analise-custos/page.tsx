@@ -224,4 +224,4 @@ function CostAnalysisPage() {
     );
 }
 
-export default withAuth(CostAnalysisPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(CostAnalysisPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

@@ -261,4 +261,4 @@ function VehicleDetailPage() {
     );
 }
 
-export default withAuth(VehicleDetailPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(VehicleDetailPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

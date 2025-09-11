@@ -241,4 +241,4 @@ function BillingPage() {
     );
 }
 
-export default withAuth(BillingPage, ['Administrador']);
+export default withAuth(BillingPage, ['Administrador', 'Super Administrador']);

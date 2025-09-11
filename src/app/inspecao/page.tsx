@@ -230,4 +230,4 @@ function InspectionPage() {
     );
 }
 
-export default withAuth(InspectionPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(InspectionPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

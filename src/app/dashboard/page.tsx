@@ -415,4 +415,4 @@ function DashboardPage() {
   );
 }
 
-export default withAuth(DashboardPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(DashboardPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

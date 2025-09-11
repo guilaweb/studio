@@ -178,4 +178,4 @@ function TerritoryAnalysisPage() {
     );
 }
 
-export default withAuth(TerritoryAnalysisPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(TerritoryAnalysisPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);

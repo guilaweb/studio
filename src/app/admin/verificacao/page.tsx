@@ -91,4 +91,4 @@ function AdminPropertyVerificationPage() {
     );
 }
 
-export default withAuth(AdminPropertyVerificationPage, ['Agente Municipal', 'Administrador']);
+export default withAuth(AdminPropertyVerificationPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);
