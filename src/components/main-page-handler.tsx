@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import * as React from "react";
@@ -14,7 +12,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { PointOfInterest, PointOfInterestUpdate, UserProfile, statusLabelMap, ActiveLayers, QueueTime, PointOfInterestStatus } from "@/lib/data";
 import { Logo } from "@/components/icons";
-import AppHeader from "@/components/app-header";
+import AppHeader, { type MapStyle } from "@/components/app-header";
 import MapComponent from "@/components/map-component";
 import LayerControls from "@/components/layer-controls";
 import IncidentReport from "@/components/incident-report";
@@ -48,6 +46,7 @@ import HealthUnitReport from "./health-unit-report";
 import LightingPoleReport from "./lighting-pole-report";
 import PTReport from "./pt-report";
 import GreenAreaReport from "./green-area-report";
+import { nightMapStyle, logisticsMapStyle } from "@/lib/map-styles";
 
 
 type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'infrastructure' | 'pollution' | 'fuel_station' | 'health_unit' | 'lighting_pole' | 'pt' | 'green_area';
@@ -97,6 +96,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   const [zoom, setZoom] = React.useState(6);
   const [routeToOptimize, setRouteToOptimize] = React.useState<PointOfInterest[] | null>(null);
   const [placesResults, setPlacesResults] = React.useState<google.maps.places.PlaceResult[]>([]);
+  const [mapStyle, setMapStyle] = React.useState<MapStyle>('default');
   
 
   const [activeSheet, setActiveSheet] = React.useState<ActiveSheet>(null);
@@ -1189,6 +1189,13 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     })
   };
 
+  const mapStyleOptions = {
+      default: undefined,
+      night: nightMapStyle,
+      logistics: logisticsMapStyle,
+  };
+  const currentMapStyle = mapStyleOptions[mapStyle];
+
   return (
       <SidebarProvider>
         <div className="flex h-screen w-full">
@@ -1322,6 +1329,8 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             <AppHeader 
               onLocateClick={handleLocateUser}
               searchBox={<MapSearchBox onPlaceSelect={handlePlaceSelect} />}
+              currentMapStyle={mapStyle}
+              onMapStyleChange={setMapStyle}
             >
               {userMenu}
             </AppHeader>
@@ -1338,6 +1347,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                 onCenterChanged={setMapCenter}
                 onZoomChanged={setZoom}
                 onMarkerClick={handleMarkerClick}
+                styles={currentMapStyle}
               >
                   <DirectionsRenderer waypoints={routeToOptimize} />
               </MapComponent>
