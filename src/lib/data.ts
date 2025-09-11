@@ -78,7 +78,7 @@ export type WorkflowStep = z.infer<typeof WorkflowStepSchema>;
 export const PointOfInterestSchema = z.object({
   id: z.string(),
   organizationId: z.string().optional(),
-  isPublic: z.boolean().default(true), // <-- ADDED
+  isPublic: z.boolean().default(true),
   type: PointOfInterestTypeEnum,
   position: PositionSchema,
   polygon: z.array(PositionSchema).optional(),
@@ -657,3 +657,5 @@ export const PredictMaintenanceOutputSchema = z.object({
     })),
 });
 export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
+
+    

@@ -9,7 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Sun, Trash2 } from 'lucide-react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { ThreeJSOverlayView, useMap } from '@vis.gl/react-google-maps';
+import { ThreeJSOverlayView } from '@googlemaps/three';
 
 const GLB_URL = 'https://storage.googleapis.com/munitu-assets/building_model.glb';
 const INITIAL_POSITION = { lat: -8.8145, lng: 13.2307 };
@@ -96,5 +96,7 @@ export default function ShadowSimulator({ map }: { map: google.maps.Map | null }
         </>
     );
 }
+
+    
 
     
