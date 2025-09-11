@@ -107,13 +107,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (docSnap.exists()) {
                 let profileData = docSnap.data() as UserProfile;
 
-                // TEMPORARY: Elevate 'Administrador' to 'Super Administrador' to allow bootstrapping
-                // This logic should be removed after the first Super Admin is designated.
-                if (profileData.role === 'Administrador') {
-                    console.warn("TEMPORARY: Elevating Administrator to Super Administrador for bootstrapping.");
-                    profileData.role = 'Super Administrador';
-                }
-
                 // Onboarding for the very first admin user or migration for old admin users
                 if ((profileData.role === 'Administrador' || profileData.role === 'Super Administrador') && !profileData.organizationId) {
                     setLoading(true); // Hold loading state while we create/migrate

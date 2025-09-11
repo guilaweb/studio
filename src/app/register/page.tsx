@@ -202,7 +202,7 @@ export default function RegisterPage() {
                             <FormItem>
                                 <FormLabel>Email Institucional</FormLabel>
                                 <FormControl>
-                                <Input placeholder="seu@email.com" {...field} />
+                                <Input type="email" placeholder="seu@email.com" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
