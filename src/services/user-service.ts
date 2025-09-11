@@ -3,18 +3,31 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { collection, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, getDoc, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { PointOfInterest, UserProfile } from '@/lib/data';
+import { useAuth } from '@/hooks/use-auth';
 
 export const useUsers = () => {
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { profile: currentProfile, loading: authLoading } = useAuth();
 
     useEffect(() => {
+        if (authLoading) return;
+        
+        if (!currentProfile?.organizationId) {
+            setLoading(false);
+            // Don't fetch users if the admin doesn't have an organization ID yet.
+            // This can happen during the very first login flow.
+            return;
+        }
+
         const usersCollectionRef = collection(db, 'users');
-        const unsubscribe = onSnapshot(usersCollectionRef, (snapshot) => {
+        const q = query(usersCollectionRef, where("organizationId", "==", currentProfile.organizationId));
+        
+        const unsubscribe = onSnapshot(q, (snapshot) => {
             const usersData = snapshot.docs.map((doc, index) => {
                 const data = doc.data();
                 // Ensure vehicle and maintenancePlanIds exist for agents
@@ -35,7 +48,7 @@ export const useUsers = () => {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [currentProfile, authLoading]);
 
     const updateUserRole = useCallback(async (uid: string, role: UserProfile['role']) => {
         const userDocRef = doc(db, 'users', uid);
@@ -98,3 +111,4 @@ export const useUserProfile = (userId: string | null) => {
 
     return { user, loading, error };
 };
+
