@@ -24,6 +24,8 @@ function BikeLanePlanningPage() {
     const [drawnPolyline, setDrawnPolyline] = React.useState<google.maps.Polyline | null>(null);
     const [analysisResult, setAnalysisResult] = React.useState<AnalysisResult | null>(null);
     const geometry = useMapsLibrary('geometry');
+    const drawing = useMapsLibrary('drawing');
+
 
     const handlePolylineComplete = (poly: google.maps.Polyline | null) => {
         if (drawnPolyline) {
@@ -117,10 +119,12 @@ function BikeLanePlanningPage() {
                                 gestureHandling={'greedy'}
                                 disableDefaultUI={false}
                             >
-                                <DrawingManager
-                                    onPolylineComplete={handlePolylineComplete}
-                                    allowedModes={[google.maps.drawing.OverlayType.POLYLINE]}
-                                />
+                                {drawing && geometry && (
+                                    <DrawingManager
+                                        onPolylineComplete={handlePolylineComplete}
+                                        allowedModes={[drawing.OverlayType.POLYLINE]}
+                                    />
+                                )}
                                 {loading ? null : (
                                     allData.map(point => (
                                         <PointOfInterestMarker
