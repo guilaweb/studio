@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -21,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap, HardHat, DollarSign, Trees, Bike } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap, HardHat, DollarSign, Trees, Bike, MessagesSquare } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -55,7 +56,7 @@ import GreenAreaReport from "./green-area-report";
 type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'infrastructure' | 'pollution' | 'fuel_station' | 'health_unit' | 'lighting_pole' | 'pt' | 'green_area';
 type EditMode = 'edit' | 'divide' | null;
 
-type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
+type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate' | 'isPublic'> & { photoDataUri?: string };
 
 const defaultActiveLayers: ActiveLayers = {
     atm: true,
@@ -382,7 +383,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   };
 
   const handleAddNewSanitationPoint = async (
-    newPointData: Pick<PointOfInterest, 'description' | 'position'> & { photoDataUri?: string }
+    newPointData: Pick<PointOfInterest, 'description' | 'position' | 'isPublic'> & { photoDataUri?: string }
   ) => {
     if (!user || !profile) {
         toast({
@@ -405,6 +406,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       status: 'unknown',
       description: newPointData.description,
       position: newPointData.position,
+      isPublic: newPointData.isPublic,
       updates: [{
           text: 'Ponto de saneamento mapeado.',
           authorId: user.uid,
@@ -536,6 +538,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       incidentDate: newPointData.incidentDate,
       description: newPointData.description,
       position: newPointData.position,
+      isPublic: newPointData.isPublic,
       priority: priority,
       status: 'unknown',
       updates: [{
@@ -556,7 +559,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
   
   const handleAddNewWaterLeakReport = async (
-    data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate' | 'priority'> & { photoDataUri?: string }
+    data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate' | 'priority' | 'isPublic'> & { photoDataUri?: string }
   ) => {
      if (!user || !profile) {
         toast({
@@ -581,6 +584,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       position: data.position,
       priority: data.priority,
       incidentDate: data.incidentDate,
+      isPublic: data.isPublic,
       updates: [{
           text: data.description,
           authorId: user.uid,
@@ -599,7 +603,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
   
    const handleAddNewPollutionReport = async (
-    data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate' | 'priority'> & { photoDataUri?: string }
+    data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate' | 'priority' | 'isPublic'> & { photoDataUri?: string }
   ) => {
      if (!user || !profile) {
         toast({
@@ -624,6 +628,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       position: data.position,
       priority: data.priority,
       incidentDate: data.incidentDate,
+      isPublic: data.isPublic,
       updates: [{
           text: data.description,
           authorId: user.uid,
@@ -654,7 +659,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
 
   const handleAddNewConstructionProject = async (
-    newPointData: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'startDate' | 'endDate'> & { photoDataUri?: string }
+    newPointData: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'startDate' | 'endDate' | 'isPublic'> & { photoDataUri?: string }
   ) => {
     if (!user || !profile) {
         toast({
@@ -679,6 +684,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       position: newPointData.position,
       startDate: newPointData.startDate,
       endDate: newPointData.endDate,
+      isPublic: newPointData.isPublic,
       updates: [{
           text: `Obra iniciada: ${newPointData.description}`,
           authorId: user.uid,
@@ -709,7 +715,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     };
 
   const handleAddNewAtmPoint = async (
-    newPointData: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }
+    newPointData: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'isPublic'> & { photoDataUri?: string }
   ) => {
      if (!user || !profile) {
         toast({
@@ -732,6 +738,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       status: 'unknown',
       description: newPointData.description,
       position: newPointData.position,
+      isPublic: newPointData.isPublic,
       updates: [{
           text: `ATM Mapeado: ${newPointData.description}`,
           authorId: user.uid,
@@ -751,7 +758,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   
   const handleEditAtmPoint = async (
     poiId: string,
-    updatedData: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }
+    updatedData: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'isPublic'> & { photoDataUri?: string }
   ) => {
     handleSheetOpenChange(false);
     await updatePointDetails(poiId, updatedData);
@@ -762,7 +769,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   };
   
   const handleAddNewFuelStation = async (
-    newPointData: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData'> & { photoDataUri?: string }
+    newPointData: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'isPublic'> & { photoDataUri?: string }
   ) => {
     if (!user || !profile) {
         toast({
@@ -785,6 +792,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       status: 'unknown',
       description: newPointData.description,
       position: newPointData.position,
+      isPublic: newPointData.isPublic,
       customData: newPointData.customData,
       updates: [{
           text: `Posto mapeado: ${newPointData.description}`,
@@ -840,6 +848,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       minLotArea: data.minLotArea,
       roadCession: data.roadCession,
       greenSpaceCession: data.greenSpaceCession,
+      isPublic: data.isPublic,
       updates: [{
           id: `update-${Date.now()}`,
           text: 'Registo inicial do lote realizado.',
@@ -881,7 +890,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
 
-  const handleAddNewCroqui = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiType' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon' | 'customData'>, propertyIdToLink?: string) => {
+  const handleAddNewCroqui = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiType' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon' | 'customData' | 'isPublic'>, propertyIdToLink?: string) => {
       if (!user || !profile) {
         toast({ variant: "destructive", title: "Ação necessária", description: "Por favor, faça login para criar um croqui."});
         return;
@@ -905,6 +914,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           croquiRoute: data.croquiRoute,
           polygon: data.polygon,
           collectionName: data.collectionName,
+          isPublic: data.isPublic,
           status: 'active',
           updates: [{
               text: `Croqui criado: ${data.title}`,
@@ -922,7 +932,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       });
   }
   
-  const handleEditCroqui = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon' | 'customData'>) => {
+  const handleEditCroqui = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon' | 'customData' | 'isPublic'>) => {
       if (!poiToEdit) return;
       handleSheetOpenChange(false);
 
@@ -959,7 +969,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     });
   }
   
-  const handleAddNewInfrastructure = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'polyline' | 'polygon'> & { photoDataUri?: string }) => {
+  const handleAddNewInfrastructure = async (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'polyline' | 'polygon' | 'isPublic'> & { photoDataUri?: string }) => {
      if (!user || !profile) {
         toast({
             variant: "destructive",
@@ -987,6 +997,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       status: 'active',
       description: data.description,
       position: data.position,
+      isPublic: data.isPublic,
       polyline: data.polyline,
       polygon: data.polygon,
       customData: data.customData,
@@ -1008,7 +1019,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
   
   const handleAddNewHealthUnit = async (
-    data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'healthServices' | 'capacity'> & { photoDataUri?: string }
+    data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'healthServices' | 'capacity' | 'isPublic'> & { photoDataUri?: string }
   ) => {
     if (!user || !profile) {
         toast({ variant: "destructive", title: "Ação necessária", description: "Por favor, faça login para mapear uma unidade sanitária." });
@@ -1027,6 +1038,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       authorId: user.uid,
       authorDisplayName: profile.displayName,
       position: data.position,
+      isPublic: data.isPublic,
       lastReported: timestamp,
       status: 'active', // or 'unknown'
       updates: [{
