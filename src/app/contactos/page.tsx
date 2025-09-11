@@ -14,8 +14,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Send, CheckCircle, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Send, CheckCircle, MessageSquare, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { addDoc, collection } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
@@ -57,15 +59,26 @@ export default function ContactPage() {
     });
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        // Placeholder for submission logic (e.g., API call)
-        console.log("Contact form submitted:", values);
-        
-        toast({
-            title: "Mensagem Enviada!",
-            description: "A sua mensagem foi enviada com sucesso. Entraremos em contacto em breve.",
-        });
-        
-        setIsSubmitted(true);
+        try {
+            await addDoc(collection(db, "contactMessages"), {
+                ...values,
+                sentAt: new Date().toISOString(),
+                read: false,
+            });
+            
+            toast({
+                title: "Mensagem Enviada!",
+                description: "A sua mensagem foi enviada com sucesso. Entraremos em contacto em breve.",
+            });
+            
+            setIsSubmitted(true);
+        } catch (error) {
+             toast({
+                variant: "destructive",
+                title: "Erro ao Enviar",
+                description: "Não foi possível enviar a sua mensagem. Tente novamente mais tarde.",
+            });
+        }
     };
 
     if (isSubmitted) {
@@ -129,7 +142,8 @@ export default function ContactPage() {
                                         <FormItem><FormLabel>A sua Mensagem</FormLabel><FormControl><Textarea rows={6} {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
                                     <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
-                                        <Send className="mr-2 h-4 w-4"/> Enviar Mensagem
+                                        {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Send className="mr-2 h-4 w-4"/>}
+                                        Enviar Mensagem
                                     </Button>
                                 </form>
                             </Form>
