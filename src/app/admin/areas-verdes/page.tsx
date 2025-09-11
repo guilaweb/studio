@@ -11,7 +11,7 @@ import { APIProvider } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import { PointOfInterest } from "@/lib/data";
 import { columns } from "./columns";
-import { DataTable } from "@/components/admin/projetos/data-table"; 
+import { DataTable } from "@/components/admin/areas-verdes/data-table"; 
 import GreenAreaReport from "@/components/green-area-report";
 import MapComponent from "@/components/map-component";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
@@ -118,7 +118,6 @@ function GreenAreasPage() {
                                 <DataTable 
                                     columns={columns} 
                                     data={greenAreas} 
-                                    onUpdateProjectStatus={() => {}} 
                                     meta={{ onViewOnMap: handleViewOnMap, onEdit: handleEdit }}
                                 />
                             </CardContent>
@@ -163,5 +162,7 @@ function GreenAreasPage() {
 }
 
 export default withAuth(GreenAreasPage, ['Agente Municipal', 'Administrador']);
+
+    
 
     

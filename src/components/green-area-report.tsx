@@ -24,7 +24,7 @@ import {
 import { useEffect, useState } from "react";
 import { PointOfInterest, PointOfInterestStatus } from "@/lib/data";
 import { Map } from "@vis.gl/react-google-maps";
-import { MapPin, Locate, CalendarIcon } from "lucide-react";
+import { MapPin, Locate, Calendar as CalendarIcon } from "lucide-react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -94,8 +94,8 @@ export default function GreenAreaReport({
         if (isEditing) {
             form.reset({
                 title: poiToEdit.title,
-                greenAreaType: poiToEdit.greenAreaType,
-                pestStatus: poiToEdit.pestStatus,
+                greenAreaType: poiToEdit.greenAreaType as any,
+                pestStatus: poiToEdit.pestStatus as any,
                 lastPruning: poiToEdit.lastPruning ? new Date(poiToEdit.lastPruning) : undefined,
                 lastIrrigation: poiToEdit.lastIrrigation ? new Date(poiToEdit.lastIrrigation) : undefined,
             });
@@ -134,19 +134,25 @@ export default function GreenAreaReport({
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalPosition = mapCenter;
-    const submissionData = { 
-        ...values,
-        type: 'green_area',
-        status: 'active' as PointOfInterestStatus,
-        lastPruning: values.lastPruning?.toISOString(),
-        lastIrrigation: values.lastIrrigation?.toISOString(),
-        position: finalPosition 
-    };
-
+    
     if (isEditMode && poiToEdit) {
-        onGreenAreaSubmit(poiToEdit.id, submissionData);
+        const updatedData = { 
+            ...values,
+            lastPruning: values.lastPruning?.toISOString(),
+            lastIrrigation: values.lastIrrigation?.toISOString(),
+        };
+        onGreenAreaSubmit(poiToEdit.id, updatedData);
         toast({ title: "Área Verde Atualizada!", description: `Os dados de "${values.title}" foram guardados.` });
     } else {
+        const submissionData = { 
+            id: `green_area-${Date.now()}`,
+            type: 'green_area',
+            ...values,
+            status: 'active' as PointOfInterestStatus,
+            lastPruning: values.lastPruning?.toISOString(),
+            lastIrrigation: values.lastIrrigation?.toISOString(),
+            position: finalPosition 
+        };
         onGreenAreaSubmit(submissionData);
         toast({ title: "Área Verde Registada!", description: `O ativo "${values.title}" foi adicionado ao mapa.` });
     }
@@ -300,4 +306,6 @@ export default function GreenAreaReport({
     </Sheet>
   );
 }
+    
+
     
