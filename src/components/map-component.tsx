@@ -53,6 +53,8 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
         return <Fuel className={commonClasses} />;
     case "health_unit":
         return <Hospital className={commonClasses} />;
+    case "health_case":
+        return <Stethoscope className={commonClasses} />;
     case "lighting_pole":
         return <Lightbulb className={commonClasses} />;
     case "pt":
@@ -537,6 +539,5 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
         </div>
     );
 }
-    
 
     
