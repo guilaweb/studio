@@ -2,29 +2,41 @@
 "use client";
 
 import * as React from "react";
-import { withAuth } from "@/hooks/use-auth";
+import { withAuth, useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Layers, Bike, Trash2, Search, Route } from "lucide-react";
+import { ArrowLeft, Layers, Bike, Trash2, Search, Route, Save, Loader2 } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import DrawingManager from "@/components/drawing-manager";
 import { PointOfInterestMarker } from "@/components/map-component";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { PointOfInterest, typeLabelMap } from "@/lib/data";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 interface AnalysisResult {
     totalLength: number; // in meters
+    nearbyPois: Record<string, number>;
 }
 
 
 function BikeLanePlanningPage() {
-    const { allData, loading } = usePoints();
+    const { allData, loading, addPoint } = usePoints();
+    const { user, profile } = useAuth();
+    const { toast } = useToast();
     const [drawnPolyline, setDrawnPolyline] = React.useState<google.maps.Polyline | null>(null);
     const [analysisResult, setAnalysisResult] = React.useState<AnalysisResult | null>(null);
     const geometry = useMapsLibrary('geometry');
     const drawing = useMapsLibrary('drawing');
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [isSaveDialogOpen, setIsSaveDialogOpen] = React.useState(false);
+    const [proposalName, setProposalName] = React.useState('');
+    const [proposalDescription, setProposalDescription] = React.useState('');
 
 
     const handlePolylineComplete = (poly: google.maps.Polyline | null) => {
@@ -51,8 +63,18 @@ function BikeLanePlanningPage() {
 
         const length = geometry.spherical.computeLength(path);
         
+        const nearbyPois = allData.reduce((acc, poi) => {
+            const poiLatLng = new google.maps.LatLng(poi.position.lat, poi.position.lng);
+            if (geometry.poly.isLocationOnEdge(poiLatLng, drawnPolyline, 1e-1)) { // 200m buffer tolerance (approx)
+                 const typeName = typeLabelMap[poi.type] || 'Outro';
+                 acc[typeName] = (acc[typeName] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+
         setAnalysisResult({
             totalLength: length,
+            nearbyPois
         });
     };
     
@@ -63,6 +85,50 @@ function BikeLanePlanningPage() {
         setDrawnPolyline(null);
         setAnalysisResult(null);
     };
+
+    const handleSaveProposal = async () => {
+        if (!drawnPolyline || !proposalName || !user || !profile) {
+            toast({ variant: 'destructive', title: 'Dados em falta', description: 'O nome da proposta é obrigatório.' });
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            const polylinePath = drawnPolyline.getPath().getArray().map(p => p.toJSON());
+            const centerLat = polylinePath.reduce((sum, p) => sum + p.lat, 0) / polylinePath.length;
+            const centerLng = polylinePath.reduce((sum, p) => sum + p.lng, 0) / polylinePath.length;
+
+            const pointToAdd = {
+                id: `bike_lane-${Date.now()}`,
+                type: 'bike_lane',
+                title: proposalName,
+                description: proposalDescription,
+                polyline: polylinePath,
+                position: { lat: centerLat, lng: centerLng },
+                authorId: user.uid,
+                authorDisplayName: profile.displayName,
+                lastReported: new Date().toISOString(),
+                status: 'submitted',
+                 updates: [{
+                    id: `update-${Date.now()}`,
+                    text: 'Proposta de ciclovia criada.',
+                    authorId: user.uid,
+                    authorDisplayName: profile.displayName,
+                    timestamp: new Date().toISOString(),
+                }]
+            };
+
+            await addPoint(pointToAdd as any);
+            toast({ title: 'Proposta Guardada!', description: `A ciclovia "${proposalName}" foi guardada com sucesso.` });
+            setIsSaveDialogOpen(false);
+            setProposalName('');
+            setProposalDescription('');
+            handleClearAnalysis();
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Erro ao Guardar', description: 'Não foi possível guardar a proposta.' });
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
 
 
     return (
@@ -97,10 +163,29 @@ function BikeLanePlanningPage() {
                                             <p className="font-bold text-primary">{(analysisResult.totalLength / 1000).toFixed(2).toLocaleString('pt-PT')} km</p>
                                             <p className="text-xs font-semibold text-primary/80">Comprimento da Rota</p>
                                         </div>
-                                        <Button onClick={handleClearAnalysis} variant="destructive" className="w-full">
-                                            <Trash2 className="mr-2 h-4 w-4"/>
-                                            Limpar Rota
-                                        </Button>
+                                         <h4 className="font-semibold text-sm pt-2">Pontos de Interesse Conectados:</h4>
+                                        <div className="space-y-1 text-sm">
+                                            {Object.keys(analysisResult.nearbyPois).length > 0 ? (
+                                                Object.entries(analysisResult.nearbyPois).map(([type, count]) => (
+                                                    <div key={type} className="flex justify-between items-center">
+                                                        <span className="text-muted-foreground">{type}</span>
+                                                        <span className="font-medium">{count}</span>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-muted-foreground text-xs">Nenhum ponto de interesse relevante encontrado perto desta rota.</p>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button onClick={handleClearAnalysis} variant="destructive" className="flex-1">
+                                                <Trash2 className="mr-2 h-4 w-4"/>
+                                                Limpar
+                                            </Button>
+                                             <Button onClick={() => setIsSaveDialogOpen(true)} className="flex-1">
+                                                <Save className="mr-2 h-4 w-4"/>
+                                                Guardar
+                                            </Button>
+                                        </div>
                                     </>
                                 ) : (
                                      <div className="text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
@@ -141,8 +226,34 @@ function BikeLanePlanningPage() {
                     </div>
                 </main>
             </div>
+             <AlertDialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Guardar Proposta de Ciclovia</AlertDialogTitle>
+                        <AlertDialogDescription>Dê um nome e uma breve descrição a esta nova proposta de rota.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="proposal-name">Nome da Ciclovia</Label>
+                            <Input id="proposal-name" value={proposalName} onChange={(e) => setProposalName(e.target.value)} placeholder="Ex: Ciclovia Marginal"/>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="proposal-description">Descrição (Opcional)</Label>
+                            <Textarea id="proposal-description" value={proposalDescription} onChange={(e) => setProposalDescription(e.target.value)} placeholder="Ex: Ligação entre a baixa e a zona sul..."/>
+                        </div>
+                    </div>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleSaveProposal} disabled={isSubmitting || !proposalName}>
+                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4"/>}
+                            Guardar Proposta
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </APIProvider>
     );
 }
 
 export default withAuth(BikeLanePlanningPage, ['Agente Municipal', 'Administrador']);
+
