@@ -468,7 +468,7 @@ function AdminSettingsPage() {
             <PlanEditor
                 open={isPlanEditorOpen}
                 onOpenChange={setIsPlanEditorOpen}
-                planToEdit={planToEdit}
+                plan={planToEdit}
             />
         </APIProvider>
     );
@@ -476,4 +476,3 @@ function AdminSettingsPage() {
 
 export default withAuth(AdminSettingsPage, ['Administrador']);
 
-    
