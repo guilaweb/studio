@@ -422,7 +422,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
   
     const handleAddNewLightingPole = async (
-    data: Pick<PointOfInterest, 'title' | 'position' | 'lampType' | 'poleType' | 'poleHeight' | 'status'>
+    data: any
   ) => {
     if (!user || !profile) {
         toast({
@@ -444,6 +444,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: `Poste de ${data.poleHeight}m do tipo ${data.poleType} com lâmpada ${data.lampType}.`,
       ...data,
       updates: [{
+          id: `upd-${Date.now()}`,
           text: `Poste de iluminação mapeado com estado "${statusLabelMap[data.status!]}".`,
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -460,7 +461,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
 
   const handleAddNewPT = async (
-    data: Pick<PointOfInterest, 'title' | 'position' | 'status' | 'customData'>
+    data: any
   ) => {
     if (!user || !profile) {
         toast({
@@ -482,6 +483,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: `Posto de Transformação ${data.title} com capacidade de ${data.customData?.capacity || 'N/A'} kVA.`,
       ...data,
       updates: [{
+          id: `upd-${Date.now()}`,
           text: `PT mapeado com estado "${statusLabelMap[data.status!]}".`,
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -1548,14 +1550,14 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         <LightingPoleReport
             open={activeSheet === 'lighting_pole'}
             onOpenChange={handleSheetOpenChange}
-            onLightingPoleSubmit={addPoint as any}
+            onLightingPoleSubmit={handleAddNewLightingPole}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
         />
         <PTReport
             open={activeSheet === 'pt'}
             onOpenChange={handleSheetOpenChange}
-            onPTSubmit={addPoint as any}
+            onPTSubmit={handleAddNewPT}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
         />
