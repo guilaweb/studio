@@ -52,7 +52,7 @@ export default function PropertyRegistrationWizard() {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (isPublic: boolean) => {
         if (!user || !profile || !formData.polygon) {
             toast({
                 variant: "destructive",
@@ -85,6 +85,7 @@ export default function PropertyRegistrationWizard() {
             builtArea: formData.details.builtArea,
             bedrooms: formData.details.bedrooms,
             bathrooms: formData.details.bathrooms,
+            isPublic: isPublic, // Set the visibility
             updates: [{
                 id: `update-${Date.now()}`,
                 text: 'Registo inicial do imóvel submetido para verificação.',

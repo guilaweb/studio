@@ -9,10 +9,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { UploadCloud, Image as ImageIcon, Trash2 } from "lucide-react";
 import type { FormData } from './property-registration-wizard';
 import Image from 'next/image';
+import { useAuth } from '@/hooks/use-auth';
+import { Switch } from '../ui/switch';
 
 interface MediaStepProps {
   onBack: () => void;
-  onSubmit: () => void;
+  onSubmit: (isPublic: boolean) => void;
   initialFiles: File[];
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
 }
@@ -20,6 +22,10 @@ interface MediaStepProps {
 export default function MediaStep({ onBack, onSubmit, initialFiles, setFormData }: MediaStepProps) {
   const [files, setFiles] = useState<File[]>(initialFiles);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [isPublic, setIsPublic] = useState(true);
+  const { profile } = useAuth();
+
+  const isManager = profile?.role === 'Administrador' || profile?.role === 'Super Administrador';
 
   React.useEffect(() => {
     const newPreviews = files.map(file => URL.createObjectURL(file));
@@ -44,6 +50,10 @@ export default function MediaStep({ onBack, onSubmit, initialFiles, setFormData 
     const newFiles = files.filter((_, i) => i !== index);
     setFiles(newFiles);
     setFormData(prev => ({...prev, media: newFiles}));
+  };
+
+  const handleFinalSubmit = () => {
+    onSubmit(isPublic);
   };
 
   return (
@@ -71,7 +81,7 @@ export default function MediaStep({ onBack, onSubmit, initialFiles, setFormData 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {previews.map((preview, index) => (
               <div key={index} className="relative group aspect-square">
-                <Image src={preview} alt={`Preview ${index}`} fill={true} objectFit="cover" className="rounded-md" />
+                <Image src={preview} alt={`Preview ${index}`} fill={true} style={{objectFit:"cover"}} className="rounded-md" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                    <Button variant="destructive" size="icon" onClick={() => removeFile(index)}>
                      <Trash2 className="h-4 w-4" />
@@ -83,9 +93,22 @@ export default function MediaStep({ onBack, onSubmit, initialFiles, setFormData 
         </div>
       )}
 
+        {isManager && (
+            <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <div className="space-y-0.5">
+                    <Label>Visibilidade Pública</Label>
+                    <p className="text-xs text-muted-foreground">Se desativado, apenas a sua organização verá este registo.</p>
+                </div>
+                <Switch
+                    checked={isPublic}
+                    onCheckedChange={setIsPublic}
+                />
+            </div>
+        )}
+
       <div className="flex justify-between mt-8">
         <Button type="button" variant="outline" onClick={onBack}>Voltar</Button>
-        <Button onClick={onSubmit}>
+        <Button onClick={handleFinalSubmit}>
             Submeter para Verificação
         </Button>
       </div>
