@@ -438,7 +438,7 @@ export default function CroquiReport({
                           onClick={handleMapClick}
                       >
                           <DrawingManager 
-                              onPolylineComplete={setDrawnPolyline}
+                              onPolylineComplete={setDrawnRoute}
                               onPolygonComplete={setDrawnPolygon}
                               drawingMode={drawingMode}
                           />
@@ -562,3 +562,5 @@ export default function CroquiReport({
     </>
   );
 }
+
+    
