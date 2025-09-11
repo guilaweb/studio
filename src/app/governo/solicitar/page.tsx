@@ -43,7 +43,7 @@ const formSchema = z.object({
   entityType: z.enum(["Administração Municipal", "Governo Provincial", "Empresa Pública", "Empresa Privada"]),
   province: z.string().min(1, "A província é obrigatória."),
   municipality: z.string().min(1, "O município é obrigatório."),
-  nif: z.string().regex(/^\d{9}$/, "O NIF deve ter 9 dígitos."),
+  nif: z.string().min(1, "O NIF é obrigatório."),
   address: z.string().min(10, "O endereço é obrigatório."),
   contactName: z.string().min(3, "O nome do ponto de contacto é obrigatório."),
   contactRole: z.string().min(3, "O cargo é obrigatório."),
