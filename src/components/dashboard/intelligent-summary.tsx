@@ -129,5 +129,3 @@ const IntelligentSummary: React.FC<IntelligentSummaryProps> = ({ allData }) => {
 };
 
 export default IntelligentSummary;
-
-    
