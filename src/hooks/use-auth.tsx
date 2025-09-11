@@ -40,7 +40,7 @@ const createDefaultOrganizationAndSubscription = async (userId: string, orgName:
         });
 
         if (defaultPlan) {
-            await createDefaultSubscription(organizationId, defaultPlan);
+            await createDefaultSubscription(organizationId, defaultPlan, 'monthly');
         } else {
              console.error("CRITICAL: Default 'free' plan not found. Cannot create subscription.");
              throw new Error("Default plan is missing.");
@@ -131,7 +131,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
                 setProfile(profileData);
             } else {
-                setProfile(null);
+                // This case handles new users signing in via Google, who won't have a user doc yet.
+                // We create a basic "Cidadao" profile for them.
+                const newProfile: UserProfile = {
+                    uid: user.uid,
+                    displayName: user.displayName || "Cidadão Anónimo",
+                    email: user.email || "",
+                    photoURL: user.photoURL,
+                    role: 'Cidadao',
+                    createdAt: new Date().toISOString(),
+                };
+                await setDoc(userDocRef, newProfile);
+                setProfile(newProfile);
             }
             setLoading(false);
         }, (error) => {

@@ -18,7 +18,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
-import { doc, getDoc, runTransaction, collection, getDocs, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const formSchema = z.object({
   email: z.string().email("Por favor, insira um email válido."),
@@ -138,33 +138,8 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      const userDocRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (!userDoc.exists()) {
-        // If the user document does not exist, it's a new user via Google.
-        // We run a transaction to check if they are the very first user to assign admin role.
-        await runTransaction(db, async (transaction) => {
-            const usersCollectionRef = collection(db, "users");
-            // We get the docs within the transaction to ensure atomicity
-            const usersSnapshot = await getDocs(usersCollectionRef);
-            const isFirstUser = usersSnapshot.empty;
-
-            transaction.set(userDocRef, {
-                uid: user.uid,
-                displayName: user.displayName,
-                email: user.email,
-                photoURL: user.photoURL,
-                role: isFirstUser ? "Super Administrador" : "Cidadao",
-                createdAt: new Date().toISOString(),
-                onboardingCompleted: false,
-            });
-        });
-      }
-      
+      await signInWithPopup(auth, provider);
+      // The useAuth hook will now handle creating the user document if it doesn't exist.
       toast({
         title: "Login com Google bem-sucedido!",
         description: "Bem-vindo.",
