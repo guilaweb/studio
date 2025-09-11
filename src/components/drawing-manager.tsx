@@ -21,15 +21,17 @@ const DrawingManager: React.FC<DrawingManagerProps> = ({
   onPolylineComplete,
   initialPolygonPath,
   initialPolylinePath,
-  allowedModes = [google.maps.drawing.OverlayType.POLYGON],
+  allowedModes: allowedModesProp,
 }) => {
   const map = useMap();
   const drawing = useMapsLibrary("drawing");
   const [drawingManager, setDrawingManager] = useState<google.maps.drawing.DrawingManager | null>(null);
   const [currentShape, setCurrentShape] = useState<google.maps.Polygon | google.maps.Polyline | null>(null);
 
+  const allowedModes = allowedModesProp || (drawing ? [drawing.OverlayType.POLYGON] : []);
+
   useEffect(() => {
-    if (!map || !drawing) return;
+    if (!map || !drawing || allowedModes.length === 0) return;
 
     const manager = new drawing.DrawingManager({
       drawingMode: (initialPolygonPath || initialPolylinePath) ? null : allowedModes[0],
@@ -111,7 +113,7 @@ const DrawingManager: React.FC<DrawingManagerProps> = ({
     onPolygonComplete?.(null);
     onPolylineComplete?.(null);
     setCurrentShape(null);
-    if (drawingManager) {
+    if (drawingManager && allowedModes.length > 0) {
         drawingManager.setDrawingMode(allowedModes[0]);
     }
   };
