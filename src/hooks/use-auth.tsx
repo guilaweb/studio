@@ -5,7 +5,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot, setDoc, getDoc, collection, query, where, getDocs, runTransaction, getDocsFromCache, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc, collection, query, where, getDocs, runTransaction, updateDoc } from 'firebase/firestore';
 import type { UserProfile, Subscription, SubscriptionPlan, SubscriptionStatus } from '@/lib/data';
 import { useToast } from './use-toast';
 import { useSubscriptionPlans } from '@/services/plans-service';
