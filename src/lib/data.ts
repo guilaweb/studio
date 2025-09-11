@@ -172,7 +172,7 @@ export const UserProfileSchema = z.object({
     displayName: z.string(),
     email: z.string(),
     photoURL: z.string().nullable().optional(),
-    role: z.enum(['Cidadao', 'Agente Municipal', 'Administrador', 'Epidemiologista']),
+    role: z.enum(['Cidadao', 'Agente Municipal', 'Administrador', 'Super Administrador', 'Epidemiologista']),
     createdAt: z.string().optional(),
     onboardingCompleted: z.boolean().optional(),
     organizationId: z.string().optional(), // To link user to a municipality/company

@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData, query, orderBy, writeBatch, getDocs, where, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, DocumentData, query, orderBy, writeBatch, getDocs, where, deleteDoc, Query } from 'firebase/firestore';
 import { PointOfInterest, PointOfInterestUpdate, QueueTime, statusLabelMap } from '@/lib/data';
 import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
@@ -127,21 +127,26 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
   const { user, profile } = useAuth();
 
   useEffect(() => {
-    if (!profile?.organizationId) {
-        if (profile) { // Profile is loaded but no org ID
-             setLoading(false);
-             setAllData([]); // Clear data if no organization
-        }
-        // If profile is not loaded yet, just wait.
+    const pointsCollectionRef = collection(db, 'pointsOfInterest');
+    let q: Query<DocumentData, DocumentData>;
+
+    if (profile?.role === 'Super Administrador') {
+        // Super Admin sees all data
+        q = query(pointsCollectionRef, orderBy("lastReported", "desc"));
+    } else if (profile?.organizationId) {
+        // Regular admins/users see data for their organization only
+        q = query(
+            pointsCollectionRef, 
+            where("organizationId", "==", profile.organizationId),
+            orderBy("lastReported", "desc")
+        );
+    } else {
+        // If there's a profile but no org ID, they see nothing yet.
+        // This can happen during the very first login of an admin.
+        setLoading(false);
+        setAllData([]);
         return;
     }
-
-    const pointsCollectionRef = collection(db, 'pointsOfInterest');
-    const q = query(
-        pointsCollectionRef, 
-        where("organizationId", "==", profile.organizationId),
-        orderBy("lastReported", "desc")
-    );
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const pointsData = querySnapshot.docs.map(convertDocToPointOfInterest);
@@ -336,7 +341,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
   };
   
     const deletePoint = async (pointId: string) => {
-        if (!profile || profile.role !== 'Administrador') {
+        if (!profile || (profile.role !== 'Administrador' && profile.role !== 'Super Administrador')) {
             toast({ variant: "destructive", title: "Acesso Negado", description: "Apenas administradores podem eliminar reportes." });
             return;
         }
@@ -360,14 +365,3 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const usePoints = () => useContext(PointsContext);
-
-    
-
-
-
-
-
-
-
-
-

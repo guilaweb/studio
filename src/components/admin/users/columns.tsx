@@ -22,11 +22,13 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import MaintenancePlanSelector from "./maintenance-plan-selector";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/use-auth";
 
 type RoleUpdateHandler = (uid: string, role: UserProfile['role']) => Promise<void>;
 type UserUpdateHandler = (uid: string, data: Partial<UserProfile>) => Promise<void>;
 
 const RoleSelector = ({ user, onUpdateUserRole, agentCount, agentLimit }: { user: UserProfile, onUpdateUserRole: RoleUpdateHandler, agentCount: number, agentLimit: number }) => {
+    const { profile: currentProfile } = useAuth();
     const [currentRole, setCurrentRole] = React.useState(user.role);
     const { toast } = useToast();
     
@@ -92,6 +94,9 @@ const RoleSelector = ({ user, onUpdateUserRole, agentCount, agentLimit }: { user
                      ) : agentOption }
                      <DropdownMenuRadioItem value="Administrador">Administrador</DropdownMenuRadioItem>
                      <DropdownMenuRadioItem value="Epidemiologista">Epidemiologista</DropdownMenuRadioItem>
+                     {currentProfile?.role === 'Super Administrador' && (
+                        <DropdownMenuRadioItem value="Super Administrador">Super Administrador</DropdownMenuRadioItem>
+                     )}
                 </DropdownMenuRadioGroup>
             </DropdownMenuContent>
         </DropdownMenu>

@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { collection, onSnapshot, doc, updateDoc, getDoc, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, getDoc, query, where, Query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { PointOfInterest, UserProfile } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
@@ -17,18 +17,20 @@ export const useUsers = () => {
     useEffect(() => {
         if (authLoading) return;
         
-        if (!currentProfile?.organizationId) {
-            setLoading(false);
-            // Don't fetch users if the admin doesn't have an organization ID yet.
-            // This can happen during the very first login flow.
-            return;
-        }
-
+        let q: Query;
         const usersCollectionRef = collection(db, 'users');
-        const q = query(usersCollectionRef, where("organizationId", "==", currentProfile.organizationId));
+
+        if (currentProfile?.role === 'Super Administrador') {
+            q = usersCollectionRef;
+        } else if (currentProfile?.organizationId) {
+            q = query(usersCollectionRef, where("organizationId", "==", currentProfile.organizationId));
+        } else {
+             setLoading(false);
+             return;
+        }
         
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const usersData = snapshot.docs.map((doc, index) => {
+            const usersData = snapshot.docs.map((doc) => {
                 const data = doc.data();
                 // Ensure vehicle and maintenancePlanIds exist for agents
                 if (data.role === 'Agente Municipal' && data.vehicle && !data.vehicle.maintenancePlanIds) {
