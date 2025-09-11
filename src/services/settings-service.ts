@@ -22,8 +22,11 @@ const initialPublicLayers: ActiveLayers = {
     fuel_station: true,
     health_unit: false,
     health_case: false,
-    lighting_pole: true,
-    pt: true,
+    lighting_pole: false,
+    pt: false,
+    electrical_cabin: false,
+    electrical_network_segment: false,
+    green_area: false,
 };
 
 // Hook to read public layer settings
@@ -69,3 +72,4 @@ export const updatePublicLayerSettings = async (layers: ActiveLayers): Promise<v
         throw new Error("Failed to update settings.");
     }
 };
+    

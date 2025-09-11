@@ -21,7 +21,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap, HardHat, DollarSign } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap, HardHat, DollarSign, Trees } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -49,9 +49,10 @@ import FuelStationReport from "./fuel-station-report";
 import HealthUnitReport from "./health-unit-report";
 import LightingPoleReport from "./lighting-pole-report";
 import PTReport from "./pt-report";
+import GreenAreaReport from "./green-area-report";
 
 
-type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'infrastructure' | 'pollution' | 'fuel_station' | 'health_unit' | 'lighting_pole' | 'pt';
+type ActiveSheet = null | 'incident' | 'sanitation' | 'traffic_light' | 'pothole' | 'public_lighting' | 'construction' | 'atm' | 'water_leak' | 'land_plot' | 'announcement' | 'construction_edit' | 'croqui' | 'infrastructure' | 'pollution' | 'fuel_station' | 'health_unit' | 'lighting_pole' | 'pt' | 'green_area';
 type EditMode = 'edit' | 'divide' | null;
 
 type SpecializedIncidentData = Pick<PointOfInterest, 'description' | 'position' | 'incidentDate'> & { photoDataUri?: string };
@@ -73,6 +74,7 @@ const defaultActiveLayers: ActiveLayers = {
     pt: false,
     electrical_cabin: false,
     electrical_network_segment: false,
+    green_area: false,
 };
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -1042,6 +1044,37 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: "Obrigado por ajudar a construir o cadastro nacional de saúde.",
     });
   }
+  
+   const handleAddNewGreenArea = async (
+    data: Pick<PointOfInterest, 'title' | 'position' | 'greenAreaType' | 'pestStatus' | 'lastPruning' | 'lastIrrigation'>
+  ) => {
+    if (!user || !profile) {
+        toast({ variant: "destructive", title: "Ação necessária", description: "Por favor, faça login para mapear uma área verde." });
+        return;
+    }
+    handleSheetOpenChange(false);
+    const timestamp = new Date().toISOString();
+    
+     const pointToAdd: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] } = {
+      id: `green_area-${Date.now()}`,
+      type: 'green_area',
+      authorId: user.uid,
+      authorDisplayName: profile.displayName,
+      lastReported: timestamp,
+      status: 'active',
+      description: `Área verde do tipo ${data.greenAreaType} com estado fitossanitário ${data.pestStatus}.`,
+      ...data,
+      updates: [{
+          text: `Área verde mapeada.`,
+          authorId: user.uid,
+          authorDisplayName: profile.displayName,
+          timestamp: timestamp,
+      }]
+    };
+
+    addPoint(pointToAdd as any);
+    toast({ title: "Área Verde Mapeada!", description: "O novo ativo foi adicionado ao mapa."});
+  };
 
 
   const handleStartReporting = (type: ActiveSheet) => {
@@ -1079,7 +1112,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         }
     } else {
         // Regular users can only edit what they own, and only specific types.
-        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement' || poi.type === 'croqui');
+        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement' || poi.type === 'croqui' || poi.type === 'green_area');
     }
     
     if (!canEdit) {
@@ -1106,6 +1139,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         'health_unit': 'health_unit',
         'lighting_pole': 'lighting_pole',
         'pt': 'pt',
+        'green_area': 'green_area',
     };
 
     const sheet = sheetTypeMap[poi.type] || 'incident'; // Fallback to incident, though should be covered by canEdit
@@ -1224,6 +1258,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         </DropdownMenuItem>
                         {isManager && (
                             <>
+                                <DropdownMenuItem onClick={() => handleStartReporting('green_area')}>
+                                    <Trees className="mr-2 h-4 w-4" />
+                                    Mapear Área Verde
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleStartReporting('lighting_pole')}>
                                     <Lightbulb className="mr-2 h-4 w-4" />
                                     Mapear Poste de Iluminação
@@ -1302,6 +1340,10 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="top" align="start">
+                        <DropdownMenuItem onClick={() => handleStartReporting('green_area')}>
+                            <Trees className="mr-2 h-4 w-4" />
+                            Mapear Área Verde
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStartReporting('health_unit')}>
                             <Hospital className="mr-2 h-4 w-4" />
                             Mapear Unidade Sanitária
@@ -1497,6 +1539,13 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
             onOpenChange={handleSheetOpenChange}
             onHealthUnitSubmit={handleAddNewHealthUnit}
             initialCenter={mapCenter}
+        />
+         <GreenAreaReport
+            open={activeSheet === 'green_area'}
+            onOpenChange={handleSheetOpenChange}
+            onGreenAreaSubmit={poiToEdit ? updatePointDetails : addPoint as any}
+            initialCenter={mapCenter}
+            poiToEdit={poiToEdit}
         />
         <LightingPoleReport
             open={activeSheet === 'lighting_pole'}

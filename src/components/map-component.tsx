@@ -1,10 +1,9 @@
 
-
 "use client";
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2, AlertTriangle, Fuel, Hospital, Stethoscope, Lightbulb, Zap, HardHat } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2, AlertTriangle, Fuel, Hospital, Stethoscope, Lightbulb, Zap, HardHat, Trees } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 import { GenericPolygonsRenderer } from "./generic-polygons-renderer";
@@ -59,6 +58,8 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
     case "pt":
     case "electrical_cabin":
         return <Zap className={commonClasses} />;
+    case "green_area":
+        return <Trees className={commonClasses} />;
     default:
       return null;
   }
@@ -150,6 +151,16 @@ export const getPinStyle = (point: PointOfInterest) => {
                  return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
             default:
                  return { background: '#a1a1aa', borderColor: '#71717a', glyphColor: '#ffffff' }; // gray
+        }
+    }
+    if (point.type === 'green_area') {
+         switch (point.pestStatus) {
+            case 'infested':
+                return { background: '#ef4444', borderColor: '#dc2626', glyphColor: '#ffffff' }; // red
+            case 'under_treatment':
+                return { background: '#f97316', borderColor: '#ea580c', glyphColor: '#ffffff' }; // orange
+            default: // healthy
+                return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
         }
     }
     return {};
@@ -521,3 +532,4 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
         </div>
     );
 }
+    

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { User } from "firebase/auth";
@@ -8,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { UserProfile } from "@/lib/data";
-import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, AreaChart, Fuel, Wrench, Sun, Hospital, Stethoscope, CreditCard, Package, Bus, ListTodo, Lightbulb, Zap, HardHat, DollarSign } from "lucide-react";
+import { LayoutDashboard, LogOut, Megaphone, User as UserIcon, Users, FileText, Briefcase, ScanLine, Settings, Home, Building, ShieldCheck, Inbox, Droplets, GitBranch, Share2, AreaChart, Fuel, Wrench, Sun, Hospital, Stethoscope, CreditCard, Package, Bus, ListTodo, Lightbulb, Zap, HardHat, DollarSign, Trees } from "lucide-react";
 
 
 interface UserMenuProps {
@@ -146,6 +145,12 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <span>Iluminação Pública</span>
                             </Link>
                         </DropdownMenuItem>
+                         <DropdownMenuItem asChild>
+                            <Link href="/admin/areas-verdes">
+                                <Trees className="mr-2 h-4 w-4" />
+                                <span>Áreas Verdes</span>
+                            </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                             <Link href="/admin/projetos">
                                 <Briefcase className="mr-2 h-4 w-4" />
@@ -243,3 +248,4 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
         </DropdownMenu>
     )
   }
+    
