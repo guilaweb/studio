@@ -27,20 +27,7 @@ import { APIProvider } from "@vis.gl/react-google-maps";
 import PlanEditor from "@/components/admin/definicoes/plan-editor";
 import { useSubscriptionPlans } from "@/services/plans-service";
 
-const layerConfig = [
-  { id: "atm", label: "Caixas Eletrônicos", Icon: Landmark },
-  { id: "incident", label: "Incidentes", Icon: Siren },
-  { id: "sanitation", label: "Saneamento", Icon: Trash },
-  { id: "construction", label: "Obras e Projetos", Icon: Construction },
-  { id: "announcement", label: "Anúncios", Icon: Megaphone },
-  { id: "water", label: "Fugas de Água", Icon: Droplet },
-  { id: "land_plot", label: "Lotes de Terreno", Icon: Square },
-  { id: "fuel_station", label: "Postos de Combustível", Icon: Fuel },
-];
-
 function AdminSettingsPage() {
-    const { publicLayers, loading: loadingPublicLayers } = usePublicLayerSettings();
-    const [localLayers, setLocalLayers] = React.useState<ActiveLayers | null>(null);
     const { externalLayers, loading: loadingExternalLayers } = useExternalLayers();
     const { geofences, loading: loadingGeofences } = useGeofences();
     const { maintenancePlans, loading: loadingMaintenancePlans } = useMaintenancePlans();
@@ -72,38 +59,6 @@ function AdminSettingsPage() {
 
     
     const { toast } = useToast();
-    
-    React.useEffect(() => {
-        if (!loadingPublicLayers && publicLayers) {
-            setLocalLayers(publicLayers);
-        }
-    }, [publicLayers, loadingPublicLayers]);
-
-    const handleTogglePublicLayer = async (layerId: Layer) => {
-        if (!localLayers) return;
-
-        const newLayers = {
-            ...localLayers,
-            [layerId]: !localLayers[layerId],
-        };
-        setLocalLayers(newLayers);
-
-        try {
-            await updatePublicLayerSettings(newLayers);
-            toast({
-                title: "Definição Atualizada",
-                description: `A visibilidade da camada "${layerConfig.find(l => l.id === layerId)?.label}" foi alterada.`,
-            });
-        } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Erro ao Atualizar",
-                description: "Não foi possível guardar a alteração.",
-            });
-            // Revert local state on error
-            setLocalLayers(publicLayers);
-        }
-    };
     
     const handleAddExternalLayer = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -209,7 +164,7 @@ function AdminSettingsPage() {
         setIsPlanEditorOpen(true);
     }
 
-    if (loadingPublicLayers || !localLayers || loadingExternalLayers || loadingGeofences || loadingMaintenancePlans || loadingPlans) {
+    if (loadingExternalLayers || loadingGeofences || loadingMaintenancePlans || loadingPlans) {
         return (
             <div className="flex min-h-screen w-full flex-col bg-muted/40 p-6">
                 <Card>
@@ -241,36 +196,6 @@ function AdminSettingsPage() {
                 </header>
                 <main className="grid flex-1 items-start gap-6 p-4 sm:px-6 sm:py-6 md:grid-cols-2 lg:grid-cols-3">
                     <div className="space-y-6 lg:col-span-1">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Visibilidade Pública das Camadas</CardTitle>
-                                <CardDescription>
-                                    Controle quais camadas de informação são visíveis para os utilizadores com o perfil "Cidadao".
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                            {layerConfig.map(({ id, label, Icon }) => (
-                                    <div key={id} className="flex items-center justify-between rounded-lg border p-4">
-                                        <Label htmlFor={id} className="flex items-center gap-3 cursor-pointer">
-                                            <Icon className="h-5 w-5 text-muted-foreground" />
-                                            <span className="font-medium">{label}</span>
-                                        </Label>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm text-muted-foreground flex items-center gap-1">
-                                                {localLayers[id as Layer] ? <Eye className="h-4 w-4 text-green-500" /> : <EyeOff className="h-4 w-4 text-red-500" />}
-                                                {localLayers[id as Layer] ? 'Público' : 'Privado'}
-                                            </span>
-                                            <Switch
-                                                id={id}
-                                                checked={localLayers[id as Layer]}
-                                                onCheckedChange={() => handleTogglePublicLayer(id as Layer)}
-                                                aria-label={`Toggle ${label} layer`}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
                         <Card>
                             <CardHeader>
                                 <CardTitle>Planos de Manutenção Preventiva</CardTitle>
@@ -474,6 +399,4 @@ function AdminSettingsPage() {
     );
 }
 
-export default withAuth(AdminSettingsPage, ['Administrador']);
-
-    
+export default withAuth(AdminSettingsPage, ['Administrador', 'Super Administrador']);
