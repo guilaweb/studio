@@ -38,6 +38,7 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
     return {
         id: doc.id,
         organizationId: data.organizationId,
+        isPublic: data.isPublic,
         type: data.type,
         position: data.position,
         polygon: data.polygon,
@@ -133,11 +134,46 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const pointsCollectionRef = collection(db, 'pointsOfInterest');
-    // All users can see all data. Permissions for editing are handled elsewhere.
-    const q = query(pointsCollectionRef, orderBy("lastReported", "desc"));
     
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const pointsData = querySnapshot.docs.map(convertDocToPointOfInterest);
+    // Default query fetches all documents
+    let q: Query = query(pointsCollectionRef, orderBy("lastReported", "desc"));
+
+    // If a user is logged in, adjust the query based on their role
+    if (profile) {
+        // Super Admins see everything, so no filter needed.
+        // Citizens also see everything that is public.
+        // For other roles (Admin, Agent), we filter by organization.
+        if (profile.role !== 'Super Administrador') {
+            q = query(
+                pointsCollectionRef,
+                where("isPublic", "==", true)
+            );
+
+            // This part is a bit tricky with Firestore limitations.
+            // We'll fetch public data and then merge private data for the user's organization client-side.
+            // A more scalable solution might involve multiple queries or a different data structure.
+        }
+    }
+    
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+        let pointsData = querySnapshot.docs.map(convertDocToPointOfInterest);
+
+        // For logged-in users who are not Super Admins, fetch their private data.
+        if (profile && profile.organizationId && profile.role !== 'Super Administrador') {
+             const privateQuery = query(
+                pointsCollectionRef,
+                where("organizationId", "==", profile.organizationId),
+                where("isPublic", "==", false)
+            );
+            const privateSnapshot = await getDocs(privateQuery);
+            const privateData = privateSnapshot.docs.map(convertDocToPointOfInterest);
+            
+            // Combine and remove duplicates
+            const combinedData = [...pointsData, ...privateData];
+            const uniqueData = Array.from(new Map(combinedData.map(item => [item.id, item])).values());
+            pointsData = uniqueData.sort((a, b) => new Date(b.lastReported!).getTime() - new Date(a.lastReported!).getTime());
+        }
+
         setAllData(pointsData);
         setLoading(false);
     }, (error) => {
@@ -146,12 +182,12 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [profile]);
 
 
   const addPoint = async (point: Omit<PointOfInterest, 'updates' | 'organizationId'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }, propertyIdToLink?: string) => {
-    if (!profile?.organizationId) {
-        toast({ variant: "destructive", title: "Erro de Organização", description: "Não foi possível identificar a sua organização." });
+    if (!profile) {
+        toast({ variant: "destructive", title: "Erro de Permissão", description: "Não foi possível identificar o seu utilizador." });
         return;
     }
     try {
@@ -185,7 +221,8 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             return {...cleanedUpdate, id: `upd-${point.id}-${Date.now()}-${Math.random()}`};
         });
         
-        const pointWithOrg = {...point, organizationId: profile.organizationId};
+        // Add organizationId to the point
+        const pointWithOrg = {...point, organizationId: profile.organizationId || null};
         const pointWithCleanUpdates = {...pointWithOrg, updates: completeUpdates};
         const cleanedPoint = removeUndefinedFields(pointWithCleanUpdates);
 

@@ -30,13 +30,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { PointOfInterest, PointOfInterestUpdate } from "@/lib/data";
 import { Map } from "@vis.gl/react-google-maps";
 import { Camera, MapPin, Calendar as CalendarIcon } from "lucide-react";
 import { Input } from "./ui/input";
 import Image from "next/image";
 import { Label } from "./ui/label";
+import { Switch } from "./ui/switch";
+import { useAuth } from "@/hooks/use-auth";
 
 const currentYear = new Date().getFullYear();
 
@@ -46,6 +48,7 @@ const formSchema = z.object({
   day: z.coerce.number().min(1, "Dia inválido").max(31, "Dia inválido"),
   month: z.coerce.number().min(1, "Mês inválido").max(12, "Mês inválido"),
   year: z.coerce.number().min(1900, "Ano inválido").max(currentYear, `O ano não pode ser superior a ${currentYear}`),
+  isPublic: z.boolean().default(true),
 }).refine(data => {
     try {
         const date = new Date(data.year, data.month - 1, data.day);
@@ -79,6 +82,7 @@ export default function IncidentReport({
     initialCenter, 
     incidentToEdit 
 }: IncidentReportProps) {
+  const { profile } = useAuth();
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -94,6 +98,7 @@ export default function IncidentReport({
       day: now.getDate(),
       month: now.getMonth() + 1,
       year: now.getFullYear(),
+      isPublic: true,
     },
   });
   
@@ -105,6 +110,7 @@ export default function IncidentReport({
         day: now.getDate(),
         month: now.getMonth() + 1,
         year: now.getFullYear(),
+        isPublic: true,
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -123,6 +129,7 @@ export default function IncidentReport({
                 day: incidentDate.getUTCDate(),
                 month: incidentDate.getUTCMonth() + 1,
                 year: incidentDate.getUTCFullYear(),
+                isPublic: incidentToEdit.isPublic,
             });
             
             setMapCenter(incidentToEdit.position);
@@ -170,6 +177,7 @@ export default function IncidentReport({
             description: values.description,
             position: finalPosition,
             incidentDate: incidentDate,
+            isPublic: values.isPublic,
             photoDataUri
         };
 
@@ -303,6 +311,26 @@ export default function IncidentReport({
                     </FormItem>
                 )}
                 />
+                {profile?.role !== 'Cidadao' && (
+                    <FormField
+                        control={form.control}
+                        name="isPublic"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                    <FormLabel>Visibilidade Pública</FormLabel>
+                                    <FormMessage />
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                )}
                 <div>
                     <Label htmlFor="incident-photo" className="text-sm font-medium">
                         <div className="flex items-center gap-2 cursor-pointer">
