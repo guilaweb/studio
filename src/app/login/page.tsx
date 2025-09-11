@@ -158,7 +158,7 @@ export default function LoginPage() {
                 displayName: user.displayName,
                 email: user.email,
                 photoURL: user.photoURL,
-                role: isFirstUser ? "Administrador" : "Cidadao",
+                role: isFirstUser ? "Super Administrador" : "Cidadao",
                 createdAt: new Date().toISOString(),
                 onboardingCompleted: false,
             });
@@ -257,4 +257,3 @@ export default function LoginPage() {
     </APIProvider>
   );
 }
-
