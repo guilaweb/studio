@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,10 +13,7 @@ import { useSubscriptionPlans } from '@/services/plans-service';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 
-// This page now handles both new sign-ups and existing user upgrades.
-// For new sign-ups, it doesn't require authentication.
-
-function CheckoutPage() {
+function CheckoutPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -145,4 +142,11 @@ function CheckoutPage() {
   );
 }
 
-export default CheckoutPage;
+// This is the main page component that wraps the content in Suspense
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            <CheckoutPageContent />
+        </Suspense>
+    )
+}

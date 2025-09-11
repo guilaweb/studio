@@ -68,6 +68,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@opentelemetry/exporter-jaeger": "^1.25.1",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18",
@@ -80,5 +81,3 @@
     "typescript": "^5"
   }
 }
-
-    

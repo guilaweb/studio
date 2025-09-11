@@ -89,14 +89,8 @@ export default function ShadowSimulator({ map }: { map: google.maps.Map | null }
                     map={map}
                     scene={scene}
                     anchor={INITIAL_POSITION}
-                >
-                    {/* The 3D content is rendered by three.js */}
-                </ThreeJSOverlayView>
+                />
             )}
         </>
     );
 }
-
-    
-
-    
