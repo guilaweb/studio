@@ -29,14 +29,14 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                 <Link href="/login">Entrar</Link>
             </Button>
             <Button asChild>
-                <Link href="/register">Registar</Link>
+                <Link href="/planos">Registar</Link>
             </Button>
         </div>
       )
     }
 
-    const isAgentOrAdmin = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
-    const isAdmin = profile?.role === 'Administrador';
+    const isAgentOrAdmin = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador' || profile?.role === 'Super Administrador';
+    const isAdmin = profile?.role === 'Administrador' || profile?.role === 'Super Administrador';
     const isHealthOfficial = isAdmin || profile?.role === 'Epidemiologista';
 
     return (
@@ -274,3 +274,5 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
         </DropdownMenu>
     )
   }
+
+    
