@@ -8,10 +8,12 @@ import * as z from "zod";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { doc, setDoc, collection, getDocs, runTransaction, getDoc } from "firebase/firestore";
 import { APIProvider, Map as GoogleMap } from "@vis.gl/react-google-maps";
+import { useSubscriptionPlans } from "@/services/plans-service";
+import { createDefaultSubscription } from "@/services/subscription-service";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +24,7 @@ import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
   displayName: z.string().min(1, "O nome é obrigatório."),
+  organizationName: z.string().min(3, "O nome da organização é obrigatório."),
   email: z.string().email("Por favor, insira um email válido."),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres."),
 });
@@ -35,116 +38,78 @@ const mapStyles: google.maps.MapTypeStyle[] = [
       elementType: "labels.text.fill",
       stylers: [{ color: "#d59563" }],
     },
-    {
-      featureType: "poi",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#d59563" }],
-    },
-    {
-      featureType: "poi.park",
-      elementType: "geometry",
-      stylers: [{ color: "#263c3f" }],
-    },
-    {
-      featureType: "poi.park",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#6b9a76" }],
-    },
-    {
-      featureType: "road",
-      elementType: "geometry",
-      stylers: [{ color: "#38414e" }],
-    },
-    {
-      featureType: "road",
-      elementType: "geometry.stroke",
-      stylers: [{ color: "#212a37" }],
-    },
-    {
-      featureType: "road",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#9ca5b3" }],
-    },
-    {
-      featureType: "road.highway",
-      elementType: "geometry",
-      stylers: [{ color: "#746855" }],
-    },
-    {
-      featureType: "road.highway",
-      elementType: "geometry.stroke",
-      stylers: [{ color: "#1f2835" }],
-    },
-    {
-      featureType: "road.highway",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#f3d19c" }],
-    },
-    {
-      featureType: "transit",
-      elementType: "geometry",
-      stylers: [{ color: "#2f3948" }],
-    },
-    {
-      featureType: "transit.station",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#d59563" }],
-    },
-    {
-      featureType: "water",
-      elementType: "geometry",
-      stylers: [{ color: "#17263c" }],
-    },
-    {
-      featureType: "water",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#515c6d" }],
-    },
-    {
-      featureType: "water",
-      elementType: "labels.text.stroke",
-      stylers: [{ color: "#17263c" }],
-    },
+    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+    { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
+    { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#6b9a76" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
+    { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
+    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#746855" }] },
+    { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2835" }] },
+    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#f3d19c" }] },
+    { featureType: "transit", elementType: "geometry", stylers: [{ color: "#2f3948" }] },
+    { featureType: "transit.station", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#515c6d" }] },
+    { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] },
 ];
 
 export default function RegisterPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const planId = searchParams.get('plan') || 'free'; // Default to 'free' if no plan is specified
+  const { subscriptionPlans, loading: loadingPlans } = useSubscriptionPlans();
+  const selectedPlan = React.useMemo(() => subscriptionPlans.find(p => p.id === planId), [subscriptionPlans, planId]);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       displayName: "",
+      organizationName: "",
       email: "",
       password: "",
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!selectedPlan) {
+        toast({ variant: "destructive", title: "Erro", description: "Plano de subscrição inválido."});
+        return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
       
-      await updateProfile(user, {
-        displayName: values.displayName,
-      });
+      await updateProfile(user, { displayName: values.displayName });
       
       const userDocRef = doc(db, "users", user.uid);
       
-      await runTransaction(db, async (transaction) => {
-        const usersCollectionRef = collection(db, "users");
-        const usersSnapshot = await getDocs(usersCollectionRef);
-        const isFirstUser = usersSnapshot.empty;
+      // Since this is a new registration, we assume this user is the owner/admin
+      // and we create a new organization for them.
+      const organizationId = `org_${user.uid.substring(0, 10)}_${Date.now()}`;
+      const orgDocRef = doc(db, 'organizations', organizationId);
+      await setDoc(orgDocRef, {
+        name: values.organizationName,
+        ownerId: user.uid,
+        createdAt: new Date().toISOString(),
+      });
+      
+      // Create the subscription for the new organization based on the selected plan
+      await createDefaultSubscription(organizationId, selectedPlan);
 
-        transaction.set(userDocRef, {
+      // Create the user profile, linking them to the new organization as an Admin
+      await setDoc(userDocRef, {
             uid: user.uid,
             displayName: values.displayName,
             email: user.email,
             photoURL: user.photoURL || null,
-            role: isFirstUser ? "Administrador" : "Cidadao",
+            role: "Administrador", // The first user of an org is always an admin
+            organizationId: organizationId,
             createdAt: new Date().toISOString(),
-            onboardingCompleted: false, // Ensure this is set for all new users
-        });
+            onboardingCompleted: false,
       });
 
       toast({
@@ -162,46 +127,14 @@ export default function RegisterPage() {
     }
   };
 
-   const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      const userDocRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (!userDoc.exists()) {
-        await runTransaction(db, async (transaction) => {
-            const usersCollectionRef = collection(db, "users");
-            const usersSnapshot = await getDocs(usersCollectionRef);
-            const isFirstUser = usersSnapshot.empty;
-
-            transaction.set(userDocRef, {
-                uid: user.uid,
-                displayName: user.displayName,
-                email: user.email,
-                photoURL: user.photoURL,
-                role: isFirstUser ? "Administrador" : "Cidadao",
-                createdAt: new Date().toISOString(),
-                onboardingCompleted: false,
-            });
-        });
-      }
-      
-      toast({
-        title: "Login com Google bem-sucedido!",
-        description: "Bem-vindo.",
-      });
-      router.push("/");
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro no login com Google",
-        description: "Não foi possível fazer login com o Google. Tente novamente.",
-      });
-    }
+  const handleGoogleSignIn = async () => {
+    // Google Sign-In needs adaptation for this new flow, disabling for now.
+     toast({ variant: "destructive", title: "Em Breve", description: "O registo com Google para organizações estará disponível em breve. Por favor, use email e senha." });
   };
+  
+  if (loadingPlans) {
+      return <div className="flex h-screen items-center justify-center">A carregar planos...</div>
+  }
 
   return (
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -221,9 +154,9 @@ export default function RegisterPage() {
                     <Link href="/" className="inline-block mx-auto">
                         <Logo className="h-10 w-10 mx-auto text-primary" />
                     </Link>
-                    <CardTitle className="text-2xl">Criar uma conta</CardTitle>
+                    <CardTitle className="text-2xl">Criar Conta</CardTitle>
                     <CardDescription>
-                        Insira os seus dados para se registar.
+                        A registar para o plano <span className="font-bold text-primary">{selectedPlan?.name || 'Padrão'}</span>.
                     </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -234,9 +167,22 @@ export default function RegisterPage() {
                             name="displayName"
                             render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Nome</FormLabel>
+                                <FormLabel>Seu Nome Completo</FormLabel>
                                 <FormControl>
-                                <Input placeholder="Seu nome completo" {...field} />
+                                <Input placeholder="O seu nome" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="organizationName"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Nome da Entidade/Município</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Ex: Município de Luanda" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -247,7 +193,7 @@ export default function RegisterPage() {
                             name="email"
                             render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Email</FormLabel>
+                                <FormLabel>Email Institucional</FormLabel>
                                 <FormControl>
                                 <Input placeholder="seu@email.com" {...field} />
                                 </FormControl>
@@ -276,9 +222,9 @@ export default function RegisterPage() {
 
                     <Separator className="my-4" />
 
-                    <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
+                    <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled>
                         <svg className="mr-2 h-4 w-4" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"></path><path fill="#4CAF50" d="M24 44c5.166 0 9.6-1.867 12.639-4.785l-6.42-4.9c-2.187 1.433-4.962 2.23-7.859 2.23c-5.223 0-9.655-3.657-11.303-8.334l-6.573 4.818C9.656 40.045 16.318 44 24 44z"></path><path fill="#1976D2" d="M43.611 20.083H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.573 4.818C42.218 35.17 44 30.023 44 24c0-1.341-.138-2.65-.389-3.917z"></path></svg>
-                        Continuar com Google
+                        Continuar com Google (Em Breve)
                     </Button>
 
                     <div className="mt-4 text-center text-sm">

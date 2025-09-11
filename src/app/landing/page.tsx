@@ -117,7 +117,7 @@ export default function LandingPage() {
                         </Link>
                     </Button>
                     <Button asChild>
-                        <Link href="/register" prefetch={false}>
+                        <Link href="/planos" prefetch={false}>
                         Registar
                         </Link>
                     </Button>
@@ -139,7 +139,7 @@ export default function LandingPage() {
                                     </div>
                                     <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center">
                                         <Button asChild size="lg">
-                                            <Link href="/register" prefetch={false}>
+                                            <Link href="/planos" prefetch={false}>
                                             Junte-se à Comunidade
                                             </Link>
                                         </Button>
@@ -461,7 +461,7 @@ export default function LandingPage() {
                                     </div>
                                     <div className="mx-auto w-full max-w-sm space-y-2">
                                         <Button asChild size="lg" className="w-full">
-                                            <Link href="/register" prefetch={false}>
+                                            <Link href="/planos" prefetch={false}>
                                                 Criar a minha conta agora
                                             </Link>
                                         </Button>

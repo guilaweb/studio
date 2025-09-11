@@ -96,7 +96,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
                 setProfile(profileData);
             } else {
-                console.warn(`User profile for ${user.uid} not found. This might be a new registration.`);
+                // This case handles a user who signed in with Google but doesn't have a profile yet.
+                // The registration page flow should handle profile creation.
+                // If they land somewhere else, we treat them as not having a profile.
                 setProfile(null);
             }
             setLoading(false);
