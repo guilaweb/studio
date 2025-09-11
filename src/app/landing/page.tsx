@@ -492,7 +492,7 @@ export default function LandingPage() {
                             <h3 className="font-semibold">Recursos</h3>
                             <Link href="/docs" className="text-muted-foreground hover:text-primary" prefetch={false}>Documentação Técnica</Link>
                             <Link href="/artigo-cientifico" className="text-muted-foreground hover:text-primary" prefetch={false}>Artigo Científico</Link>
-                            <Link href="/monetizacao" className="text-muted-foreground hover:text-primary" prefetch={false}>Monetização</Link>
+                            <Link href="/planos" className="text-muted-foreground hover:text-primary" prefetch={false}>Planos e Preços</Link>
                             <Link href="/oportunidades" className="text-muted-foreground hover:text-primary" prefetch={false}>Oportunidades</Link>
                             <Link href="/help" className="text-muted-foreground hover:text-primary" prefetch={false}>Ajuda</Link>
                         </div>
@@ -515,3 +515,5 @@ export default function LandingPage() {
     </APIProvider>
   )
 }
+
+    

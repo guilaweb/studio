@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -68,8 +67,8 @@ function AdminSettingsPage() {
     const [isAddingPlan, setIsAddingPlan] = React.useState(false);
     const [planToDelete, setPlanToDelete] = React.useState<string | null>(null);
     
-    const [plan, setPlan] = React.useState<SubscriptionPlan | null>(null);
-    const [isEditorOpen, setIsEditorOpen] = React.useState(false);
+    const [planToEdit, setPlanToEdit] = React.useState<SubscriptionPlan | null>(null);
+    const [isPlanEditorOpen, setIsPlanEditorOpen] = React.useState(false);
 
     
     const { toast } = useToast();
@@ -201,13 +200,13 @@ function AdminSettingsPage() {
     const thingToDelete = getThingToDelete();
     
     const handleEditPlan = (plan: SubscriptionPlan) => {
-        setPlan(plan);
-        setIsEditorOpen(true);
+        setPlanToEdit(plan);
+        setIsPlanEditorOpen(true);
     }
     
     const handleAddNewPlan = () => {
-        setPlan(null);
-        setIsEditorOpen(true);
+        setPlanToEdit(null);
+        setIsPlanEditorOpen(true);
     }
 
     if (loadingPublicLayers || !localLayers || loadingExternalLayers || loadingGeofences || loadingMaintenancePlans || loadingPlans) {
@@ -423,10 +422,7 @@ function AdminSettingsPage() {
                         </Card>
                          <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <CreditCard className="h-5 w-5"/>
-                                    Gestão de Planos de Subscrição
-                                </CardTitle>
+                                <CardTitle>Gestão de Planos de Subscrição</CardTitle>
                                 <CardDescription>Crie e edite os planos SaaS oferecidos na plataforma.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -434,16 +430,16 @@ function AdminSettingsPage() {
                                     <Plus className="mr-2 h-4 w-4" /> Adicionar Novo Plano
                                 </Button>
                                 <div className="space-y-2">
-                                     {subscriptionPlans.map(p => (
-                                        <div key={p.id} className="flex items-center justify-between rounded-lg border p-3">
+                                     {subscriptionPlans.map(plan => (
+                                        <div key={plan.id} className="flex items-center justify-between rounded-lg border p-3">
                                             <div className="flex items-center gap-3">
                                                 <CreditCard className="h-5 w-5 text-muted-foreground" />
                                                 <div>
-                                                    <span className="font-medium text-sm">{p.name}</span>
-                                                    <p className="text-xs text-muted-foreground">AOA {p.price.toLocaleString()} / mês</p>
+                                                    <span className="font-medium text-sm">{plan.name}</span>
+                                                    <p className="text-xs text-muted-foreground">AOA {plan.price.toLocaleString()} / mês</p>
                                                 </div>
                                             </div>
-                                            <Button variant="outline" size="sm" onClick={() => handleEditPlan(p)}>Editar</Button>
+                                            <Button variant="outline" size="sm" onClick={() => handleEditPlan(plan)}>Editar</Button>
                                         </div>
                                     ))}
                                 </div>
@@ -470,12 +466,14 @@ function AdminSettingsPage() {
                 geofenceToEdit={geofenceToEdit}
             />
             <PlanEditor
-                open={isEditorOpen}
-                onOpenChange={setIsEditorOpen}
-                plan={plan}
+                open={isPlanEditorOpen}
+                onOpenChange={setIsPlanEditorOpen}
+                plan={planToEdit}
             />
         </APIProvider>
     );
 }
 
 export default withAuth(AdminSettingsPage, ['Administrador']);
+
+    
