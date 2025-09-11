@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -77,12 +77,16 @@ export default function InstitutionalRequestPage() {
     const fileRef = form.register("verificationDocument");
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        // In a real app, you would upload the file to a storage bucket and get the URL
-        const verificationDocumentUrl = "https://storage.placeholder.com/verifications/document.pdf";
+        // In a real app, you would upload the file to a storage bucket (e.g., Firebase Storage)
+        // and get the download URL. For this demo, we'll simulate this.
+        const fileName = values.verificationDocument[0]?.name || 'document.pdf';
+        const verificationDocumentUrl = `https://storage.placeholder.com/verifications/${Date.now()}_${fileName}`;
         
+        const { verificationDocument, ...dataToSave } = values;
+
         try {
             await addDoc(collection(db, "institutionalRequests"), {
-                ...values,
+                ...dataToSave,
                 verificationDocumentUrl,
                 status: 'pending',
                 createdAt: new Date().toISOString(),
@@ -100,6 +104,7 @@ export default function InstitutionalRequestPage() {
                 title: "Erro ao Enviar",
                 description: "Não foi possível enviar a sua solicitação. Tente novamente mais tarde.",
             });
+             console.error("Submission Error:", error);
         }
     };
 
@@ -298,7 +303,10 @@ export default function InstitutionalRequestPage() {
                                             />
                                         </div>
                                         
-                                        <Button type="submit" size="lg">Enviar Solicitação</Button>
+                                        <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
+                                            {form.formState.isSubmitting ? <Loader2 className="animate-spin mr-2"/> : null}
+                                            Enviar Solicitação
+                                        </Button>
                                     </form>
                                 </Form>
                             )}
