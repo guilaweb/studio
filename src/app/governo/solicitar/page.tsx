@@ -17,7 +17,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
 import { addDoc, collection } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
@@ -77,14 +79,18 @@ export default function InstitutionalRequestPage() {
     const fileRef = form.register("verificationDocument");
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        // In a real app, you would upload the file to a storage bucket (e.g., Firebase Storage)
-        // and get the download URL. For this demo, we'll simulate this.
-        const fileName = values.verificationDocument[0]?.name || 'document.pdf';
-        const verificationDocumentUrl = `https://storage.placeholder.com/verifications/${Date.now()}_${fileName}`;
-        
-        const { verificationDocument, ...dataToSave } = values;
+        let verificationDocumentUrl = '';
 
         try {
+            const file = values.verificationDocument[0];
+            if (file) {
+                const storageRef = ref(storage, `verifications/${Date.now()}_${file.name}`);
+                const uploadResult = await uploadBytes(storageRef, file);
+                verificationDocumentUrl = await getDownloadURL(uploadResult.ref);
+            }
+
+            const { verificationDocument, ...dataToSave } = values;
+
             await addDoc(collection(db, "institutionalRequests"), {
                 ...dataToSave,
                 verificationDocumentUrl,
