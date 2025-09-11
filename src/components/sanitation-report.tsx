@@ -31,16 +31,19 @@ import { Input } from "./ui/input";
 import Image from "next/image";
 import { Label } from "./ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { Switch } from "./ui/switch";
 
 
 const formSchema = z.object({
   description: z.string(),
+  isPublic: z.boolean().default(true),
 });
 
 type SanitationReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSanitationSubmit: (data: Pick<PointOfInterest, 'description' | 'position'> & { photoDataUri?: string }) => void;
+  onSanitationSubmit: (data: Pick<PointOfInterest, 'description' | 'position' | 'isPublic'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -59,17 +62,20 @@ export default function SanitationReport({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [coords, setCoords] = useState('');
   const { toast } = useToast();
+  const { profile } = useAuth();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: "",
+      isPublic: true,
     },
   });
   
   const clearForm = () => {
     form.reset({
         description: "",
+        isPublic: true,
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -218,6 +224,25 @@ export default function SanitationReport({
                     </FormItem>
                 )}
                 />
+                 {profile?.role !== 'Cidadao' && (
+                    <FormField
+                        control={form.control}
+                        name="isPublic"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                    <FormLabel>Visibilidade Pública</FormLabel>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                )}
                  <div>
                     <Label htmlFor="sanitation-photo" className="text-sm font-medium">
                         <div className="flex items-center gap-2 cursor-pointer">
