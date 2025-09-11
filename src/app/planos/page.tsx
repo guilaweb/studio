@@ -87,7 +87,10 @@ export default function PlansPage() {
                                         <Card key={plan.id} className="flex flex-col">
                                             <CardHeader>
                                                 <CardTitle>{plan.name}</CardTitle>
-                                                <p className="text-2xl font-bold">AOA {plan.price.toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
+                                                <p className="text-2xl font-bold">
+                                                    {plan.price === 0 ? 'Grátis' : `AOA ${plan.price.toLocaleString()}`}
+                                                    {plan.price > 0 && <span className="text-sm font-normal text-muted-foreground">/mês</span>}
+                                                </p>
                                                 <CardDescription>{plan.description}</CardDescription>
                                             </CardHeader>
                                             <CardContent className="flex-grow flex flex-col justify-between">
@@ -105,7 +108,7 @@ export default function PlansPage() {
                                                     </Button>
                                                 ) : (
                                                     <Button className="w-full mt-auto" asChild>
-                                                        <Link href={`/register?plan=${plan.id}`}>
+                                                        <Link href={`/faturacao/checkout?plan=${plan.id}`}>
                                                             <Zap className="mr-2 h-4 w-4"/>
                                                             Selecionar Plano
                                                         </Link>
@@ -162,5 +165,3 @@ export default function PlansPage() {
         </APIProvider>
     );
 }
-
-    

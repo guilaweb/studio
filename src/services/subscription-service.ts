@@ -131,18 +131,25 @@ export const changeSubscriptionPlan = async (organizationId: string, newPlan: Su
 };
 
 // Function to create a default subscription for a new organization
-export const createDefaultSubscription = async (organizationId: string, plan: SubscriptionPlan): Promise<void> => {
+export const createDefaultSubscription = async (organizationId: string, plan: SubscriptionPlan, billingCycle: 'monthly' | 'annual' = 'monthly'): Promise<void> => {
     const subscriptionDocRef = doc(db, 'subscriptions', organizationId);
     const now = new Date();
-    const nextMonth = addDays(new Date(), 30);
+    const isFreePlan = plan.price === 0;
+
+    const trialDays = 14;
+    const nextRenewalDate = isFreePlan ? addYears(now, 100) : (billingCycle === 'annual' ? addYears(now, 1) : addDays(now, 30));
+    
+    // For paid plans, we could add a trial period
+    // const status = isFreePlan ? 'active' : 'trialing';
+    // const periodEnd = isFreePlan ? nextRenewalDate : addDays(now, trialDays);
 
     const defaultSubscription: Omit<Subscription, 'id'> = {
         organizationId,
         planId: plan.id,
-        status: 'trialing',
+        status: 'active', // Assume payment confirmed for simplicity in this flow
         currentPeriodStart: now.toISOString(),
-        currentPeriodEnd: nextMonth.toISOString(),
-        billingCycle: 'monthly',
+        currentPeriodEnd: nextRenewalDate.toISOString(),
+        billingCycle: isFreePlan ? 'monthly' : billingCycle, // Free plan is perpetual, but this is for consistency
         cancelAtPeriodEnd: false,
         createdAt: now.toISOString(),
         limits: plan.limits,

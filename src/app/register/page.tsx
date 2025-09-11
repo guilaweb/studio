@@ -5,12 +5,12 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { doc, setDoc, collection, getDocs, runTransaction, getDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { APIProvider, Map as GoogleMap } from "@vis.gl/react-google-maps";
 import { useSubscriptionPlans } from "@/services/plans-service";
 import { createDefaultSubscription } from "@/services/subscription-service";
@@ -21,10 +21,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const formSchema = z.object({
   displayName: z.string().min(1, "O nome é obrigatório."),
-  organizationName: z.string().min(3, "O nome da organização é obrigatório."),
+  organizationName: z.string().min(3, "O nome da entidade é obrigatório."),
   email: z.string().email("Por favor, insira um email válido."),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres."),
 });
@@ -33,11 +34,7 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
     { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
     { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-    {
-      featureType: "administrative.locality",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#d59563" }],
-    },
+    { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
     { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
     { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
     { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#6b9a76" }] },
@@ -58,7 +55,8 @@ export default function RegisterPage() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const planId = searchParams.get('plan') || 'free'; // Default to 'free' if no plan is specified
+  const planId = searchParams.get('plan') || 'free'; 
+  const billingCycle = searchParams.get('cycle') || 'monthly';
   const { subscriptionPlans, loading: loadingPlans } = useSubscriptionPlans();
   const selectedPlan = React.useMemo(() => subscriptionPlans.find(p => p.id === planId), [subscriptionPlans, planId]);
 
@@ -75,7 +73,8 @@ export default function RegisterPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!selectedPlan) {
-        toast({ variant: "destructive", title: "Erro", description: "Plano de subscrição inválido."});
+        toast({ variant: "destructive", title: "Erro", description: "Plano de subscrição inválido. Por favor, volte e selecione um plano."});
+        router.push('/planos');
         return;
     }
 
@@ -87,8 +86,6 @@ export default function RegisterPage() {
       
       const userDocRef = doc(db, "users", user.uid);
       
-      // Since this is a new registration, we assume this user is the owner/admin
-      // and we create a new organization for them.
       const organizationId = `org_${user.uid.substring(0, 10)}_${Date.now()}`;
       const orgDocRef = doc(db, 'organizations', organizationId);
       await setDoc(orgDocRef, {
@@ -97,16 +94,14 @@ export default function RegisterPage() {
         createdAt: new Date().toISOString(),
       });
       
-      // Create the subscription for the new organization based on the selected plan
-      await createDefaultSubscription(organizationId, selectedPlan);
+      await createDefaultSubscription(organizationId, selectedPlan, billingCycle as 'monthly' | 'annual');
 
-      // Create the user profile, linking them to the new organization as an Admin
       await setDoc(userDocRef, {
             uid: user.uid,
             displayName: values.displayName,
             email: user.email,
             photoURL: user.photoURL || null,
-            role: "Administrador", // The first user of an org is always an admin
+            role: "Administrador",
             organizationId: organizationId,
             createdAt: new Date().toISOString(),
             onboardingCompleted: false,
@@ -126,14 +121,26 @@ export default function RegisterPage() {
       console.error("Registration error:", error);
     }
   };
-
-  const handleGoogleSignIn = async () => {
-    // Google Sign-In needs adaptation for this new flow, disabling for now.
-     toast({ variant: "destructive", title: "Em Breve", description: "O registo com Google para organizações estará disponível em breve. Por favor, use email e senha." });
-  };
   
   if (loadingPlans) {
-      return <div className="flex h-screen items-center justify-center">A carregar planos...</div>
+      return (
+          <div className="flex h-screen items-center justify-center">
+               <Card className="w-full max-w-sm">
+                    <CardHeader className="text-center">
+                        <Skeleton className="h-10 w-10 mx-auto rounded-full"/>
+                        <Skeleton className="h-6 w-32 mx-auto mt-2"/>
+                        <Skeleton className="h-4 w-48 mx-auto mt-1"/>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full mt-2" />
+                    </CardContent>
+                </Card>
+          </div>
+      );
   }
 
   return (
@@ -219,14 +226,6 @@ export default function RegisterPage() {
                         </Button>
                         </form>
                     </Form>
-
-                    <Separator className="my-4" />
-
-                    <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled>
-                        <svg className="mr-2 h-4 w-4" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"></path><path fill="#4CAF50" d="M24 44c5.166 0 9.6-1.867 12.639-4.785l-6.42-4.9c-2.187 1.433-4.962 2.23-7.859 2.23c-5.223 0-9.655-3.657-11.303-8.334l-6.573 4.818C9.656 40.045 16.318 44 24 44z"></path><path fill="#1976D2" d="M43.611 20.083H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.573 4.818C42.218 35.17 44 30.023 44 24c0-1.341-.138-2.65-.389-3.917z"></path></svg>
-                        Continuar com Google (Em Breve)
-                    </Button>
-
                     <div className="mt-4 text-center text-sm">
                         Já tem uma conta?{" "}
                         <Link href="/login" className="underline">
