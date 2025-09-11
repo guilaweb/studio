@@ -106,6 +106,11 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
         lampType: data.lampType,
         poleType: data.poleType,
         poleHeight: data.poleHeight,
+        // Green Area Specific
+        greenAreaType: data.greenAreaType,
+        lastPruning: data.lastPruning,
+        lastIrrigation: data.lastIrrigation,
+        pestStatus: data.pestStatus,
     };
 };
 
@@ -130,8 +135,8 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     const pointsCollectionRef = collection(db, 'pointsOfInterest');
     let q: Query<DocumentData, DocumentData>;
 
-    if (profile?.role === 'Super Administrador') {
-        // Super Admin sees all data
+    if (profile?.role === 'Super Administrador' || profile?.role === 'Cidadao') {
+        // Super Admins and Citizens see all data
         q = query(pointsCollectionRef, orderBy("lastReported", "desc"));
     } else if (profile?.organizationId) {
         // Regular admins/users see data for their organization only
@@ -141,8 +146,8 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             orderBy("lastReported", "desc")
         );
     } else {
-        // If there's a profile but no org ID, they see nothing yet.
-        // This can happen during the very first login of an admin.
+        // If there's a profile but no org ID (or no profile), they see nothing yet.
+        // This can happen during the very first login of an admin or if unauthenticated.
         setLoading(false);
         setAllData([]);
         return;
