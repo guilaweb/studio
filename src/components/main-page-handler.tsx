@@ -21,7 +21,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap, HardHat, DollarSign, Trees } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap, HardHat, DollarSign, Trees, Bike } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -75,6 +75,7 @@ const defaultActiveLayers: ActiveLayers = {
     electrical_cabin: false,
     electrical_network_segment: false,
     green_area: false,
+    bike_lane: false,
 };
 
 export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNode }) {
@@ -104,7 +105,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   const [poiToEdit, setPoiToEdit] = React.useState<PointOfInterest | null>(null);
   const [editMode, setEditMode] = React.useState<EditMode>(null);
   
-  const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador';
+  const isManager = profile?.role === 'Agente Municipal' || profile?.role === 'Administrador' || profile?.role === 'Super Administrador';
 
   const finalActiveLayers = React.useMemo(() => {
     if (loadingLayers && !isManager) {
@@ -841,7 +842,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       greenSpaceCession: data.greenSpaceCession,
       updates: [{
           id: `update-${Date.now()}`,
-          text: "Registo inicial do lote realizado.",
+          text: 'Registo inicial do lote realizado.',
           authorId: user.uid,
           authorDisplayName: profile.displayName,
           timestamp: timestamp,
@@ -1111,7 +1112,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     }
 
     const isOwner = poi.authorId === user.uid;
-    const canManage = profile.role === 'Agente Municipal' || profile.role === 'Administrador';
+    const canManage = profile.role === 'Agente Municipal' || profile.role === 'Administrador' || profile.role === 'Super Administrador';
     
     let canEdit = false;
     
@@ -1168,7 +1169,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     setSelectedPoi(null);
   };
 
-  const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[]) => {
+  const handlePoiStatusChange = (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[], partsCost?: number, laborCost?: number) => {
     if (!user) {
         toast({
             variant: "destructive",
@@ -1576,5 +1577,3 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       </SidebarProvider>
   );
 }
-
-    

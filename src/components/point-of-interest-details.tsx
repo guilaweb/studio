@@ -1,12 +1,11 @@
 
-
 "use client";
 
 import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime, PointOfInterestStatus } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical, Waves, Hospital, BedDouble, Stethoscope, HeartPulse, Fuel, HardHat, Lightbulb, Zap, Wrench, DollarSign, AlertTriangle } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical, Waves, Hospital, BedDouble, Stethoscope, HeartPulse, Fuel, HardHat, Lightbulb, Zap, Wrench, DollarSign, AlertTriangle, Bike } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,6 +56,7 @@ const layerConfig = {
     electrical_cabin: { label: "Cabine Elétrica", Icon: HardHat, variant: "default" as const },
     electrical_network_segment: { label: "Segmento de Rede", Icon: GitBranch, variant: "default" as const },
     green_area: { label: "Área Verde", Icon: Trees, variant: "default" as const },
+    bike_lane: { label: "Ciclovia", Icon: Bike, variant: "default" as const },
 };
 
 const priorityConfig = {
@@ -289,7 +289,7 @@ const IncidentTicket = ({poi, onPoiStatusChange, canUpdate}: {poi: PointOfIntere
     };
     
     const handleCostConfirm = () => {
-        onPoiStatusChange(poi.id, 'resolved', undefined, undefined, undefined, undefined, Number(partsCost), Number(laborCost));
+        onPoiStatusChange(poi.id, 'collected', 'Tarefa de manutenção concluída.', undefined, undefined, undefined, Number(partsCost), Number(laborCost));
         setIsCostDialogOpen(false);
     }
 
@@ -806,7 +806,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
   const config = layerConfig[poi.type as keyof typeof layerConfig];
   const priorityInfo = poi.priority ? priorityConfig[poi.priority] : null;
   const showTimeline = ['construction', 'incident', 'sanitation', 'atm', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui', 'health_unit', 'lighting_pole', 'pt'].includes(poi.type);
-  const isAdmin = profile?.role === 'Administrador';
+  const isAdmin = profile?.role === 'Administrador' || profile?.role === 'Super Administrador';
   const isAgentOrAdmin = profile?.role === 'Agente Municipal' || isAdmin;
   const isOwner = poi.authorId === user?.uid;
   
