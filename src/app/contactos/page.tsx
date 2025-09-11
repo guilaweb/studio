@@ -14,7 +14,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Send, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Send, CheckCircle, MessageSquare } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
@@ -132,6 +133,15 @@ export default function ContactPage() {
                                     </Button>
                                 </form>
                             </Form>
+                            <Separator className="my-6" />
+                            <div className="text-center">
+                                <p className="text-sm text-muted-foreground mb-2">Prefere um contacto mais direto?</p>
+                                <Button asChild variant="outline">
+                                    <a href="https://wa.me/244945699011" target="_blank" rel="noopener noreferrer">
+                                        <MessageSquare className="mr-2 h-4 w-4" /> Contactar via WhatsApp
+                                    </a>
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
