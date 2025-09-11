@@ -55,6 +55,16 @@ function GreenAreasPage() {
         }
         setSheetOpen(isOpen);
     }
+    
+     const handleGreenAreaSubmit = (data: any) => {
+        addPoint(data);
+        setSheetOpen(false);
+    }
+
+    const handleGreenAreaEdit = (id: string, data: any) => {
+        updatePointDetails(id, data);
+        setSheetOpen(false);
+    }
 
     if (loading) {
         return <div>A carregar dados das áreas verdes...</div>;
@@ -134,7 +144,7 @@ function GreenAreasPage() {
              <GreenAreaReport
                 open={sheetOpen}
                 onOpenChange={handleSheetOpen}
-                onGreenAreaSubmit={poiToEdit ? (id, data) => updatePointDetails(id, data) : addPoint as any}
+                onGreenAreaSubmit={poiToEdit ? handleGreenAreaEdit : handleGreenAreaSubmit}
                 poiToEdit={poiToEdit}
                 initialCenter={{ lat: -8.83, lng: 13.23 }}
             />

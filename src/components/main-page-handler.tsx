@@ -1046,7 +1046,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
   }
   
    const handleAddNewGreenArea = async (
-    data: Pick<PointOfInterest, 'title' | 'position' | 'greenAreaType' | 'pestStatus' | 'lastPruning' | 'lastIrrigation'>
+    data: PointOfInterest
   ) => {
     if (!user || !profile) {
         toast({ variant: "destructive", title: "Ação necessária", description: "Por favor, faça login para mapear uma área verde." });
@@ -1075,6 +1075,18 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
     addPoint(pointToAdd as any);
     toast({ title: "Área Verde Mapeada!", description: "O novo ativo foi adicionado ao mapa."});
   };
+
+   const handleEditGreenArea = async (
+    poiId: string,
+    data: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>
+  ) => {
+    handleSheetOpenChange(false);
+    await updatePointDetails(poiId, data);
+    toast({
+        title: "Área Verde Atualizada!",
+        description: "As suas alterações foram guardadas com sucesso.",
+    });
+  }
 
 
   const handleStartReporting = (type: ActiveSheet) => {
@@ -1543,7 +1555,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
          <GreenAreaReport
             open={activeSheet === 'green_area'}
             onOpenChange={handleSheetOpenChange}
-            onGreenAreaSubmit={poiToEdit ? updatePointDetails : addPoint as any}
+            onGreenAreaSubmit={poiToEdit ? handleEditGreenArea : handleAddNewGreenArea}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
         />

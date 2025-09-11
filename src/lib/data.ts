@@ -162,7 +162,7 @@ export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource' | 'croqui' | 'fuel_station' | 'health_unit' | 'health_case' | 'lighting_pole' | 'pt' | 'electrical_cabin' | 'electrical_network_segment' | 'green_area';
 
 export type ActiveLayers = {
-  [key in Layer]?: boolean;
+  [key in Layer]: boolean;
 };
 
 

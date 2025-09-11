@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from "react";
@@ -56,6 +55,7 @@ const layerConfig = {
     pt: { label: "Posto de Transformação", Icon: Zap, variant: "default" as const },
     electrical_cabin: { label: "Cabine Elétrica", Icon: HardHat, variant: "default" as const },
     electrical_network_segment: { label: "Segmento de Rede", Icon: GitBranch, variant: "default" as const },
+    green_area: { label: "Área Verde", Icon: Trees, variant: "default" as const },
 };
 
 const priorityConfig = {
@@ -822,7 +822,7 @@ export default function PointOfInterestDetails({ poi, open, onOpenChange, onPoiS
         }
       } else {
         // Regular users can only edit what they own, and only specific types.
-        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement' || poi.type === 'croqui');
+        canEdit = isOwner && (poi.type === 'incident' || poi.type === 'atm' || poi.type === 'construction' || poi.type === 'land_plot' || poi.type === 'announcement' || poi.type === 'croqui' || poi.type === 'green_area');
       }
       canDivide = isOwner && (poi.type === 'croqui' || poi.type === 'land_plot');
   }
