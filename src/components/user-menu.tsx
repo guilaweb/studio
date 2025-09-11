@@ -233,7 +233,7 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                             <span>Fiscalização Ambiental</span>
                                         </Link>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
+                                     <DropdownMenuItem asChild>
                                         <Link href="/admin/faturacao">
                                             <CreditCard className="mr-2 h-4 w-4" />
                                             <span>Faturação e Plano</span>
@@ -274,5 +274,7 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
         </DropdownMenu>
     )
   }
+
+    
 
     
