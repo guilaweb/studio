@@ -133,25 +133,8 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const pointsCollectionRef = collection(db, 'pointsOfInterest');
-    let q: Query<DocumentData, DocumentData>;
-
-    if (profile?.role === 'Super Administrador' || profile?.role === 'Cidadao') {
-        // Super Admins and Citizens see all data
-        q = query(pointsCollectionRef, orderBy("lastReported", "desc"));
-    } else if (profile?.organizationId) {
-        // Regular admins/users see data for their organization only
-        q = query(
-            pointsCollectionRef, 
-            where("organizationId", "==", profile.organizationId),
-            orderBy("lastReported", "desc")
-        );
-    } else {
-        // If there's a profile but no org ID (or no profile), they see nothing yet.
-        // This can happen during the very first login of an admin or if unauthenticated.
-        setLoading(false);
-        setAllData([]);
-        return;
-    }
+    // All users can see all data. Permissions for editing are handled elsewhere.
+    const q = query(pointsCollectionRef, orderBy("lastReported", "desc"));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const pointsData = querySnapshot.docs.map(convertDocToPointOfInterest);
@@ -163,7 +146,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, [profile]);
+  }, []);
 
 
   const addPoint = async (point: Omit<PointOfInterest, 'updates' | 'organizationId'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }, propertyIdToLink?: string) => {
