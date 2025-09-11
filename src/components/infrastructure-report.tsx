@@ -32,6 +32,8 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "./ui/switch";
+import { useAuth } from "@/hooks/use-auth";
 
 // This is now a generic infrastructure report component
 
@@ -107,12 +109,13 @@ const formSchema = z.object({
       key: z.string(),
       value: z.string(),
   })).optional(),
+  isPublic: z.boolean().default(true),
 });
 
 type InfrastructureReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onInfrastructureSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'polyline' | 'polygon'> & { photoDataUri?: string }) => void;
+  onInfrastructureSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'polyline' | 'polygon' | 'isPublic'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -135,6 +138,7 @@ export default function InfrastructureReport({
   const [drawnPolygon, setDrawnPolygon] = useState<google.maps.Polygon | null>(null);
   const [coords, setCoords] = useState('');
   const { toast } = useToast();
+  const { profile } = useAuth();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -142,6 +146,7 @@ export default function InfrastructureReport({
       title: "",
       description: "",
       customData: [],
+      isPublic: true,
     },
   });
   
@@ -236,6 +241,7 @@ export default function InfrastructureReport({
             customData: customDataObject,
             polyline: polylinePath,
             polygon: polygonPath,
+            isPublic: values.isPublic,
             photoDataUri 
         });
     };
@@ -278,6 +284,7 @@ export default function InfrastructureReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[35vh] bg-muted">
                 <Map
+                    mapId="infrastructure-report-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
@@ -295,6 +302,25 @@ export default function InfrastructureReport({
                  </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {profile?.role !== 'Cidadao' && (
+                    <FormField
+                        control={form.control}
+                        name="isPublic"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                    <FormLabel>Visibilidade Pública</FormLabel>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                )}
                  <FormField
                     control={form.control}
                     name="title"

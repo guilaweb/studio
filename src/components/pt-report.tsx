@@ -31,11 +31,14 @@ import { Label } from "./ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Separator } from "./ui/separator";
+import { Switch } from "./ui/switch";
+import { useAuth } from "@/hooks/use-auth";
 
 const formSchema = z.object({
   title: z.string().min(1, "O código do PT é obrigatório."),
   capacity: z.coerce.number().min(1, "A capacidade é obrigatória."),
   status: z.enum(['funcional', 'danificado', 'desligado']),
+  isPublic: z.boolean().default(true),
 });
 
 type PTReportProps = {
@@ -61,6 +64,7 @@ export default function PTReport({
   const [coords, setCoords] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   const { toast } = useToast();
+  const { profile } = useAuth();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -68,6 +72,7 @@ export default function PTReport({
         title: "",
         capacity: 0,
         status: "funcional",
+        isPublic: true,
     }
   });
   
@@ -76,6 +81,7 @@ export default function PTReport({
       title: "",
       capacity: 0,
       status: "funcional",
+      isPublic: true,
     });
     setCoords('');
   }
@@ -90,6 +96,7 @@ export default function PTReport({
                 title: poiToEdit.title,
                 capacity: poiToEdit.customData?.capacity,
                 status: poiToEdit.status as any,
+                isPublic: poiToEdit.isPublic,
             });
             setMapCenter(poiToEdit.position);
             setMapZoom(18);
@@ -182,6 +189,25 @@ export default function PTReport({
                  </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                 {profile?.role !== 'Cidadao' && (
+                    <FormField
+                        control={form.control}
+                        name="isPublic"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                    <FormLabel>Visibilidade Pública</FormLabel>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                )}
                  <FormField
                     control={form.control}
                     name="title"

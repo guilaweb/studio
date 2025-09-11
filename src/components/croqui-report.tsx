@@ -43,6 +43,8 @@ import { Separator } from "./ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "./ui/card";
 import DirectionsRenderer from "./directions-renderer";
+import { Switch } from "./ui/switch";
+import { useAuth } from "@/hooks/use-auth";
 
 
 const formSchema = z.object({
@@ -55,6 +57,7 @@ const formSchema = z.object({
   technicianName: z.string().optional(),
   technicianId: z.string().optional(),
   surveyDate: z.string().optional(),
+  isPublic: z.boolean().default(true),
 });
 
 type CroquiType = 'urban' | 'rural' | 'complex' | 'event';
@@ -135,7 +138,7 @@ const DrawingManager: React.FC<{
 type CroquiReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiType' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon' | 'customData'>, propertyIdToLink?: string) => void;
+  onCroquiSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'croquiType' | 'croquiPoints' | 'croquiRoute' | 'collectionName' | 'polygon' | 'customData' | 'isPublic'>, propertyIdToLink?: string) => void;
   initialCenter: google.maps.LatLngLiteral;
   mapRef?: React.RefObject<google.maps.Map>;
   poiToEdit: PointOfInterest | null;
@@ -168,6 +171,7 @@ export default function CroquiReport({
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [coords, setCoords] = useState('');
   const { toast } = useToast();
+  const { profile } = useAuth();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -181,6 +185,7 @@ export default function CroquiReport({
       technicianName: "",
       technicianId: "",
       surveyDate: "",
+      isPublic: true,
     },
   });
   
@@ -216,6 +221,7 @@ export default function CroquiReport({
                 technicianName: poiToEdit.customData?.technicianName || '',
                 technicianId: poiToEdit.customData?.technicianId || '',
                 surveyDate: poiToEdit.customData?.surveyDate || '',
+                isPublic: poiToEdit.isPublic,
             });
             setMapCenter(poiToEdit.position);
             setMapZoom(16);
@@ -231,7 +237,7 @@ export default function CroquiReport({
                 setPropertyToLink(poi);
                 setMapCenter(poi.position);
                 setMapZoom(16);
-                form.reset({ title: `Acesso a: ${poi.title}`, description: `Croqui para o imóvel ${poi.title}`, collectionName: "Meus Imóveis" });
+                form.reset({ title: `Acesso a: ${poi.title}`, description: `Croqui para o imóvel ${poi.title}`, collectionName: "Meus Imóveis", isPublic: true });
             } else {
                 const isDefaultLocation = initialCenter.lat === 0 && initialCenter.lng === 0;
                 const center = isDefaultLocation ? defaultCenter : initialCenter;
@@ -367,6 +373,7 @@ export default function CroquiReport({
         croquiPoints: referencePoints, 
         croquiRoute: routePath,
         polygon: polygonPath,
+        isPublic: values.isPublic,
     }, propertyToLink?.id);
   }
 
@@ -452,6 +459,25 @@ export default function CroquiReport({
                       </div>
                   </div>
                   <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                       {profile?.role !== 'Cidadao' && (
+                        <FormField
+                            control={form.control}
+                            name="isPublic"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                    <div className="space-y-0.5">
+                                        <FormLabel>Visibilidade Pública</FormLabel>
+                                    </div>
+                                    <FormControl>
+                                        <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                       )}
                       <FormField control={form.control} name="title" render={({ field }) => (
                           <FormItem><FormLabel>Nome do Local/POI</FormLabel><FormControl><Input placeholder="Ex: Casa da Família Santos, Cliente XPTO" {...field} /></FormControl><FormMessage /></FormItem>
                       )} />

@@ -36,6 +36,8 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "./ui/calendar";
 import DrawingManager from "./drawing-manager";
+import { Switch } from "./ui/switch";
+import { useAuth } from "@/hooks/use-auth";
 
 const formSchema = z.object({
   title: z.string().min(3, "O nome ou código é obrigatório."),
@@ -43,6 +45,7 @@ const formSchema = z.object({
   pestStatus: z.enum(['healthy', 'infested', 'under_treatment']),
   lastPruning: z.date().optional(),
   lastIrrigation: z.date().optional(),
+  isPublic: z.boolean().default(true),
 });
 
 type GreenAreaReportProps = {
@@ -69,12 +72,14 @@ export default function GreenAreaReport({
   const [isEditMode, setIsEditMode] = useState(false);
   const [drawnPolygon, setDrawnPolygon] = useState<google.maps.Polygon | null>(null);
   const { toast } = useToast();
+  const { profile } = useAuth();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
         title: "",
         pestStatus: "healthy",
+        isPublic: true,
     }
   });
   
@@ -85,6 +90,7 @@ export default function GreenAreaReport({
       pestStatus: "healthy",
       lastPruning: undefined,
       lastIrrigation: undefined,
+      isPublic: true,
     });
     setCoords('');
     if (drawnPolygon) {
@@ -105,6 +111,7 @@ export default function GreenAreaReport({
                 pestStatus: poiToEdit.pestStatus as any,
                 lastPruning: poiToEdit.lastPruning ? new Date(poiToEdit.lastPruning) : undefined,
                 lastIrrigation: poiToEdit.lastIrrigation ? new Date(poiToEdit.lastIrrigation) : undefined,
+                isPublic: poiToEdit.isPublic,
             });
             setMapCenter(poiToEdit.position);
             setMapZoom(18);
@@ -228,6 +235,25 @@ export default function GreenAreaReport({
                 </Map>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                 {profile?.role !== 'Cidadao' && (
+                    <FormField
+                        control={form.control}
+                        name="isPublic"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                    <FormLabel>Visibilidade Pública</FormLabel>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                )}
                  <FormField
                     control={form.control}
                     name="title"

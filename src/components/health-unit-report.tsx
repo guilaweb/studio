@@ -33,6 +33,8 @@ import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Separator } from "./ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "./ui/switch";
+import { useAuth } from "@/hooks/use-auth";
 
 const formSchema = z.object({
   title: z.string({ required_error: "O tipo de unidade é obrigatório." }),
@@ -42,12 +44,13 @@ const formSchema = z.object({
   capacityBeds: z.coerce.number().optional(),
   capacityIcuBeds: z.coerce.number().optional(),
   capacityDaily: z.coerce.number().optional(),
+  isPublic: z.boolean().default(true),
 });
 
 type HealthUnitReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onHealthUnitSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'healthServices' | 'capacity'> & { photoDataUri?: string }) => void;
+  onHealthUnitSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'healthServices' | 'capacity' | 'isPublic'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -66,6 +69,7 @@ export default function HealthUnitReport({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [coords, setCoords] = useState('');
   const { toast } = useToast();
+  const { profile } = useAuth();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -74,6 +78,7 @@ export default function HealthUnitReport({
       name: "",
       description: "",
       services: [{ value: "" }],
+      isPublic: true,
     },
   });
 
@@ -91,6 +96,7 @@ export default function HealthUnitReport({
       capacityBeds: undefined,
       capacityIcuBeds: undefined,
       capacityDaily: undefined,
+      isPublic: true,
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -182,6 +188,7 @@ export default function HealthUnitReport({
                 icu_beds: values.capacityIcuBeds,
                 daily_capacity: values.capacityDaily
             },
+            isPublic: values.isPublic,
         });
     };
 
@@ -223,6 +230,7 @@ export default function HealthUnitReport({
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
              <div className="relative h-[30vh] bg-muted">
                 <Map
+                    mapId="health-unit-report-map"
                     center={mapCenter}
                     zoom={mapZoom}
                     onCenterChanged={(e) => setMapCenter(e.detail.center)}
@@ -235,6 +243,25 @@ export default function HealthUnitReport({
                  </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                 {profile?.role !== 'Cidadao' && (
+                    <FormField
+                        control={form.control}
+                        name="isPublic"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                    <FormLabel>Visibilidade Pública</FormLabel>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                )}
                  <FormField
                     control={form.control}
                     name="title"
