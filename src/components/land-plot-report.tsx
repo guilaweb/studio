@@ -35,6 +35,7 @@ import Image from "next/image";
 import { Label } from "./ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import DrawingManager from "./drawing-manager";
+import { Switch } from "./ui/switch";
 
 
 const formSchema = z.object({
@@ -48,6 +49,7 @@ const formSchema = z.object({
   minLotArea: z.coerce.number().optional(),
   roadCession: z.coerce.number().optional(),
   greenSpaceCession: z.coerce.number().optional(),
+  isPublic: z.boolean().default(true),
 });
 
 type LandPlotReportProps = {
@@ -78,6 +80,7 @@ export default function LandPlotReport({
   const [isEditMode, setIsEditMode] = useState(false);
   const [coords, setCoords] = useState('');
   const { toast } = useToast();
+  const { profile } = useAuth();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -91,6 +94,7 @@ export default function LandPlotReport({
       minLotArea: undefined,
       roadCession: undefined,
       greenSpaceCession: undefined,
+      isPublic: true,
     },
   });
   
@@ -106,6 +110,7 @@ export default function LandPlotReport({
       minLotArea: undefined,
       roadCession: undefined,
       greenSpaceCession: undefined,
+      isPublic: true,
     });
     if (drawnPolygon) {
         drawnPolygon.setMap(null);
@@ -133,6 +138,7 @@ export default function LandPlotReport({
                 minLotArea: poiToEdit.minLotArea ?? undefined,
                 roadCession: poiToEdit.roadCession ?? undefined,
                 greenSpaceCession: poiToEdit.greenSpaceCession ?? undefined,
+                isPublic: poiToEdit.isPublic,
             });
             setMapCenter(poiToEdit.position);
             setMapZoom(16);
@@ -299,6 +305,25 @@ export default function LandPlotReport({
                 </Map>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {profile?.role !== 'Cidadao' && (
+                    <FormField
+                        control={form.control}
+                        name="isPublic"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                    <FormLabel>Visibilidade Pública</FormLabel>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                )}
                 <FormField
                     control={form.control}
                     name="status"

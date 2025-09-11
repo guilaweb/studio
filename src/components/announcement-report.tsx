@@ -38,6 +38,7 @@ import { addDays, format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "./ui/label";
+import { Switch } from "./ui/switch";
 
 // Component to handle the drawing functionality on the map
 const DrawingManager: React.FC<{onPolygonComplete: (polygon: google.maps.Polygon) => void, initialPolygonPath?: google.maps.LatLngLiteral[] | null, clearTrigger: boolean }> = ({onPolygonComplete, initialPolygonPath, clearTrigger}) => {
@@ -131,6 +132,7 @@ const formSchema = z.object({
       from: z.date({required_error: "A data de início é obrigatória."}),
       to: z.date({required_error: "A data de fim é obrigatória."}),
   }, { required_error: "As datas de início e fim são obrigatórias."}),
+  isPublic: z.boolean().default(true),
 });
 
 type AnnouncementReportProps = {
@@ -171,6 +173,7 @@ export default function AnnouncementReport({
         from: new Date(),
         to: addDays(new Date(), 7),
       },
+      isPublic: true,
     },
   });
   
@@ -182,6 +185,7 @@ export default function AnnouncementReport({
         from: new Date(),
         to: addDays(new Date(), 7),
       },
+      isPublic: true,
     });
     setDrawnPolygon(null);
     setClearPolygonTrigger(val => !val);
@@ -197,6 +201,7 @@ export default function AnnouncementReport({
             form.reset({
                 message: poiToEdit.description,
                 category: poiToEdit.announcementCategory,
+                isPublic: poiToEdit.isPublic,
                 dates: {
                     from: new Date(poiToEdit.startDate),
                     to: new Date(poiToEdit.endDate),
@@ -289,6 +294,7 @@ export default function AnnouncementReport({
             announcementCategory: values.category,
             startDate: values.dates.from.toISOString(),
             endDate: values.dates.to.toISOString(),
+            isPublic: values.isPublic,
             polygon: polygonPath,
         };
         onAnnouncementEdit(poiToEdit.id, editedData);
@@ -302,6 +308,7 @@ export default function AnnouncementReport({
             announcementCategory: values.category,
             startDate: values.dates.from.toISOString(),
             endDate: values.dates.to.toISOString(),
+            isPublic: values.isPublic,
             polygon: polygonPath,
             position: { lat: centerLat, lng: centerLng },
             authorId: user.uid,
@@ -361,6 +368,26 @@ export default function AnnouncementReport({
                 </Map>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <FormField
+                    control={form.control}
+                    name="isPublic"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                                <FormLabel>Visibilidade Pública</FormLabel>
+                                <FormDescription>
+                                    Se desativado, apenas membros da sua organização verão este anúncio.
+                                </FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
                  <div className="space-y-2">
                     <FormField
                         control={form.control}
