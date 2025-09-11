@@ -3,7 +3,7 @@
 
 import { Map, AdvancedMarker, Pin, useAdvancedMarkerRef, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import type { PointOfInterest, ActiveLayers } from "@/lib/data";
-import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2, AlertTriangle, Fuel, Hospital, Stethoscope, Lightbulb, Zap, HardHat, Trees } from "lucide-react";
+import { Landmark, Construction, Siren, Trash, Search, Droplet, Square, Megaphone, Droplets, Share2, AlertTriangle, Fuel, Hospital, Stethoscope, Lightbulb, Zap, HardHat, Trees, Bike } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import MapInfoWindow from "./map-infowindow";
 import { GenericPolygonsRenderer } from "./generic-polygons-renderer";
@@ -60,6 +60,8 @@ const MarkerIcon = ({ type }: { type: PointOfInterest["type"] }) => {
         return <Zap className={commonClasses} />;
     case "green_area":
         return <Trees className={commonClasses} />;
+    case "bike_lane":
+        return <Bike className={commonClasses} />;
     default:
       return null;
   }
@@ -162,6 +164,9 @@ export const getPinStyle = (point: PointOfInterest) => {
             default: // healthy
                 return { background: '#22c55e', borderColor: '#16a34a', glyphColor: '#ffffff' }; // green
         }
+    }
+    if (point.type === 'bike_lane') {
+        return { background: '#6366f1', borderColor: '#4f46e5', glyphColor: '#ffffff' }; // indigo
     }
     return {};
 }
@@ -532,4 +537,6 @@ export default function MapComponent({ activeLayers, data, userPosition, searche
         </div>
     );
 }
+    
+
     

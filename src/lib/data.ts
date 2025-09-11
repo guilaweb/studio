@@ -36,7 +36,7 @@ export type PointOfInterestUpdate = z.infer<typeof PointOfInterestUpdateSchema>;
 export const PointOfInterestStatusEnum = z.enum(['available', 'unavailable', 'unknown', 'full', 'damaged', 'collected', 'in_progress', 'occupied', 'protected', 'in_dispute', 'reserved', 'submitted', 'under_review', 'approved', 'rejected', 'active', 'expired', 'em_verificacao', 'verificado_ouro', 'verificado_prata', 'informacao_insuficiente', 'Privado', 'level_low', 'level_normal', 'level_flood', 'resolved', 'funcional', 'desligado']);
 export type PointOfInterestStatus = z.infer<typeof PointOfInterestStatusEnum>;
 
-export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui', 'fuel_station', 'health_unit', 'health_case', 'lighting_pole', 'pt', 'electrical_cabin', 'electrical_network_segment', 'green_area']);
+export const PointOfInterestTypeEnum = z.enum(['atm', 'construction', 'incident', 'sanitation', 'water', 'land_plot', 'announcement', 'water_resource', 'croqui', 'fuel_station', 'health_unit', 'health_case', 'lighting_pole', 'pt', 'electrical_cabin', 'electrical_network_segment', 'green_area', 'bike_lane']);
 export type PointOfInterestType = z.infer<typeof PointOfInterestTypeEnum>;
 
 export const PointOfInterestPriorityEnum = z.enum(['low', 'medium', 'high']);
@@ -159,7 +159,7 @@ export const PointOfInterestSchema = z.object({
 export type PointOfInterest = z.infer<typeof PointOfInterestSchema>;
 
 
-export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource' | 'croqui' | 'fuel_station' | 'health_unit' | 'health_case' | 'lighting_pole' | 'pt' | 'electrical_cabin' | 'electrical_network_segment' | 'green_area';
+export type Layer = 'atm' | 'construction' | 'incident' | 'sanitation' | 'water' | 'land_plot' | 'announcement' | 'water_resource' | 'croqui' | 'fuel_station' | 'health_unit' | 'health_case' | 'lighting_pole' | 'pt' | 'electrical_cabin' | 'electrical_network_segment' | 'green_area' | 'bike_lane';
 
 export type ActiveLayers = {
   [key in Layer]: boolean;
@@ -340,6 +340,7 @@ export const typeLabelMap: Partial<Record<PointOfInterestType, string>> = {
     electrical_cabin: "Cabine Elétrica",
     electrical_network_segment: "Segmento de Rede",
     green_area: "Área Verde",
+    bike_lane: "Ciclovia",
 };
 
 export const propertyTypeLabelMap: Record<PropertyType, string> = {
@@ -636,4 +637,6 @@ export const PredictMaintenanceOutputSchema = z.object({
     })),
 });
 export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
+    
+
     
