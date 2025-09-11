@@ -77,6 +77,7 @@ export type WorkflowStep = z.infer<typeof WorkflowStepSchema>;
 
 export const PointOfInterestSchema = z.object({
   id: z.string(),
+  organizationId: z.string().optional(),
   type: PointOfInterestTypeEnum,
   position: PositionSchema,
   polygon: z.array(PositionSchema).optional(),

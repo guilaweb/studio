@@ -10,7 +10,7 @@ import { useAuth } from './use-auth';
 
 interface PointsContextType {
   allData: PointOfInterest[];
-  addPoint: (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }, propertyIdToLink?: string) => Promise<void>;
+  addPoint: (point: Omit<PointOfInterest, 'updates' | 'organizationId'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }, propertyIdToLink?: string) => Promise<void>;
   updatePointStatus: (pointId: string, status: PointOfInterest['status'], updateText?: string, availableNotes?: number[], queueTime?: QueueTime, availableFuels?: string[], partsCost?: number, laborCost?: number) => Promise<void>;
   addUpdateToPoint: (pointId: string, update: Omit<PointOfInterestUpdate, 'id'>) => Promise<void>;
   updatePointDetails: (pointId: string, updates: Partial<Omit<PointOfInterest, 'id' | 'type' | 'authorId' | 'updates'>>) => Promise<void>;
@@ -37,6 +37,7 @@ const convertDocToPointOfInterest = (doc: DocumentData): PointOfInterest => {
 
     return {
         id: doc.id,
+        organizationId: data.organizationId,
         type: data.type,
         position: data.position,
         polygon: data.polygon,
@@ -126,9 +127,21 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
   const { user, profile } = useAuth();
 
   useEffect(() => {
+    if (!profile?.organizationId) {
+        if (profile) { // Profile is loaded but no org ID
+             setLoading(false);
+             setAllData([]); // Clear data if no organization
+        }
+        // If profile is not loaded yet, just wait.
+        return;
+    }
+
     const pointsCollectionRef = collection(db, 'pointsOfInterest');
-    // Query for points of interest, ordered by lastReported date descending
-    const q = query(pointsCollectionRef, orderBy("lastReported", "desc"));
+    const q = query(
+        pointsCollectionRef, 
+        where("organizationId", "==", profile.organizationId),
+        orderBy("lastReported", "desc")
+    );
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const pointsData = querySnapshot.docs.map(convertDocToPointOfInterest);
@@ -140,10 +153,14 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [profile]);
 
 
-  const addPoint = async (point: Omit<PointOfInterest, 'updates'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }, propertyIdToLink?: string) => {
+  const addPoint = async (point: Omit<PointOfInterest, 'updates' | 'organizationId'> & { updates: Omit<PointOfInterestUpdate, 'id'>[] }, propertyIdToLink?: string) => {
+    if (!profile?.organizationId) {
+        toast({ variant: "destructive", title: "Erro de Organização", description: "Não foi possível identificar a sua organização." });
+        return;
+    }
     try {
         const batch = writeBatch(db);
 
@@ -152,6 +169,7 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             const projectsQuery = query(
                 collection(db, 'pointsOfInterest'),
                 where('landPlotId', '==', point.landPlotId),
+                where('organizationId', '==', profile.organizationId),
                 where('status', 'in', ['submitted', 'under_review', 'approved'])
             );
             const conflictingProjects = await getDocs(projectsQuery);
@@ -174,7 +192,8 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
             return {...cleanedUpdate, id: `upd-${point.id}-${Date.now()}-${Math.random()}`};
         });
         
-        const pointWithCleanUpdates = {...point, updates: completeUpdates};
+        const pointWithOrg = {...point, organizationId: profile.organizationId};
+        const pointWithCleanUpdates = {...pointWithOrg, updates: completeUpdates};
         const cleanedPoint = removeUndefinedFields(pointWithCleanUpdates);
 
         batch.set(pointRef, cleanedPoint);
@@ -341,3 +360,14 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const usePoints = () => useContext(PointsContext);
+
+    
+
+
+
+
+
+
+
+
+
