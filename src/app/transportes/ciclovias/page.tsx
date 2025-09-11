@@ -29,7 +29,6 @@ function BikeLanePlanningPage() {
         if (drawnPolyline) {
             drawnPolyline.setMap(null);
         }
-        // @ts-ignore
         setDrawnPolyline(poly);
         if(!poly) {
              handleClearAnalysis();
@@ -57,7 +56,6 @@ function BikeLanePlanningPage() {
     
      const handleClearAnalysis = () => {
         if (drawnPolyline) {
-            // @ts-ignore
             drawnPolyline.setMap(null);
         }
         setDrawnPolyline(null);
@@ -119,7 +117,10 @@ function BikeLanePlanningPage() {
                                 gestureHandling={'greedy'}
                                 disableDefaultUI={false}
                             >
-                                <DrawingManager onPolygonComplete={() => {}} />
+                                <DrawingManager
+                                    onPolylineComplete={handlePolylineComplete}
+                                    allowedModes={[google.maps.drawing.OverlayType.POLYLINE]}
+                                />
                                 {loading ? null : (
                                     allData.map(point => (
                                         <PointOfInterestMarker
@@ -141,5 +142,3 @@ function BikeLanePlanningPage() {
 }
 
 export default withAuth(BikeLanePlanningPage, ['Agente Municipal', 'Administrador']);
-
-    
