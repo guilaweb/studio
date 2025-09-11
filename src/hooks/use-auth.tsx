@@ -5,7 +5,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot, setDoc, getDoc, collection, query, where, getDocs, runTransaction, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc, collection, query, where, getDocs, writeBatch, updateDoc } from 'firebase/firestore';
 import type { UserProfile, Subscription, SubscriptionPlan, SubscriptionStatus } from '@/lib/data';
 import { useToast } from './use-toast';
 import { useSubscriptionPlans } from '@/services/plans-service';
@@ -49,6 +49,38 @@ const createDefaultOrganizationAndSubscription = async (userId: string, orgName:
     return organizationId;
 };
 
+// Helper function to migrate a user's old data to their new organization
+const migrateOldData = async (userId: string, organizationId: string) => {
+    const pointsQuery = query(collection(db, 'pointsOfInterest'), where('authorId', '==', userId));
+    const querySnapshot = await getDocs(pointsQuery);
+
+    if (querySnapshot.empty) {
+        console.log(`No old data to migrate for user ${userId}.`);
+        return;
+    }
+
+    const batch = writeBatch(db);
+    let migratedCount = 0;
+
+    querySnapshot.forEach((document) => {
+        const data = document.data();
+        // Only update documents that are missing the organizationId
+        if (!data.organizationId) {
+            const docRef = doc(db, 'pointsOfInterest', document.id);
+            batch.update(docRef, { organizationId });
+            migratedCount++;
+        }
+    });
+
+    if (migratedCount > 0) {
+        await batch.commit();
+        console.log(`Successfully migrated ${migratedCount} documents for user ${userId} to organization ${organizationId}.`);
+    } else {
+         console.log(`All existing documents for user ${userId} already have an organizationId.`);
+    }
+};
+
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -75,30 +107,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (docSnap.exists()) {
                 let profileData = docSnap.data() as UserProfile;
 
-                // Onboarding for the very first admin user
+                // Onboarding for the very first admin user or migration for old admin users
                 if (profileData.role === 'Administrador' && !profileData.organizationId) {
-                    setLoading(true); // Hold loading state while we create the org
+                    setLoading(true); // Hold loading state while we create/migrate
                     
                     try {
                         const orgName = `${profileData.displayName}'s Municipality`;
                         const freePlan = subscriptionPlans.find(p => p.id === 'free');
                         const organizationId = await createDefaultOrganizationAndSubscription(user.uid, orgName, freePlan);
                         
-                        // Update the user's profile with the new org ID
+                        // Migrate old data
+                        await migrateOldData(user.uid, organizationId);
+                        
+                        // Update the user's profile with the new org ID and mark onboarding as needed
                         await updateDoc(userDocRef, { organizationId: organizationId, onboardingCompleted: false });
                         profileData.organizationId = organizationId;
                         profileData.onboardingCompleted = false;
 
                     } catch (e) {
-                         console.error("Failed to create organization for first admin:", e);
+                         console.error("Failed to create organization/migrate data for admin:", e);
                     }
                 }
 
                 setProfile(profileData);
             } else {
-                // This case handles a user who signed in with Google but doesn't have a profile yet.
-                // The registration page flow should handle profile creation.
-                // If they land somewhere else, we treat them as not having a profile.
                 setProfile(null);
             }
             setLoading(false);
