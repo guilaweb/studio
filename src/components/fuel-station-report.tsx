@@ -31,18 +31,21 @@ import { Input } from "./ui/input";
 import Image from "next/image";
 import { Label } from "./ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { Switch } from "./ui/switch";
 
 
 const formSchema = z.object({
   title: z.string().min(3, "O nome da bandeira é obrigatório."),
   pumps: z.coerce.number().min(1, "Deve haver pelo menos uma bomba."),
   description: z.string().optional(),
+  isPublic: z.boolean().default(true),
 });
 
 type FuelStationReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onFuelStationSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData'> & { photoDataUri?: string }) => void;
+  onFuelStationSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'customData' | 'isPublic'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -61,6 +64,7 @@ export default function FuelStationReport({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [coords, setCoords] = useState('');
   const { toast } = useToast();
+  const { profile } = useAuth();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -68,6 +72,7 @@ export default function FuelStationReport({
       title: "",
       description: "",
       pumps: 4,
+      isPublic: true,
     },
   });
   
@@ -76,6 +81,7 @@ export default function FuelStationReport({
         title: "",
         description: "",
         pumps: 4,
+        isPublic: true,
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -160,6 +166,7 @@ export default function FuelStationReport({
             description: values.description || '',
             position: finalPosition,
             photoDataUri,
+            isPublic: values.isPublic,
             customData: {
                 pumps: values.pumps
             }
@@ -258,6 +265,25 @@ export default function FuelStationReport({
                     </FormItem>
                 )}
                 />
+                 {profile?.role !== 'Cidadao' && (
+                    <FormField
+                        control={form.control}
+                        name="isPublic"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                    <FormLabel>Visibilidade Pública</FormLabel>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                )}
                  <div>
                     <Label htmlFor="fuel-station-photo" className="text-sm font-medium">
                         <div className="flex items-center gap-2 cursor-pointer">

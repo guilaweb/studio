@@ -37,6 +37,8 @@ import { pt } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { DateRange } from "react-day-picker";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { Switch } from "./ui/switch";
 
 
 const formSchema = z.object({
@@ -46,12 +48,13 @@ const formSchema = z.object({
       from: z.date(),
       to: z.date(),
   }, { required_error: "As datas de início e fim são obrigatórias."}),
+  isPublic: z.boolean().default(true),
 });
 
 type ConstructionReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConstructionSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'startDate' | 'endDate'> & { photoDataUri?: string }) => void;
+  onConstructionSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'startDate' | 'endDate' | 'isPublic'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -70,6 +73,7 @@ export default function ConstructionReport({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [coords, setCoords] = useState('');
   const { toast } = useToast();
+  const { profile } = useAuth();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -79,7 +83,8 @@ export default function ConstructionReport({
       dates: {
           from: new Date(),
           to: addDays(new Date(), 7),
-      }
+      },
+      isPublic: true,
     },
   });
   
@@ -90,7 +95,8 @@ export default function ConstructionReport({
         dates: {
             from: new Date(),
             to: addDays(new Date(), 7),
-        }
+        },
+        isPublic: true,
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -177,6 +183,7 @@ export default function ConstructionReport({
             description: values.description,
             startDate: values.dates.from.toISOString(),
             endDate: values.dates.to.toISOString(),
+            isPublic: values.isPublic,
             position: finalPosition,
             photoDataUri 
         });
@@ -309,6 +316,25 @@ export default function ConstructionReport({
                     </FormItem>
                 )}
                 />
+                 {profile?.role !== 'Cidadao' && (
+                    <FormField
+                        control={form.control}
+                        name="isPublic"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                    <FormLabel>Visibilidade Pública</FormLabel>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                )}
                  <div>
                     <Label htmlFor="construction-photo" className="text-sm font-medium">
                         <div className="flex items-center gap-2 cursor-pointer">

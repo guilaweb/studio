@@ -30,18 +30,21 @@ import { Camera, MapPin } from "lucide-react";
 import { Input } from "./ui/input";
 import Image from "next/image";
 import { Label } from "./ui/label";
+import { useAuth } from "@/hooks/use-auth";
+import { Switch } from "./ui/switch";
 
 
 const formSchema = z.object({
   title: z.string().min(3, "O título deve ter pelo menos 3 caracteres."),
   description: z.string(),
+  isPublic: z.boolean().default(true),
 });
 
 type AtmReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAtmSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }) => void;
-  onAtmEdit: (poiId: string, data: Pick<PointOfInterest, 'title' | 'description' | 'position'> & { photoDataUri?: string }) => void;
+  onAtmSubmit: (data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'isPublic'> & { photoDataUri?: string }) => void;
+  onAtmEdit: (poiId: string, data: Pick<PointOfInterest, 'title' | 'description' | 'position' | 'isPublic'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
   poiToEdit: PointOfInterest | null;
 };
@@ -62,12 +65,14 @@ export default function AtmReport({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const { profile } = useAuth();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
+      isPublic: true,
     },
   });
   
@@ -75,6 +80,7 @@ export default function AtmReport({
     form.reset({
         title: "",
         description: "",
+        isPublic: true,
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -86,8 +92,11 @@ export default function AtmReport({
         setIsEditMode(isEditing);
 
         if (isEditing) {
-            form.setValue("title", poiToEdit.title || '');
-            form.setValue("description", poiToEdit.description || '');
+            form.reset({
+              title: poiToEdit.title || '',
+              description: poiToEdit.description || '',
+              isPublic: poiToEdit.isPublic,
+            });
             setMapCenter(poiToEdit.position);
             setMapZoom(16);
 
@@ -205,6 +214,25 @@ export default function AtmReport({
                     </FormItem>
                 )}
                 />
+                 {profile?.role !== 'Cidadao' && (
+                    <FormField
+                        control={form.control}
+                        name="isPublic"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                    <FormLabel>Visibilidade Pública</FormLabel>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                )}
                  <div>
                     <Label htmlFor="atm-photo" className="text-sm font-medium">
                         <div className="flex items-center gap-2 cursor-pointer">
