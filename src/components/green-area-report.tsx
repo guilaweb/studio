@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -34,6 +35,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "./ui/calendar";
+import DrawingManager from "./drawing-manager";
 
 const formSchema = z.object({
   title: z.string().min(3, "O nome ou código é obrigatório."),
@@ -65,6 +67,7 @@ export default function GreenAreaReport({
   const [mapZoom, setMapZoom] = useState(15);
   const [coords, setCoords] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
+  const [drawnPolygon, setDrawnPolygon] = useState<google.maps.Polygon | null>(null);
   const { toast } = useToast();
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -84,6 +87,10 @@ export default function GreenAreaReport({
       lastIrrigation: undefined,
     });
     setCoords('');
+    if (drawnPolygon) {
+        drawnPolygon.setMap(null);
+    }
+    setDrawnPolygon(null);
   }
 
   useEffect(() => {
@@ -133,11 +140,26 @@ export default function GreenAreaReport({
   };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const finalPosition = mapCenter;
+    let finalPosition = mapCenter;
+    let polygonPath;
+
+    if (values.greenAreaType !== 'tree' && !drawnPolygon) {
+        toast({ variant: 'destructive', title: 'Área em falta', description: 'Desenhe a área do parque ou praça no mapa.' });
+        return;
+    }
+    
+    if (drawnPolygon) {
+        polygonPath = drawnPolygon.getPath().getArray().map(p => p.toJSON());
+        const bounds = new google.maps.LatLngBounds();
+        polygonPath.forEach(p => bounds.extend(p));
+        finalPosition = bounds.getCenter().toJSON();
+    }
     
     if (isEditMode && poiToEdit) {
         const updatedData = { 
             ...values,
+            polygon: polygonPath,
+            position: finalPosition,
             lastPruning: values.lastPruning?.toISOString(),
             lastIrrigation: values.lastIrrigation?.toISOString(),
         };
@@ -149,9 +171,10 @@ export default function GreenAreaReport({
             type: 'green_area',
             ...values,
             status: 'active' as PointOfInterestStatus,
+            polygon: polygonPath,
+            position: finalPosition,
             lastPruning: values.lastPruning?.toISOString(),
             lastIrrigation: values.lastIrrigation?.toISOString(),
-            position: finalPosition 
         };
         onGreenAreaSubmit(submissionData);
         toast({ title: "Área Verde Registada!", description: `O ativo "${values.title}" foi adicionado ao mapa.` });
@@ -171,7 +194,7 @@ export default function GreenAreaReport({
         <SheetHeader className="p-6 pb-2">
           <SheetTitle>{isEditMode ? 'Editar Área Verde' : 'Mapear Área Verde'}</SheetTitle>
           <SheetDescription>
-             Ajuste o pino no mapa para a localização exata e preencha os dados do ativo verde.
+             Ajuste o pino (para árvores) ou desenhe a área (para parques/praças) no mapa e preencha os dados.
           </SheetDescription>
         </SheetHeader>
          <div className="px-6 py-2">
@@ -192,10 +215,17 @@ export default function GreenAreaReport({
                     onZoomChanged={(e) => setMapZoom(e.detail.zoom)}
                     gestureHandling={'greedy'}
                 >
+                    {form.getValues('greenAreaType') !== 'tree' ? (
+                         <DrawingManager
+                            onPolygonComplete={setDrawnPolygon}
+                            initialPolygonPath={isEditMode ? poiToEdit?.polygon : null}
+                         />
+                    ) : (
+                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                            <MapPin className="text-primary h-10 w-10" />
+                         </div>
+                    )}
                 </Map>
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                    <MapPin className="text-primary h-10 w-10" />
-                 </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
                  <FormField
