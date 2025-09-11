@@ -11,6 +11,7 @@ import type { FormData } from './property-registration-wizard';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/use-auth';
 import { Switch } from '../ui/switch';
+import { FormControl, FormField, FormItem, FormLabel } from '../ui/form';
 
 interface MediaStepProps {
   onBack: () => void;

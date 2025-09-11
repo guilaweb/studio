@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -31,6 +30,8 @@ import Image from "next/image";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { useAuth } from "@/hooks/use-auth";
+import { Switch } from "./ui/switch";
 
 const currentYear = new Date().getFullYear();
 
@@ -40,6 +41,7 @@ const formSchema = z.object({
   day: z.coerce.number().min(1, "Dia inválido").max(31, "Dia inválido"),
   month: z.coerce.number().min(1, "Mês inválido").max(12, "Mês inválido"),
   year: z.coerce.number().min(1900, "Ano inválido").max(currentYear, `O ano não pode ser superior a ${currentYear}`),
+  isPublic: z.boolean().default(true),
 }).refine(data => {
     try {
         const date = new Date(data.year, data.month - 1, data.day);
@@ -55,7 +57,7 @@ const formSchema = z.object({
 type PollutionReportProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPollutionSubmit: (data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate' | 'priority'> & { photoDataUri?: string }) => void;
+  onPollutionSubmit: (data: Pick<PointOfInterest, 'description' | 'position' | 'incidentDate' | 'priority' | 'isPublic'> & { photoDataUri?: string }) => void;
   initialCenter: google.maps.LatLngLiteral;
 };
 
@@ -72,6 +74,7 @@ export default function PollutionReport({
   const [mapZoom, setMapZoom] = useState(15);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const { profile } = useAuth();
   
   const now = new Date();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -82,6 +85,7 @@ export default function PollutionReport({
       day: now.getDate(),
       month: now.getMonth() + 1,
       year: now.getFullYear(),
+      isPublic: true,
     },
   });
   
@@ -93,6 +97,7 @@ export default function PollutionReport({
         day: now.getDate(),
         month: now.getMonth() + 1,
         year: now.getFullYear(),
+        isPublic: true,
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -257,6 +262,25 @@ export default function PollutionReport({
                     </FormItem>
                 )}
                 />
+                 {profile?.role !== 'Cidadao' && (
+                    <FormField
+                        control={form.control}
+                        name="isPublic"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                    <FormLabel>Visibilidade Pública</FormLabel>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                )}
                  <div>
                     <Label htmlFor="pollution-photo" className="text-sm font-medium">
                         <div className="flex items-center gap-2 cursor-pointer">
