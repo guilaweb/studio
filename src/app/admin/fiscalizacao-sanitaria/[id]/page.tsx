@@ -138,7 +138,10 @@ function HealthUnitDetailPage() {
                             <CardTitle>Histórico de Vistorias e Comunicações</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <Timeline poi={unit} onAddUpdate={() => {}} />
+                            <Timeline 
+                                poi={unit} 
+                                onAddUpdate={addUpdateToPoint} 
+                            />
                         </CardContent>
                     </Card>
                 </div>

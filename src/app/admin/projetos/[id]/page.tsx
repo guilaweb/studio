@@ -20,52 +20,8 @@ import { useToast } from "@/hooks/use-toast";
 import { generateOfficialResponse } from "@/ai/flows/generate-official-response-flow";
 import WorkflowSuggestions from "@/components/admin/projetos/workflow-suggestions";
 import { generateLicense } from "@/ai/flows/generate-license-flow";
+import Timeline from "@/components/timeline";
 
-const getStatusIcon = (update: PointOfInterestUpdate, isFirst: boolean) => {
-    if (isFirst) {
-        return <FileText className="h-4 w-4 text-muted-foreground" />;
-    }
-    if (update.text?.startsWith('**AUTO DE VISTORIA**')) {
-        return <ClipboardCheck className="h-4 w-4 text-blue-500" />;
-    }
-    if (update.text?.startsWith('**PARECER')) {
-        return <Check className="h-4 w-4 text-green-500" />;
-    }
-    return <MessageSquare className="h-4 w-4 text-muted-foreground" />;
-}
-
-const Timeline = ({ updates }: { updates: PointOfInterestUpdate[] }) => {
-     if (!updates || updates.length === 0) {
-        return <p className="text-sm text-muted-foreground text-center py-8">Sem atualizações ou comunicações registadas.</p>
-    }
-    
-    const sortedUpdates = [...updates].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-
-    return (
-        <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:h-full before:w-0.5 before:bg-border before:-translate-x-px">
-            {sortedUpdates.map((update, index) => (
-                <div key={update.id} className="relative flex items-start gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border bg-background z-10">
-                        {getStatusIcon(update, index === 0)}
-                    </div>
-                    <div className="flex-1 pt-1">
-                        <p className="font-semibold text-sm whitespace-pre-wrap">{update.text}</p>
-                        <p className="text-xs text-muted-foreground">
-                            Por {update.authorDisplayName || 'Sistema'} • {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true, locale: pt })}
-                        </p>
-                        {update.photoDataUri && (
-                            <div className="mt-2">
-                                <a href={update.photoDataUri} target="_blank" rel="noopener noreferrer">
-                                    <img src={update.photoDataUri} alt="Documento ou foto anexa" className="rounded-md object-cover max-h-40 border" />
-                                </a>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            ))}
-        </div>
-    )
-}
 
 function AdminProjectDetailPage() {
     const params = useParams();
@@ -95,16 +51,17 @@ function AdminProjectDetailPage() {
         return allData.find(p => p.id === project.landPlotId);
     }, [project, allData]);
 
-    const handleAddUpdate = async () => {
-        if (!project || !updateText.trim() || !profile) return;
+    const handleAddUpdate = async (pointId: string, text: string, photoDataUri?: string) => {
+        if (!project || !text.trim() || !profile) return;
 
         setIsSubmitting(true);
         try {
             const newUpdate: Omit<PointOfInterestUpdate, 'id'> = {
-                text: updateText,
+                text: text,
                 authorId: profile.uid,
                 authorDisplayName: profile.displayName,
                 timestamp: new Date().toISOString(),
+                photoDataUri: photoDataUri,
             };
             await addUpdateToPoint(project.id, newUpdate);
             setUpdateText("");
@@ -121,40 +78,6 @@ function AdminProjectDetailPage() {
             });
         } finally {
             setIsSubmitting(false);
-        }
-    };
-
-    const handleGenerateResponse = async () => {
-        if (!project) return;
-        const lastCitizenUpdate = [...(project.updates || [])]
-            .sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-            .find(u => u.authorId !== user?.uid);
-        
-        if (!lastCitizenUpdate) {
-            toast({
-                variant: "destructive",
-                title: "Não há contribuições para responder",
-                description: "A IA só pode gerar respostas para contribuições de cidadãos.",
-            });
-            return;
-        }
-
-        setIsGenerating(true);
-        try {
-            const result = await generateOfficialResponse({
-                citizenContribution: lastCitizenUpdate.text,
-                projectName: project.title,
-            });
-            setUpdateText(result.response);
-        } catch (error) {
-            console.error("Error generating AI response:", error);
-            toast({
-                variant: "destructive",
-                title: "Erro ao gerar resposta",
-                description: "Não foi possível gerar uma resposta com IA. Tente novamente.",
-            });
-        } finally {
-            setIsGenerating(false);
         }
     };
     
@@ -194,15 +117,6 @@ function AdminProjectDetailPage() {
         localStorage.setItem('licensePreview', licenseHtml);
         window.open('/licenca/preview', '_blank');
     };
-    
-    const setParecerTemplate = (templateType: 'favoravel' | 'condicionantes' | 'desfavoravel') => {
-        const templates = {
-            favoravel: "**PARECER FAVORÁVEL**\n\nApós análise do processo, o projeto cumpre com todos os regulamentos aplicáveis. Recomenda-se a aprovação.",
-            condicionantes: "**PARECER FAVORÁVEL COM CONDICIONANTES**\n\nO projeto é aprovado, sujeito ao cumprimento das seguintes condições:\n1. [Condição 1]\n2. [Condição 2]\n\nApós o cumprimento, o processo poderá avançar para a fase seguinte.",
-            desfavoravel: "**PARECER DESFAVORÁVEL**\n\nO projeto não cumpre com os regulamentos pelos seguintes motivos:\n1. [Motivo 1 - Ex: Violação do recuo frontal]\n2. [Motivo 2 - Ex: Índice de ocupação excede o permitido]\n\nRecomenda-se a rejeição do pedido ou a submissão de um novo projeto corrigido."
-        };
-        setUpdateText(templates[templateType]);
-    };
 
 
     if (loadingPoints || loadingApplicant) {
@@ -238,49 +152,12 @@ function AdminProjectDetailPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Timeline updates={project.updates || []} />
+                            <Timeline 
+                                poi={project}
+                                onAddUpdate={handleAddUpdate}
+                            />
                         </CardContent>
                     </Card>
-                    {isManager && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Adicionar Comunicação ou Parecer</CardTitle>
-                                <CardDescription>Use os modelos para emitir um parecer ou escreva uma comunicação livre.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex flex-wrap gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => setParecerTemplate('favoravel')}>
-                                        <ThumbsUp className="mr-2 h-4 w-4" />
-                                        Parecer Favorável
-                                    </Button>
-                                    <Button variant="outline" size="sm" onClick={() => setParecerTemplate('condicionantes')}>
-                                        <AlertTriangle className="mr-2 h-4 w-4" />
-                                        Parecer com Condicionantes
-                                    </Button>
-                                    <Button variant="outline" size="sm" onClick={() => setParecerTemplate('desfavoravel')}>
-                                        <ThumbsDown className="mr-2 h-4 w-4" />
-                                        Parecer Desfavorável
-                                    </Button>
-                                </div>
-                                <Textarea 
-                                    placeholder="Escreva aqui a sua comunicação, parecer ou despacho..." 
-                                    value={updateText}
-                                    onChange={(e) => setUpdateText(e.target.value)}
-                                    rows={8}
-                                />
-                                <div className="flex flex-wrap gap-2">
-                                    <Button onClick={handleAddUpdate} disabled={isSubmitting || !updateText.trim()}>
-                                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MessageSquare className="mr-2 h-4 w-4"/>}
-                                        Adicionar à Linha do Tempo
-                                    </Button>
-                                    <Button variant="outline" onClick={handleGenerateResponse} disabled={isGenerating}>
-                                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                                        Gerar Resposta (IA)
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
                     {isManager && project.status === 'approved' && (
                          <Card>
                             <CardHeader>
