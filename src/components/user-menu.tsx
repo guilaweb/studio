@@ -204,6 +204,12 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 </DropdownMenuSubTrigger>
                                 <DropdownMenuSubContent>
                                      <DropdownMenuItem asChild>
+                                        <Link href="/admin/solicitacoes">
+                                            <Briefcase className="mr-2 h-4 w-4" />
+                                            <span>Solicitações Institucionais</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                     <DropdownMenuItem asChild>
                                         <Link href="/admin/comunicacoes">
                                             <Megaphone className="mr-2 h-4 w-4" />
                                             <span>Comunicações</span>

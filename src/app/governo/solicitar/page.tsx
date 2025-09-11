@@ -16,6 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { addDoc, collection } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const mapStyles: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
@@ -40,7 +42,7 @@ const mapStyles: google.maps.MapTypeStyle[] = [
 
 const formSchema = z.object({
   entityName: z.string().min(5, "O nome da entidade é obrigatório."),
-  entityType: z.enum(["Administração Municipal", "Governo Provincial", "Empresa Pública", "Empresa Privada"]),
+  entityType: z.enum(["Administração Municipal", "Governo Provincial", "Empresa Pública", "Empresa Privada"], { required_error: "O tipo de entidade é obrigatório."}),
   province: z.string().min(1, "A província é obrigatória."),
   municipality: z.string().min(1, "O município é obrigatório."),
   nif: z.string().min(1, "O NIF é obrigatório."),
@@ -75,15 +77,30 @@ export default function InstitutionalRequestPage() {
     const fileRef = form.register("verificationDocument");
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        // Placeholder for submission logic
-        console.log(values);
+        // In a real app, you would upload the file to a storage bucket and get the URL
+        const verificationDocumentUrl = "https://storage.placeholder.com/verifications/document.pdf";
         
-        toast({
-            title: "Solicitação Recebida!",
-            description: "A sua solicitação de registo institucional foi enviada com sucesso.",
-        });
-        
-        setIsSubmitted(true);
+        try {
+            await addDoc(collection(db, "institutionalRequests"), {
+                ...values,
+                verificationDocumentUrl,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+            });
+
+            toast({
+                title: "Solicitação Recebida!",
+                description: "A sua solicitação de registo institucional foi enviada com sucesso.",
+            });
+            
+            setIsSubmitted(true);
+        } catch (error) {
+             toast({
+                variant: "destructive",
+                title: "Erro ao Enviar",
+                description: "Não foi possível enviar a sua solicitação. Tente novamente mais tarde.",
+            });
+        }
     };
 
 

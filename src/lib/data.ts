@@ -320,6 +320,24 @@ export const ConversationSchema = z.object({
 });
 export type Conversation = z.infer<typeof ConversationSchema>;
 
+export const InstitutionalRequestSchema = z.object({
+  id: z.string().optional(),
+  entityName: z.string(),
+  entityType: z.string(),
+  province: z.string(),
+  municipality: z.string(),
+  nif: z.string(),
+  address: z.string(),
+  contactName: z.string(),
+  contactRole: z.string(),
+  contactEmail: z.string(),
+  contactPhone: z.string(),
+  verificationDocumentUrl: z.string().optional(), // URL after upload
+  status: z.enum(['pending', 'approved', 'rejected']).default('pending'),
+  createdAt: z.string(),
+});
+export type InstitutionalRequest = z.infer<typeof InstitutionalRequestSchema>;
+
 
 // Label Mappings
 export const typeLabelMap: Partial<Record<PointOfInterestType, string>> = {
@@ -637,5 +655,3 @@ export const PredictMaintenanceOutputSchema = z.object({
     })),
 });
 export type PredictMaintenanceOutput = z.infer<typeof PredictMaintenanceOutputSchema>;
-
-    
