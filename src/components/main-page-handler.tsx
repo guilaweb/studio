@@ -30,7 +30,6 @@ import MapSearchBox from "@/components/map-search-box";
 import { detectDuplicate } from "@/ai/flows/detect-duplicate-flow";
 import { calculateIncidentPriorityFlow } from "@/ai/flows/calculate-incident-priority-flow";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import TrafficLightReport from "./traffic-light-report";
 import ConstructionReport from "./construction-report";
 import AtmReport from "./atm-report";
 import WaterLeakReport from "./water-leak-report";
