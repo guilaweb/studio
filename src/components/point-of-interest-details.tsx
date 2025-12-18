@@ -1,11 +1,12 @@
 
+
 "use client";
 
 import React from "react";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { PointOfInterest, PointOfInterestUpdate, statusLabelMap, announcementCategoryMap, QueueTime, PointOfInterestStatus } from "@/lib/data";
-import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical, Waves, Hospital, BedDouble, Stethoscope, HeartPulse, Fuel, HardHat, Lightbulb, Zap, Wrench, DollarSign, AlertTriangle, Bike } from "lucide-react";
+import { Landmark, Construction, Siren, ThumbsUp, ThumbsDown, Trash, ShieldCheck, ShieldAlert, ShieldX, MessageSquarePlus, Wand2, Truck, Camera, CheckCircle, ArrowUp, ArrowRight, ArrowDown, Pencil, Calendar, Droplet, Square, Megaphone, Tags, Compass, Clock, BellRing, Fence, Waypoints, Trees, ExternalLink, FileText, Trash2, Droplets, Share2, Package, ScanLine, ClipboardCheck, MapPin, Loader2, GitBranch, Gauge, Thermometer, FlaskConical, Waves, Hospital, BedDouble, Stethoscope, HeartPulse, Fuel, HardHat, Lightbulb, Zap, Wrench, DollarSign, AlertTriangle, Bike, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -689,7 +690,7 @@ const HealthUnitDetails = ({ poi }: { poi: PointOfInterest }) => {
 }
 
 const TechnicalDetails = ({ poi }: { poi: PointOfInterest }) => {
-    if (!['lighting_pole', 'pt'].includes(poi.type)) {
+    if (!['lighting_pole', 'pt', 'green_area'].includes(poi.type)) {
         return null;
     }
     return (
@@ -702,14 +703,15 @@ const TechnicalDetails = ({ poi }: { poi: PointOfInterest }) => {
                         <span className="text-muted-foreground">ID do Ativo</span>
                         <span className="font-mono">{poi.title}</span>
                     </div>
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Estado Operacional</span>
-                        <span className="font-medium">{statusLabelMap[poi.status!] || 'N/A'}</span>
-                    </div>
+                    {poi.status && <div className="flex justify-between"><span className="text-muted-foreground">Estado Operacional</span><span className="font-medium">{statusLabelMap[poi.status!] || 'N/A'}</span></div>}
                     {poi.lampType && <div className="flex justify-between"><span className="text-muted-foreground">Tipo de Lâmpada</span><span>{poi.lampType}</span></div>}
                     {poi.poleType && <div className="flex justify-between"><span className="text-muted-foreground">Tipo de Poste</span><span>{poi.poleType}</span></div>}
                     {poi.poleHeight && <div className="flex justify-between"><span className="text-muted-foreground">Altura</span><span>{poi.poleHeight}m</span></div>}
                     {poi.customData?.capacity && <div className="flex justify-between"><span className="text-muted-foreground">Capacidade</span><span>{poi.customData.capacity} kVA</span></div>}
+                    {poi.greenAreaType && <div className="flex justify-between"><span className="text-muted-foreground">Tipo de Área</span><span>{poi.greenAreaType}</span></div>}
+                    {poi.pestStatus && <div className="flex justify-between"><span className="text-muted-foreground">Estado Fitossanitário</span><span>{poi.pestStatus}</span></div>}
+                    {poi.lastPruning && <div className="flex justify-between"><span className="text-muted-foreground">Última Poda</span><span>{new Date(poi.lastPruning).toLocaleDateString('pt-PT')}</span></div>}
+                    {poi.lastIrrigation && <div className="flex justify-between"><span className="text-muted-foreground">Última Rega</span><span>{new Date(poi.lastIrrigation).toLocaleDateString('pt-PT')}</span></div>}
                  </div>
             </div>
         </>

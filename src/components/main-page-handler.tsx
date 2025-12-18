@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import * as React from "react";
@@ -20,7 +22,7 @@ import SanitationReport from "@/components/sanitation-report";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap, HardHat, DollarSign, Trees, Bike, MessagesSquare } from "lucide-react";
+import { LayoutDashboard, Megaphone, Plus, Trash, Siren, LightbulbOff, CircleDashed, Construction, Landmark, Droplet, Square, Settings, Droplets, GitBranch, ShieldCheck, Share2, Waves, Fuel, Hospital, Stethoscope, Package, Bus, ListTodo, Lightbulb, Zap, HardHat, DollarSign, Trees, Bike, MessagesSquare, BarChart, Users } from "lucide-react";
 import PointOfInterestDetails from "@/components/point-of-interest-details";
 import { usePoints } from "@/hooks/use-points";
 import { useSearchParams } from "next/navigation";
@@ -405,6 +407,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       position: newPointData.position,
       isPublic: newPointData.isPublic,
       updates: [{
+          id: `upd-${Date.now()}`,
           text: 'Ponto de saneamento mapeado.',
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -541,6 +544,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       priority: priority,
       status: 'unknown',
       updates: [{
+          id: `upd-${Date.now()}`,
           text: newPointData.description,
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -585,6 +589,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       incidentDate: data.incidentDate,
       isPublic: data.isPublic,
       updates: [{
+          id: `upd-${Date.now()}`,
           text: data.description,
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -629,6 +634,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       incidentDate: data.incidentDate,
       isPublic: data.isPublic,
       updates: [{
+          id: `upd-${Date.now()}`,
           text: data.description,
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -673,6 +679,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       endDate: newPointData.endDate,
       isPublic: newPointData.isPublic,
       updates: [{
+          id: `upd-${Date.now()}`,
           text: `Obra iniciada: ${newPointData.description}`,
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -727,6 +734,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       position: newPointData.position,
       isPublic: newPointData.isPublic,
       updates: [{
+          id: `upd-${Date.now()}`,
           text: `ATM Mapeado: ${newPointData.description}`,
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -782,6 +790,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       isPublic: newPointData.isPublic,
       customData: newPointData.customData,
       updates: [{
+          id: `upd-${Date.now()}`,
           text: `Posto mapeado: ${newPointData.description}`,
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -837,7 +846,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       greenSpaceCession: data.greenSpaceCession,
       isPublic: data.isPublic,
       updates: [{
-          id: `update-${Date.now()}`,
+          id: `upd-${Date.now()}`,
           text: 'Registo inicial do lote realizado.',
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -904,6 +913,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
           isPublic: data.isPublic,
           status: 'active',
           updates: [{
+              id: `upd-${Date.now()}`,
               text: `Croqui criado: ${data.title}`,
               authorId: user.uid,
               authorDisplayName: profile.displayName,
@@ -989,6 +999,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       polygon: data.polygon,
       customData: data.customData,
       updates: [{
+          id: `upd-${Date.now()}`,
           text: `Infraestrutura mapeada: ${data.description}`,
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -1029,6 +1040,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       lastReported: timestamp,
       status: 'active', // or 'unknown'
       updates: [{
+          id: `upd-${Date.now()}`,
           text: `Unidade sanitária mapeada: ${data.description}`,
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -1065,6 +1077,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
       description: `Área verde do tipo ${data.greenAreaType} com estado fitossanitário ${data.pestStatus}.`,
       ...data,
       updates: [{
+          id: `upd-${Date.now()}`,
           text: `Área verde mapeada.`,
           authorId: user.uid,
           authorDisplayName: profile.displayName,
@@ -1432,7 +1445,7 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
                                     <Megaphone className="mr-2 h-4 w-4" />
                                     Criar Anúncio
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleStartReporting('infrastructure')}>
+                                 <DropdownMenuItem onClick={() => handleStartReporting('infrastructure')}>
                                     <HardHat className="mr-2 h-4 w-4" />
                                     Mapear Infraestrutura
                                 </DropdownMenuItem>
@@ -1560,14 +1573,14 @@ export default function MainPageHandler({ userMenu }: { userMenu: React.ReactNod
         <LightingPoleReport
             open={activeSheet === 'lighting_pole'}
             onOpenChange={handleSheetOpenChange}
-            onLightingPoleSubmit={handleAddNewLightingPole}
+            onLightingPoleSubmit={poiToEdit ? updatePointDetails : handleAddNewLightingPole}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
         />
         <PTReport
             open={activeSheet === 'pt'}
             onOpenChange={handleSheetOpenChange}
-            onPTSubmit={handleAddNewPT}
+            onPTSubmit={poiToEdit ? updatePointDetails : handleAddNewPT}
             initialCenter={mapCenter}
             poiToEdit={poiToEdit}
         />
