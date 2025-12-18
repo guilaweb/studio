@@ -53,7 +53,10 @@ export function ReportsDataTable({ columns, data }: ReportsDataTableProps) {
     }, [date, table]);
     
     const csvData = React.useMemo(() => {
-        return table.getFilteredRowModel().rows.map(row => row.original);
+        return table.getFilteredRowModel().rows.map(row => {
+            const { id, vehicleId, ...rest } = row.original;
+            return rest;
+        });
     }, [table.getFilteredRowModel().rows]);
 
     const csvHeaders = [
@@ -62,9 +65,9 @@ export function ReportsDataTable({ columns, data }: ReportsDataTableProps) {
         { label: "Motorista", key: "driverName" },
         { label: "Tipo", key: "type" },
         { label: "Descrição", key: "description" },
-        { label: "Custo (AOA)", key: "cost" },
         { label: "Custo Peças (AOA)", key: "partsCost"},
         { label: "Custo Mão de Obra (AOA)", key: "laborCost"},
+        { label: "Custo Total (AOA)", key: "cost" },
     ];
     
     const isFiltered = table.getState().columnFilters.length > 0;
@@ -175,3 +178,5 @@ export function ReportsDataTable({ columns, data }: ReportsDataTableProps) {
     </div>
   )
 }
+
+    

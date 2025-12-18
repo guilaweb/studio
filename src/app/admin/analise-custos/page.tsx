@@ -42,8 +42,6 @@ function CostAnalysisPage() {
             type: 'Combustível',
             description: `${e.liters.toFixed(2)} L @ AOA ${(e.cost / e.liters).toFixed(2)}/L`,
             cost: e.cost,
-            partsCost: 0,
-            laborCost: 0,
         }));
 
         const maintenanceCosts: CostItem[] = allPoints
@@ -64,8 +62,8 @@ function CostAnalysisPage() {
         const allCosts = [...fuelCosts, ...maintenanceCosts].sort((a, b) => new Date(b.date!).getTime() - new Date(a.date!).getTime());
         
         const totalFuelCost = fuelCosts.reduce((acc, curr) => acc + curr.cost, 0);
-        const totalPartsCost = maintenanceCosts.reduce((acc, curr) => acc + curr.partsCost!, 0);
-        const totalLaborCost = maintenanceCosts.reduce((acc, curr) => acc + curr.laborCost!, 0);
+        const totalPartsCost = maintenanceCosts.reduce((acc, curr) => acc + (curr.partsCost || 0), 0);
+        const totalLaborCost = maintenanceCosts.reduce((acc, curr) => acc + (curr.laborCost || 0), 0);
         const totalMaintenanceCost = totalPartsCost + totalLaborCost;
         const totalCost = totalFuelCost + totalMaintenanceCost;
 
@@ -92,8 +90,8 @@ function CostAnalysisPage() {
                 performanceScore: user.stats?.performanceScore || 0,
                 // for bar chart
                 Combustível: fuelCost,
-                'Peças': userMaintenanceCosts.reduce((s, m) => s + m.partsCost!, 0),
-                'Mão de Obra': userMaintenanceCosts.reduce((s, m) => s + m.laborCost!, 0),
+                'Peças': userMaintenanceCosts.reduce((s, m) => s + (m.partsCost || 0), 0),
+                'Mão de Obra': userMaintenanceCosts.reduce((s, m) => s + (m.laborCost || 0), 0),
             }
         }).filter(d => d.totalDistance > 0);
 
@@ -225,3 +223,5 @@ function CostAnalysisPage() {
 }
 
 export default withAuth(CostAnalysisPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);
+
+    

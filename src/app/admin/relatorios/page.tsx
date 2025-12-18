@@ -41,7 +41,7 @@ function FinancialReportsPage() {
             type: 'Combustível',
             description: `${e.liters.toFixed(2)} L @ AOA ${(e.cost / e.liters).toFixed(2)}/L`,
             cost: e.cost,
-            partsCost: 0,
+            partsCost: e.cost, // For fuel, partsCost can be the total cost
             laborCost: 0,
         }));
 
@@ -100,3 +100,5 @@ function FinancialReportsPage() {
 }
 
 export default withAuth(FinancialReportsPage, ['Agente Municipal', 'Administrador', 'Super Administrador']);
+
+    
