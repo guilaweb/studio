@@ -147,6 +147,7 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
                                 <DropdownMenuItem asChild><Link href="/admin/equipa">Gestão de Equipa</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/equipa/minhas-tarefas">Minhas Tarefas</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/abastecimento">Registar Abastecimento</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/admin/manutencao">Gestão de Manutenção</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/analise-custos">Análise de Custos</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/relatorios">Relatórios Financeiros</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild><Link href="/admin/inventario">Inventário de Peças</Link></DropdownMenuItem>
@@ -274,7 +275,3 @@ export function UserMenu({ user, loading, logout, profile }: UserMenuProps) {
         </DropdownMenu>
     )
   }
-
-    
-
-    
