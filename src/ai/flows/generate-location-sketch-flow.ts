@@ -77,6 +77,3 @@ const generateLocationSketchFlow = ai.defineFlow(
         };
     }
 );
-
-
-

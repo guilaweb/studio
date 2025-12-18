@@ -26,7 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { CroquiPoint, PointOfInterest } from "@/lib/data";
 import { Map, AdvancedMarker, Pin, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { MapPin, Share2, PlusCircle, X, Trash2, Locate, Building, Tent, Tractor, Route, AppWindow, Package } from "lucide-react";
+import { MapPin, Share2, PlusCircle, X, Trash2, Locate, Building, Tent, Tractor, Route, AppWindow, Package, FileSignature } from "lucide-react";
 import { Input } from "./ui/input";
 import {
   AlertDialog,
@@ -45,6 +45,8 @@ import { Card } from "./ui/card";
 import DirectionsRenderer from "./directions-renderer";
 import { Switch } from "./ui/switch";
 import { useAuth } from "@/hooks/use-auth";
+import { generateLocationSketch } from "@/services/sketch-service";
+import { Loader2 } from "lucide-react";
 
 
 const formSchema = z.object({
@@ -172,6 +174,7 @@ export default function CroquiReport({
   const [coords, setCoords] = useState('');
   const { toast } = useToast();
   const { profile } = useAuth();
+  const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -344,6 +347,41 @@ export default function CroquiReport({
 
     toast({ variant: 'destructive', title: 'Formato de Coordenadas Inválido', description: 'Use o formato "-14.13, 14.67" ou \'14°07..."S 14°40..."E\'' });
   };
+  
+    const handleGenerateDocument = async () => {
+        const values = form.getValues();
+        const croquiData = {
+            ...poiToEdit,
+            ...values,
+            croquiPoints: referencePoints,
+            croquiRoute: drawnRoute?.getPath().getArray().map(p => p.toJSON()),
+            polygon: drawnPolygon?.getPath().getArray().map(p => p.toJSON()),
+            customData: {
+                requesterName: values.requesterName,
+                province: values.province,
+                municipality: values.municipality,
+                technicianName: values.technicianName,
+                technicianId: values.technicianId,
+                surveyDate: values.surveyDate,
+            }
+        };
+
+        setIsGeneratingDoc(true);
+        try {
+            const result = await generateLocationSketch({ croqui: croquiData as PointOfInterest });
+            localStorage.setItem('sketchPreview', result.sketchHtml);
+            window.open('/licenca/sketch-preview', '_blank');
+        } catch (error) {
+             toast({
+                variant: "destructive",
+                title: "Erro ao Gerar Documento",
+                description: "Não foi possível gerar o croqui. Tente novamente.",
+            });
+        } finally {
+            setIsGeneratingDoc(false);
+        }
+    };
+
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     if (!croquiType) {
@@ -532,9 +570,19 @@ export default function CroquiReport({
                       </div>
 
                   </div>
-                  <SheetFooter className="p-6 pt-4 border-t bg-background">
-                      <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                      <Button type="submit"><Package className="mr-2 h-4 w-4" />{submitButtonText}</Button>
+                  <SheetFooter className="p-6 pt-4 border-t bg-background flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2">
+                       <div>
+                         {isEdit && (
+                             <Button type="button" variant="secondary" onClick={handleGenerateDocument} disabled={isGeneratingDoc}>
+                                {isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <FileSignature className="mr-2 h-4 w-4"/>}
+                                Ver Documento
+                            </Button>
+                         )}
+                      </div>
+                      <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+                        <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                        <Button type="submit"><Package className="mr-2 h-4 w-4" />{submitButtonText}</Button>
+                      </div>
                   </SheetFooter>
               </form>
               </Form>
@@ -562,5 +610,3 @@ export default function CroquiReport({
     </>
   );
 }
-
-    
