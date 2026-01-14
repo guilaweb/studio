@@ -6,7 +6,7 @@ import { withAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Layers, PieChart, Trash2, Search } from "lucide-react";
+import { ArrowLeft, Layers, PieChart, Trash2, Search, StretchHorizontal } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import { usePoints } from "@/hooks/use-points";
 import DrawingManager from "@/components/drawing-manager";
@@ -18,6 +18,7 @@ interface AnalysisResult {
     totalPoints: number;
     pointsByType: Record<string, number>;
     area: number; // in square meters
+    perimeter: number; // in meters
 }
 
 
@@ -68,11 +69,13 @@ function TerritoryAnalysisPage() {
         }, {} as Record<string, number>);
         
         const area = geometry.spherical.computeArea(path);
+        const perimeter = geometry.spherical.computeLength(path);
         
         setAnalysisResult({
             totalPoints: pointsInside.length,
             pointsByType,
-            area
+            area,
+            perimeter,
         });
     };
     
@@ -114,13 +117,19 @@ function TerritoryAnalysisPage() {
                                 </Button>
                                 {analysisResult ? (
                                     <>
-                                        <div className="p-3 bg-primary/10 rounded-md">
-                                            <p className="font-bold text-primary">{analysisResult.totalPoints.toLocaleString('pt-PT')}</p>
-                                            <p className="text-xs font-semibold text-primary/80">Total de Pontos Encontrados</p>
-                                        </div>
-                                         <div className="p-3 bg-muted rounded-md">
-                                            <p className="font-bold">{(analysisResult.area / 10000).toFixed(2).toLocaleString('pt-PT')} ha</p>
-                                            <p className="text-xs font-semibold text-muted-foreground">Área Analisada (hectares)</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="p-3 bg-primary/10 rounded-md">
+                                                <p className="font-bold text-primary">{analysisResult.totalPoints.toLocaleString('pt-PT')}</p>
+                                                <p className="text-xs font-semibold text-primary/80">Total de Pontos</p>
+                                            </div>
+                                             <div className="p-3 bg-muted rounded-md">
+                                                <p className="font-bold">{(analysisResult.area / 10000).toFixed(2)} ha</p>
+                                                <p className="text-xs font-semibold text-muted-foreground">Área (hectares)</p>
+                                            </div>
+                                             <div className="p-3 bg-muted rounded-md col-span-2">
+                                                <p className="font-bold">{(analysisResult.perimeter / 1000).toFixed(3)} km</p>
+                                                <p className="text-xs font-semibold text-muted-foreground">Perímetro</p>
+                                            </div>
                                         </div>
                                         <h4 className="font-semibold text-sm pt-2">Detalhes por Tipo:</h4>
                                         <div className="space-y-1 text-sm">
