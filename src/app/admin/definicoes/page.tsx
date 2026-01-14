@@ -197,8 +197,8 @@ function AdminSettingsPage() {
                 </header>
                 <main className="flex-1 items-start gap-6 p-4 sm:px-6 sm:py-6">
                     <Tabs defaultValue="maintenance">
-                        <TabsList>
-                            <TabsTrigger value="maintenance">Manutenção da Frota</TabsTrigger>
+                        <TabsList className="grid w-full grid-cols-4">
+                            <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
                             <TabsTrigger value="gis">Camadas GIS</TabsTrigger>
                             <TabsTrigger value="geofencing">Cercas Virtuais</TabsTrigger>
                             <TabsTrigger value="subscription">Planos SaaS</TabsTrigger>
@@ -412,4 +412,3 @@ function AdminSettingsPage() {
 
 export default withAuth(AdminSettingsPage, ['Administrador', 'Super Administrador']);
 
-    
