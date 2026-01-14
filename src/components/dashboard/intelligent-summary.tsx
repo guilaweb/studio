@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from '@/hooks/use-toast';
 import { PointOfInterest, DashboardStats } from '@/lib/data';
-import { Wand2 } from 'lucide-react';
+import { Wand2, RefreshCw } from 'lucide-react';
 import { generateDashboardSummary } from '@/ai/flows/generate-dashboard-summary-flow';
 import { getIntelligentAlerts } from '@/services/alert-service';
+import { Button } from '../ui/button';
 
 interface IntelligentSummaryProps {
     allData: PointOfInterest[];
@@ -51,57 +52,53 @@ const getDashboardStats = (allData: PointOfInterest[]): DashboardStats | null =>
 
 
 const IntelligentSummary: React.FC<IntelligentSummaryProps> = ({ allData }) => {
-    const [summary, setSummary] = React.useState<string>("");
-    const [loading, setLoading] = React.useState(true);
+    const [summary, setSummary] = React.useState<string>("Clique em 'Atualizar Sumário' para gerar uma análise com IA dos dados atuais.");
+    const [loading, setLoading] = React.useState(false);
     const { toast } = useToast();
 
-    React.useEffect(() => {
-        const fetchSummary = async () => {
-            const stats = getDashboardStats(allData);
+    const fetchSummary = async () => {
+        const stats = getDashboardStats(allData);
 
-            if (!stats) {
-                setSummary("Ainda não existem dados suficientes para gerar um sumário.");
-                setLoading(false);
-                return;
-            }
+        if (!stats) {
+            setSummary("Ainda não existem dados suficientes para gerar um sumário.");
+            setLoading(false);
+            return;
+        }
+        
+        setLoading(true);
+        try {
+            const result = await generateDashboardSummary({ 
+                stats: stats
+            });
+            setSummary(result.summary);
+        } catch (error: any) {
+            console.error("Error generating summary:", error);
+            const errorMessage = "Não foi possível gerar o sumário executivo.";
             
-            setLoading(true);
-            try {
-                const result = await generateDashboardSummary({ 
-                    stats: stats
+            if (error.message && (error.message.includes('503') || error.message.includes('429'))) {
+                setSummary(`${errorMessage} O serviço de IA parece estar sobrecarregado. Tente novamente mais tarde.`);
+                 toast({
+                    variant: "destructive",
+                    title: "Serviço de IA Indisponível",
+                    description: "O modelo de IA está sobrecarregado. Por favor, tente novamente mais tarde.",
                 });
-                setSummary(result.summary);
-            } catch (error: any) {
-                console.error("Error generating summary:", error);
-                const errorMessage = "Não foi possível gerar o sumário executivo.";
-                
-                if (error.message && (error.message.includes('503') || error.message.includes('429'))) {
-                    setSummary(`${errorMessage} O serviço de IA parece estar sobrecarregado.`);
-                     toast({
-                        variant: "destructive",
-                        title: "Serviço de IA Indisponível",
-                        description: "O modelo de IA está sobrecarregado. Por favor, tente novamente mais tarde.",
-                    });
-                } else {
-                     setSummary(`${errorMessage} Por favor, tente recarregar a página.`);
-                     toast({
-                        variant: "destructive",
-                        title: "Erro de IA",
-                        description: "Houve um problema ao gerar o sumário do painel.",
-                    });
-                }
-            } finally {
-                setLoading(false);
+            } else {
+                 setSummary(`${errorMessage} Por favor, tente recarregar a página.`);
+                 toast({
+                    variant: "destructive",
+                    title: "Erro de IA",
+                    description: "Houve um problema ao gerar o sumário do painel.",
+                });
             }
-        };
-
-        fetchSummary();
-    }, [allData, toast]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
 
     return (
         <Card className="border-primary/20 bg-primary/5 dark:bg-primary/10">
-            <CardHeader>
+            <CardHeader className="flex-row items-start justify-between">
                 <div className="flex items-center gap-3">
                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                         <Wand2 className="h-6 w-6 text-primary" />
@@ -113,12 +110,17 @@ const IntelligentSummary: React.FC<IntelligentSummaryProps> = ({ allData }) => {
                         </CardDescription>
                     </div>
                 </div>
+                 <Button variant="outline" size="sm" onClick={fetchSummary} disabled={loading}>
+                    <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                    {loading ? 'A Analisar...' : 'Atualizar Sumário'}
+                </Button>
             </CardHeader>
             <CardContent>
                 {loading ? (
                     <div className="space-y-2">
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-4 w-[80%]" />
+                         <Skeleton className="h-4 w-[90%]" />
                     </div>
                 ) : (
                     <p className="text-sm text-foreground/90 whitespace-pre-wrap">{summary}</p>
