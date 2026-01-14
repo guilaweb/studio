@@ -138,8 +138,24 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      // The useAuth hook will now handle creating the user document if it doesn't exist.
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // Check if this is a new user
+      const additionalUserInfo = getAdditionalUserInfo(result);
+      if (additionalUserInfo?.isNewUser) {
+        // Create a user profile document in Firestore
+        const userDocRef = doc(db, "users", user.uid);
+        await setDoc(userDocRef, {
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            role: 'Cidadao', // Default role
+            createdAt: new Date().toISOString(),
+        });
+      }
+
       toast({
         title: "Login com Google bem-sucedido!",
         description: "Bem-vindo.",
