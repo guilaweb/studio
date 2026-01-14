@@ -14,7 +14,7 @@ interface CsvExportButtonProps {
 
 const CsvExportButton: React.FC<CsvExportButtonProps> = ({ table }) => {
     const csvData = React.useMemo(() => {
-        return table.getRowModel().rows.map(row => ({
+        return table.getFilteredRowModel().rows.map(row => ({
             ID: row.original.id,
             Titulo: row.original.title,
             Tipo: typeLabelMap[row.original.type] || row.original.type,
@@ -26,7 +26,7 @@ const CsvExportButton: React.FC<CsvExportButtonProps> = ({ table }) => {
             DataReporte: row.original.lastReported ? new Date(row.original.lastReported).toLocaleString('pt-PT') : '',
             Autor: row.original.authorDisplayName,
         }));
-    }, [table.getRowModel().rows]);
+    }, [table.getFilteredRowModel().rows]);
 
     const headers = [
         { label: "ID", key: "ID" },
